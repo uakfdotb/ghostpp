@@ -465,8 +465,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 	bool Whisper = ( Event == CBNETProtocol :: EID_WHISPER );
 	string User = chatEvent->GetUser( );
 	string Message = chatEvent->GetMessage( );
-	string UserLower = User;
-	transform( UserLower.begin( ), UserLower.end( ), UserLower.begin( ), (int(*)(int))tolower );
 
 	if( Event == CBNETProtocol :: EID_WHISPER || Event == CBNETProtocol :: EID_TALK )
 	{
@@ -503,7 +501,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 			transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 
-			if( m_GHost->m_DB->AdminCheck( m_Server, User ) || UserLower == m_RootAdmin )
+			if( m_GHost->m_DB->AdminCheck( m_Server, User ) || IsRootAdmin( User ) )
 			{
 				CONSOLE_Print( "[BNET: " + m_Server + "] admin [" + User + "] sent command [" + Message + "]" );
 
@@ -517,7 +515,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "addadmin" && !Payload.empty( ) )
 				{
-					if( UserLower == m_RootAdmin )
+					if( IsRootAdmin( User ) )
 					{
 						if( m_GHost->m_DB->AdminCheck( m_Server, Payload ) )
 							QueueChatCommand( m_GHost->m_Language->UserIsAlreadyAnAdmin( m_Server, Payload ), User, Whisper );
@@ -588,7 +586,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "checkadmin" && !Payload.empty( ) )
 				{
-					if( UserLower == m_RootAdmin )
+					if( IsRootAdmin( User ) )
 					{
 						if( m_GHost->m_DB->AdminCheck( m_Server, Payload ) )
 							QueueChatCommand( m_GHost->m_Language->UserIsAnAdmin( m_Server, Payload ), User, Whisper );
@@ -698,7 +696,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "deladmin" && !Payload.empty( ) )
 				{
-					if( UserLower == m_RootAdmin )
+					if( IsRootAdmin( User ) )
 					{
 						if( !m_GHost->m_DB->AdminCheck( m_Server, Payload ) )
 							QueueChatCommand( m_GHost->m_Language->UserIsNotAnAdmin( m_Server, Payload ), User, Whisper );
@@ -754,7 +752,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "exit" || Command == "quit" )
 				{
-					if( UserLower == m_RootAdmin )
+					if( IsRootAdmin( User ) )
 					{
 						if( Payload == "force" )
 							m_Exiting = true;
@@ -1072,7 +1070,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			// in some cases the queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
 			// e.g. when several users join a game at the same time and cause multiple /whois messages to be queued at once
 
-			if( m_GHost->m_DB->AdminCheck( m_Server, User ) || UserLower == m_RootAdmin || m_ChatCommands.size( ) <= 3 )
+			if( m_GHost->m_DB->AdminCheck( m_Server, User ) || IsRootAdmin( User ) || m_ChatCommands.size( ) <= 3 )
 			{
 				//
 				// !STATS
@@ -1126,7 +1124,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "version" )
 				{
-					if( m_GHost->m_DB->AdminCheck( m_Server, User ) || UserLower == m_RootAdmin )
+					if( m_GHost->m_DB->AdminCheck( m_Server, User ) || IsRootAdmin( User ) )
 						QueueChatCommand( m_GHost->m_Language->VersionAdmin( m_GHost->m_Version ), User, Whisper );
 					else
 						QueueChatCommand( m_GHost->m_Language->VersionNotAdmin( m_GHost->m_Version ), User, Whisper );
@@ -1214,7 +1212,7 @@ void CBNET :: SendChatCommand( string chatCommand )
 	if( m_LoggedIn )
 	{
 		if( chatCommand.size( ) > 220 )
-			chatCommand = chatCommand.substr( 220 );
+			chatCommand = chatCommand.substr( 0, 220 );
 
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
 	}

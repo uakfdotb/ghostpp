@@ -114,7 +114,7 @@ CGHostDBSQLite :: CGHostDBSQLite( ) : CGHostDB( )
 		// setting m_HasError to true indicates there's been a critical error and we want GHost to shutdown
 		// this is okay here because we're in the constructor so we're not dropping any games or players
 
-		CONSOLE_Print( string( "[SQLITE3] error opening database [" + m_File + "] - " ) + sqlite3_errmsg( (sqlite3 *)m_DB ) );
+		CONSOLE_Print( string( "[SQLITE3] error opening database [" + m_File + "] - " ) + m_DB->GetError( ) );
 		m_HasError = true;
 		m_Error = "error opening database";
 		return;
@@ -755,8 +755,17 @@ CDBGamePlayerSummary *CGHostDBSQLite :: GamePlayerSummaryCheck( string name )
 		{
 			if( sqlite3_column_count( (sqlite3_stmt *)Statement ) == 12 )
 			{
-				string FirstGameDateTime = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, 0 );
-				string LastGameDateTime = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, 1 );
+				char *First = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, 0 );
+				char *Last = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, 1 );
+				string FirstGameDateTime;
+				string LastGameDateTime;
+
+				if( First )
+					FirstGameDateTime = First;
+
+				if( Last )
+					LastGameDateTime = Last;
+
 				uint32_t TotalGames = sqlite3_column_int( (sqlite3_stmt *)Statement, 2 );
 				uint32_t MinLoadingTime = sqlite3_column_int( (sqlite3_stmt *)Statement, 3 );
 				uint32_t AvgLoadingTime = sqlite3_column_int( (sqlite3_stmt *)Statement, 4 );

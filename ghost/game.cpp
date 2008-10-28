@@ -529,7 +529,7 @@ void CBaseGame :: SendChat( unsigned char fromPID, CGamePlayer *player, string m
 		if( !m_GameLoaded )
 		{
 			if( message.size( ) > 220 )
-				message = message.substr( 220 );
+				message = message.substr( 0, 220 );
 
 			Send( player, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, UTIL_CreateByteArray( player->GetPID( ) ), 16, BYTEARRAY( ), message ) );
 		}
@@ -545,7 +545,7 @@ void CBaseGame :: SendChat( unsigned char fromPID, CGamePlayer *player, string m
 				ExtraFlags[0] = 3 + m_Slots[SID].GetColour( );
 
 			if( message.size( ) > 120 )
-				message = message.substr( 120 );
+				message = message.substr( 0, 120 );
 
 			Send( player, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, UTIL_CreateByteArray( player->GetPID( ) ), 32, UTIL_CreateByteArray( ExtraFlags, 4 ), message ) );
 		}
@@ -576,7 +576,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 		if( !m_GameLoaded )
 		{
 			if( message.size( ) > 220 )
-				message = message.substr( 220 );
+				message = message.substr( 0, 220 );
 
 			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 16, BYTEARRAY( ), message ) );
 		}
@@ -585,7 +585,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 			unsigned char ExtraFlags[] = { 0, 0, 0, 0 };
 
 			if( message.size( ) > 120 )
-				message = message.substr( 120 );
+				message = message.substr( 0, 120 );
 
 			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 32, UTIL_CreateByteArray( ExtraFlags, 4 ), message ) );
 		}
@@ -2128,7 +2128,7 @@ void CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 
 	// give the stats class a chance to process the action
 
-	if( m_Stats && m_Stats->ProcessAction( action ) && m_GameOverTime != 0 )
+	if( m_Stats && m_Stats->ProcessAction( action ) && m_GameOverTime == 0 )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] stats class reported game over" );
 		m_GameOverTime = GetTime( );
