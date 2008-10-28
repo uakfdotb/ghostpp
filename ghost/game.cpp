@@ -227,7 +227,7 @@ bool CBaseGame :: Update( void *fd )
 		// todotodo: should we send a game cancel message somewhere? we'll need to implement a host counter for it to work
 
 		if( !m_CountDownStarted )
-			m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_Map->GetMapGameType( ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), m_Slots.size( ) + 1, m_Slots.size( ) + 1, m_HostPort, m_HostCounter ) );
+			m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_Map->GetMapGameType( ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), m_Slots.size( ), m_Slots.size( ), m_HostPort, m_HostCounter ) );
 
 		m_LastPingTime = GetTime( );
 	}
@@ -3012,8 +3012,10 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					// so we lie and pretend all the slots are open (which Warcraft 3 interprets as there being one player in the game)
 					// then if the game really is full they'll be rejected when they try to join
 					// updated: we now send SlotsTotal + 1 because Warcraft 3 doesn't allocate enough PID's to allow the virtual host player unless we lie (again)
+					// updated again: we now send correct slot totals again because sending a slot total greater than 12 causes "bad things" to happen (e.g. Warcraft 3 crashes when sharing control of units)
+					// this is okay because we automatically remove the virtual host player when the 12th player joins
 
-					m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_Map->GetMapGameType( ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), m_Slots.size( ) + 1, m_Slots.size( ) + 1, m_HostPort, m_HostCounter ) );
+					m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_Map->GetMapGameType( ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), m_Slots.size( ), m_Slots.size( ), m_HostPort, m_HostCounter ) );
 				}
 			}
 
