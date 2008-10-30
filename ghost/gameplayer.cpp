@@ -46,6 +46,12 @@ CPotentialPlayer :: ~CPotentialPlayer( )
 {
 	if( m_Socket )
 		delete m_Socket;
+
+	while( !m_Packets.empty( ) )
+	{
+		delete m_Packets.front( );
+		m_Packets.pop( );
+	}
 }
 
 BYTEARRAY CPotentialPlayer :: GetExternalIP( )

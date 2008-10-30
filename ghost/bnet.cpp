@@ -71,7 +71,20 @@ CBNET :: ~CBNET( )
 {
 	delete m_Socket;
 	delete m_Protocol;
+
+	while( !m_Packets.empty( ) )
+	{
+		delete m_Packets.front( );
+		m_Packets.pop( );
+	}
+
 	delete m_BNCSUtil;
+
+	for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
+		delete *i;
+
+	for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
+		delete *i;
 }
 
 BYTEARRAY CBNET :: GetUniqueName( )
@@ -236,6 +249,8 @@ void CBNET :: ProcessPackets( )
 {
 	CIncomingGameHost *GameHost = NULL;
 	CIncomingChatEvent *ChatEvent = NULL;
+	vector<CIncomingFriendList *> Friends;
+	vector<CIncomingClanList *> Clans;
 
 	// process all the received packets in the m_Packets queue
 	// this normally means sending some kind of response
@@ -423,6 +438,8 @@ void CBNET :: ProcessPackets( )
 					m_GHost->EventBNETLoggedIn( this );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_NETGAMEPORT( m_GHost->m_HostPort ) );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_ENTERCHAT( ) );
+					m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
+					m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 				}
 				else
 				{
@@ -446,11 +463,31 @@ void CBNET :: ProcessPackets( )
 				break;
 
 			case CBNETProtocol :: SID_FRIENDSLIST:
-				// todotodo: RaiseEvent EventIncomingFriendList(bnet.RECEIVE_SID_FRIENDSLIST(command.GetPacketData))
+				Friends = m_Protocol->RECEIVE_SID_FRIENDSLIST( Packet->GetData( ) );
+
+				for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
+					delete *i;
+
+				m_Friends = Friends;
+
+				/* DEBUG_Print( "received " + UTIL_ToString( Friends.size( ) ) + " friends" );
+				for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
+					DEBUG_Print( "friend: " + (*i)->GetAccount( ) ); */
+
 				break;
 
 			case CBNETProtocol :: SID_CLANMEMBERLIST:
-				// todotodo: RaiseEvent EventIncomingClanList(bnet.RECEIVE_SID_CLANMEMBERLIST(command.GetPacketData))
+				vector<CIncomingClanList *> Clans = m_Protocol->RECEIVE_SID_CLANMEMBERLIST( Packet->GetData( ) );
+
+				for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
+					delete *i;
+
+				m_Clans = Clans;
+
+				/* DEBUG_Print( "received " + UTIL_ToString( Clans.size( ) ) + " clan members" );
+				for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
+					DEBUG_Print( "clan member: " + (*i)->GetName( ) ); */
+
 				break;
 			}
 		}

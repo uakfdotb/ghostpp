@@ -829,6 +829,14 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		SendAllChat( m_GHost->m_Language->CountDownAborted( ) );
 		m_CountDownStarted = false;
 	}
+
+	// auto lock the game
+
+	if( m_GHost->m_AutoLock && !m_Locked && IsOwner( joinPlayer->GetName( ) ) )
+	{
+		SendAllChat( m_GHost->m_Language->GameLocked( ) );
+		m_Locked = true;
+	}
 }
 
 void CBaseGame :: EventPlayerLeft( CGamePlayer *player )
@@ -2051,6 +2059,7 @@ public:
 
 CGame :: CGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer )
 {
+	m_DBBanLast = NULL;
 	m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
 
 	if( m_Map->GetMapType( ) == "dota" )
@@ -2119,6 +2128,14 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		}
 
 		m_DBGamePlayers.push_back( new CDBGamePlayer( 0, 0, player->GetName( ), player->GetExternalIPString( ), player->GetSpoofed( ) ? 1 : 0, player->GetSpoofedRealm( ), player->GetReserved( ) ? 1 : 0, player->GetFinishedLoading( ) ? player->GetFinishedLoadingTicks( ) - m_StartedLoadingTicks : 0, GetTime( ) - m_StartedLoadingTime, player->GetLeftReason( ), Team, Colour ) );
+
+		// also keep track of the last player to leave for the !banlast command
+
+		for( vector<CDBBan *> :: iterator i = m_DBBans.begin( ); i != m_DBBans.end( ); i++ )
+		{
+			if( (*i)->GetName( ) == player->GetName( ) )
+				m_DBBanLast = *i;
+		}
 	}
 }
 
@@ -2141,7 +2158,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	// todotodo: don't be lazy
 
-	string User = player->GetName( );;
+	string User = player->GetName( );
 	string Command = command;
 	string Payload = payload;
 
@@ -2238,14 +2255,14 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					{
 						// the user was spoof checked, ban only on the spoofed realm
 
-						m_GHost->m_DB->BanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), LastMatch->GetGameName( ), User, Reason );
+						m_GHost->m_DB->BanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason );
 					}
 					else
 					{
 						// the user wasn't spoof checked, ban on every realm
 
 						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-							m_GHost->m_DB->BanAdd( (*i)->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), LastMatch->GetGameName( ), User, Reason );
+							m_GHost->m_DB->BanAdd( (*i)->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason );
 					}
 
 					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + User + "]" );
@@ -2298,6 +2315,30 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				}
 				else
 					m_AnnounceMessage.clear( );
+			}
+
+			//
+			// !BANLAST
+			//
+
+			if( Command == "banlast" && m_GameLoaded && !m_GHost->m_BNETs.empty( ) && m_DBBanLast )
+			{
+				if( !m_DBBanLast->GetServer( ).empty( ) )
+				{
+					// the user was spoof checked, ban only on the spoofed realm
+
+					m_GHost->m_DB->BanAdd( m_DBBanLast->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Payload );
+				}
+				else
+				{
+					// the user wasn't spoof checked, ban on every realm
+
+					for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+						m_GHost->m_DB->BanAdd( (*i)->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Payload );
+				}
+
+				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + m_DBBanLast->GetName( ) + "] was banned by player [" + User + "]" );
+				SendAllChat( m_GHost->m_Language->PlayerWasBannedByPlayer( m_DBBanLast->GetName( ), User ) );
 			}
 
 			//
@@ -3214,7 +3255,7 @@ void CGame :: EventGameStarted( )
 	// so we create a "potential ban" for each player and only store it in the database if requested to by an admin
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		m_DBBans.push_back( new CDBBan( (*i)->GetSpoofedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), m_GameName, string( ), string( ) ) );
+		m_DBBans.push_back( new CDBBan( (*i)->GetSpoofedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ) ) );
 }
 
 //

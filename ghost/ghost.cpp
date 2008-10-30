@@ -244,6 +244,7 @@ CGHost :: CGHost( )
 	m_MapPath = CFG_GetString( "bot_mappath", string( ) );
 	m_SpoofChecks = CFG_GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
 	m_RefreshMessages = CFG_GetInt( "bot_refreshmessages", 1 ) == 0 ? false : true;
+	m_AutoLock = CFG_GetInt( "bot_autolock", 0 ) == 0 ? false : true;
 	m_AllowDownloads = CFG_GetInt( "bot_allowdownloads", 0 );
 	m_PingDuringDownloads = CFG_GetInt( "bot_pingduringdownloads", 0 ) == 0 ? false : true;
 	m_LCPings = CFG_GetInt( "bot_lcpings", 1 ) == 0 ? false : true;

@@ -29,6 +29,8 @@ class CTCPClient;
 class CCommandPacket;
 class CBNCSUtilInterface;
 class CBNETProtocol;
+class CIncomingFriendList;
+class CIncomingClanList;
 class CIncomingChatEvent;
 
 class CBNET
@@ -37,30 +39,32 @@ public:
 	CGHost *m_GHost;
 
 private:
-	CTCPClient *m_Socket;				// the connection to battle.net
-	CBNETProtocol *m_Protocol;			// battle.net protocol
-	queue<CCommandPacket *> m_Packets;	// queue of incoming packets
-	CBNCSUtilInterface *m_BNCSUtil;		// the interface to the bncsutil library (used for logging into battle.net)
-	queue<string> m_ChatCommands;		// queue of chat commands waiting to be sent (to prevent getting kicked for flooding)
-	bool m_Exiting;						// set to true and this class will be deleted next update
-	string m_Server;					// battle.net server to connect to
-	string m_CDKeyROC;					// ROC CD key
-	string m_CDKeyTFT;					// TFT CD key
-	string m_UserName;					// battle.net username
-	string m_UserPassword;				// battle.net password
-	string m_FirstChannel;				// the first chat channel to join upon entering chat (note: we hijack this to store the last channel when entering a game)
-	string m_CurrentChannel;			// the current chat channel
-	string m_RootAdmin;					// the root admin
-	char m_CommandTrigger;				// the character prefix to identify commands
-	unsigned char m_War3Version;		// custom warcraft 3 version for PvPGN users
-	BYTEARRAY m_EXEVersion;				// custom exe version for PvPGN users
-	BYTEARRAY m_EXEVersionHash;			// custom exe version hash for PvPGN users
-	string m_PasswordHashType;			// password hash type for PvPGN users
-	uint32_t m_NextConnectTime;			// GetTime when we should try connecting to battle.net next (after we get disconnected)
-	uint32_t m_LastChatCommandTime;		// GetTime when the last chat command was sent for the m_ChatCommands queue
-	bool m_WaitingToConnect;			// if we're waiting to reconnect to battle.net after being disconnected
-	bool m_LoggedIn;					// if we've logged into battle.net or not
-	bool m_InChat;						// if we've entered chat or not (but we're not necessarily in a chat channel yet)
+	CTCPClient *m_Socket;						// the connection to battle.net
+	CBNETProtocol *m_Protocol;					// battle.net protocol
+	queue<CCommandPacket *> m_Packets;			// queue of incoming packets
+	CBNCSUtilInterface *m_BNCSUtil;				// the interface to the bncsutil library (used for logging into battle.net)
+	queue<string> m_ChatCommands;				// queue of chat commands waiting to be sent (to prevent getting kicked for flooding)
+	vector<CIncomingFriendList *> m_Friends;	// vector of friends
+	vector<CIncomingClanList *> m_Clans;		// vector of clan members
+	bool m_Exiting;								// set to true and this class will be deleted next update
+	string m_Server;							// battle.net server to connect to
+	string m_CDKeyROC;							// ROC CD key
+	string m_CDKeyTFT;							// TFT CD key
+	string m_UserName;							// battle.net username
+	string m_UserPassword;						// battle.net password
+	string m_FirstChannel;						// the first chat channel to join upon entering chat (note: we hijack this to store the last channel when entering a game)
+	string m_CurrentChannel;					// the current chat channel
+	string m_RootAdmin;							// the root admin
+	char m_CommandTrigger;						// the character prefix to identify commands
+	unsigned char m_War3Version;				// custom warcraft 3 version for PvPGN users
+	BYTEARRAY m_EXEVersion;						// custom exe version for PvPGN users
+	BYTEARRAY m_EXEVersionHash;					// custom exe version hash for PvPGN users
+	string m_PasswordHashType;					// password hash type for PvPGN users
+	uint32_t m_NextConnectTime;					// GetTime when we should try connecting to battle.net next (after we get disconnected)
+	uint32_t m_LastChatCommandTime;				// GetTime when the last chat command was sent for the m_ChatCommands queue
+	bool m_WaitingToConnect;					// if we're waiting to reconnect to battle.net after being disconnected
+	bool m_LoggedIn;							// if we've logged into battle.net or not
+	bool m_InChat;								// if we've entered chat or not (but we're not necessarily in a chat channel yet)
 
 public:
 	CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType );
