@@ -64,10 +64,10 @@ CMap :: CMap( CGHost *nGHost )
 	m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 11, 11, SLOTRACE_RANDOM ) );
 }
 
-CMap :: CMap( CGHost *nGHost, string cfg )
+CMap :: CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile )
 {
 	m_GHost = nGHost;
-	Load( cfg );
+	Load( CFG, nCFGFile );
 }
 
 CMap :: ~CMap( )
@@ -149,15 +149,13 @@ BYTEARRAY CMap :: GetMapGameFlags( )
 	return UTIL_CreateByteArray( GameFlags, false );
 }
 
-void CMap :: Load( string cfgFile )
+void CMap :: Load( CConfig *CFG, string nCFGFile )
 {
-	m_CFG.clear( );
-	CFG_Read( m_CFG, cfgFile );
-	m_CFGFile = cfgFile;
+	m_CFGFile = nCFGFile;
 
 	// load the map data
 
-	m_MapLocalPath = CFG_GetString( m_CFG, "map_localpath", string( ) );
+	m_MapLocalPath = CFG->GetString( "map_localpath", string( ) );
 	m_MapData.clear( );
 
 	if( !m_MapLocalPath.empty( ) )
@@ -192,7 +190,7 @@ void CMap :: Load( string cfgFile )
 
 		// calculate map_info (this is actually the CRC)
 
-		MapInfo = UTIL_CreateByteArray( (uint32_t)gCRC->FullCRC( (unsigned char *)m_MapData.c_str( ), m_MapData.size( ) ), false );
+		MapInfo = UTIL_CreateByteArray( (uint32_t)m_GHost->m_CRC->FullCRC( (unsigned char *)m_MapData.c_str( ), m_MapData.size( ) ), false );
 		CONSOLE_Print( "[MAP] calculated map_info = " + UTIL_ToString( MapInfo[0] ) + " " + UTIL_ToString( MapInfo[1] ) + " " + UTIL_ToString( MapInfo[2] ) + " " + UTIL_ToString( MapInfo[3] ) );
 
 		// calculate map_crc (this is not the CRC)
@@ -510,80 +508,80 @@ void CMap :: Load( string cfgFile )
 	if( MapMPQReady )
 		SFileCloseArchive( MapMPQ );
 
-	m_MapPath = CFG_GetString( m_CFG, "map_path", "Maps\\Download\\DotA Allstars v6.54b.w3x" );
+	m_MapPath = CFG->GetString( "map_path", "Maps\\Download\\DotA Allstars v6.54b.w3x" );
 
 	if( MapSize.empty( ) )
-		MapSize = UTIL_ExtractNumbers( CFG_GetString( m_CFG, "map_size", "193 236 49 0" ), 4 );
-	else if( m_CFG.find( "map_size" ) != m_CFG.end( ) )
+		MapSize = UTIL_ExtractNumbers( CFG->GetString( "map_size", "193 236 49 0" ), 4 );
+	else if( CFG->Exists( "map_size" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_size with config value map_size = " + m_CFG["map_size"] );
-		MapSize = UTIL_ExtractNumbers( m_CFG["map_size"], 4 );
+		CONSOLE_Print( "[MAP] overriding calculated map_size with config value map_size = " + CFG->GetString( "map_size", string( ) ) );
+		MapSize = UTIL_ExtractNumbers( CFG->GetString( "map_size", string( ) ), 4 );
 	}
 
 	m_MapSize = MapSize;
 
 	if( MapInfo.empty( ) )
-		MapInfo = UTIL_ExtractNumbers( CFG_GetString( m_CFG, "map_info", "114 75 121 60" ), 4 );
-	else if( m_CFG.find( "map_info" ) != m_CFG.end( ) )
+		MapInfo = UTIL_ExtractNumbers( CFG->GetString( "map_info", "114 75 121 60" ), 4 );
+	else if( CFG->Exists( "map_info" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_info with config value map_info = " + m_CFG["map_info"] );
-		MapInfo = UTIL_ExtractNumbers( m_CFG["map_info"], 4 );
+		CONSOLE_Print( "[MAP] overriding calculated map_info with config value map_info = " + CFG->GetString( "map_info", string( ) ) );
+		MapInfo = UTIL_ExtractNumbers( CFG->GetString( "map_info", string( ) ), 4 );
 	}
 
 	m_MapInfo = MapInfo;
 
 	if( MapCRC.empty( ) )
-		MapCRC = UTIL_ExtractNumbers( CFG_GetString( m_CFG, "map_crc", "120 227 167 121" ), 4 );
-	else if( m_CFG.find( "map_crc" ) != m_CFG.end( ) )
+		MapCRC = UTIL_ExtractNumbers( CFG->GetString( "map_crc", "120 227 167 121" ), 4 );
+	else if( CFG->Exists( "map_crc" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_crc with config value map_crc = " + m_CFG["map_crc"] );
-		MapCRC = UTIL_ExtractNumbers( m_CFG["map_crc"], 4 );
+		CONSOLE_Print( "[MAP] overriding calculated map_crc with config value map_crc = " + CFG->GetString( "map_crc", string( ) ) );
+		MapCRC = UTIL_ExtractNumbers( CFG->GetString( "map_crc", string( ) ), 4 );
 	}
 
 	m_MapCRC = MapCRC;
-	m_MapSpeed = CFG_GetInt( m_CFG, "map_speed", MAPSPEED_FAST );
-	m_MapVisibility = CFG_GetInt( m_CFG, "map_visibility", MAPVIS_DEFAULT );
-	m_MapObservers = CFG_GetInt( m_CFG, "map_observers", MAPOBS_NONE );
-	m_MapFlags = CFG_GetInt( m_CFG, "map_flags", MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS );
-	m_MapGameType = CFG_GetInt( m_CFG, "map_gametype", 1 );
+	m_MapSpeed = CFG->GetInt( "map_speed", MAPSPEED_FAST );
+	m_MapVisibility = CFG->GetInt( "map_visibility", MAPVIS_DEFAULT );
+	m_MapObservers = CFG->GetInt( "map_observers", MAPOBS_NONE );
+	m_MapFlags = CFG->GetInt( "map_flags", MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS );
+	m_MapGameType = CFG->GetInt( "map_gametype", 1 );
 
 	if( MapWidth.empty( ) )
-		MapWidth = UTIL_ExtractNumbers( CFG_GetString( m_CFG, "map_width", "116 0" ), 2 );
-	else if( m_CFG.find( "map_width" ) != m_CFG.end( ) )
+		MapWidth = UTIL_ExtractNumbers( CFG->GetString( "map_width", "116 0" ), 2 );
+	else if( CFG->Exists( "map_width" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_width with config value map_width = " + m_CFG["map_width"] );
-		MapWidth = UTIL_ExtractNumbers( m_CFG["map_width"], 2 );
+		CONSOLE_Print( "[MAP] overriding calculated map_width with config value map_width = " + CFG->GetString( "map_width", string( ) ) );
+		MapWidth = UTIL_ExtractNumbers( CFG->GetString( "map_width", string( ) ), 2 );
 	}
 
 	m_MapWidth = MapWidth;
 
 	if( MapHeight.empty( ) )
-		MapHeight = UTIL_ExtractNumbers( CFG_GetString( m_CFG, "map_height", "116 0" ), 2 );
-	else if( m_CFG.find( "map_height" ) != m_CFG.end( ) )
+		MapHeight = UTIL_ExtractNumbers( CFG->GetString( "map_height", "116 0" ), 2 );
+	else if( CFG->Exists( "map_height" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_height with config value map_height = " + m_CFG["map_height"] );
-		MapHeight = UTIL_ExtractNumbers( m_CFG["map_height"], 2 );
+		CONSOLE_Print( "[MAP] overriding calculated map_height with config value map_height = " + CFG->GetString( "map_height", string( ) ) );
+		MapHeight = UTIL_ExtractNumbers( CFG->GetString( "map_height", string( ) ), 2 );
 	}
 
 	m_MapHeight = MapHeight;
-	m_MapType = CFG_GetString( m_CFG, "map_type", string( ) );
+	m_MapType = CFG->GetString( "map_type", string( ) );
 
 	if( MapNumPlayers == 0 )
-		MapNumPlayers = CFG_GetInt( m_CFG, "map_numplayers", 10 );
-	else if( m_CFG.find( "map_numplayers" ) != m_CFG.end( ) )
+		MapNumPlayers = CFG->GetInt( "map_numplayers", 10 );
+	else if( CFG->Exists( "map_numplayers" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_numplayers with config value map_numplayers = " + m_CFG["map_numplayers"] );
-		MapNumPlayers = atoi( m_CFG["map_numplayers"].c_str( ) );
+		CONSOLE_Print( "[MAP] overriding calculated map_numplayers with config value map_numplayers = " + CFG->GetString( "map_numplayers", string( ) ) );
+		MapNumPlayers = CFG->GetInt( "map_numplayers", 0 );
 	}
 
 	m_MapNumPlayers = MapNumPlayers;
 
 	if( MapNumTeams == 0 )
-		MapNumTeams = CFG_GetInt( m_CFG, "map_numteams", 2 );
-	else if( m_CFG.find( "map_numteams" ) != m_CFG.end( ) )
+		MapNumTeams = CFG->GetInt( "map_numteams", 2 );
+	else if( CFG->Exists( "map_numteams" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_numteams with config value map_numteams = " + m_CFG["map_numteams"] );
-		MapNumTeams = atoi( m_CFG["map_numteams"].c_str( ) );
+		CONSOLE_Print( "[MAP] overriding calculated map_numteams with config value map_numteams = " + CFG->GetString( "map_numteams", string( ) ) );
+		MapNumTeams = CFG->GetInt( "map_numteams", 0 );
 	}
 
 	m_MapNumTeams = MapNumTeams;
@@ -592,7 +590,7 @@ void CMap :: Load( string cfgFile )
 	{
 		for( uint32_t Slot = 1; Slot <= 12; Slot++ )
 		{
-			string SlotString = CFG_GetString( m_CFG, "map_slot" + UTIL_ToString( Slot ), string( ) );
+			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
 			if( SlotString.empty( ) )
 				break;
@@ -601,14 +599,14 @@ void CMap :: Load( string cfgFile )
 			Slots.push_back( CGameSlot( SlotData ) );
 		}
 	}
-	else if( m_CFG.find( "map_slot1" ) != m_CFG.end( ) )
+	else if( CFG->Exists( "map_slot1" ) )
 	{
 		CONSOLE_Print( "[MAP] overriding slots" );
 		Slots.clear( );
 
 		for( uint32_t Slot = 1; Slot <= 12; Slot++ )
 		{
-			string SlotString = CFG_GetString( m_CFG, "map_slot" + UTIL_ToString( Slot ), string( ) );
+			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
 			if( SlotString.empty( ) )
 				break;

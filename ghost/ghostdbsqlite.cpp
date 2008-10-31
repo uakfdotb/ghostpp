@@ -103,9 +103,9 @@ uint32_t CSQLITE3 :: LastRowID( )
 // CGHostDBSQLite
 //
 
-CGHostDBSQLite :: CGHostDBSQLite( ) : CGHostDB( )
+CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 {
-	m_File = CFG_GetString( "db_sqlite3_file", "ghost.dbs" );
+	m_File = CFG->GetString( "db_sqlite3_file", "ghost.dbs" );
 	CONSOLE_Print( "[SQLITE3] opening database [" + m_File + "]" );
 	m_DB = new CSQLITE3( m_File );
 

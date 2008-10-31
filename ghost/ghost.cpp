@@ -76,6 +76,8 @@
 #endif
 
 time_t gStartTime;
+string gLogFile;
+CGHost *gGHost = NULL;
 
 uint32_t GetTime( )
 {
@@ -96,8 +98,6 @@ uint32_t GetTicks( )
 #endif
 }
 
-CGHost *gGHost = NULL;
-
 void SignalCatcher( int signal )
 {
 	// signal( SIGABRT, SignalCatcher );
@@ -116,15 +116,17 @@ void SignalCatcher( int signal )
 		exit( 1 );
 }
 
-CCRC32 *gCRC = NULL;
-
 //
 // main
 //
 
 int main( void )
 {
-	CONSOLE_Print( "[GHOST] starting up" );
+	// read config file
+
+	CConfig CFG;
+	CFG.Read( "ghost.cfg" );
+	gLogFile = CFG.GetString( "bot_log", "ghost.log" );
 
 	// catch SIGABRT and SIGINT
 
@@ -141,11 +143,6 @@ int main( void )
 
 	gStartTime = time( NULL );
 
-	// initialize crc32
-
-	gCRC = new CCRC32( );
-	gCRC->Initialize( );
-
 #ifdef WIN32
 	// initialize winsock
 
@@ -159,13 +156,9 @@ int main( void )
 	}
 #endif
 
-	// read config file
-
-	CFG_Read( "ghost.cfg" );
-
 	// initialize ghost
 
-	gGHost = new CGHost( );
+	gGHost = new CGHost( &CFG );
 
 	while( 1 )
 	{
@@ -189,18 +182,32 @@ int main( void )
 	WSACleanup( );
 #endif
 
-	// shutdown crc32
-
-	delete gCRC;
-
-	// done!
-
 	return 0;
 }
 
 void CONSOLE_Print( string message )
 {
 	cout << message << endl;
+
+	// logging
+
+	if( !gLogFile.empty( ) )
+	{
+		ofstream Log;
+		Log.open( gLogFile.c_str( ), ios :: app );
+
+		if( !Log.fail( ) )
+		{
+			time_t Now = time( NULL );
+			string Time = asctime( localtime( &Now ) );
+
+			// erase the newline
+			
+			Time.erase( Time.size( ) - 1 );
+			Log << "[" << Time << "] " << message << endl;
+			Log.close( );
+		}
+	}
 }
 
 void DEBUG_Print( string message )
@@ -222,38 +229,40 @@ void DEBUG_Print( BYTEARRAY b )
 // CGHost
 //
 
-CGHost :: CGHost( )
+CGHost :: CGHost( CConfig *CFG )
 {
 	m_UDPSocket = new CUDPSocket( );
+	m_CRC = new CCRC32( );
+	m_CRC->Initialize( );
 	m_CurrentGame = NULL;
-	m_DB = new CGHostDBSQLite( );
+	m_DB = new CGHostDBSQLite( CFG );
 	m_Language = new CLanguage( );
 	m_Exiting = false;
 	m_Version = "10.2";
 	m_HostCounter = 1;
-	m_Warcraft3Path = CFG_GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
-	m_HostPort = CFG_GetInt( "bot_hostport", 6112 );
-	m_MaxGames = CFG_GetInt( "bot_maxgames", 5 );
-	string BotCommandTrigger = CFG_GetString( "bot_commandtrigger", "!" );
+	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
+	m_HostPort = CFG->GetInt( "bot_hostport", 6112 );
+	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );
+	string BotCommandTrigger = CFG->GetString( "bot_commandtrigger", "!" );
 
 	if( BotCommandTrigger.empty( ) )
 		BotCommandTrigger = "!";
 
 	m_CommandTrigger = BotCommandTrigger[0];
-	m_MapCFGPath = CFG_GetString( "bot_mapcfgpath", string( ) );
-	m_MapPath = CFG_GetString( "bot_mappath", string( ) );
-	m_SpoofChecks = CFG_GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
-	m_RefreshMessages = CFG_GetInt( "bot_refreshmessages", 1 ) == 0 ? false : true;
-	m_AutoLock = CFG_GetInt( "bot_autolock", 0 ) == 0 ? false : true;
-	m_AllowDownloads = CFG_GetInt( "bot_allowdownloads", 0 );
-	m_PingDuringDownloads = CFG_GetInt( "bot_pingduringdownloads", 0 ) == 0 ? false : true;
-	m_LCPings = CFG_GetInt( "bot_lcpings", 1 ) == 0 ? false : true;
-	m_AutoKickPing = CFG_GetInt( "bot_autokickping", 400 );
-	m_Latency = CFG_GetInt( "bot_latency", 100 );
-	m_SyncLimit = CFG_GetInt( "bot_synclimit", 50 );
-	m_AdminGameCreate = CFG_GetInt( "admingame_create", 0 ) == 0 ? false : true;
-	m_AdminGamePort = CFG_GetInt( "admingame_port", 6113 );
-	m_AdminGamePassword = CFG_GetString( "admingame_password", string( ) );
+	m_MapCFGPath = CFG->GetString( "bot_mapcfgpath", string( ) );
+	m_MapPath = CFG->GetString( "bot_mappath", string( ) );
+	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
+	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 1 ) == 0 ? false : true;
+	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;
+	m_AllowDownloads = CFG->GetInt( "bot_allowdownloads", 0 );
+	m_PingDuringDownloads = CFG->GetInt( "bot_pingduringdownloads", 0 ) == 0 ? false : true;
+	m_LCPings = CFG->GetInt( "bot_lcpings", 1 ) == 0 ? false : true;
+	m_AutoKickPing = CFG->GetInt( "bot_autokickping", 400 );
+	m_Latency = CFG->GetInt( "bot_latency", 100 );
+	m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
+	m_AdminGameCreate = CFG->GetInt( "admingame_create", 0 ) == 0 ? false : true;
+	m_AdminGamePort = CFG->GetInt( "admingame_port", 6113 );
+	m_AdminGamePassword = CFG->GetString( "admingame_password", string( ) );
 
 	// load the battle.net connections
 	// we're just loading the config data and creating the CBNET classes here, the connections are established later (in the Update function)
@@ -267,24 +276,24 @@ CGHost :: CGHost( )
 		else
 			Prefix = "bnet" + UTIL_ToString( i ) + "_";
 
-		string Server = CFG_GetString( Prefix + "server", string( ) );
-		string CDKeyROC = CFG_GetString( Prefix + "cdkeyroc", string( ) );
-		string CDKeyTFT = CFG_GetString( Prefix + "cdkeytft", string( ) );
-		string UserName = CFG_GetString( Prefix + "username", string( ) );
-		string UserPassword = CFG_GetString( Prefix + "password", string( ) );
-		string FirstChannel = CFG_GetString( Prefix + "firstchannel", "The Void" );
-		string RootAdmin = CFG_GetString( Prefix + "rootadmin", string( ) );
-		string BNETCommandTrigger = CFG_GetString( Prefix + "commandtrigger", "!" );
+		string Server = CFG->GetString( Prefix + "server", string( ) );
+		string CDKeyROC = CFG->GetString( Prefix + "cdkeyroc", string( ) );
+		string CDKeyTFT = CFG->GetString( Prefix + "cdkeytft", string( ) );
+		string UserName = CFG->GetString( Prefix + "username", string( ) );
+		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
+		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );
+		string RootAdmin = CFG->GetString( Prefix + "rootadmin", string( ) );
+		string BNETCommandTrigger = CFG->GetString( Prefix + "commandtrigger", "!" );
 
 		if( BNETCommandTrigger.empty( ) )
 			BNETCommandTrigger = "!";
 
-		bool HoldFriends = CFG_GetInt( Prefix + "holdfriends", 1 ) == 0 ? false : true;
-		bool HoldClan = CFG_GetInt( Prefix + "holdclan", 1 ) == 0 ? false : true;
-		unsigned char War3Version = CFG_GetInt( Prefix + "custom_war3version", 22 );
-		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG_GetString( Prefix + "custom_exeversion", string( ) ), 4 );
-		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG_GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
-		string PasswordHashType = CFG_GetString( Prefix + "custom_passwordhashtype", string( ) );
+		bool HoldFriends = CFG->GetInt( Prefix + "holdfriends", 1 ) == 0 ? false : true;
+		bool HoldClan = CFG->GetInt( Prefix + "holdclan", 1 ) == 0 ? false : true;
+		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 22 );
+		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversion", string( ) ), 4 );
+		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
+		string PasswordHashType = CFG->GetString( Prefix + "custom_passwordhashtype", string( ) );
 
 		if( Server.empty( ) )
 			break;
@@ -328,7 +337,9 @@ CGHost :: CGHost( )
 
 	// load the default maps (note: make sure to run ExtractScripts first)
 
-	m_Map = new CMap( this, m_MapCFGPath + "map.cfg" );
+	CConfig MapCFG;
+	MapCFG.Read( m_MapCFGPath + "map.cfg" );
+	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + "map.cfg" );
 	m_AdminMap = new CMap( this );
 
 	// load the iptocountry data
@@ -357,6 +368,7 @@ CGHost :: CGHost( )
 CGHost :: ~CGHost( )
 {
 	delete m_UDPSocket;
+	delete m_CRC;
 
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		delete *i;

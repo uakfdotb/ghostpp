@@ -819,6 +819,20 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
+				// !GETCLAN
+				//
+
+				if( Command == "getclan" )
+					SendGetClanList( );
+
+				//
+				// !GETFRIENDS
+				//
+
+				if( Command == "getfriends" )
+					SendGetFriendsList( );
+
+				//
 				// !GETGAME
 				//
 
@@ -903,7 +917,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 								else
 								{
 									QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
-									m_GHost->m_Map->Load( File );
+									CConfig MapCFG;
+									MapCFG.Read( File );
+									m_GHost->m_Map->Load( &MapCFG, File );
 								}
 							}
 							else
@@ -1315,13 +1331,13 @@ void CBNET :: SendGameJoin( string gameName )
 
 void CBNET :: SendGetFriendsList( )
 {
-	if( m_LoggedIn && m_InChat )
+	if( m_LoggedIn )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
 }
 
 void CBNET :: SendGetClanList( )
 {
-	if( m_LoggedIn && m_InChat )
+	if( m_LoggedIn )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 }
 

@@ -49,7 +49,7 @@ bncsutilinterface.o: ghost.h util.h bncsutilinterface.h
 bnet.o: ghost.h util.h config.h language.h socket.h commandpacket.h ghostdb.h bncsutilinterface.h bnetprotocol.h bnet.h map.h gameprotocol.h game.h
 bnetprotocol.o: ghost.h util.h bnetprotocol.h
 commandpacket.o: ghost.h commandpacket.h
-config.o: ghost.h util.h config.h
+config.o: ghost.h config.h
 crc32.o: ghost.h crc32.h
 csvparser.o: csvparser.h
 game.o: ghost.h util.h config.h language.h socket.h ghostdb.h bnet.h map.h gameplayer.h gameprotocol.h game.h stats.h statsdota.h

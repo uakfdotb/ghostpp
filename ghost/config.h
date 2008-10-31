@@ -21,24 +21,23 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-extern map<string, string> gCFG;
+//
+// CConfig
+//
 
-void CFG_Read( map<string, string> &CFG, string file );
-void CFG_SetInt( map<string, string> &CFG, string key, int x );
-void CFG_SetString( map<string, string> &CFG, string key, string x );
-int CFG_GetInt( map<string, string> &CFG, string key, int x );
-string CFG_GetString( map<string, string> &CFG, string key, string x );
-void CFG_Delete( map<string, string> &CFG, string key );
-void CFG_Write( map<string, string> &CFG, string file );
-void CFG_Clear( map<string, string> &CFG );
+class CConfig
+{
+private:
+	map<string, string> m_CFG;
 
-void CFG_Read( string file );
-void CFG_SetInt( string key, int x );
-void CFG_SetString( string key, string x );
-int CFG_GetInt( string key, int x );
-string CFG_GetString( string key, string x );
-void CFG_Delete( string key );
-void CFG_Write( string file );
-void CFG_Clear( );
+public:
+	CConfig( );
+	~CConfig( );
+
+	void Read( string file );
+	bool Exists( string key );
+	int GetInt( string key, int x );
+	string GetString( string key, string x );
+};
 
 #endif

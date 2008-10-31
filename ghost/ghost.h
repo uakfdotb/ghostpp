@@ -61,11 +61,6 @@ uint32_t GetTicks( );		// milliseconds since computer startup usually, overflows
 #undef FD_SETSIZE
 #define FD_SETSIZE 512
 
-// crc
-
-class CCRC32;
-extern CCRC32 *gCRC;
-
 // output
 
 void CONSOLE_Print( string message );
@@ -77,17 +72,20 @@ void DEBUG_Print( BYTEARRAY b );
 //
 
 class CUDPSocket;
+class CCRC32;
 class CBNET;
 class CBaseGame;
 class CAdminGame;
 class CGHostDB;
 class CLanguage;
 class CMap;
+class CConfig;
 
 class CGHost
 {
 public:
 	CUDPSocket *m_UDPSocket;		// a UDP socket for sending broadcasts and other junk (used with !sendlan)
+	CCRC32 *m_CRC;					// for calculating CRC's
 	vector<CBNET *> m_BNETs;		// all our battle.net connections (there can be more than one)
 	CBaseGame *m_CurrentGame;		// this game is still in the lobby state
 	CAdminGame *m_AdminGame;		// this "fake game" allows an admin who knows the password to control the bot from the local network
@@ -118,7 +116,7 @@ public:
 	uint16_t m_AdminGamePort;		// config value: the port to host the admin game on
 	string m_AdminGamePassword;		// config value: the admin game password
 
-	CGHost( );
+	CGHost( CConfig *CFG );
 	~CGHost( );
 
 	// processing functions

@@ -29,9 +29,9 @@
 // CGameProtocol
 //
 
-CGameProtocol :: CGameProtocol( )
+CGameProtocol :: CGameProtocol( CGHost *nGHost )
 {
-
+	m_GHost = nGHost;
 }
 
 CGameProtocol :: ~CGameProtocol( )
@@ -488,7 +488,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> a
 
 		// calculate crc (we only care about the first 2 bytes though)
 
-		BYTEARRAY crc32 = UTIL_CreateByteArray( gCRC->FullCRC( (unsigned char *)string( subpacket.begin( ), subpacket.end( ) ).c_str( ), subpacket.size( ) ), false );
+		BYTEARRAY crc32 = UTIL_CreateByteArray( m_GHost->m_CRC->FullCRC( (unsigned char *)string( subpacket.begin( ), subpacket.end( ) ).c_str( ), subpacket.size( ) ), false );
 		crc32.resize( 2 );
 
 		// finish subpacket
@@ -778,7 +778,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_MAPPART( unsigned char fromPID, unsigned ch
 
 	// calculate crc
 
-	BYTEARRAY crc32 = UTIL_CreateByteArray( gCRC->FullCRC( (unsigned char *)mapData->c_str( ) + start, End - start ), false );
+	BYTEARRAY crc32 = UTIL_CreateByteArray( m_GHost->m_CRC->FullCRC( (unsigned char *)mapData->c_str( ) + start, End - start ), false );
 	UTIL_AppendByteArray( packet, crc32 );
 
 	// map data
@@ -819,7 +819,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION2( queue<CIncomingAction *> 
 
 		// calculate crc (we only care about the first 2 bytes though)
 
-		BYTEARRAY crc32 = UTIL_CreateByteArray( gCRC->FullCRC( (unsigned char *)string( subpacket.begin( ), subpacket.end( ) ).c_str( ), subpacket.size( ) ), false );
+		BYTEARRAY crc32 = UTIL_CreateByteArray( m_GHost->m_CRC->FullCRC( (unsigned char *)string( subpacket.begin( ), subpacket.end( ) ).c_str( ), subpacket.size( ) ), false );
 		crc32.resize( 2 );
 
 		// finish subpacket

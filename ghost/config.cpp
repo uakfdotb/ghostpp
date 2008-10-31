@@ -19,14 +19,25 @@
 */
 
 #include "ghost.h"
-#include "util.h"
 #include "config.h"
 
 #include <stdlib.h>
 
-map<string, string> gCFG;
+//
+// CConfig
+//
 
-void CFG_Read( map<string, string> &CFG, string file )
+CConfig :: CConfig( )
+{
+
+}
+
+CConfig :: ~CConfig( )
+{
+
+}
+
+void CConfig :: Read( string file )
 {
 	ifstream in;
 	in.open( file.c_str( ) );
@@ -58,99 +69,30 @@ void CFG_Read( map<string, string> &CFG, string file )
 			string :: size_type ValueEnd = Line.size( );
 
 			if( ValueStart != string :: npos )
-				CFG[Line.substr( KeyStart, KeyEnd - KeyStart )] = Line.substr( ValueStart, ValueEnd - ValueStart );
+				m_CFG[Line.substr( KeyStart, KeyEnd - KeyStart )] = Line.substr( ValueStart, ValueEnd - ValueStart );
 		}
 
 		in.close( );
 	}
 }
 
-void CFG_SetInt( map<string, string> &CFG, string key, int x )
+bool CConfig :: Exists( string key )
 {
-	CFG[key] = UTIL_ToString( x );
+	return m_CFG.find( key ) != m_CFG.end( );
 }
 
-void CFG_SetString( map<string, string> &CFG, string key, string x )
+int CConfig :: GetInt( string key, int x )
 {
-	CFG[key] = x;
-}
-
-int CFG_GetInt( map<string, string> &CFG, string key, int x )
-{
-	if( CFG.find( key ) == CFG.end( ) )
+	if( m_CFG.find( key ) == m_CFG.end( ) )
 		return x;
 	else
-		return atoi( CFG[key].c_str( ) );
+		return atoi( m_CFG[key].c_str( ) );
 }
 
-string CFG_GetString( map<string, string> &CFG, string key, string x )
+string CConfig :: GetString( string key, string x )
 {
-	if( CFG.find( key ) == CFG.end( ) )
+	if( m_CFG.find( key ) == m_CFG.end( ) )
 		return x;
 	else
-		return CFG[key];
-}
-
-void CFG_Delete( map<string, string> &CFG, string key )
-{
-	CFG.erase( key );
-}
-
-void CFG_Write( map<string, string> &CFG, string file )
-{
-	ofstream out;
-	out.open( file.c_str( ) );
-
-	if( out.fail( ) )
-		CONSOLE_Print( "[CONFIG] warning - unable to write file [" + file + "]" );
-
-	for( map<string, string> :: iterator i = CFG.begin( ); i != CFG.end( ); i++ )
-		out << (*i).first.c_str( ) << " = " << (*i).second.c_str( ) << endl;
-
-	out.close( );
-}
-
-void CFG_Clear( map<string, string> &CFG )
-{
-	CFG.clear( );
-}
-
-void CFG_Read( string file )
-{
-	CFG_Read( gCFG, file );
-}
-
-void CFG_SetInt( string key, int x )
-{
-	CFG_SetInt( gCFG, key, x );
-}
-
-void CFG_SetString( string key, string x )
-{
-	CFG_SetString( gCFG, key, x );
-}
-
-int CFG_GetInt( string key, int x )
-{
-	return CFG_GetInt( gCFG, key, x );
-}
-
-string CFG_GetString( string key, string x )
-{
-	return CFG_GetString( gCFG, key, x );
-}
-
-void CFG_Delete( string key )
-{
-	CFG_Delete( gCFG, key );
-}
-
-void CFG_Write( string file )
-{
-	CFG_Write( gCFG, file );
-}
-
-void CFG_Clear( )
-{
-	CFG_Clear( gCFG );
+		return m_CFG[key];
 }

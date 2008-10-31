@@ -53,6 +53,8 @@ class CIncomingMapSize;
 class CGameProtocol
 {
 public:
+	CGHost *m_GHost;
+
 	enum Protocol {
 		W3GS_PING_FROM_HOST		= 1,	// 0x01
 		W3GS_SLOTINFOJOIN		= 4,	// 0x04
@@ -93,7 +95,7 @@ public:
 		W3GS_INCOMING_ACTION2	= 72	// 0x48 - received this packet when there are too many actions to fit in W3GS_INCOMING_ACTION
 	};
 
-	CGameProtocol( );
+	CGameProtocol( CGHost *nGHost );
 	~CGameProtocol( );
 
 	// receive functions

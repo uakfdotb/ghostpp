@@ -28,7 +28,7 @@
 class CLanguage
 {
 private:
-	map<string, string> m_CFG;
+	CConfig *m_CFG;
 
 public:
 	CLanguage( );

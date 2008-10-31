@@ -26,7 +26,7 @@
 // CGHostDB
 //
 
-CGHostDB :: CGHostDB( )
+CGHostDB :: CGHostDB( CConfig *CFG )
 {
 	m_HasError = false;
 }

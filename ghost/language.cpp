@@ -28,12 +28,13 @@
 
 CLanguage :: CLanguage( )
 {
-	CFG_Read( m_CFG, "language.cfg" );
+	m_CFG = new CConfig( );
+	m_CFG->Read( "language.cfg" );
 }
 
 CLanguage :: ~CLanguage( )
 {
-
+	delete m_CFG;
 }
 
 void CLanguage :: Replace( string &Text, string Key, string Value )
@@ -54,7 +55,7 @@ void CLanguage :: Replace( string &Text, string Key, string Value )
 
 string CLanguage :: UnableToCreateGameTryAnotherName( string server, string gamename )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0001", "lang_0001" );
+	string Out = m_CFG->GetString( "lang_0001", "lang_0001" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$GAMENAME$", gamename );
 	return Out;
@@ -62,7 +63,7 @@ string CLanguage :: UnableToCreateGameTryAnotherName( string server, string game
 
 string CLanguage :: UserIsAlreadyAnAdmin( string server, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0002", "lang_0002" );
+	string Out = m_CFG->GetString( "lang_0002", "lang_0002" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -70,7 +71,7 @@ string CLanguage :: UserIsAlreadyAnAdmin( string server, string user )
 
 string CLanguage :: AddedUserToAdminDatabase( string server, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0003", "lang_0003" );
+	string Out = m_CFG->GetString( "lang_0003", "lang_0003" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -78,7 +79,7 @@ string CLanguage :: AddedUserToAdminDatabase( string server, string user )
 
 string CLanguage :: ErrorAddingUserToAdminDatabase( string server, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0004", "lang_0004" );
+	string Out = m_CFG->GetString( "lang_0004", "lang_0004" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -86,12 +87,12 @@ string CLanguage :: ErrorAddingUserToAdminDatabase( string server, string user )
 
 string CLanguage :: YouDontHaveAccessToThatCommand( )
 {
-	return CFG_GetString( m_CFG, "lang_0005", "lang_0005" );
+	return m_CFG->GetString( "lang_0005", "lang_0005" );
 }
 
 string CLanguage :: UserIsAlreadyBanned( string server, string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0006", "lang_0006" );
+	string Out = m_CFG->GetString( "lang_0006", "lang_0006" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
@@ -99,7 +100,7 @@ string CLanguage :: UserIsAlreadyBanned( string server, string victim )
 
 string CLanguage :: BannedUser( string server, string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0007", "lang_0007" );
+	string Out = m_CFG->GetString( "lang_0007", "lang_0007" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
@@ -107,7 +108,7 @@ string CLanguage :: BannedUser( string server, string victim )
 
 string CLanguage :: ErrorBanningUser( string server, string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0008", "lang_0008" );
+	string Out = m_CFG->GetString( "lang_0008", "lang_0008" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
@@ -115,7 +116,7 @@ string CLanguage :: ErrorBanningUser( string server, string victim )
 
 string CLanguage :: UserIsAnAdmin( string server, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0009", "lang_0009" );
+	string Out = m_CFG->GetString( "lang_0009", "lang_0009" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -123,7 +124,7 @@ string CLanguage :: UserIsAnAdmin( string server, string user )
 
 string CLanguage :: UserIsNotAnAdmin( string server, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0010", "lang_0010" );
+	string Out = m_CFG->GetString( "lang_0010", "lang_0010" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -131,7 +132,7 @@ string CLanguage :: UserIsNotAnAdmin( string server, string user )
 
 string CLanguage :: UserWasBannedOnByBecause( string server, string victim, string date, string admin, string reason )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0011", "lang_0011" );
+	string Out = m_CFG->GetString( "lang_0011", "lang_0011" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$VICTIM$", victim );
 	Replace( Out, "$DATE$", date );
@@ -142,7 +143,7 @@ string CLanguage :: UserWasBannedOnByBecause( string server, string victim, stri
 
 string CLanguage :: UserIsNotBanned( string server, string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0012", "lang_0012" );
+	string Out = m_CFG->GetString( "lang_0012", "lang_0012" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
@@ -150,21 +151,21 @@ string CLanguage :: UserIsNotBanned( string server, string victim )
 
 string CLanguage :: ThereAreNoAdmins( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0013", "lang_0013" );
+	string Out = m_CFG->GetString( "lang_0013", "lang_0013" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: ThereIsAdmin( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0014", "lang_0014" );
+	string Out = m_CFG->GetString( "lang_0014", "lang_0014" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: ThereAreAdmins( string server, string count )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0015", "lang_0015" );
+	string Out = m_CFG->GetString( "lang_0015", "lang_0015" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$COUNT$", count );
 	return Out;
@@ -172,21 +173,21 @@ string CLanguage :: ThereAreAdmins( string server, string count )
 
 string CLanguage :: ThereAreNoBannedUsers( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0016", "lang_0016" );
+	string Out = m_CFG->GetString( "lang_0016", "lang_0016" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: ThereIsBannedUser( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0017", "lang_0017" );
+	string Out = m_CFG->GetString( "lang_0017", "lang_0017" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: ThereAreBannedUsers( string server, string count )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0018", "lang_0018" );
+	string Out = m_CFG->GetString( "lang_0018", "lang_0018" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$COUNT$", count );
 	return Out;
@@ -194,12 +195,12 @@ string CLanguage :: ThereAreBannedUsers( string server, string count )
 
 string CLanguage :: YouCantDeleteTheRootAdmin( )
 {
-	return CFG_GetString( m_CFG, "lang_0019", "lang_0019" );
+	return m_CFG->GetString( "lang_0019", "lang_0019" );
 }
 
 string CLanguage :: DeletedUserFromAdminDatabase( string server, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0020", "lang_0020" );
+	string Out = m_CFG->GetString( "lang_0020", "lang_0020" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -207,7 +208,7 @@ string CLanguage :: DeletedUserFromAdminDatabase( string server, string user )
 
 string CLanguage :: ErrorDeletingUserFromAdminDatabase( string server, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0021", "lang_0021" );
+	string Out = m_CFG->GetString( "lang_0021", "lang_0021" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -215,21 +216,21 @@ string CLanguage :: ErrorDeletingUserFromAdminDatabase( string server, string us
 
 string CLanguage :: UnbannedUser( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0022", "lang_0022" );
+	string Out = m_CFG->GetString( "lang_0022", "lang_0022" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: ErrorUnbanningUser( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0023", "lang_0023" );
+	string Out = m_CFG->GetString( "lang_0023", "lang_0023" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: GameNumberIs( string number, string description )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0024", "lang_0024" );
+	string Out = m_CFG->GetString( "lang_0024", "lang_0024" );
 	Replace( Out, "$NUMBER$", number );
 	Replace( Out, "$DESCRIPTION$", description );
 	return Out;
@@ -237,14 +238,14 @@ string CLanguage :: GameNumberIs( string number, string description )
 
 string CLanguage :: GameNumberDoesntExist( string number )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0025", "lang_0025" );
+	string Out = m_CFG->GetString( "lang_0025", "lang_0025" );
 	Replace( Out, "$NUMBER$", number );
 	return Out;
 }
 
 string CLanguage :: GameIsInTheLobby( string description, string current, string max )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0026", "lang_0026" );
+	string Out = m_CFG->GetString( "lang_0026", "lang_0026" );
 	Replace( Out, "$DESCRIPTION$", description );
 	Replace( Out, "$CURRENT$", current );
 	Replace( Out, "$MAX$", max );
@@ -253,7 +254,7 @@ string CLanguage :: GameIsInTheLobby( string description, string current, string
 
 string CLanguage :: ThereIsNoGameInTheLobby( string current, string max )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0027", "lang_0027" );
+	string Out = m_CFG->GetString( "lang_0027", "lang_0027" );
 	Replace( Out, "$CURRENT$", current );
 	Replace( Out, "$MAX$", max );
 	return Out;
@@ -261,26 +262,26 @@ string CLanguage :: ThereIsNoGameInTheLobby( string current, string max )
 
 string CLanguage :: UnableToLoadConfigFilesOutside( )
 {
-	return CFG_GetString( m_CFG, "lang_0028", "lang_0028" );
+	return m_CFG->GetString( "lang_0028", "lang_0028" );
 }
 
 string CLanguage :: LoadingConfigFile( string file )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0029", "lang_0029" );
+	string Out = m_CFG->GetString( "lang_0029", "lang_0029" );
 	Replace( Out, "$FILE$", file );
 	return Out;
 }
 
 string CLanguage :: UnableToLoadConfigFileDoesntExist( string file )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0030", "lang_0030" );
+	string Out = m_CFG->GetString( "lang_0030", "lang_0030" );
 	Replace( Out, "$FILE$", file );
 	return Out;
 }
 
 string CLanguage :: CreatingPrivateGame( string gamename, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0031", "lang_0031" );
+	string Out = m_CFG->GetString( "lang_0031", "lang_0031" );
 	Replace( Out, "$GAMENAME$", gamename );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -288,7 +289,7 @@ string CLanguage :: CreatingPrivateGame( string gamename, string user )
 
 string CLanguage :: CreatingPublicGame( string gamename, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0032", "lang_0032" );
+	string Out = m_CFG->GetString( "lang_0032", "lang_0032" );
 	Replace( Out, "$GAMENAME$", gamename );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -296,40 +297,40 @@ string CLanguage :: CreatingPublicGame( string gamename, string user )
 
 string CLanguage :: UnableToUnhostGameCountdownStarted( string description )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0033", "lang_0033" );
+	string Out = m_CFG->GetString( "lang_0033", "lang_0033" );
 	Replace( Out, "$DESCRIPTION$", description );
 	return Out;
 }
 
 string CLanguage :: UnhostingGame( string description )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0034", "lang_0034" );
+	string Out = m_CFG->GetString( "lang_0034", "lang_0034" );
 	Replace( Out, "$DESCRIPTION$", description );
 	return Out;
 }
 
 string CLanguage :: UnableToUnhostGameNoGameInLobby( )
 {
-	return CFG_GetString( m_CFG, "lang_0035", "lang_0035" );
+	return m_CFG->GetString( "lang_0035", "lang_0035" );
 }
 
 string CLanguage :: VersionAdmin( string version )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0036", "lang_0036" );
+	string Out = m_CFG->GetString( "lang_0036", "lang_0036" );
 	Replace( Out, "$VERSION$", version );
 	return Out;
 }
 
 string CLanguage :: VersionNotAdmin( string version )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0037", "lang_0037" );
+	string Out = m_CFG->GetString( "lang_0037", "lang_0037" );
 	Replace( Out, "$VERSION$", version );
 	return Out;
 }
 
 string CLanguage :: UnableToCreateGameAnotherGameInLobby( string gamename, string description )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0038", "lang_0038" );
+	string Out = m_CFG->GetString( "lang_0038", "lang_0038" );
 	Replace( Out, "$GAMENAME$", gamename );
 	Replace( Out, "$DESCRIPTION$", description );
 	return Out;
@@ -337,7 +338,7 @@ string CLanguage :: UnableToCreateGameAnotherGameInLobby( string gamename, strin
 
 string CLanguage :: UnableToCreateGameMaxGamesReached( string gamename, string max )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0039", "lang_0039" );
+	string Out = m_CFG->GetString( "lang_0039", "lang_0039" );
 	Replace( Out, "$GAMENAME$", gamename );
 	Replace( Out, "$MAX$", max );
 	return Out;
@@ -345,87 +346,87 @@ string CLanguage :: UnableToCreateGameMaxGamesReached( string gamename, string m
 
 string CLanguage :: GameIsOver( string description )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0040", "lang_0040" );
+	string Out = m_CFG->GetString( "lang_0040", "lang_0040" );
 	Replace( Out, "$DESCRIPTION$", description );
 	return Out;
 }
 
 string CLanguage :: SpoofCheckByReplying( )
 {
-	return CFG_GetString( m_CFG, "lang_0041", "lang_0041" );
+	return m_CFG->GetString( "lang_0041", "lang_0041" );
 }
 
 string CLanguage :: GameRefreshed( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0042", "lang_0042" );
+	string Out = m_CFG->GetString( "lang_0042", "lang_0042" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: SpoofPossibleIsAway( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0043", "lang_0043" );
+	string Out = m_CFG->GetString( "lang_0043", "lang_0043" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: SpoofPossibleIsUnavailable( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0044", "lang_0044" );
+	string Out = m_CFG->GetString( "lang_0044", "lang_0044" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: SpoofPossibleIsRefusingMessages( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0045", "lang_0045" );
+	string Out = m_CFG->GetString( "lang_0045", "lang_0045" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: SpoofDetectedIsNotInGame( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0046", "lang_0046" );
+	string Out = m_CFG->GetString( "lang_0046", "lang_0046" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: SpoofDetectedIsInPrivateChannel( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0047", "lang_0047" );
+	string Out = m_CFG->GetString( "lang_0047", "lang_0047" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: SpoofDetectedIsInAnotherGame( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0048", "lang_0048" );
+	string Out = m_CFG->GetString( "lang_0048", "lang_0048" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: CountDownAborted( )
 {
-	return CFG_GetString( m_CFG, "lang_0049", "lang_0049" );
+	return m_CFG->GetString( "lang_0049", "lang_0049" );
 }
 
 string CLanguage :: TryingToJoinTheGameButBanned( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0050", "lang_0050" );
+	string Out = m_CFG->GetString( "lang_0050", "lang_0050" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: UnableToBanNoMatchesFound( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0051", "lang_0051" );
+	string Out = m_CFG->GetString( "lang_0051", "lang_0051" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: PlayerWasBannedByPlayer( string victim, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0052", "lang_0052" );
+	string Out = m_CFG->GetString( "lang_0052", "lang_0052" );
 	Replace( Out, "$VICTIM$", victim );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -433,56 +434,56 @@ string CLanguage :: PlayerWasBannedByPlayer( string victim, string user )
 
 string CLanguage :: UnableToBanFoundMoreThanOneMatch( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0053", "lang_0053" );
+	string Out = m_CFG->GetString( "lang_0053", "lang_0053" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: AddedPlayerToTheHoldList( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0054", "lang_0054" );
+	string Out = m_CFG->GetString( "lang_0054", "lang_0054" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: UnableToKickNoMatchesFound( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0055", "lang_0055" );
+	string Out = m_CFG->GetString( "lang_0055", "lang_0055" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: UnableToKickFoundMoreThanOneMatch( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0056", "lang_0056" );
+	string Out = m_CFG->GetString( "lang_0056", "lang_0056" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: SettingLatencyToMinimum( string min )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0057", "lang_0057" );
+	string Out = m_CFG->GetString( "lang_0057", "lang_0057" );
 	Replace( Out, "$MIN$", min );
 	return Out;
 }
 
 string CLanguage :: SettingLatencyToMaximum( string max )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0058", "lang_0058" );
+	string Out = m_CFG->GetString( "lang_0058", "lang_0058" );
 	Replace( Out, "$MAX$", max );
 	return Out;
 }
 
 string CLanguage :: SettingLatencyTo( string latency )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0059", "lang_0059" );
+	string Out = m_CFG->GetString( "lang_0059", "lang_0059" );
 	Replace( Out, "$LATENCY$", latency );
 	return Out;
 }
 
 string CLanguage :: KickingPlayersWithPingsGreaterThan( string total, string ping )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0060", "lang_0060" );
+	string Out = m_CFG->GetString( "lang_0060", "lang_0060" );
 	Replace( Out, "$TOTAL$", total );
 	Replace( Out, "$PING$", ping );
 	return Out;
@@ -490,7 +491,7 @@ string CLanguage :: KickingPlayersWithPingsGreaterThan( string total, string pin
 
 string CLanguage :: HasPlayedGamesWithThisBot( string user, string firstgame, string lastgame, string totalgames, string avgloadingtime, string avgstay )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0061", "lang_0061" );
+	string Out = m_CFG->GetString( "lang_0061", "lang_0061" );
 	Replace( Out, "$USER$", user );
 	Replace( Out, "$FIRSTGAME$", firstgame );
 	Replace( Out, "$LASTGAME$", lastgame );
@@ -502,14 +503,14 @@ string CLanguage :: HasPlayedGamesWithThisBot( string user, string firstgame, st
 
 string CLanguage :: HasntPlayedGamesWithThisBot( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0062", "lang_0062" );
+	string Out = m_CFG->GetString( "lang_0062", "lang_0062" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: AutokickingPlayerForExcessivePing( string victim, string ping )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0063", "lang_0063" );
+	string Out = m_CFG->GetString( "lang_0063", "lang_0063" );
 	Replace( Out, "$VICTIM$", victim );
 	Replace( Out, "$PING$", ping );
 	return Out;
@@ -517,7 +518,7 @@ string CLanguage :: AutokickingPlayerForExcessivePing( string victim, string pin
 
 string CLanguage :: SpoofCheckAcceptedFor( string server, string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0064", "lang_0064" );
+	string Out = m_CFG->GetString( "lang_0064", "lang_0064" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$USER$", user );
 	return Out;
@@ -525,45 +526,45 @@ string CLanguage :: SpoofCheckAcceptedFor( string server, string user )
 
 string CLanguage :: PlayersNotYetSpoofChecked( string notspoofchecked )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0065", "lang_0065" );
+	string Out = m_CFG->GetString( "lang_0065", "lang_0065" );
 	Replace( Out, "$NOTSPOOFCHECKED$", notspoofchecked );
 	return Out;
 }
 
 string CLanguage :: ManuallySpoofCheckByWhispering( string hostname )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0066", "lang_0066" );
+	string Out = m_CFG->GetString( "lang_0066", "lang_0066" );
 	Replace( Out, "$HOSTNAME$", hostname );
 	return Out;
 }
 
 string CLanguage :: SpoofCheckByWhispering( string hostname )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0067", "lang_0067" );
+	string Out = m_CFG->GetString( "lang_0067", "lang_0067" );
 	Replace( Out, "$HOSTNAME$", hostname );
 	return Out;
 }
 
 string CLanguage :: EveryoneHasBeenSpoofChecked( )
 {
-	return CFG_GetString( m_CFG, "lang_0068", "lang_0068" );
+	return m_CFG->GetString( "lang_0068", "lang_0068" );
 }
 
 string CLanguage :: PlayersNotYetPinged( string notpinged )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0069", "lang_0069" );
+	string Out = m_CFG->GetString( "lang_0069", "lang_0069" );
 	Replace( Out, "$NOTPINGED$", notpinged );
 	return Out;
 }
 
 string CLanguage :: EveryoneHasBeenPinged( )
 {
-	return CFG_GetString( m_CFG, "lang_0070", "lang_0070" );
+	return m_CFG->GetString( "lang_0070", "lang_0070" );
 }
 
 string CLanguage :: ShortestLoadByPlayer( string user, string loadingtime )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0071", "lang_0071" );
+	string Out = m_CFG->GetString( "lang_0071", "lang_0071" );
 	Replace( Out, "$USER$", user );
 	Replace( Out, "$LOADINGTIME$", loadingtime );
 	return Out;
@@ -571,7 +572,7 @@ string CLanguage :: ShortestLoadByPlayer( string user, string loadingtime )
 
 string CLanguage :: LongestLoadByPlayer( string user, string loadingtime )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0072", "lang_0072" );
+	string Out = m_CFG->GetString( "lang_0072", "lang_0072" );
 	Replace( Out, "$USER$", user );
 	Replace( Out, "$LOADINGTIME$", loadingtime );
 	return Out;
@@ -579,14 +580,14 @@ string CLanguage :: LongestLoadByPlayer( string user, string loadingtime )
 
 string CLanguage :: YourLoadingTimeWas( string loadingtime )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0073", "lang_0073" );
+	string Out = m_CFG->GetString( "lang_0073", "lang_0073" );
 	Replace( Out, "$LOADINGTIME$", loadingtime );
 	return Out;
 }
 
 string CLanguage :: HasPlayedDotAGamesWithThisBot( string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0074", "lang_0074" );
+	string Out = m_CFG->GetString( "lang_0074", "lang_0074" );
 	Replace( Out, "$USER$", user );
 	Replace( Out, "$TOTALGAMES$", totalgames );
 	Replace( Out, "$TOTALWINS$", totalwins );
@@ -602,226 +603,226 @@ string CLanguage :: HasPlayedDotAGamesWithThisBot( string user, string totalgame
 
 string CLanguage :: HasntPlayedDotAGamesWithThisBot( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0075", "lang_0075" );
+	string Out = m_CFG->GetString( "lang_0075", "lang_0075" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: WasKickedForReservedPlayer( string reserved )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0076", "lang_0076" );
+	string Out = m_CFG->GetString( "lang_0076", "lang_0076" );
 	Replace( Out, "$RESERVED$", reserved );
 	return Out;
 }
 
 string CLanguage :: WasKickedForOwnerPlayer( string owner )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0077", "lang_0077" );
+	string Out = m_CFG->GetString( "lang_0077", "lang_0077" );
 	Replace( Out, "$OWNER$", owner );
 	return Out;
 }
 
 string CLanguage :: WasKickedByPlayer( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0078", "lang_0078" );
+	string Out = m_CFG->GetString( "lang_0078", "lang_0078" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: HasLostConnectionPlayerError( string error )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0079", "lang_0079" );
+	string Out = m_CFG->GetString( "lang_0079", "lang_0079" );
 	Replace( Out, "$ERROR$", error );
 	return Out;
 }
 
 string CLanguage :: HasLostConnectionSocketError( string error )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0080", "lang_0080" );
+	string Out = m_CFG->GetString( "lang_0080", "lang_0080" );
 	Replace( Out, "$ERROR$", error );
 	return Out;
 }
 
 string CLanguage :: HasLostConnectionClosedByRemoteHost( )
 {
-	return CFG_GetString( m_CFG, "lang_0081", "lang_0081" );
+	return m_CFG->GetString( "lang_0081", "lang_0081" );
 }
 
 string CLanguage :: HasLeftVoluntarily( )
 {
-	return CFG_GetString( m_CFG, "lang_0082", "lang_0082" );
+	return m_CFG->GetString( "lang_0082", "lang_0082" );
 }
 
 string CLanguage :: EndingGame( string description )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0083", "lang_0083" );
+	string Out = m_CFG->GetString( "lang_0083", "lang_0083" );
 	Replace( Out, "$DESCRIPTION$", description );
 	return Out;
 }
 
 string CLanguage :: HasLostConnectionTimedOut( )
 {
-	return CFG_GetString( m_CFG, "lang_0084", "lang_0084" );
+	return m_CFG->GetString( "lang_0084", "lang_0084" );
 }
 
 string CLanguage :: GlobalChatMuted( )
 {
-	return CFG_GetString( m_CFG, "lang_0085", "lang_0085" );
+	return m_CFG->GetString( "lang_0085", "lang_0085" );
 }
 
 string CLanguage :: GlobalChatUnmuted( )
 {
-	return CFG_GetString( m_CFG, "lang_0086", "lang_0086" );
+	return m_CFG->GetString( "lang_0086", "lang_0086" );
 }
 
 string CLanguage :: ShufflingPlayers( )
 {
-	return CFG_GetString( m_CFG, "lang_0087", "lang_0087" );
+	return m_CFG->GetString( "lang_0087", "lang_0087" );
 }
 
 string CLanguage :: UnableToLoadConfigFileGameInLobby( )
 {
-	return CFG_GetString( m_CFG, "lang_0088", "lang_0088" );
+	return m_CFG->GetString( "lang_0088", "lang_0088" );
 }
 
 string CLanguage :: PlayersStillDownloading( string stilldownloading )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0089", "lang_0089" );
+	string Out = m_CFG->GetString( "lang_0089", "lang_0089" );
 	Replace( Out, "$STILLDOWNLOADING$", stilldownloading );
 	return Out;
 }
 
 string CLanguage :: RefreshMessagesEnabled( )
 {
-	return CFG_GetString( m_CFG, "lang_0090", "lang_0090" );
+	return m_CFG->GetString( "lang_0090", "lang_0090" );
 }
 
 string CLanguage :: RefreshMessagesDisabled( )
 {
-	return CFG_GetString( m_CFG, "lang_0091", "lang_0091" );
+	return m_CFG->GetString( "lang_0091", "lang_0091" );
 }
 
 string CLanguage :: AtLeastOneGameActiveUseForceToShutdown( )
 {
-	return CFG_GetString( m_CFG, "lang_0092", "lang_0092" );
+	return m_CFG->GetString( "lang_0092", "lang_0092" );
 }
 
 string CLanguage :: CurrentlyLoadedMapCFGIs( string mapcfg )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0093", "lang_0093" );
+	string Out = m_CFG->GetString( "lang_0093", "lang_0093" );
 	Replace( Out, "$MAPCFG$", mapcfg );
 	return Out;
 }
 
 string CLanguage :: LaggedOutDroppedByAdmin( )
 {
-	return CFG_GetString( m_CFG, "lang_0094", "lang_0094" );
+	return m_CFG->GetString( "lang_0094", "lang_0094" );
 }
 
 string CLanguage :: LaggedOutDroppedByVote( )
 {
-	return CFG_GetString( m_CFG, "lang_0095", "lang_0095" );
+	return m_CFG->GetString( "lang_0095", "lang_0095" );
 }
 
 string CLanguage :: PlayerVotedToDropLaggers( string user )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0096", "lang_0096" );
+	string Out = m_CFG->GetString( "lang_0096", "lang_0096" );
 	Replace( Out, "$USER$", user );
 	return Out;
 }
 
 string CLanguage :: LatencyIs( string latency )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0097", "lang_0097" );
+	string Out = m_CFG->GetString( "lang_0097", "lang_0097" );
 	Replace( Out, "$LATENCY$", latency );
 	return Out;
 }
 
 string CLanguage :: SyncLimitIs( string synclimit )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0098", "lang_0098" );
+	string Out = m_CFG->GetString( "lang_0098", "lang_0098" );
 	Replace( Out, "$SYNCLIMIT$", synclimit );
 	return Out;
 }
 
 string CLanguage :: SettingSyncLimitToMinimum( string min )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0099", "lang_0099" );
+	string Out = m_CFG->GetString( "lang_0099", "lang_0099" );
 	Replace( Out, "$MIN$", min );
 	return Out;
 }
 
 string CLanguage :: SettingSyncLimitToMaximum( string max )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0100", "lang_0100" );
+	string Out = m_CFG->GetString( "lang_0100", "lang_0100" );
 	Replace( Out, "$MAX$", max );
 	return Out;
 }
 
 string CLanguage :: SettingSyncLimitTo( string synclimit )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0101", "lang_0101" );
+	string Out = m_CFG->GetString( "lang_0101", "lang_0101" );
 	Replace( Out, "$SYNCLIMIT$", synclimit );
 	return Out;
 }
 
 string CLanguage :: UnableToCreateGameNotLoggedIn( string gamename )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0102", "lang_0102" );
+	string Out = m_CFG->GetString( "lang_0102", "lang_0102" );
 	Replace( Out, "$GAMENAME$", gamename );
 	return Out;
 }
 
 string CLanguage :: AdminLoggedIn( )
 {
-	return CFG_GetString( m_CFG, "lang_0103", "lang_0103" );
+	return m_CFG->GetString( "lang_0103", "lang_0103" );
 }
 
 string CLanguage :: AdminInvalidPassword( string attempt )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0104", "lang_0104" );
+	string Out = m_CFG->GetString( "lang_0104", "lang_0104" );
 	Replace( Out, "$ATTEMPT$", attempt );
 	return Out;
 }
 
 string CLanguage :: ConnectingToBNET( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0105", "lang_0105" );
+	string Out = m_CFG->GetString( "lang_0105", "lang_0105" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: ConnectedToBNET( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0106", "lang_0106" );
+	string Out = m_CFG->GetString( "lang_0106", "lang_0106" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: DisconnectedFromBNET( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0107", "lang_0107" );
+	string Out = m_CFG->GetString( "lang_0107", "lang_0107" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: LoggedInToBNET( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0108", "lang_0108" );
+	string Out = m_CFG->GetString( "lang_0108", "lang_0108" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: BNETGameHostingSucceeded( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0109", "lang_0109" );
+	string Out = m_CFG->GetString( "lang_0109", "lang_0109" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: BNETGameHostingFailed( string server, string gamename )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0110", "lang_0110" );
+	string Out = m_CFG->GetString( "lang_0110", "lang_0110" );
 	Replace( Out, "$SERVER$", server );
 	Replace( Out, "$GAMENAME$", gamename );
 	return Out;
@@ -829,14 +830,14 @@ string CLanguage :: BNETGameHostingFailed( string server, string gamename )
 
 string CLanguage :: ConnectingToBNETTimedOut( string server )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0111", "lang_0111" );
+	string Out = m_CFG->GetString( "lang_0111", "lang_0111" );
 	Replace( Out, "$SERVER$", server );
 	return Out;
 }
 
 string CLanguage :: PlayerDownloadedTheMap( string user, string seconds, string rate )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0112", "lang_0112" );
+	string Out = m_CFG->GetString( "lang_0112", "lang_0112" );
 	Replace( Out, "$USER$", user );
 	Replace( Out, "$SECONDS$", seconds );
 	Replace( Out, "$RATE$", rate );
@@ -845,64 +846,64 @@ string CLanguage :: PlayerDownloadedTheMap( string user, string seconds, string 
 
 string CLanguage :: UnableToCreateGameNameTooLong( string gamename )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0113", "lang_0113" );
+	string Out = m_CFG->GetString( "lang_0113", "lang_0113" );
 	Replace( Out, "$GAMENAME$", gamename );
 	return Out;
 }
 
 string CLanguage :: SettingGameOwnerTo( string owner )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0114", "lang_0114" );
+	string Out = m_CFG->GetString( "lang_0114", "lang_0114" );
 	Replace( Out, "$OWNER$", owner );
 	return Out;
 }
 
 string CLanguage :: TheGameIsLocked( )
 {
-	return CFG_GetString( m_CFG, "lang_0115", "lang_0115" );
+	return m_CFG->GetString( "lang_0115", "lang_0115" );
 }
 
 string CLanguage :: GameLocked( )
 {
-	return CFG_GetString( m_CFG, "lang_0116", "lang_0116" );
+	return m_CFG->GetString( "lang_0116", "lang_0116" );
 }
 
 string CLanguage :: GameUnlocked( )
 {
-	return CFG_GetString( m_CFG, "lang_0117", "lang_0117" );
+	return m_CFG->GetString( "lang_0117", "lang_0117" );
 }
 
 string CLanguage :: UnableToStartDownloadNoMatchesFound( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0118", "lang_0118" );
+	string Out = m_CFG->GetString( "lang_0118", "lang_0118" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: UnableToStartDownloadFoundMoreThanOneMatch( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0119", "lang_0119" );
+	string Out = m_CFG->GetString( "lang_0119", "lang_0119" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: UnableToSetGameOwner( string owner )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0120", "lang_0120" );
+	string Out = m_CFG->GetString( "lang_0120", "lang_0120" );
 	Replace( Out, "$OWNER$", owner );
 	return Out;
 }
 
 string CLanguage :: UnableToCheckPlayerNoMatchesFound( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0121", "lang_0121" );
+	string Out = m_CFG->GetString( "lang_0121", "lang_0121" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: CheckedPlayer( string victim, string admin, string owner, string spoofed, string spoofedrealm, string reserved )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0122", "lang_0122" );
+	string Out = m_CFG->GetString( "lang_0122", "lang_0122" );
 	Replace( Out, "$VICTIM$", victim );
 	Replace( Out, "$ADMIN$", admin );
 	Replace( Out, "$OWNER$", owner );
@@ -914,12 +915,12 @@ string CLanguage :: CheckedPlayer( string victim, string admin, string owner, st
 
 string CLanguage :: UnableToCheckPlayerFoundMoreThanOneMatch( string victim )
 {
-	string Out = CFG_GetString( m_CFG, "lang_0123", "lang_0123" );
+	string Out = m_CFG->GetString( "lang_0123", "lang_0123" );
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
 
 string CLanguage :: TheGameIsLockedBNET( )
 {
-	return CFG_GetString( m_CFG, "lang_0124", "lang_0124" );
+	return m_CFG->GetString( "lang_0124", "lang_0124" );
 }

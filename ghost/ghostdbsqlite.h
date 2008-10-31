@@ -171,7 +171,7 @@ private:
 	void *FromAddStmt;
 
 public:
-	CGHostDBSQLite( );
+	CGHostDBSQLite( CConfig *CFG );
 	virtual ~CGHostDBSQLite( );
 
 	virtual void Upgrade1_2( );

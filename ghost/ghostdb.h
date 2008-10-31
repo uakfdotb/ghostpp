@@ -38,7 +38,7 @@ protected:
 	string m_Error;
 
 public:
-	CGHostDB( );
+	CGHostDB( CConfig *CFG );
 	virtual ~CGHostDB( );
 
 	bool HasError( )		{ return m_HasError; }

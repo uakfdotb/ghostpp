@@ -40,7 +40,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned
 {
 	m_GHost = nGHost;
 	m_Socket = new CTCPServer( );
-	m_Protocol = new CGameProtocol( );
+	m_Protocol = new CGameProtocol( m_GHost );
 	m_Map = nMap;
 	m_Exiting = false;
 	m_HostPort = nHostPort;
@@ -57,6 +57,8 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned
 	m_CreationTime = GetTime( );
 	m_LastPingTime = GetTime( );
 	m_LastRefreshTime = GetTime( );
+	m_LastDLCounterTicks = GetTime( );
+	m_DLCounter = 0;
 	m_LastAnnounceTime = 0;
 	m_AnnounceInterval = 0;
 	m_LastCountDownTicks = 0;
@@ -612,6 +614,11 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "GHost++                                        http://forum.codelain.com/" );
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 	SendChat( player, "          Game Name:     " + m_GameName );
+}
+
+void CBaseGame :: SendEndMessage( )
+{
+
 }
 
 void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
@@ -2148,6 +2155,7 @@ void CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 	if( m_Stats && m_Stats->ProcessAction( action ) && m_GameOverTime == 0 )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] stats class reported game over" );
+		SendEndMessage( );
 		m_GameOverTime = GetTime( );
 	}
 }
@@ -3563,7 +3571,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 						else
 						{
 							SendChat( player, m_GHost->m_Language->LoadingConfigFile( File ) );
-							m_GHost->m_Map->Load( File );
+							CConfig MapCFG;
+							MapCFG.Read( File );
+							m_GHost->m_Map->Load( &MapCFG, File );
 						}
 					}
 					else
