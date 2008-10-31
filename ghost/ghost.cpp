@@ -279,6 +279,8 @@ CGHost :: CGHost( )
 		if( BNETCommandTrigger.empty( ) )
 			BNETCommandTrigger = "!";
 
+		bool HoldFriends = CFG_GetInt( Prefix + "holdfriends", 1 ) == 0 ? false : true;
+		bool HoldClan = CFG_GetInt( Prefix + "holdclan", 1 ) == 0 ? false : true;
 		unsigned char War3Version = CFG_GetInt( Prefix + "custom_war3version", 22 );
 		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG_GetString( Prefix + "custom_exeversion", string( ) ), 4 );
 		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG_GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
@@ -312,7 +314,7 @@ CGHost :: CGHost( )
 		}
 
 		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
-		m_BNETs.push_back( new CBNET( this, Server, CDKeyROC, CDKeyTFT, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], War3Version, EXEVersion, EXEVersionHash, PasswordHashType ) );
+		m_BNETs.push_back( new CBNET( this, Server, CDKeyROC, CDKeyTFT, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, War3Version, EXEVersion, EXEVersionHash, PasswordHashType ) );
 	}
 
 	if( m_BNETs.empty( ) )
@@ -801,5 +803,16 @@ void CGHost :: CreateGame( unsigned char gameState, string gameName, string owne
 			if( (*i)->GetPasswordHashType( ) != "pvpgn" )
 				(*i)->SendEnterChat( );
 		}
+	}
+
+	// hold friends and/or clan members
+
+	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+	{
+		if( (*i)->GetHoldFriends( ) )
+			(*i)->HoldFriends( m_CurrentGame );
+
+		if( (*i)->GetHoldClan( ) )
+			(*i)->HoldClan( m_CurrentGame );
 	}
 }

@@ -36,7 +36,7 @@
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -61,10 +61,13 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyT
 	m_EXEVersionHash = nEXEVersionHash;
 	m_PasswordHashType = nPasswordHashType;
 	m_NextConnectTime = GetTime( );
-	m_LastChatCommandTime = GetTime( );
+	m_LastNullTime = 0;
+	m_LastChatCommandTime = 0;
 	m_WaitingToConnect = true;
 	m_LoggedIn = false;
 	m_InChat = false;
+	m_HoldFriends = nHoldFriends;
+	m_HoldClan = nHoldClan;
 }
 
 CBNET :: ~CBNET( )
@@ -161,6 +164,14 @@ bool CBNET :: Update( void *fd )
 			m_LastChatCommandTime = GetTime( );
 		}
 
+		// send null packets every 60 seconds to detect disconnects
+
+		if( GetTime( ) >= m_LastNullTime + 60 )
+		{
+			m_Socket->PutBytes( m_Protocol->SEND_SID_NULL( ) );
+			m_LastNullTime = GetTime( );
+		}
+
 		m_Socket->DoSend( );
 		return m_Exiting;
 	}
@@ -178,6 +189,8 @@ bool CBNET :: Update( void *fd )
 			m_Socket->PutBytes( m_Protocol->SEND_PROTOCOL_INITIALIZE_SELECTOR( ) );
 			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version ) );
 			m_Socket->DoSend( );
+			m_LastNullTime = GetTime( );
+			m_LastChatCommandTime = GetTime( );
 			return m_Exiting;
 		}
 		else if( GetTime( ) >= m_NextConnectTime + 15 )
@@ -1363,4 +1376,22 @@ bool CBNET :: IsRootAdmin( string name )
 
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	return name == m_RootAdmin;
+}
+
+void CBNET :: HoldFriends( CBaseGame *game )
+{
+	if( game )
+	{
+		for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
+			game->AddToReserved( (*i)->GetAccount( ) );
+	}
+}
+
+void CBNET :: HoldClan( CBaseGame *game )
+{
+	if( game )
+	{
+		for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
+			game->AddToReserved( (*i)->GetName( ) );
+	}
 }
