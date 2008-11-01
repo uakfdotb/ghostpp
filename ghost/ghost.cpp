@@ -128,6 +128,8 @@ int main( void )
 	CFG.Read( "ghost.cfg" );
 	gLogFile = CFG.GetString( "bot_log", "ghost.log" );
 
+	CONSOLE_Print( "[GHOST] starting up" );
+
 	// catch SIGABRT and SIGINT
 
 	signal( SIGABRT, SignalCatcher );
@@ -238,6 +240,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_DB = new CGHostDBSQLite( CFG );
 	m_Language = new CLanguage( );
 	m_Exiting = false;
+	m_Enabled = true;
 	m_Version = "10.2";
 	m_HostCounter = 1;
 	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
@@ -723,6 +726,20 @@ void CGHost :: LoadIPToCountryData( )
 
 void CGHost :: CreateGame( unsigned char gameState, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper )
 {
+	if( !m_Enabled )
+	{
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+		{
+			if( (*i)->GetServer( ) == creatorServer )
+				(*i)->QueueChatCommand( m_Language->UnableToCreateGameDisabled( gameName ), creatorName, whisper );
+		}
+
+		if( m_AdminGame )
+			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameDisabled( gameName ) );
+
+		return;
+	}
+
 	if( gameName.size( ) > 31 )
 	{
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )

@@ -95,6 +95,7 @@ public:
 	CMap *m_Map;					// the currently loaded map (this is global data, CBaseGame just references it so don't modify it unless you know what you're doing)
 	CMap *m_AdminMap;				// the map to use in the admin game
 	bool m_Exiting;					// set to true to force ghost to shutdown next update (used by SignalCatcher)
+	bool m_Enabled;					// set to false to prevent new games from being created
 	string m_Version;				// GHost++ version string
 	uint32_t m_HostCounter;			// the current host counter (a unique number to identify a game, incremented each time a game is created)
 	string m_Warcraft3Path;			// config value: Warcraft 3 path

@@ -924,3 +924,10 @@ string CLanguage :: TheGameIsLockedBNET( )
 {
 	return m_CFG->GetString( "lang_0124", "lang_0124" );
 }
+
+string CLanguage :: UnableToCreateGameDisabled( string gamename )
+{
+	string Out = m_CFG->GetString( "lang_0125", "lang_0125" );
+	Replace( Out, "$GAMENAME$", gamename );
+	return Out;
+}

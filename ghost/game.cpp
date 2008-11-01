@@ -3478,6 +3478,20 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		}
 
 		//
+		// !DISABLE
+		//
+
+		if( Command == "disable" )
+			m_GHost->m_Enabled = false;
+
+		//
+		// !ENABLE
+		//
+
+		if( Command == "enable" )
+			m_GHost->m_Enabled = true;
+
+		//
 		// !END
 		//
 

@@ -160,6 +160,7 @@ public:
 	string CheckedPlayer( string victim, string admin, string owner, string spoofed, string spoofedrealm, string reserved );
 	string UnableToCheckPlayerFoundMoreThanOneMatch( string victim );
 	string TheGameIsLockedBNET( );
+	string UnableToCreateGameDisabled( string gamename );
 };
 
 #endif

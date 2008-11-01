@@ -776,6 +776,30 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
+				// !DISABLE
+				//
+
+				if( Command == "disable" )
+				{
+					if( IsRootAdmin( User ) )
+						m_GHost->m_Enabled = false;
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !ENABLE
+				//
+
+				if( Command == "enable" )
+				{
+					if( IsRootAdmin( User ) )
+						m_GHost->m_Enabled = true;
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
 				// !END
 				//
 
@@ -1033,6 +1057,24 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "say" && !Payload.empty( ) )
 					QueueChatCommand( Payload );
+
+				//
+				// !SAYGAMES
+				//
+
+				if( Command == "saygames" && !Payload.empty( ) )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						if( m_GHost->m_CurrentGame )
+							m_GHost->m_CurrentGame->SendAllChat( Payload );
+
+						for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); i++ )
+							(*i)->SendAllChat( Payload );
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
 
 				//
 				// !SP
