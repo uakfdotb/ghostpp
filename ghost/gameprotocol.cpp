@@ -301,14 +301,14 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_PING_FROM_HOST( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( CGamePlayer *player, vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY externalIP, vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots )
 {
 	unsigned char Zeros[] = { 0, 0, 0, 0 };
 
 	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, gameType, playerSlots );
 	BYTEARRAY packet;
 
-	if( player )
+	if( externalIP.size( ) == 4 )
 	{
 		packet.push_back( W3GS_HEADER_CONSTANT );									// W3GS header constant
 		packet.push_back( W3GS_SLOTINFOJOIN );										// W3GS_SLOTINFOJOIN
@@ -316,12 +316,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( CGamePlayer *player, vector<C
 		packet.push_back( 0 );														// packet length will be assigned later
 		UTIL_AppendByteArray( packet, (uint16_t)SlotInfo.size( ), false );			// SlotInfo length
 		UTIL_AppendByteArray( packet, SlotInfo );									// SlotInfo
-		packet.push_back( player->GetPID( ) );										// PID
+		packet.push_back( PID );													// PID
 		packet.push_back( 2 );														// AF_INET
 		packet.push_back( 0 );														// AF_INET continued...
 		packet.push_back( 0 );														// port
 		packet.push_back( 0 );														// port continued...
-		UTIL_AppendByteArray( packet, player->GetExternalIP( ) );					// external IP
+		UTIL_AppendByteArray( packet, externalIP );									// external IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );									// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );									// ???
 		AssignLength( packet );
@@ -334,36 +334,36 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( CGamePlayer *player, vector<C
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( CGamePlayer *player )
+BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP )
 {
 	unsigned char PlayerJoinCounter[]	= { 2, 0, 0, 0 };
 	unsigned char Zeros[]				= { 0, 0, 0, 0 };
 
 	BYTEARRAY packet;
 
-	if( player )
+	if( !name.empty( ) && name.size( ) <= 15 && externalIP.size( ) == 4 && internalIP.size( ) == 4 )
 	{
 		packet.push_back( W3GS_HEADER_CONSTANT );							// W3GS header constant
 		packet.push_back( W3GS_PLAYERINFO );								// W3GS_PLAYERINFO
 		packet.push_back( 0 );												// packet length will be assigned later
 		packet.push_back( 0 );												// packet length will be assigned later
 		UTIL_AppendByteArray( packet, PlayerJoinCounter, 4 );				// player join counter
-		packet.push_back( player->GetPID( ) );								// PID
-		UTIL_AppendByteArray( packet, player->GetName( ) );					// player name
+		packet.push_back( PID );											// PID
+		UTIL_AppendByteArray( packet, name );								// player name
 		packet.push_back( 1 );												// ???
 		packet.push_back( 0 );												// ???
 		packet.push_back( 2 );												// AF_INET
 		packet.push_back( 0 );												// AF_INET continued...
 		packet.push_back( 0 );												// port
 		packet.push_back( 0 );												// port continued...
-		UTIL_AppendByteArray( packet, player->GetExternalIP( ) );			// external IP
+		UTIL_AppendByteArray( packet, externalIP );							// external IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		packet.push_back( 2 );												// AF_INET
 		packet.push_back( 0 );												// AF_INET continued...
 		packet.push_back( 0 );												// port
 		packet.push_back( 0 );												// port continued...
-		UTIL_AppendByteArray( packet, player->GetInternalIP( ) );			// internal IP
+		UTIL_AppendByteArray( packet, internalIP );							// internal IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		AssignLength( packet );

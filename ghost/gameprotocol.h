@@ -114,8 +114,8 @@ public:
 	// send functions
 
 	BYTEARRAY SEND_W3GS_PING_FROM_HOST( );
-	BYTEARRAY SEND_W3GS_SLOTINFOJOIN( CGamePlayer *player, vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots );
-	BYTEARRAY SEND_W3GS_PLAYERINFO( CGamePlayer *player );
+	BYTEARRAY SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY externalIP, vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots );
+	BYTEARRAY SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP );
 	BYTEARRAY SEND_W3GS_PLAYERLEAVE_OTHERS( unsigned char PID, uint32_t leftCode );
 	BYTEARRAY SEND_W3GS_GAMELOADED_OTHERS( unsigned char PID );
 	BYTEARRAY SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots );

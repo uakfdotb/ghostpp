@@ -54,6 +54,7 @@ protected:
 	bool m_Exiting;								// set to true and this class will be deleted next update
 	uint16_t m_HostPort;						// the port to host games on
 	unsigned char m_GameState;					// game state, public or private
+	unsigned char m_VirtualHostPID;				// virtual host's PID
 	string m_GameName;							// game name
 	string m_VirtualHostName;					// virtual host's name
 	string m_OwnerName;							// name of the player who owns this game (should be considered an admin)
@@ -134,6 +135,7 @@ public:
 	virtual void SendAllChat( unsigned char fromPID, string message );
 	virtual void SendAllChat( string message );
 	virtual void SendAllSlotInfo( );
+	virtual void SendVirtualHostPlayerInfo( CGamePlayer *player );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void SendEndMessage( );
 

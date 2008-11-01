@@ -45,6 +45,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned
 	m_Exiting = false;
 	m_HostPort = nHostPort;
 	m_GameState = nGameState;
+	m_VirtualHostPID = 255;
 	m_GameName = nGameName;
 	m_VirtualHostName = "|cFF4080C0GHost";
 	m_OwnerName = nOwnerName;
@@ -126,7 +127,7 @@ uint32_t CBaseGame :: GetNumPlayers( )
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( (*i)->GetName( ) != m_VirtualHostName )
+		if( !(*i)->GetLeftMessageSent( ) )
 			NumPlayers++;
 	}
 
@@ -205,7 +206,7 @@ bool CBaseGame :: Update( void *fd )
 
 	// create the virtual host player
 
-	if( !m_GameLoading && !m_GameLoaded && GetNumPlayers( ) < 12 && !GetPlayerFromName( m_VirtualHostName, true ) )
+	if( !m_GameLoading && !m_GameLoaded && GetNumPlayers( ) < 12 )
 		CreateVirtualHost( );
 
 	// unlock the game
@@ -605,6 +606,19 @@ void CBaseGame :: SendAllSlotInfo( )
 		SendAll( m_Protocol->SEND_W3GS_SLOTINFO( m_Slots, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
 }
 
+void CBaseGame :: SendVirtualHostPlayerInfo( CGamePlayer *player )
+{
+	if( m_VirtualHostPID == 255 )
+		return;
+
+	BYTEARRAY IP;
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP ) );
+}
+
 void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 {
 	SendChat( player, " " );
@@ -625,20 +639,21 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] deleting player [" + player->GetName( ) + "]: " + player->GetLeftReason( ) );
 
+	// in some cases we're forced to send the left message early so don't send it again
+	// this is actually a tricky piece of code, we have to make sure not to open the slot either because it might be occupied by another player now!
+
+	if( player->GetLeftMessageSent( ) )
+		return;
+
 	if( m_GameLoaded )
 		SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + "." );
 
-	// in some cases we're forced to send the left message early so don't send it again
+	if( player->GetLagging( ) )
+		SendAll( m_Protocol->SEND_W3GS_STOP_LAG( player ) );
 
-	if( !player->GetLeftMessageSent( ) )
-	{
-		if( player->GetLagging( ) )
-			SendAll( m_Protocol->SEND_W3GS_STOP_LAG( player ) );
+	// tell everyone about the player leaving
 
-		// tell everyone about the player leaving
-
-		SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
-	}
+	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
 
 	// open their slot if we were in the lobby state
 
@@ -819,20 +834,24 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// send slot info to the new player
 	// the SLOTINFOJOIN packet also tells the client their assigned PID and that the join was successful
 
-	Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player, m_Slots, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+	Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player->GetPID( ), Player->GetExternalIP( ), m_Slots, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+
+	// send virtual host info to the new player
+
+	SendVirtualHostPlayerInfo( Player );
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( *i != Player )
+		if( !(*i)->GetLeftMessageSent( ) && *i != Player )
 		{
 			// send info about the new player to every other player
 
 			if( (*i)->GetSocket( ) )
-				(*i)->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( Player ) );
+				(*i)->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), Player->GetExternalIP( ), Player->GetInternalIP( ) ) );
 
 			// send info about every other player to the new player
 
-			Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( *i ) );
+			Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ) ) );
 		}
 	}
 
@@ -1336,7 +1355,7 @@ CGamePlayer *CBaseGame :: GetPlayerFromPID( unsigned char PID )
 {
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( (*i)->GetPID( ) == PID )
+		if( !(*i)->GetLeftMessageSent( ) && (*i)->GetPID( ) == PID )
 			return *i;
 	}
 
@@ -1358,13 +1377,16 @@ CGamePlayer *CBaseGame :: GetPlayerFromName( string name, bool sensitive )
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		string TestName = (*i)->GetName( );
+		if( !(*i)->GetLeftMessageSent( ) )
+		{
+			string TestName = (*i)->GetName( );
 
-		if( !sensitive )
-			transform( TestName.begin( ), TestName.end( ), TestName.begin( ), (int(*)(int))tolower );
+			if( !sensitive )
+				transform( TestName.begin( ), TestName.end( ), TestName.begin( ), (int(*)(int))tolower );
 
-		if( TestName == name )
-			return *i;
+			if( TestName == name )
+				return *i;
+		}
 	}
 
 	return NULL;
@@ -1380,9 +1402,7 @@ uint32_t CBaseGame :: GetPlayerFromNamePartial( string name, CGamePlayer **playe
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		// don't match the virtual host player
-
-		if( (*i)->GetName( ) != m_VirtualHostName )
+		if( !(*i)->GetLeftMessageSent( ) )
 		{
 			string TestName = (*i)->GetName( );
 			transform( TestName.begin( ), TestName.end( ), TestName.begin( ), (int(*)(int))tolower );
@@ -1415,11 +1435,14 @@ unsigned char CBaseGame :: GetNewPID( )
 
 	for( unsigned char TestPID = 1; TestPID < 255; TestPID++ )
 	{
+		if( TestPID == m_VirtualHostPID )
+			continue;
+
 		bool InUse = false;
 
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
-			if( (*i)->GetPID( ) == TestPID )
+			if( !(*i)->GetLeftMessageSent( ) && (*i)->GetPID( ) == TestPID )
 			{
 				InUse = true;
 				break;
@@ -1466,7 +1489,10 @@ BYTEARRAY CBaseGame :: GetPIDs( )
 	BYTEARRAY result;
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		result.push_back( (*i)->GetPID( ) );
+	{
+		if( !(*i)->GetLeftMessageSent( ) )
+			result.push_back( (*i)->GetPID( ) );
+	}
 
 	return result;
 }
@@ -1477,7 +1503,7 @@ BYTEARRAY CBaseGame :: GetPIDs( unsigned char excludePID )
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( (*i)->GetPID( ) != excludePID )
+		if( !(*i)->GetLeftMessageSent( ) && (*i)->GetPID( ) != excludePID )
 			result.push_back( (*i)->GetPID( ) );
 	}
 
@@ -1489,24 +1515,24 @@ unsigned char CBaseGame :: GetHostPID( )
 	// return the player to be considered the host (it can be any player) - mainly used for sending text messages from the bot
 	// try to find the virtual host player first
 
-	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-	{
-		if( (*i)->GetName( ) == m_VirtualHostName )
-			return (*i)->GetPID( );
-	}
+	if( m_VirtualHostPID != 255 )
+		return m_VirtualHostPID;
 
 	// try to find the owner player next
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( (*i)->GetName( ) == m_OwnerName )
+		if( !(*i)->GetLeftMessageSent( ) && (*i)->GetName( ) == m_OwnerName )
 			return (*i)->GetPID( );
 	}
 
 	// okay then, just use the first available player
 
-	if( !m_Players.empty( ) )
-		return m_Players[0]->GetPID( );
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		if( !(*i)->GetLeftMessageSent( ) )
+			return (*i)->GetPID( );
+	}
 
 	return 255;
 }
@@ -1521,9 +1547,7 @@ unsigned char CBaseGame :: GetEmptySlot( bool reserved )
 
 	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
 	{
-		// if slot is empty and not closed
-
-		if( m_Slots[i].GetPID( ) == 0 && m_Slots[i].GetSlotStatus( ) == 0 )
+		if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
 			return i;
 	}
 
@@ -1533,7 +1557,7 @@ unsigned char CBaseGame :: GetEmptySlot( bool reserved )
 
 		for( unsigned char i = 0; i < m_Slots.size( ); i++ )
 		{
-			if( m_Slots[i].GetSlotStatus( ) == 1 )
+			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_CLOSED )
 				return i;
 		}
 
@@ -1558,9 +1582,9 @@ unsigned char CBaseGame :: GetEmptySlot( unsigned char team )
 
 	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
 	{
-		// if slot is empty and not closed and on the correct team
+		// if slot is open and on the correct team
 
-		if( m_Slots[i].GetPID( ) == 0 && m_Slots[i].GetSlotStatus( ) == 0 && m_Slots[i].GetTeam( ) == team )
+		if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team )
 			return i;
 	}
 
@@ -1590,9 +1614,9 @@ unsigned char CBaseGame :: GetEmptySlot( unsigned char team, unsigned char PID )
 
 		for( unsigned char i = StartSlot; i < m_Slots.size( ); i++ )
 		{
-			// if slot is empty and not closed and on the correct team
+			// if slot is open and on the correct team
 
-			if( m_Slots[i].GetPID( ) == 0 && m_Slots[i].GetSlotStatus( ) == 0 && m_Slots[i].GetTeam( ) == team )
+			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team )
 				return i;
 		}
 
@@ -1601,7 +1625,7 @@ unsigned char CBaseGame :: GetEmptySlot( unsigned char team, unsigned char PID )
 
 		for( unsigned char i = 0; i < StartSlot; i++ )
 		{
-			if( m_Slots[i].GetPID( ) == 0 && m_Slots[i].GetSlotStatus( ) == 0 && m_Slots[i].GetTeam( ) == team )
+			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team )
 				return i;
 		}
 	}
@@ -1949,7 +1973,7 @@ void CBaseGame :: StartCountDown( bool force )
 			{
 				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 				{
-					if( (*i)->GetName( ) != m_VirtualHostName && !(*i)->GetSpoofed( ) )
+					if( !(*i)->GetSpoofed( ) )
 					{
 						if( NotSpoofChecked.empty( ) )
 							NotSpoofChecked = (*i)->GetName( );
@@ -1983,7 +2007,7 @@ void CBaseGame :: StartCountDown( bool force )
 
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 			{
-				if( (*i)->GetName( ) != m_VirtualHostName && (*i)->GetNumPings( ) < 3 )
+				if( (*i)->GetNumPings( ) < 3 )
 				{
 					if( NotPinged.empty( ) )
 						NotPinged = (*i)->GetName( );
@@ -2036,25 +2060,25 @@ void CBaseGame :: StopLaggers( string reason )
 
 void CBaseGame :: CreateVirtualHost( )
 {
-	unsigned char Zeros[] = { 0, 0, 0, 0 };
-	CGamePlayer *VirtualHost = new CGamePlayer( m_Protocol, this, NULL, GetNewPID( ), m_VirtualHostName, UTIL_CreateByteArray( Zeros, 4 ), true );
-	SendAll( m_Protocol->SEND_W3GS_PLAYERINFO( VirtualHost ) );
-	m_Players.push_back( VirtualHost );
+	if( m_VirtualHostPID != 255 )
+		return;
+
+	m_VirtualHostPID = GetNewPID( );
+	BYTEARRAY IP;
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	SendAll( m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP ) );
 }
 
 void CBaseGame :: DeleteVirtualHost( )
 {
-	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); )
-	{
-		if( (*i)->GetName( ) == m_VirtualHostName )
-		{
-			SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( (*i)->GetPID( ), PLAYERLEAVE_LOBBY ) );
-			delete *i;
-			i = m_Players.erase( i );
-		}
-		else
-			i++;
-	}
+	if( m_VirtualHostPID == 255 )
+		return;
+
+	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( m_VirtualHostPID, PLAYERLEAVE_LOBBY ) );
+	m_VirtualHostPID = 255;
 }
 
 //
@@ -2728,24 +2752,9 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			if( Command == "from" && !m_GameLoading && !m_GameLoaded )
 			{
-				// copy the m_Players vector so we can skip the virtual host player
-
-				vector<CGamePlayer *> Players = m_Players;
 				string Froms;
 
-				// remove the virtual host player from the Players vector so we can properly format the from text with commas
-
-				for( vector<CGamePlayer *> :: iterator i = Players.begin( ); i != Players.end( ); )
-				{
-					if( (*i)->GetName( ) == m_VirtualHostName )
-						i = Players.erase( i );
-					else
-						i++;
-				}
-
-				// now construct the from text
-
-				for( vector<CGamePlayer *> :: iterator i = Players.begin( ); i != Players.end( ); i++ )
+				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 				{
 					// we reverse the byte order on the IP because it's stored in network byte order
 
@@ -2754,7 +2763,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					Froms += m_GHost->m_DB->FromCheck( UTIL_ByteArrayToUInt32( (*i)->GetExternalIP( ), true ) );
 					Froms += ")";
 
-					if( i != Players.end( ) - 1 )
+					if( i != m_Players.end( ) - 1 )
 						Froms += ", ";
 				}
 
@@ -2931,23 +2940,11 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				if( !Payload.empty( ) )
 					KickPing = UTIL_ToUInt32( Payload );
 
-				// copy the m_Players vector so we can skip the virtual host player and sort by descending ping so it's easier to find players with high pings
+				// copy the m_Players vector so we can sort by descending ping so it's easier to find players with high pings
 
 				vector<CGamePlayer *> SortedPlayers = m_Players;
 				sort( SortedPlayers.begin( ), SortedPlayers.end( ), CGamePlayerSortDescByPing( ) );
 				string Pings;
-
-				// remove the virtual host player from the SortedPlayers vector so we can properly format the ping text with commas
-
-				for( vector<CGamePlayer *> :: iterator i = SortedPlayers.begin( ); i != SortedPlayers.end( ); )
-				{
-					if( (*i)->GetName( ) == m_VirtualHostName )
-						i = SortedPlayers.erase( i );
-					else
-						i++;
-				}
-
-				// now construct the ping text and kick any players who don't meet the criteria while we're at it
 
 				for( vector<CGamePlayer *> :: iterator i = SortedPlayers.begin( ); i != SortedPlayers.end( ); i++ )
 				{

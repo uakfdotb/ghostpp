@@ -265,7 +265,7 @@ bool CGamePlayer :: Update( void *fd )
 	// if we send the /whois too early battle.net may not have caught up with where the player is and return erroneous results
 	// when connecting to multiple realms we send a /whois or /w on every realm
 
-	if( m_Game->m_GHost->m_SpoofChecks && m_Name != m_Game->GetVirtualHostName( ) && !m_WhoisSent && GetTime( ) > m_JoinTime + 3 )
+	if( m_Game->m_GHost->m_SpoofChecks && !m_WhoisSent && GetTime( ) > m_JoinTime + 3 )
 	{
 		// todotodo: we could get kicked from battle.net for sending a command with invalid characters, do some basic checking
 
