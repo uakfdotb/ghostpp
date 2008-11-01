@@ -931,3 +931,13 @@ string CLanguage :: UnableToCreateGameDisabled( string gamename )
 	Replace( Out, "$GAMENAME$", gamename );
 	return Out;
 }
+
+string CLanguage :: BotDisabled( )
+{
+	return m_CFG->GetString( "lang_0126", "lang_0126" );
+}
+
+string CLanguage :: BotEnabled( )
+{
+	return m_CFG->GetString( "lang_0127", "lang_0127" );
+}

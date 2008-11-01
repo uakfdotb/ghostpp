@@ -3291,7 +3291,7 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "Commands: addadmin, checkadmin, countadmins, deladmin" );
 	SendChat( player, "Commands: disable, enable, end, exit, getgame, getgames" );
 	SendChat( player, "Commands: load, map, password, priv, privby, pub, pubby" );
-	SendChat( player, "Commands: saygames, quit, unhost" );
+	SendChat( player, "Commands: quit, saygames, unhost" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *player, CIncomingJoinPlayer *joinPlayer )
@@ -3482,14 +3482,20 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		//
 
 		if( Command == "disable" )
+		{
+			SendChat( player, m_GHost->m_Language->BotDisabled( ) );
 			m_GHost->m_Enabled = false;
+		}
 
 		//
 		// !ENABLE
 		//
 
 		if( Command == "enable" )
+		{
+			SendChat( player, m_GHost->m_Language->BotEnabled( ) );
 			m_GHost->m_Enabled = true;
+		}
 
 		//
 		// !END

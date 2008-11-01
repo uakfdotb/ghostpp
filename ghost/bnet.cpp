@@ -782,7 +782,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				if( Command == "disable" )
 				{
 					if( IsRootAdmin( User ) )
+					{
+						QueueChatCommand( m_GHost->m_Language->BotDisabled( ), User, Whisper );
 						m_GHost->m_Enabled = false;
+					}
 					else
 						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 				}
@@ -794,7 +797,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				if( Command == "enable" )
 				{
 					if( IsRootAdmin( User ) )
+					{
+						QueueChatCommand( m_GHost->m_Language->BotEnabled( ), User, Whisper );
 						m_GHost->m_Enabled = true;
+					}
 					else
 						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 				}

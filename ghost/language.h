@@ -161,6 +161,8 @@ public:
 	string UnableToCheckPlayerFoundMoreThanOneMatch( string victim );
 	string TheGameIsLockedBNET( );
 	string UnableToCreateGameDisabled( string gamename );
+	string BotDisabled( );
+	string BotEnabled( );
 };
 
 #endif

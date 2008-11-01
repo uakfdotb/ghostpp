@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 10.2
+GHost++ Version 10.3
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -225,8 +225,12 @@ In battle.net (via local chat or whisper at any time):
 !countbans              display the total number of bans for this realm
 !deladmin <name>        remove an admin from the database for this realm
 !delban <name>          remove a ban from the database for this realm
+!disable                disable creation of new games
+!enable                 enable creation of new games
 !end <number>           end a game in progress (disconnect everyone)
 !exit [force]           shutdown ghost++, optionally add [force] to skip checks
+!getclan                refresh the internal copy of the clan members list
+!getfriends             refresh the internal copy of the friends list
 !getgame <number>       display information on a game in progress
 !getgames               display information on all games
 !hold <name> ...        hold a slot for someone
@@ -240,6 +244,7 @@ In battle.net (via local chat or whisper at any time):
 !pubby <owner> <name>   host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force]           alias to !exit
 !say <text>             send <text> to battle.net as a chat command
+!saygames <text>        send <text> to all games
 !sp                     shuffle players
 !start [force]          start game, optionally add [force] to skip checks
 !stats [name]           display basic player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
@@ -292,6 +297,7 @@ In game:
 
 !addban <name> <reason> add a new ban to the database (it tries to do a partial match)
 !ban                    alias to !addban
+!banlast <reason>       ban the last leaver
 !check <name>           check a user's status (leave blank to check your own status)
 !checkban <name>        check if a user is banned on any realm
 !drop                   drop all lagging players
@@ -314,6 +320,8 @@ In admin game lobby:
 !checkadmin <name> <realm> check if a user is an admin for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
 !countadmins <realm>       display the total number of admins for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
 !deladmin <name> <realm>   remove an admin from the database for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!disable                   disable creation of new games
+!enable                    enable creation of new games
 !end <number>              end a game in progress (disconnect everyone)
 !exit [force]              shutdown ghost++, optionally add [force] to skip checks
 !getgame <number>          display information on a game in progress
@@ -326,6 +334,7 @@ In admin game lobby:
 !pub <name>                host public game
 !pubby <owner> <name>      host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force]              alias to !exit
+!saygames <text>           send <text> to all games
 !unhost                    unhost game
 
 ============================
@@ -391,6 +400,26 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 =========
 CHANGELOG
 =========
+
+Version 10.3
+ - added support for specifying the config file on the command line (e.g. "ghost.exe mycfg.cfg" or "ghost++ mycfg.cfg")
+  * it will default to ghost.cfg if no config file is specified
+ - added support for logging console output
+ - added new config value bot_log to specify the log file
+ - added new config value bot_autolock to automatically lock the game when the owner joins
+ - added new config value bnet*_holdfriends to automatically add the bot's friends to the reserved list when creating a game
+ - added new config value bnet*_holdclan to automatically add the bot's clan members to the reserved list when creating a game
+ - added new command !banlast to ban the last leaver
+ - added new command !getclan to refresh the clan members list
+ - added new command !getfriends to refresh the friends list
+ - added new command !disable to prevent new games from being created
+ - added new command !enable to allow new games to be created
+ - added new command !saygames to send a chat message to all games
+ - fixed a bug where Warcraft 3 would crash when sharing control of units when the map has 12 slots and when connecting via LAN
+ - fixed some bugs where long chat messages would be incorrectly truncated
+ - fixed a crash bug when there was an error opening the sqlite3 database
+ - fixed a potential crash bug when checking game player summaries with a corrupt database
+ - added 3 new entries to language.cfg
 
 Version 10.2
  - added new command !closeall to close all open slots

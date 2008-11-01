@@ -120,13 +120,20 @@ void SignalCatcher( int signal )
 // main
 //
 
-int main( void )
+int main( int argc, char **argv )
 {
+	string CFGFile = "ghost.cfg";
+
+	if( argc > 1 && argv[1] )
+		CFGFile = argv[1];
+
 	// read config file
 
 	CConfig CFG;
-	CFG.Read( "ghost.cfg" );
+	CFG.Read( CFGFile );
 	gLogFile = CFG.GetString( "bot_log", "ghost.log" );
+
+	// print something for logging purposes
 
 	CONSOLE_Print( "[GHOST] starting up" );
 
@@ -241,7 +248,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Language = new CLanguage( );
 	m_Exiting = false;
 	m_Enabled = true;
-	m_Version = "10.2";
+	m_Version = "10.3";
 	m_HostCounter = 1;
 	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
 	m_HostPort = CFG->GetInt( "bot_hostport", 6112 );
