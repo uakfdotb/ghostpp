@@ -3286,12 +3286,12 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 {
 	SendChat( player, " " );
 	SendChat( player, " " );
-	SendChat( player, " " );
 	SendChat( player, "GHost++ Admin Game                    http://forum.codelain.com/" );
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 	SendChat( player, "Commands: addadmin, checkadmin, countadmins, deladmin" );
-	SendChat( player, "Commands: end, exit, getgame, getgames, load, map" );
-	SendChat( player, "Commands: password, priv, privby, pub, pubby, quit, unhost" );
+	SendChat( player, "Commands: disable, enable, end, exit, getgame, getgames" );
+	SendChat( player, "Commands: load, map, password, priv, privby, pub, pubby" );
+	SendChat( player, "Commands: saygames, quit, unhost" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *player, CIncomingJoinPlayer *joinPlayer )
@@ -3650,6 +3650,19 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				GameName = Payload.substr( GameNameStart + 1 );
 				m_GHost->CreateGame( GAME_PUBLIC, GameName, Owner, User, string( ), false );
 			}
+		}
+
+		//
+		// !SAYGAMES
+		//
+
+		if( Command == "saygames" && !Payload.empty( ) )
+		{
+			if( m_GHost->m_CurrentGame )
+				m_GHost->m_CurrentGame->SendAllChat( Payload );
+
+			for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); i++ )
+				(*i)->SendAllChat( Payload );
 		}
 
 		//
