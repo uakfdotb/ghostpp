@@ -131,7 +131,7 @@ int main( int argc, char **argv )
 
 	CConfig CFG;
 	CFG.Read( CFGFile );
-	gLogFile = CFG.GetString( "bot_log", "ghost.log" );
+	gLogFile = CFG.GetString( "bot_log", string( ) );
 
 	// print something for logging purposes
 

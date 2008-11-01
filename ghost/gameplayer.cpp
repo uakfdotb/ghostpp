@@ -204,6 +204,7 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_FinishedLoading = false;
 	m_Lagging = false;
 	m_DropVote = false;
+	m_LeftMessageSent = false;
 }
 
 CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) )
@@ -232,6 +233,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_FinishedLoading = false;
 	m_Lagging = false;
 	m_DropVote = false;
+	m_LeftMessageSent = false;
 }
 
 CGamePlayer :: ~CGamePlayer( )

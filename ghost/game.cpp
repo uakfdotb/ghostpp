@@ -628,12 +628,17 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 	if( m_GameLoaded )
 		SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + "." );
 
-	if( player->GetLagging( ) )
-		SendAll( m_Protocol->SEND_W3GS_STOP_LAG( player ) );
+	// in some cases we're forced to send the left message early so don't send it again
 
-	// tell everyone about the player leaving
+	if( !player->GetLeftMessageSent( ) )
+	{
+		if( player->GetLagging( ) )
+			SendAll( m_Protocol->SEND_W3GS_STOP_LAG( player ) );
 
-	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
+		// tell everyone about the player leaving
+
+		SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
+	}
 
 	// open their slot if we were in the lobby state
 
@@ -727,7 +732,14 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 			OpenSlot( SID, true );
 
 			if( KickedPlayer )
+			{
 				KickedPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForReservedPlayer( joinPlayer->GetName( ) ) );
+
+				// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
+
+				SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( KickedPlayer->GetPID( ), KickedPlayer->GetLeftCode( ) ) );
+				KickedPlayer->SetLeftMessageSent( true );
+			}
 		}
 	}
 
@@ -741,7 +753,14 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		OpenSlot( SID, true );
 
 		if( KickedPlayer )
+		{
 			KickedPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForOwnerPlayer( joinPlayer->GetName( ) ) );
+
+			// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
+
+			SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( KickedPlayer->GetPID( ), KickedPlayer->GetLeftCode( ) ) );
+			KickedPlayer->SetLeftMessageSent( true );
+		}
 	}
 
 	if( SID >= m_Slots.size( ) )
