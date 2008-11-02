@@ -245,11 +245,12 @@ CGHost :: CGHost( CConfig *CFG )
 	m_CRC->Initialize( );
 	m_CurrentGame = NULL;
 	m_DB = new CGHostDBSQLite( CFG );
-	m_Language = new CLanguage( );
 	m_Exiting = false;
 	m_Enabled = true;
 	m_Version = "10.3";
 	m_HostCounter = 1;
+	m_LanguageFile = CFG->GetString( "bot_language", "language.cfg" );
+	m_Language = new CLanguage( m_LanguageFile );
 	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
 	m_HostPort = CFG->GetInt( "bot_hostport", 6112 );
 	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );

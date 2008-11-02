@@ -31,7 +31,7 @@ private:
 	CConfig *m_CFG;
 
 public:
-	CLanguage( );
+	CLanguage( string nCFGFile );
 	~CLanguage( );
 
 	void Replace( string &Text, string Key, string Value );

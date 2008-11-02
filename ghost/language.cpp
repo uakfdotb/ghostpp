@@ -26,10 +26,10 @@
 // CLanguage
 //
 
-CLanguage :: CLanguage( )
+CLanguage :: CLanguage( string nCFGFile )
 {
 	m_CFG = new CConfig( );
-	m_CFG->Read( "language.cfg" );
+	m_CFG->Read( nCFGFile );
 }
 
 CLanguage :: ~CLanguage( )

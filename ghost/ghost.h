@@ -98,6 +98,7 @@ public:
 	bool m_Enabled;					// set to false to prevent new games from being created
 	string m_Version;				// GHost++ version string
 	uint32_t m_HostCounter;			// the current host counter (a unique number to identify a game, incremented each time a game is created)
+	string m_LanguageFile;			// config value: language file
 	string m_Warcraft3Path;			// config value: Warcraft 3 path
 	uint16_t m_HostPort;			// config value: the port to host games on
 	uint32_t m_MaxGames;			// config value: maximum number of games in progress
