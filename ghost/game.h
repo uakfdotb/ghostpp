@@ -144,7 +144,7 @@ public:
 	// therefore you can't modify those vectors and must use the player's m_DeleteMe member to flag for deletion
 
 	virtual void EventPlayerDeleted( CGamePlayer *player );
-	virtual void EventPlayerJoined( CPotentialPlayer *player, CIncomingJoinPlayer *joinPlayer );
+	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
 	virtual void EventPlayerLeft( CGamePlayer *player );
 	virtual void EventPlayerLoaded( CGamePlayer *player );
 	virtual void EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
@@ -245,7 +245,7 @@ public:
 	virtual ~CAdminGame( );
 
 	virtual void SendWelcomeMessage( CGamePlayer *player );
-	virtual void EventPlayerJoined( CPotentialPlayer *player, CIncomingJoinPlayer *joinPlayer );
+	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
 	virtual void EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
 };
 

@@ -359,12 +359,7 @@ void CGamePlayer :: ProcessPackets( )
 			{
 			case CGameProtocol :: W3GS_LEAVEGAME:
 				if( m_Protocol->RECEIVE_W3GS_LEAVEGAME( Packet->GetData( ) ) )
-				{
-					m_DeleteMe = true;
-					m_LeftReason = m_Game->m_GHost->m_Language->HasLeftVoluntarily( );
-					m_LeftCode = PLAYERLEAVE_LOST;
 					m_Game->EventPlayerLeft( this );
-				}
 
 				break;
 

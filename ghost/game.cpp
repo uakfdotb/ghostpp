@@ -640,7 +640,6 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 	CONSOLE_Print( "[GAME: " + m_GameName + "] deleting player [" + player->GetName( ) + "]: " + player->GetLeftReason( ) );
 
 	// in some cases we're forced to send the left message early so don't send it again
-	// this is actually a tricky piece of code, we have to make sure not to open the slot either because it might be occupied by another player now!
 
 	if( player->GetLeftMessageSent( ) )
 		return;
@@ -654,11 +653,6 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 	// tell everyone about the player leaving
 
 	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
-
-	// open their slot if we were in the lobby state
-
-	if( !m_GameLoading && !m_GameLoaded )
-		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 
 	// abort the countdown if there was one in progress
 
@@ -744,13 +738,15 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		if( SID != 255 )
 		{
 			CGamePlayer *KickedPlayer = GetPlayerFromSID( SID );
-			OpenSlot( SID, true );
 
 			if( KickedPlayer )
 			{
+				KickedPlayer->SetDeleteMe( true );
 				KickedPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForReservedPlayer( joinPlayer->GetName( ) ) );
+				KickedPlayer->SetLeftCode( PLAYERLEAVE_LOBBY );
 
 				// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
+				// we don't need to call OpenSlot here because we're about to overwrite the slot data anyway
 
 				SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( KickedPlayer->GetPID( ), KickedPlayer->GetLeftCode( ) ) );
 				KickedPlayer->SetLeftMessageSent( true );
@@ -765,13 +761,15 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 		SID = 0;
 		CGamePlayer *KickedPlayer = GetPlayerFromSID( SID );
-		OpenSlot( SID, true );
 
 		if( KickedPlayer )
 		{
+			KickedPlayer->SetDeleteMe( true );
 			KickedPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForOwnerPlayer( joinPlayer->GetName( ) ) );
+			KickedPlayer->SetLeftCode( PLAYERLEAVE_LOBBY );
 
 			// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
+			// we don't need to call OpenSlot here because we're about to overwrite the slot data anyway
 
 			SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( KickedPlayer->GetPID( ), KickedPlayer->GetLeftCode( ) ) );
 			KickedPlayer->SetLeftMessageSent( true );
@@ -887,6 +885,11 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 void CBaseGame :: EventPlayerLeft( CGamePlayer *player )
 {
 	// this function is only called when a player leave packet is received, not when there's a socket error, kick, etc...
+
+	player->SetDeleteMe( true );
+	player->SetLeftReason( m_GHost->m_Language->HasLeftVoluntarily( ) );
+	player->SetLeftCode( PLAYERLEAVE_LOST );
+	OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 }
 
 void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
@@ -912,13 +915,25 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 				bool Relay = true;
 				BYTEARRAY ExtraFlags = chatPlayer->GetExtraFlags( );
 
+				// calculate timestamp
+
+				uint32_t Time = GetTime( ) - m_StartedLoadingTime;
+				string MinString = UTIL_ToString( Time / 60 );
+				string SecString = UTIL_ToString( Time % 60 );
+
+				if( MinString.size( ) == 1 )
+					MinString.insert( 0, "0" );
+
+				if( SecString.size( ) == 1 )
+					SecString.insert( 0, "0" );
+
 				if( !ExtraFlags.empty( ) )
 				{
 					if( ExtraFlags[0] == 0 )
 					{
 						// this is an ingame [All] message, print it to the console
 
-						CONSOLE_Print( "[GAME: " + m_GameName + "] [All] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
 
 						// don't relay ingame messages targeted for all players if we're currently muting all
 						// note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
@@ -1183,12 +1198,16 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 			{
 				player->SetDeleteMe( true );
 				player->SetLeftReason( "doesn't have the map and there is no local copy of the map to send" );
+				player->SetLeftCode( PLAYERLEAVE_LOBBY );
+				OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 			}
 		}
 		else
 		{
 			player->SetDeleteMe( true );
 			player->SetLeftReason( "doesn't have the map and map downloads are disabled" );
+			player->SetLeftCode( PLAYERLEAVE_LOBBY );
+			OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 		}
 	}
 	else
@@ -1243,8 +1262,10 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 				// we only send one if the game has started
 
 				SendAllChat( m_GHost->m_Language->AutokickingPlayerForExcessivePing( player->GetName( ), UTIL_ToString( player->GetPing( ) / 2 ) ) );
-				OpenSlot( GetSIDFromPID( player->GetPID( ) ), true );
+				player->SetDeleteMe( true );
 				player->SetLeftReason( "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( ) / 2 ) );
+				player->SetLeftCode( PLAYERLEAVE_LOBBY );
+				OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 			}
 		}
 		else
@@ -1255,8 +1276,10 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 				// we only send one if the game has started
 
 				SendAllChat( m_GHost->m_Language->AutokickingPlayerForExcessivePing( player->GetName( ), UTIL_ToString( player->GetPing( ) ) ) );
-				OpenSlot( GetSIDFromPID( player->GetPID( ) ), true );
+				player->SetDeleteMe( true );
 				player->SetLeftReason( "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( ) ) );
+				player->SetLeftCode( PLAYERLEAVE_LOBBY );
+				OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 			}
 		}
 	}
@@ -1669,6 +1692,7 @@ void CBaseGame :: OpenSlot( unsigned char SID, bool kick )
 		{
 			Player->SetDeleteMe( true );
 			Player->SetLeftReason( "was kicked when opening a slot" );
+			Player->SetLeftCode( PLAYERLEAVE_LOBBY );
 		}
 	}
 
@@ -1690,6 +1714,7 @@ void CBaseGame :: CloseSlot( unsigned char SID, bool kick )
 		{
 			Player->SetDeleteMe( true );
 			Player->SetLeftReason( "was kicked when closing a slot" );
+			Player->SetLeftCode( PLAYERLEAVE_LOBBY );
 		}
 	}
 
@@ -1711,6 +1736,7 @@ void CBaseGame :: ComputerSlot( unsigned char SID, unsigned char skill, bool kic
 		{
 			Player->SetDeleteMe( true );
 			Player->SetLeftReason( "was kicked when creating a computer in a slot" );
+			Player->SetLeftCode( PLAYERLEAVE_LOBBY );
 		}
 	}
 
@@ -2959,8 +2985,10 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 							if( !Payload.empty( ) && (*i)->GetPing( ) / 2 > KickPing )
 							{
-								OpenSlot( GetSIDFromPID( (*i)->GetPID( ) ), true );
+								(*i)->SetDeleteMe( true );
 								(*i)->SetLeftReason( "was kicked for excessive LC ping [" + UTIL_ToString( (*i)->GetPing( ) / 2 ) + "] > [" + UTIL_ToString( KickPing ) + "]" );
+								(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
+								OpenSlot( GetSIDFromPID( (*i)->GetPID( ) ), false );
 								Kicked++;
 							}
 						}
@@ -2970,8 +2998,10 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 							if( !Payload.empty( ) && (*i)->GetPing( ) > KickPing )
 							{
-								OpenSlot( GetSIDFromPID( (*i)->GetPID( ) ), true );
+								(*i)->SetDeleteMe( true );
 								(*i)->SetLeftReason( "was kicked for excessive ping [" + UTIL_ToString( (*i)->GetPing( ) ) + "] > [" + UTIL_ToString( KickPing ) + "]" );
+								(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
+								OpenSlot( GetSIDFromPID( (*i)->GetPID( ) ), false );
 								Kicked++;
 							}
 						}
@@ -3310,7 +3340,7 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "Commands: quit, saygames, unhost" );
 }
 
-void CAdminGame :: EventPlayerJoined( CPotentialPlayer *player, CIncomingJoinPlayer *joinPlayer )
+void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
 {
 	uint32_t Time = GetTime( );
 
@@ -3322,12 +3352,12 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *player, CIncomingJoinPla
 			i = m_TempBans.erase( i );
 		else
 		{
-			if( (*i).first == player->GetExternalIPString( ) )
+			if( (*i).first == potential->GetExternalIPString( ) )
 			{
 				// tempbanned, goodbye
 				// this is just going to close the socket which displays a "game not found" message to the player
 
-				player->SetDeleteMe( true );
+				potential->SetDeleteMe( true );
 				CONSOLE_Print( "[ADMINGAME] player [" + joinPlayer->GetName( ) + "] at ip [" + (*i).first + "] is trying to join the game but is tempbanned" );
 				return;
 			}
@@ -3336,7 +3366,7 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *player, CIncomingJoinPla
 		}
 	}
 
-	CBaseGame :: EventPlayerJoined( player, joinPlayer );
+	CBaseGame :: EventPlayerJoined( potential, joinPlayer );
 }
 
 void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
