@@ -941,3 +941,10 @@ string CLanguage :: BotEnabled( )
 {
 	return m_CFG->GetString( "lang_0127", "lang_0127" );
 }
+
+string CLanguage :: UnableToCreateGameInvalidMap( string gamename )
+{
+	string Out = m_CFG->GetString( "lang_0128", "lang_0128" );
+	Replace( Out, "$GAMENAME$", gamename );
+	return Out;
+}

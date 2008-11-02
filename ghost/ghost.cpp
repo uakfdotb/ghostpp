@@ -761,6 +761,20 @@ void CGHost :: CreateGame( unsigned char gameState, string gameName, string owne
 		return;
 	}
 
+	if( !m_Map->GetValid( ) )
+	{
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+		{
+			if( (*i)->GetServer( ) == creatorServer )
+				(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidMap( gameName ), creatorName, whisper );
+		}
+
+		if( m_AdminGame )
+			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameInvalidMap( gameName ) );
+
+		return;
+	}
+
 	if( m_CurrentGame )
 	{
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )

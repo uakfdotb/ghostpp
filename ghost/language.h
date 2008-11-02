@@ -163,6 +163,7 @@ public:
 	string UnableToCreateGameDisabled( string gamename );
 	string BotDisabled( );
 	string BotEnabled( );
+	string UnableToCreateGameInvalidMap( string gamename );
 };
 
 #endif

@@ -49,6 +49,7 @@ public:
 	CGHost *m_GHost;
 
 private:
+	bool m_Valid;
 	string m_CFGFile;
 	string m_MapPath;							// config value: map path
 	BYTEARRAY m_MapSize;						// config value: map size (4 bytes)
@@ -73,6 +74,7 @@ public:
 	CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile );
 	~CMap( );
 
+	bool GetValid( )					{ return m_Valid; }
 	string GetCFGFile( )				{ return m_CFGFile; }
 	string GetMapPath( )				{ return m_MapPath; }
 	BYTEARRAY GetMapSize( )				{ return m_MapSize; }
@@ -94,6 +96,7 @@ public:
 	vector<CGameSlot> GetSlots( )		{ return m_Slots; }
 
 	void Load( CConfig *CFG, string nCFGFile );
+	void CheckValid( );
 	uint32_t XORRotateLeft( unsigned char *data, uint32_t length );
 };
 

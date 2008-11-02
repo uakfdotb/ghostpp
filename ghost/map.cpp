@@ -37,6 +37,7 @@
 CMap :: CMap( CGHost *nGHost )
 {
 	m_GHost = nGHost;
+	m_Valid = true;
 	m_MapPath = "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x";
 	m_MapSize = UTIL_ExtractNumbers( "174 221 4 0", 4 );
 	m_MapInfo = UTIL_ExtractNumbers( "251 57 68 98", 4 );
@@ -151,6 +152,7 @@ BYTEARRAY CMap :: GetMapGameFlags( )
 
 void CMap :: Load( CConfig *CFG, string nCFGFile )
 {
+	m_Valid = true;
 	m_CFGFile = nCFGFile;
 
 	// load the map data
@@ -508,10 +510,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	if( MapMPQReady )
 		SFileCloseArchive( MapMPQ );
 
-	m_MapPath = CFG->GetString( "map_path", "Maps\\Download\\DotA Allstars v6.54b.w3x" );
+	m_MapPath = CFG->GetString( "map_path", string( ) );
 
 	if( MapSize.empty( ) )
-		MapSize = UTIL_ExtractNumbers( CFG->GetString( "map_size", "193 236 49 0" ), 4 );
+		MapSize = UTIL_ExtractNumbers( CFG->GetString( "map_size", string( ) ), 4 );
 	else if( CFG->Exists( "map_size" ) )
 	{
 		CONSOLE_Print( "[MAP] overriding calculated map_size with config value map_size = " + CFG->GetString( "map_size", string( ) ) );
@@ -521,7 +523,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapSize = MapSize;
 
 	if( MapInfo.empty( ) )
-		MapInfo = UTIL_ExtractNumbers( CFG->GetString( "map_info", "114 75 121 60" ), 4 );
+		MapInfo = UTIL_ExtractNumbers( CFG->GetString( "map_info", string( ) ), 4 );
 	else if( CFG->Exists( "map_info" ) )
 	{
 		CONSOLE_Print( "[MAP] overriding calculated map_info with config value map_info = " + CFG->GetString( "map_info", string( ) ) );
@@ -531,7 +533,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapInfo = MapInfo;
 
 	if( MapCRC.empty( ) )
-		MapCRC = UTIL_ExtractNumbers( CFG->GetString( "map_crc", "120 227 167 121" ), 4 );
+		MapCRC = UTIL_ExtractNumbers( CFG->GetString( "map_crc", string( ) ), 4 );
 	else if( CFG->Exists( "map_crc" ) )
 	{
 		CONSOLE_Print( "[MAP] overriding calculated map_crc with config value map_crc = " + CFG->GetString( "map_crc", string( ) ) );
@@ -546,7 +548,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapGameType = CFG->GetInt( "map_gametype", 1 );
 
 	if( MapWidth.empty( ) )
-		MapWidth = UTIL_ExtractNumbers( CFG->GetString( "map_width", "116 0" ), 2 );
+		MapWidth = UTIL_ExtractNumbers( CFG->GetString( "map_width", string( ) ), 2 );
 	else if( CFG->Exists( "map_width" ) )
 	{
 		CONSOLE_Print( "[MAP] overriding calculated map_width with config value map_width = " + CFG->GetString( "map_width", string( ) ) );
@@ -556,7 +558,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapWidth = MapWidth;
 
 	if( MapHeight.empty( ) )
-		MapHeight = UTIL_ExtractNumbers( CFG->GetString( "map_height", "116 0" ), 2 );
+		MapHeight = UTIL_ExtractNumbers( CFG->GetString( "map_height", string( ) ), 2 );
 	else if( CFG->Exists( "map_height" ) )
 	{
 		CONSOLE_Print( "[MAP] overriding calculated map_height with config value map_height = " + CFG->GetString( "map_height", string( ) ) );
@@ -567,7 +569,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapType = CFG->GetString( "map_type", string( ) );
 
 	if( MapNumPlayers == 0 )
-		MapNumPlayers = CFG->GetInt( "map_numplayers", 10 );
+		MapNumPlayers = CFG->GetInt( "map_numplayers", 0 );
 	else if( CFG->Exists( "map_numplayers" ) )
 	{
 		CONSOLE_Print( "[MAP] overriding calculated map_numplayers with config value map_numplayers = " + CFG->GetString( "map_numplayers", string( ) ) );
@@ -577,7 +579,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapNumPlayers = MapNumPlayers;
 
 	if( MapNumTeams == 0 )
-		MapNumTeams = CFG->GetInt( "map_numteams", 2 );
+		MapNumTeams = CFG->GetInt( "map_numteams", 0 );
 	else if( CFG->Exists( "map_numteams" ) )
 	{
 		CONSOLE_Print( "[MAP] overriding calculated map_numteams with config value map_numteams = " + CFG->GetString( "map_numteams", string( ) ) );
@@ -618,22 +620,6 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	m_Slots = Slots;
 
-	if( m_Slots.empty( ) )
-	{
-		// no slots found, use the DotA 6.54b default slot structure
-
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 1, SLOTRACE_NIGHTELF ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 2, SLOTRACE_NIGHTELF ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 3, SLOTRACE_NIGHTELF ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 4, SLOTRACE_NIGHTELF ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 5, SLOTRACE_NIGHTELF ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 1, 7, SLOTRACE_UNDEAD ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 1, 8, SLOTRACE_UNDEAD ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 1, 9, SLOTRACE_UNDEAD ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 1, 10, SLOTRACE_UNDEAD ) );
-		m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 1, 11, SLOTRACE_UNDEAD ) );
-	}
-
 	// if random races is set force every slot's race to random + fixed
 
 	if( m_MapFlags & MAPFLAG_RANDOMRACES )
@@ -652,6 +638,91 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 		while( m_Slots.size( ) < 12 )
 			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 12, 12, SLOTRACE_RANDOM ) );
+	}
+
+	CheckValid( );
+}
+
+void CMap :: CheckValid( )
+{
+	if( m_MapPath.empty( ) )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_path detected" );
+	}
+
+	if( m_MapSize.size( ) != 4 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_size detected" );
+	}
+
+	if( m_MapInfo.size( ) != 4 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_info detected" );
+	}
+
+	if( m_MapCRC.size( ) != 4 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_crc detected" );
+	}
+
+	if( m_MapSpeed != MAPSPEED_SLOW && m_MapSpeed != MAPSPEED_NORMAL && m_MapSpeed != MAPSPEED_FAST )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_speed detected" );
+	}
+
+	if( m_MapVisibility != MAPVIS_HIDETERRAIN && m_MapVisibility != MAPVIS_EXPLORED && m_MapVisibility != MAPVIS_ALWAYSVISIBLE && m_MapVisibility != MAPVIS_DEFAULT )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_visibility detected" );
+	}
+
+	if( m_MapObservers != MAPOBS_NONE && m_MapObservers != MAPOBS_ONDEFEAT && m_MapObservers != MAPOBS_ALLOWED && m_MapObservers != MAPOBS_REFEREES )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_observers detected" );
+	}
+
+	// todotodo: m_MapFlags
+
+	if( m_MapGameType != 1 && m_MapGameType != 9 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_gametype detected" );
+	}
+
+	if( m_MapWidth.size( ) != 2 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_width detected" );
+	}
+
+	if( m_MapHeight.size( ) != 2 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_height detected" );
+	}
+
+	if( m_MapNumPlayers == 0 || m_MapNumPlayers > 12 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_numplayers detected" );
+	}
+
+	if( m_MapNumTeams == 0 || m_MapNumTeams > 12 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_numteams detected" );
+	}
+
+	if( m_Slots.empty( ) || m_Slots.size( ) > 12 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_slot<x> detected" );
 	}
 }
 
