@@ -977,3 +977,13 @@ string CLanguage :: AnnounceMessageDisabled( )
 {
 	return m_CFG->GetString( "lang_0133", "lang_0133" );
 }
+
+string CLanguage :: AutoHostEnabled( )
+{
+	return m_CFG->GetString( "lang_0134", "lang_0134" );
+}
+
+string CLanguage :: AutoHostDisabled( )
+{
+	return m_CFG->GetString( "lang_0135", "lang_0135" );
+}

@@ -2446,7 +2446,12 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			if( Command == "announce" && !m_CountDownStarted )
 			{
-				if( !Payload.empty( ) )
+				if( Payload.empty( ) || Payload == "off" )
+				{
+					SendAllChat( m_GHost->m_Language->AnnounceMessageDisabled( ) );
+					SetAnnounce( 0, string( ) );
+				}
+				else
 				{
 					// extract the interval and the message
 					// e.g. "30 hello everyone" -> interval: "30", message: "hello everyone"
@@ -2476,20 +2481,15 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						}
 					}
 				}
-				else
-				{
-					SendAllChat( m_GHost->m_Language->AnnounceMessageDisabled( ) );
-					SetAnnounce( 0, string( ) );
-				}
 			}
 
 			//
 			// !AUTOSTART
 			//
 
-			if( Command == "autostart" && !Payload.empty( ) )
+			if( Command == "autostart" && !m_CountDownStarted )
 			{
-				if( Payload == "off" )
+				if( Payload.empty( ) || Payload == "off" )
 				{
 					SendAllChat( m_GHost->m_Language->AutoStartDisabled( ) );
 					m_AutoStartPlayers = 0;

@@ -169,6 +169,8 @@ public:
 	string AutoStartEnabled( string players );
 	string AnnounceMessageEnabled( );
 	string AnnounceMessageDisabled( );
+	string AutoHostEnabled( );
+	string AutoHostDisabled( );
 };
 
 #endif

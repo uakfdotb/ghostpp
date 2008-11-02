@@ -55,6 +55,7 @@ private:
 	string m_FirstChannel;						// the first chat channel to join upon entering chat (note: we hijack this to store the last channel when entering a game)
 	string m_CurrentChannel;					// the current chat channel
 	string m_RootAdmin;							// the root admin
+	string m_AutoHostGameName;					// the base game name to auto host with
 	char m_CommandTrigger;						// the character prefix to identify commands
 	unsigned char m_War3Version;				// custom warcraft 3 version for PvPGN users
 	BYTEARRAY m_EXEVersion;						// custom exe version for PvPGN users
@@ -63,6 +64,9 @@ private:
 	uint32_t m_NextConnectTime;					// GetTime when we should try connecting to battle.net next (after we get disconnected)
 	uint32_t m_LastNullTime;					// GetTime when the last null packet was sent for detecting disconnects
 	uint32_t m_LastChatCommandTime;				// GetTime when the last chat command was sent for the m_ChatCommands queue
+	uint32_t m_AutoHostMaximumGames;			// maximum number of games to auto host
+	uint32_t m_AutoHostAutoStartPlayers;		// when using auto hosting auto start the game when this many players have joined
+	uint32_t m_LastAutoHostTime;				// GetTime when the last auto host was attempted
 	bool m_WaitingToConnect;					// if we're waiting to reconnect to battle.net after being disconnected
 	bool m_LoggedIn;							// if we've logged into battle.net or not
 	bool m_InChat;								// if we've entered chat or not (but we're not necessarily in a chat channel yet)
