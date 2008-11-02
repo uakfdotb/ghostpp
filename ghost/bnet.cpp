@@ -624,6 +624,72 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
+				// !ANNOUNCE
+				//
+
+				if( Command == "announce" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+				{
+					if( !Payload.empty( ) )
+					{
+						// extract the interval and the message
+						// e.g. "30 hello everyone" -> interval: "30", message: "hello everyone"
+
+						uint32_t Interval;
+						string Message;
+						stringstream SS;
+						SS << Payload;
+						SS >> Interval;
+
+						if( SS.fail( ) || Interval == 0 )
+							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to announce command" );
+						else
+						{
+							if( SS.eof( ) )
+								CONSOLE_Print( "[BNET: " + m_Server + "] missing input #2 to announce command" );
+							else
+							{
+								getline( SS, Message );
+								string :: size_type Start = Message.find_first_not_of( " " );
+
+								if( Start != string :: npos )
+									Message = Message.substr( Start );
+
+								QueueChatCommand( m_GHost->m_Language->AnnounceMessageEnabled( ), User, Whisper );
+								m_GHost->m_CurrentGame->SetAnnounce( Interval, Message );
+							}
+						}
+					}
+					else
+					{
+						QueueChatCommand( m_GHost->m_Language->AnnounceMessageDisabled( ), User, Whisper );
+						m_GHost->m_CurrentGame->SetAnnounce( 0, string( ) );
+					}
+				}
+
+				//
+				// !AUTOSTART
+				//
+
+				if( Command == "autostart" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+				{
+					if( Payload == "off" )
+					{
+						QueueChatCommand( m_GHost->m_Language->AutoStartDisabled( ), User, Whisper );
+						m_GHost->m_CurrentGame->SetAutoStartPlayers( 0 );
+					}
+					else
+					{
+						uint32_t AutoStartPlayers = UTIL_ToUInt32( Payload );
+
+						if( AutoStartPlayers != 0 )
+						{
+							QueueChatCommand( m_GHost->m_Language->AutoStartEnabled( UTIL_ToString( AutoStartPlayers ) ), User, Whisper );
+							m_GHost->m_CurrentGame->SetAutoStartPlayers( AutoStartPlayers );
+						}
+					}
+				}
+
+				//
 				// !CHANNEL (change channel)
 				//
 

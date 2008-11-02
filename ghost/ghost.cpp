@@ -263,7 +263,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_MapCFGPath = CFG->GetString( "bot_mapcfgpath", string( ) );
 	m_MapPath = CFG->GetString( "bot_mappath", string( ) );
 	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
-	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 1 ) == 0 ? false : true;
+	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
 	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;
 	m_AllowDownloads = CFG->GetInt( "bot_allowdownloads", 0 );
 	m_PingDuringDownloads = CFG->GetInt( "bot_pingduringdownloads", 0 ) == 0 ? false : true;

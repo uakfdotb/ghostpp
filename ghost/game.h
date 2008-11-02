@@ -72,6 +72,8 @@ protected:
 	uint32_t m_DLCounter;						// how many map download bytes have been sent since the last reset (for limiting download speed)
 	uint32_t m_LastAnnounceTime;				// GetTime when the last announce message was sent
 	uint32_t m_AnnounceInterval;				// how many seconds to wait between sending the m_AnnounceMessage
+	uint32_t m_LastAutoStartTime;				// the last time we tried to auto start the game
+	uint32_t m_AutoStartPlayers;				// auto start the game when there are this many players or more
 	uint32_t m_LastCountDownTicks;				// GetTicks when the last countdown message was sent
 	uint32_t m_CountDownCounter;				// the countdown is finished when this reaches zero
 	uint32_t m_StartedLoadingTicks;				// GetTicks when the game started loading
@@ -107,11 +109,14 @@ public:
 	virtual bool GetGameLoaded( )				{ return m_GameLoaded; }
 	virtual bool GetLagging( )					{ return m_Lagging; }
 
-	virtual void SetExiting( bool nExiting )	{ m_Exiting = nExiting; }
+	virtual void SetExiting( bool nExiting )						{ m_Exiting = nExiting; }
+	virtual void SetAutoStartPlayers( uint32_t nAutoStartPlayers )	{ m_AutoStartPlayers = nAutoStartPlayers; }
 
 	virtual uint32_t GetSlotsOpen( );
 	virtual uint32_t GetNumPlayers( );
 	virtual string GetDescription( );
+
+	virtual void SetAnnounce( uint32_t interval, string message );
 
 	// processing functions
 
@@ -193,6 +198,7 @@ public:
 	virtual bool IsReserved( string name );
 	virtual bool IsDownloading( );
 	virtual void StartCountDown( bool force );
+	virtual void StartCountDownAuto( );
 	virtual void StopPlayers( string reason );
 	virtual void StopLaggers( string reason );
 	virtual void CreateVirtualHost( );

@@ -948,3 +948,32 @@ string CLanguage :: UnableToCreateGameInvalidMap( string gamename )
 	Replace( Out, "$GAMENAME$", gamename );
 	return Out;
 }
+
+string CLanguage :: WaitingForPlayersBeforeAutoStart( string players )
+{
+	string Out = m_CFG->GetString( "lang_0129", "lang_0129" );
+	Replace( Out, "$PLAYERS$", players );
+	return Out;
+}
+
+string CLanguage :: AutoStartDisabled( )
+{
+	return m_CFG->GetString( "lang_0130", "lang_0130" );
+}
+
+string CLanguage :: AutoStartEnabled( string players )
+{
+	string Out = m_CFG->GetString( "lang_0131", "lang_0131" );
+	Replace( Out, "$PLAYERS$", players );
+	return Out;
+}
+
+string CLanguage :: AnnounceMessageEnabled( )
+{
+	return m_CFG->GetString( "lang_0132", "lang_0132" );
+}
+
+string CLanguage :: AnnounceMessageDisabled( )
+{
+	return m_CFG->GetString( "lang_0133", "lang_0133" );
+}

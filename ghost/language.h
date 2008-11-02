@@ -164,6 +164,11 @@ public:
 	string BotDisabled( );
 	string BotEnabled( );
 	string UnableToCreateGameInvalidMap( string gamename );
+	string WaitingForPlayersBeforeAutoStart( string players );
+	string AutoStartDisabled( );
+	string AutoStartEnabled( string players );
+	string AnnounceMessageEnabled( );
+	string AnnounceMessageDisabled( );
 };
 
 #endif

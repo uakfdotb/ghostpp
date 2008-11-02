@@ -62,6 +62,8 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned
 	m_DLCounter = 0;
 	m_LastAnnounceTime = 0;
 	m_AnnounceInterval = 0;
+	m_LastAutoStartTime = GetTime( );
+	m_AutoStartPlayers = 0;
 	m_LastCountDownTicks = 0;
 	m_CountDownCounter = 0;
 	m_StartedLoadingTicks = 0;
@@ -144,6 +146,13 @@ string CBaseGame :: GetDescription( )
 		Description += " : " + UTIL_ToString( ( GetTime( ) - m_CreationTime ) / 60 ) + "m";
 
 	return Description;
+}
+
+void CBaseGame :: SetAnnounce( uint32_t interval, string message )
+{
+	m_AnnounceInterval = interval;
+	m_AnnounceMessage = message;
+	m_LastAnnounceTime = GetTime( );
 }
 
 unsigned int CBaseGame :: SetFD( void *fd, int *nfds )
@@ -235,9 +244,9 @@ bool CBaseGame :: Update( void *fd )
 		m_LastPingTime = GetTime( );
 	}
 
-	// refresh every 10 seconds
+	// refresh every 5 seconds
 
-	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 10 )
+	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 5 )
 	{
 		// send a game refresh packet to each battle.net connection
 		// we don't print a message here because we do so when we receive a response from battle.net so we know the refresh was successful
@@ -255,6 +264,14 @@ bool CBaseGame :: Update( void *fd )
 	{
 		SendAllChat( m_AnnounceMessage );
 		m_LastAnnounceTime = GetTime( );
+	}
+
+	// try to auto start every 10 seconds
+
+	if( m_AutoStartPlayers != 0 && GetTime( ) >= m_LastAutoStartTime + 10 )
+	{
+		StartCountDownAuto( );
+		m_LastAutoStartTime = GetTime( );
 	}
 
 	// countdown every 500 ms
@@ -2056,6 +2073,76 @@ void CBaseGame :: StartCountDown( bool force )
 	}
 }
 
+void CBaseGame :: StartCountDownAuto( )
+{
+	if( !m_CountDownStarted )
+	{
+		// check if enough players are present
+
+		if( GetNumPlayers( ) < m_AutoStartPlayers )
+		{
+			SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ) ) );
+			return;
+		}
+
+		// check if everyone has the map
+
+		string StillDownloading;
+
+		for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); i++ )
+		{
+			if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetDownloadStatus( ) != 100 )
+			{
+				CGamePlayer *Player = GetPlayerFromPID( (*i).GetPID( ) );
+
+				if( Player )
+				{
+					if( StillDownloading.empty( ) )
+						StillDownloading = Player->GetName( );
+					else
+						StillDownloading += ", " + Player->GetName( );
+				}
+			}
+		}
+
+		if( !StillDownloading.empty( ) )
+		{
+			SendAllChat( m_GHost->m_Language->PlayersStillDownloading( StillDownloading ) );
+			return;
+		}
+
+		// check if everyone has been pinged enough (3 times) that the autokicker would have kicked them by now
+		// see function EventPlayerPongToHost for the autokicker code
+
+		string NotPinged;
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( (*i)->GetNumPings( ) < 3 )
+			{
+				if( NotPinged.empty( ) )
+					NotPinged = (*i)->GetName( );
+				else
+					NotPinged += ", " + (*i)->GetName( );
+			}
+		}
+
+		if( !NotPinged.empty( ) )
+		{
+			SendAllChat( m_GHost->m_Language->PlayersNotYetPinged( NotPinged ) );
+			return;
+		}
+
+		// if no problems found start the game
+
+		if( StillDownloading.empty( ) && NotPinged.empty( ) )
+		{
+			m_CountDownStarted = true;
+			m_CountDownCounter = 10;
+		}
+	}
+}
+
 void CBaseGame :: StopPlayers( string reason )
 {
 	// disconnect every player and set their left reason to the passed string
@@ -2384,14 +2471,39 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							if( Start != string :: npos )
 								Message = Message.substr( Start );
 
-							m_AnnounceInterval = Interval;
-							m_AnnounceMessage = Message;
-							m_LastAnnounceTime = GetTime( );
+							SendAllChat( m_GHost->m_Language->AnnounceMessageEnabled( ) );
+							SetAnnounce( Interval, Message );
 						}
 					}
 				}
 				else
-					m_AnnounceMessage.clear( );
+				{
+					SendAllChat( m_GHost->m_Language->AnnounceMessageDisabled( ) );
+					SetAnnounce( 0, string( ) );
+				}
+			}
+
+			//
+			// !AUTOSTART
+			//
+
+			if( Command == "autostart" && !Payload.empty( ) )
+			{
+				if( Payload == "off" )
+				{
+					SendAllChat( m_GHost->m_Language->AutoStartDisabled( ) );
+					m_AutoStartPlayers = 0;
+				}
+				else
+				{
+					uint32_t AutoStartPlayers = UTIL_ToUInt32( Payload );
+
+					if( AutoStartPlayers != 0 )
+					{
+						SendAllChat( m_GHost->m_Language->AutoStartEnabled( UTIL_ToString( AutoStartPlayers ) ) );
+						m_AutoStartPlayers = AutoStartPlayers;
+					}
+				}
 			}
 
 			//
