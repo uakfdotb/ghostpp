@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 10.3
+GHost++ Version 10.4
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -144,6 +144,38 @@ Here's how:
 4.) If GHost++ doesn't find a *_server key it stops searching for any further battle.net connection information.
 5.) If any of the required keys are missing GHost++ will skip that set of battle.net connection information and start searching for the next one.
 
+============
+Auto Hosting
+============
+
+Since Version 10.4 GHost++ can automatically host and start public games without admin intervention.
+Here's how:
+
+1.) Load the map you want to auto host with the !load or !map commands.
+2.) Use the !autohost command to start the auto hosting process.
+3.) The bot will keep track of which map config file was loaded when the !autohost command was used and it will reload that map config file before auto hosting each game.
+
+The autohost command takes three arguments: !autohost <m> <p> <n>
+
+1.) <m> is the maximum number of games to auto host.
+ a.) This can be less than bot_maxgames, especially if you want to leave some games open for your own use.
+ b.) The bot will not auto host any new games while the number of running games is <m> or greater. The running games do not have to be auto hosted games.
+2.) <p> is the number of players required to auto start the game.
+ a.) When <p> players have joined the game it will ensure that all players have the map and have been ping checked before starting.
+ b.) Spoof checks are not required when auto starting games.
+3.) <n> is the game name.
+ a.) The bot will automatically add a unique game number to the end of <n> before auto hosting each game.
+ b.) For example if you specify "BattleShips Auto" it will create games like "BattleShips Auto #1" and "BattleShips Auto #2" and so on.
+
+It will take up to 30 seconds before each game is created.
+The previously loaded map config file will not be reloaded after the bot auto hosts each game.
+
+Example usage:
+
+!autohost 4 10 BattleShips!!!
+
+This will auto host up to 4 games at a time, auto starting when 10 players have joined, with names like "BattleShips!!! #1" and "BattleShips!!! #2" and so on.
+
 ================
 Map Config Files
 ================
@@ -215,6 +247,9 @@ In battle.net (via local chat or whisper at any time):
 
 !addadmin <name>        add a new admin to the database for this realm
 !addban <name> <reason> add a new ban to the database for this realm
+!announce <sec> <msg>   set the announce message (the bot will print <msg> every <sec> seconds in the game lobby), leave blank or "off" to disable the announce message
+!autohost <m> <p> <n>   auto host up to <m> games, auto starting when <p> players have joined, with name <n>, leave blank or "off" to disable auto hosting
+!autostart <players>    auto start the game when the specified number of players have joined, leave blank or "off" to disable auto start
 !ban                    alias to !addban
 !channel <name>         change channel
 !checkadmin <name>      check if a user is an admin on this realm
@@ -258,7 +293,8 @@ In game lobby:
 
 !a                      alias to !abort
 !abort                  abort countdown
-!announce <sec> <msg>   set the announce message (the bot will print <msg> every <sec> seconds), leave blank to disable the announce message
+!announce <sec> <msg>   set the announce message (the bot will print <msg> every <sec> seconds), leave blank or "off" to disable the announce message
+!autostart <players>    auto start the game when the specified number of players have joined, leave blank or "off" to disable auto start
 !check <name>           check a user's status (leave blank to check your own status)
 !checkban <name>        check if a user is banned on any realm
 !close <number> ...     close slot
@@ -401,6 +437,28 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 CHANGELOG
 =========
 
+Version 10.4
+ - added support for auto starting games
+ - added support for auto hosting public games
+  * see the "Auto Hosting" section of this readme for more information
+ - bot_log now defaults to empty (if it isn't specified no log file will be generated)
+ - bot_refreshmessages now defaults to 0
+ - games are now refreshed every 5 seconds instead of 10 seconds
+ - before creating a game the bot now checks that the currently loaded map config file is valid
+ - a timestamp is now printed to the console with ingame chat messages
+ - fixed a typo with the map config file for BattleShips Pro 1.189
+ - added new config value bot_language to specify the language file
+ - added new command !autostart to auto start the current game
+ - added new command !autohost to auto host public games
+ - you can now use the !announce command in battle.net (it still affects the current game lobby only)
+ - added responses to the !announce command
+ - added new map config for BattleShips Pro 1.197
+ - added new map config for Warlock 083
+ - added new map config for Worm War
+ - fixed a bug where a reserved player joining the game and kicking someone would cause everyone to disconnect
+ - fixed a bug where a player joining over LAN would be kicked when the game filled up when the game had less than 12 slots
+ - added some new entries to language.cfg
+
 Version 10.3
  - added support for specifying the config file on the command line (e.g. "ghost.exe mycfg.cfg" or "ghost++ mycfg.cfg")
   * it will default to ghost.cfg if no config file is specified
@@ -419,6 +477,7 @@ Version 10.3
  - fixed some bugs where long chat messages would be incorrectly truncated
  - fixed a crash bug when there was an error opening the sqlite3 database
  - fixed a potential crash bug when checking game player summaries with a corrupt database
+ - fixed a bug where the bot would sometimes not detect a dropped battle.net connection
  - added 3 new entries to language.cfg
 
 Version 10.2

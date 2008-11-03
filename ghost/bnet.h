@@ -56,6 +56,7 @@ private:
 	string m_CurrentChannel;					// the current chat channel
 	string m_RootAdmin;							// the root admin
 	string m_AutoHostGameName;					// the base game name to auto host with
+	string m_AutoHostMapCFG;					// the map config to auto host with
 	char m_CommandTrigger;						// the character prefix to identify commands
 	unsigned char m_War3Version;				// custom warcraft 3 version for PvPGN users
 	BYTEARRAY m_EXEVersion;						// custom exe version for PvPGN users

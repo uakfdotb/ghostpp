@@ -177,19 +177,36 @@ bool CBNET :: Update( void *fd )
 
 		// auto host
 
-		if( !m_AutoHostGameName.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) >= m_LastAutoHostTime + 30 )
+		if( !m_AutoHostGameName.empty( ) && !m_AutoHostMapCFG.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) >= m_LastAutoHostTime + 30 )
 		{
 			string GameName = m_AutoHostGameName + " #" + UTIL_ToString( m_GHost->m_HostCounter );
 
 			// copy all the checks from CGHost :: CreateGame here because we don't want to spam the chat when there's an error
 			// instead we fail silently and try again soon
 
-			if( m_GHost->m_Enabled && GameName.size( ) <= 31 && m_GHost->m_Map->GetValid( ) && !m_GHost->m_CurrentGame && m_GHost->m_Games.size( ) < m_GHost->m_MaxGames && m_GHost->m_Games.size( ) < m_AutoHostMaximumGames )
+			if( m_GHost->m_Enabled && GameName.size( ) <= 31 && !m_GHost->m_CurrentGame && m_GHost->m_Games.size( ) < m_GHost->m_MaxGames && m_GHost->m_Games.size( ) < m_AutoHostMaximumGames )
 			{
-				m_GHost->CreateGame( GAME_PUBLIC, GameName, m_RootAdmin, m_RootAdmin, m_Server, false );
+				// load the correct map config
 
-				if( m_GHost->m_CurrentGame )
-					m_GHost->m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );
+				CConfig MapCFG;
+				MapCFG.Read( m_AutoHostMapCFG );
+				m_GHost->m_Map->Load( &MapCFG, m_AutoHostMapCFG );
+
+				if( m_GHost->m_Map->GetValid( ) )
+				{
+					m_GHost->CreateGame( GAME_PUBLIC, GameName, m_RootAdmin, m_RootAdmin, m_Server, false );
+
+					if( m_GHost->m_CurrentGame )
+						m_GHost->m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );
+				}
+				else
+				{
+					CONSOLE_Print( "[BNET: " + m_Server + "] stopped auto hosting, map config file [" + m_AutoHostMapCFG + "] is invalid" );
+					m_AutoHostGameName.clear( );
+					m_AutoHostMapCFG.clear( );
+					m_AutoHostMaximumGames = 0;
+					m_AutoHostAutoStartPlayers = 0;
+				}
 			}
 
 			m_LastAutoHostTime = GetTime( );
@@ -695,55 +712,62 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "autohost" )
 				{
-					if( Payload.empty( ) || Payload == "off" )
+					if( IsRootAdmin( User ) )
 					{
-						QueueChatCommand( m_GHost->m_Language->AutoHostDisabled( ), User, Whisper );
-						m_AutoHostGameName.clear( );
-						m_AutoHostMaximumGames = 0;
-						m_AutoHostAutoStartPlayers = 0;
-						m_LastAutoHostTime = GetTime( );
-					}
-					else
-					{
-						// extract the maximum games, auto start players, and the game name
-						// e.g. "5 10 BattleShips Pro" -> maximum games: "5", auto start players: "10", game name: "BattleShips Pro"
-
-						uint32_t MaximumGames;
-						uint32_t AutoStartPlayers;
-						string GameName;
-						stringstream SS;
-						SS << Payload;
-						SS >> MaximumGames;
-
-						if( SS.fail( ) || MaximumGames == 0 )
-							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to autohost command" );
+						if( Payload.empty( ) || Payload == "off" )
+						{
+							QueueChatCommand( m_GHost->m_Language->AutoHostDisabled( ), User, Whisper );
+							m_AutoHostGameName.clear( );
+							m_AutoHostMapCFG.clear( );
+							m_AutoHostMaximumGames = 0;
+							m_AutoHostAutoStartPlayers = 0;
+							m_LastAutoHostTime = GetTime( );
+						}
 						else
 						{
-							SS >> AutoStartPlayers;
+							// extract the maximum games, auto start players, and the game name
+							// e.g. "5 10 BattleShips Pro" -> maximum games: "5", auto start players: "10", game name: "BattleShips Pro"
 
-							if( SS.fail( ) || AutoStartPlayers == 0 )
-								CONSOLE_Print( "[BNET: " + m_Server + "] bad input #2 to autohost command" );
+							uint32_t MaximumGames;
+							uint32_t AutoStartPlayers;
+							string GameName;
+							stringstream SS;
+							SS << Payload;
+							SS >> MaximumGames;
+
+							if( SS.fail( ) || MaximumGames == 0 )
+								CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to autohost command" );
 							else
 							{
-								if( SS.eof( ) )
-									CONSOLE_Print( "[BNET: " + m_Server + "] missing input #3 to autohost command" );
+								SS >> AutoStartPlayers;
+
+								if( SS.fail( ) || AutoStartPlayers == 0 )
+									CONSOLE_Print( "[BNET: " + m_Server + "] bad input #2 to autohost command" );
 								else
 								{
-									getline( SS, GameName );
-									string :: size_type Start = GameName.find_first_not_of( " " );
+									if( SS.eof( ) )
+										CONSOLE_Print( "[BNET: " + m_Server + "] missing input #3 to autohost command" );
+									else
+									{
+										getline( SS, GameName );
+										string :: size_type Start = GameName.find_first_not_of( " " );
 
-									if( Start != string :: npos )
-										GameName = GameName.substr( Start );
+										if( Start != string :: npos )
+											GameName = GameName.substr( Start );
 
-									QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
-									m_AutoHostGameName = GameName;
-									m_AutoHostMaximumGames = MaximumGames;
-									m_AutoHostAutoStartPlayers = AutoStartPlayers;
-									m_LastAutoHostTime = GetTime( );
+										QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
+										m_AutoHostGameName = GameName;
+										m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
+										m_AutoHostMaximumGames = MaximumGames;
+										m_AutoHostAutoStartPlayers = AutoStartPlayers;
+										m_LastAutoHostTime = GetTime( );
+									}
 								}
 							}
 						}
 					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 				}
 
 				//
