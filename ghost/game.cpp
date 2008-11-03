@@ -680,6 +680,56 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 	}
 }
 
+void CBaseGame :: EventPlayerDisconnectTimedOut( CGamePlayer *player )
+{
+	// not only do we not do any timeouts if the game is lagging, we allow for an additional grace period of 10 seconds
+	// this is because Warcraft 3 stops sending packets during the lag screen
+	// so when the lag screen finishes we would immediately disconnect everyone if we didn't give them some extra time
+
+	if( GetTime( ) > m_LastLagScreenTime + 10 )
+	{
+		player->SetDeleteMe( true );
+		player->SetLeftReason( m_GHost->m_Language->HasLostConnectionTimedOut( ) );
+		player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+
+		if( !m_GameLoading && !m_GameLoaded )
+			OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
+	}
+}
+
+void CBaseGame :: EventPlayerDisconnectPlayerError( CGamePlayer *player )
+{
+	// at the time of this comment there's only one player error and that's when we receive a bad packet from the player
+	// since TCP has checks and balances for data corruption the chances of this are pretty slim
+
+	player->SetDeleteMe( true );
+	player->SetLeftReason( m_GHost->m_Language->HasLostConnectionPlayerError( player->GetErrorString( ) ) );
+	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+
+	if( !m_GameLoading && !m_GameLoaded )
+		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
+}
+
+void CBaseGame :: EventPlayerDisconnectSocketError( CGamePlayer *player )
+{
+	player->SetDeleteMe( true );
+	player->SetLeftReason( m_GHost->m_Language->HasLostConnectionSocketError( player->GetSocket( )->GetErrorString( ) ) );
+	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+
+	if( !m_GameLoading && !m_GameLoaded )
+		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
+}
+
+void CBaseGame :: EventPlayerDisconnectConnectionClosed( CGamePlayer *player )
+{
+	player->SetDeleteMe( true );
+	player->SetLeftReason( m_GHost->m_Language->HasLostConnectionClosedByRemoteHost( ) );
+	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+
+	if( !m_GameLoading && !m_GameLoaded )
+		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
+}
+
 void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
 {
 	// check if the new player's name is empty or too long
@@ -906,7 +956,9 @@ void CBaseGame :: EventPlayerLeft( CGamePlayer *player )
 	player->SetDeleteMe( true );
 	player->SetLeftReason( m_GHost->m_Language->HasLeftVoluntarily( ) );
 	player->SetLeftCode( PLAYERLEAVE_LOST );
-	OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
+
+	if( !m_GameLoading && !m_GameLoaded )
+		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 }
 
 void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )

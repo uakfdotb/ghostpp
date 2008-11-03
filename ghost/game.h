@@ -149,6 +149,10 @@ public:
 	// therefore you can't modify those vectors and must use the player's m_DeleteMe member to flag for deletion
 
 	virtual void EventPlayerDeleted( CGamePlayer *player );
+	virtual void EventPlayerDisconnectTimedOut( CGamePlayer *player );
+	virtual void EventPlayerDisconnectPlayerError( CGamePlayer *player );
+	virtual void EventPlayerDisconnectSocketError( CGamePlayer *player );
+	virtual void EventPlayerDisconnectConnectionClosed( CGamePlayer *player );
 	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
 	virtual void EventPlayerLeft( CGamePlayer *player );
 	virtual void EventPlayerLoaded( CGamePlayer *player );

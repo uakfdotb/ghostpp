@@ -87,10 +87,7 @@ bool CPotentialPlayer :: Update( void *fd )
 	// don't call DoSend here because some other players may not have updated yet and may generate a packet for this player
 	// also m_Socket may have been set to NULL during ProcessPackets but we're banking on the fact that m_DeleteMe has been set to true as well so it'll short circuit before dereferencing
 
-	if( m_DeleteMe || m_Error || m_Socket->HasError( ) || !m_Socket->GetConnected( ) )
-		return true;
-
-	return false;
+	return m_DeleteMe || m_Error || m_Socket->HasError( ) || !m_Socket->GetConnected( );
 }
 
 void CPotentialPlayer :: ExtractPackets( )
@@ -286,18 +283,7 @@ bool CGamePlayer :: Update( void *fd )
 	// and in the game the Warcraft 3 client sends keepalives frequently (at least once per second it looks like)
 
 	if( m_Socket && GetTime( ) > m_Socket->GetLastRecv( ) + 30 )
-	{
-		// not only do we not do any timeouts if the game is lagging, we allow for an additional grace period of 10 seconds
-		// this is because Warcraft 3 stops sending packets during the lag screen
-		// so when the lag screen finishes we would immediately disconnect everyone if we didn't give them some extra time
-
-		if( GetTime( ) > m_Game->GetLastLagScreenTime( ) + 10 )
-		{
-			m_DeleteMe = true;
-			m_LeftReason = m_Game->m_GHost->m_Language->HasLostConnectionTimedOut( );
-			m_LeftCode = PLAYERLEAVE_DISCONNECT;
-		}
-	}
+		m_Game->EventPlayerDisconnectTimedOut( this );
 
 	// base class update
 
@@ -309,27 +295,15 @@ bool CGamePlayer :: Update( void *fd )
 		// in cases other than the ones covered here m_LeftReason should have been set when m_DeleteMe was set
 
 		if( m_Error )
-		{
-			// at the time of this comment there's only one player error and that's when we receive a bad packet from the player
-			// since tcp has checks and balances for data corruption the chances of this are pretty slim
-
-			m_LeftReason = m_Game->m_GHost->m_Language->HasLostConnectionPlayerError( m_ErrorString );
-			m_LeftCode = PLAYERLEAVE_DISCONNECT;
-		}
+			m_Game->EventPlayerDisconnectPlayerError( this );
 
 		if( m_Socket )
 		{
 			if( m_Socket->HasError( ) )
-			{
-				m_LeftReason = m_Game->m_GHost->m_Language->HasLostConnectionSocketError( m_Socket->GetErrorString( ) );
-				m_LeftCode = PLAYERLEAVE_DISCONNECT;
-			}
+				m_Game->EventPlayerDisconnectSocketError( this );
 
 			if( !m_Socket->GetConnected( ) )
-			{
-				m_LeftReason = m_Game->m_GHost->m_Language->HasLostConnectionClosedByRemoteHost( );
-				m_LeftCode = PLAYERLEAVE_DISCONNECT;
-			}
+				m_Game->EventPlayerDisconnectConnectionClosed( this );
 		}
 	}
 
