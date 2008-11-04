@@ -1025,3 +1025,13 @@ string CLanguage :: UnableToCreateGameSaveGameMapMismatch( string gamename )
 	Replace( Out, "$GAMENAME$", gamename );
 	return Out;
 }
+
+string CLanguage :: AutoSaveEnabled( )
+{
+	return m_CFG->GetString( "lang_0142", "lang_0142" );
+}
+
+string CLanguage :: AutoSaveDisabled( )
+{
+	return m_CFG->GetString( "lang_0143", "lang_0143" );
+}

@@ -81,6 +81,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_GameLoading = false;
 	m_GameLoaded = false;
 	m_Lagging = false;
+	m_AutoSave = m_GHost->m_AutoSave;
 
 	if( m_SaveGame )
 	{
@@ -89,7 +90,6 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 		// the savegame slots contain player entries
 		// we really just want the open/closed/computer entries
 		// so open all the player slots
-		// todotodo: we could use the savegame's slot structure to help determine which slots should be used
 
 		for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); i++ )
 		{
@@ -466,58 +466,7 @@ bool CBaseGame :: Update( void *fd )
 
 	if( m_GameLoaded && !m_Lagging && GetTicks( ) >= m_LastActionSentTicks + m_Latency )
 	{
-		// we aren't allowed to send more than 1460 bytes in a single packet but it's possible we might have more than that many bytes waiting in the queue
-
-		if( !m_Actions.empty( ) )
-		{
-			// we use a "sub actions queue" which we keep adding actions to until we reach the size limit
-			// start by adding one action to the sub actions queue
-
-			queue<CIncomingAction *> SubActions;
-			CIncomingAction *Action = m_Actions.front( );
-			m_Actions.pop( );
-			SubActions.push( Action );
-			uint32_t SubActionsLength = Action->GetLength( );
-
-			while( !m_Actions.empty( ) )
-			{
-				Action = m_Actions.front( );
-				m_Actions.pop( );
-
-				// check if adding the next action to the sub actions queue would put us over the limit (1452 because the INCOMING_ACTION and INCOMING_ACTION2 packets use an extra 8 bytes)
-
-				if( SubActionsLength + Action->GetLength( ) > 1452 )
-				{
-					// we'd be over the limit if we added the next action to the sub actions queue
-					// so send everything already in the queue and then clear it out
-					// the W3GS_INCOMING_ACTION2 packet handles the overflow but it must be sent *before* the corresponding W3GS_INCOMING_ACTION packet
-
-					SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION2( SubActions ) );
-
-					while( !SubActions.empty( ) )
-					{
-						delete SubActions.front( );
-						SubActions.pop( );
-					}
-
-					SubActionsLength = 0;
-				}
-
-				SubActions.push( Action );
-				SubActionsLength += Action->GetLength( );
-			}
-
-			SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, (uint16_t)( GetTicks( ) - m_LastActionSentTicks ) ) );
-
-			while( !SubActions.empty( ) )
-			{
-				delete SubActions.front( );
-				SubActions.pop( );
-			}
-		}
-		else
-			SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, (uint16_t)( GetTicks( ) - m_LastActionSentTicks ) ) );
-
+		SendAllActions( );
 		m_LastActionSentTicks = GetTicks( );
 	}
 
@@ -686,6 +635,61 @@ void CBaseGame :: SendVirtualHostPlayerInfo( CGamePlayer *player )
 	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP ) );
 }
 
+void CBaseGame :: SendAllActions( )
+{
+	// we aren't allowed to send more than 1460 bytes in a single packet but it's possible we might have more than that many bytes waiting in the queue
+
+	if( !m_Actions.empty( ) )
+	{
+		// we use a "sub actions queue" which we keep adding actions to until we reach the size limit
+		// start by adding one action to the sub actions queue
+
+		queue<CIncomingAction *> SubActions;
+		CIncomingAction *Action = m_Actions.front( );
+		m_Actions.pop( );
+		SubActions.push( Action );
+		uint32_t SubActionsLength = Action->GetLength( );
+
+		while( !m_Actions.empty( ) )
+		{
+			Action = m_Actions.front( );
+			m_Actions.pop( );
+
+			// check if adding the next action to the sub actions queue would put us over the limit (1452 because the INCOMING_ACTION and INCOMING_ACTION2 packets use an extra 8 bytes)
+
+			if( SubActionsLength + Action->GetLength( ) > 1452 )
+			{
+				// we'd be over the limit if we added the next action to the sub actions queue
+				// so send everything already in the queue and then clear it out
+				// the W3GS_INCOMING_ACTION2 packet handles the overflow but it must be sent *before* the corresponding W3GS_INCOMING_ACTION packet
+
+				SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION2( SubActions ) );
+
+				while( !SubActions.empty( ) )
+				{
+					delete SubActions.front( );
+					SubActions.pop( );
+				}
+
+				SubActionsLength = 0;
+			}
+
+			SubActions.push( Action );
+			SubActionsLength += Action->GetLength( );
+		}
+
+		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, (uint16_t)( GetTicks( ) - m_LastActionSentTicks ) ) );
+
+		while( !SubActions.empty( ) )
+		{
+			delete SubActions.front( );
+			SubActions.pop( );
+		}
+	}
+	else
+		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, (uint16_t)( GetTicks( ) - m_LastActionSentTicks ) ) );
+}
+
 void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 {
 	SendChat( player, " " );
@@ -716,6 +720,45 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 	if( player->GetLagging( ) )
 		SendAll( m_Protocol->SEND_W3GS_STOP_LAG( player ) );
+
+	// autosave
+
+	if( m_GameLoaded && m_AutoSave && player->GetLeftCode( ) == PLAYERLEAVE_DISCONNECT )
+	{
+		// calculate timestamp
+
+		uint32_t Time = GetTime( ) - m_StartedLoadingTime;
+		string MinString = UTIL_ToString( Time / 60 );
+		string SecString = UTIL_ToString( Time % 60 );
+
+		if( MinString.size( ) == 1 )
+			MinString.insert( 0, "0" );
+
+		if( SecString.size( ) == 1 )
+			SecString.insert( 0, "0" );
+
+		// calculate safe name
+
+		string SafeName = player->GetName( );
+		transform( SafeName.begin( ), SafeName.end( ), SafeName.begin( ), (int(*)(int))tolower );
+		string :: size_type BadStart = SafeName.find_first_not_of( "abcdefghijklmnopqrstuvwxyz0123456789_" );
+
+		while( BadStart != string :: npos )
+		{
+			SafeName.replace( BadStart, 1, 1, '_' );
+			BadStart = SafeName.find_first_not_of( "abcdefghijklmnopqrstuvwxyz0123456789_" );
+		}
+
+		string SaveGameName = "GHost AutoSave " + MinString + "m" + SecString + "s (" + SafeName + ").w3z";
+		CONSOLE_Print( "[GAME: " + m_GameName + "] auto saving [" + SaveGameName + "] before player drop, shortened send interval = " + UTIL_ToString( GetTicks( ) - m_LastActionSentTicks ) );
+		BYTEARRAY CRC;
+		BYTEARRAY Action;
+		Action.push_back( 6 );
+		UTIL_AppendByteArray( Action, SaveGameName );
+		m_Actions.push( new CIncomingAction( player->GetPID( ), CRC, Action ) );
+		SendAllActions( );
+		m_LastActionSentTicks = GetTicks( );
+	}
 
 	// tell everyone about the player leaving
 
@@ -2275,7 +2318,7 @@ void CBaseGame :: StopPlayers( string reason )
 	{
 		(*i)->SetDeleteMe( true );
 		(*i)->SetLeftReason( reason );
-		(*i)->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+		(*i)->SetLeftCode( PLAYERLEAVE_LOST );
 	}
 }
 
@@ -2601,6 +2644,24 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							SetAnnounce( Interval, Message );
 						}
 					}
+				}
+			}
+
+			//
+			// !AUTOSAVE
+			//
+
+			if( Command == "autosave" )
+			{
+				if( Payload == "on" )
+				{
+					SendAllChat( m_GHost->m_Language->AutoSaveEnabled( ) );
+					m_AutoSave = true;
+				}
+				else if( Payload == "off" )
+				{
+					SendAllChat( m_GHost->m_Language->AutoSaveDisabled( ) );
+					m_AutoSave = false;
 				}
 			}
 
@@ -3073,7 +3134,11 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				{
 					LastMatch->SetDeleteMe( true );
 					LastMatch->SetLeftReason( m_GHost->m_Language->WasKickedByPlayer( User ) );
-					LastMatch->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+
+					if( !m_GameLoading && !m_GameLoaded )
+						LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
+					else
+						LastMatch->SetLeftCode( PLAYERLEAVE_LOST );
 
 					if( !m_GameLoading && !m_GameLoaded )
 						OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );

@@ -177,6 +177,8 @@ public:
 	string UnableToLoadSaveGameDoesntExist( string file );
 	string UnableToCreateGameInvalidSaveGame( string gamename );
 	string UnableToCreateGameSaveGameMapMismatch( string gamename );
+	string AutoSaveEnabled( );
+	string AutoSaveDisabled( );
 };
 
 #endif

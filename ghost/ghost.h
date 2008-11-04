@@ -111,6 +111,7 @@ public:
 	bool m_SpoofChecks;				// config value: do/require spoof checks or not
 	bool m_RefreshMessages;			// config value: display refresh messages or not (by default)
 	bool m_AutoLock;				// config value: auto lock games when the owner is present
+	bool m_AutoSave;				// config value: auto save before someone disconnects
 	uint32_t m_AllowDownloads;		// config value: allow map downloads or not
 	bool m_PingDuringDownloads;		// config value: ping during map downloads or not
 	bool m_LCPings;					// config value: use LC style pings (divide actual pings by two)

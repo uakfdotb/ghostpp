@@ -165,7 +165,6 @@ void CSaveGame :: Load( string nFileName, string nFileNameNoPath )
 	}
 
 	m_MagicNumber = UTIL_CreateByteArray( MagicNumber, false );
-
 	CONSOLE_Print( "[SAVEGAME] found map path = " + m_MapPath );
 	CONSOLE_Print( "[SAVEGAME] found magic number = " + UTIL_ToString( m_MagicNumber[0] ) + " " + UTIL_ToString( m_MagicNumber[1] ) + " " + UTIL_ToString( m_MagicNumber[2] ) + " " + UTIL_ToString( m_MagicNumber[3] ) );
 

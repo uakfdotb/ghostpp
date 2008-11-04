@@ -90,6 +90,7 @@ protected:
 	bool m_GameLoading;							// if the game is currently loading or not
 	bool m_GameLoaded;							// if the game has loaded or not
 	bool m_Lagging;								// if the lag screen is active or not
+	bool m_AutoSave;							// if we should auto save the game before someone disconnects
 
 public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
@@ -143,6 +144,7 @@ public:
 	virtual void SendAllChat( string message );
 	virtual void SendAllSlotInfo( );
 	virtual void SendVirtualHostPlayerInfo( CGamePlayer *player );
+	virtual void SendAllActions( );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void SendEndMessage( );
 
