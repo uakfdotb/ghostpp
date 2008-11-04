@@ -987,3 +987,41 @@ string CLanguage :: AutoHostDisabled( )
 {
 	return m_CFG->GetString( "lang_0135", "lang_0135" );
 }
+
+string CLanguage :: UnableToLoadSaveGamesOutside( )
+{
+	return m_CFG->GetString( "lang_0136", "lang_0136" );
+}
+
+string CLanguage :: UnableToLoadSaveGameGameInLobby( )
+{
+	return m_CFG->GetString( "lang_0137", "lang_0137" );
+}
+
+string CLanguage :: LoadingSaveGame( string file )
+{
+	string Out = m_CFG->GetString( "lang_0138", "lang_0138" );
+	Replace( Out, "$FILE$", file );
+	return Out;
+}
+
+string CLanguage :: UnableToLoadSaveGameDoesntExist( string file )
+{
+	string Out = m_CFG->GetString( "lang_0139", "lang_0139" );
+	Replace( Out, "$FILE$", file );
+	return Out;
+}
+
+string CLanguage :: UnableToCreateGameInvalidSaveGame( string gamename )
+{
+	string Out = m_CFG->GetString( "lang_0140", "lang_0140" );
+	Replace( Out, "$GAMENAME$", gamename );
+	return Out;
+}
+
+string CLanguage :: UnableToCreateGameSaveGameMapMismatch( string gamename )
+{
+	string Out = m_CFG->GetString( "lang_0141", "lang_0141" );
+	Replace( Out, "$GAMENAME$", gamename );
+	return Out;
+}

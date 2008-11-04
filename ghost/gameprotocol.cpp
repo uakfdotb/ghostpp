@@ -603,7 +603,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter )
+BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter )
 {
 	unsigned char ProductID[]	= { 80, 88, 51, 87 };	// "W3XP"
 	unsigned char Version[]		= { 22,  0,  0,  0 };	// 1.22
@@ -612,7 +612,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char mapGameType, BYTEAR
 
 	BYTEARRAY packet;
 
-	if( mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 )
+	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 )
 	{
 		// make the stat string
 
@@ -642,7 +642,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char mapGameType, BYTEAR
 		UTIL_AppendByteArray( packet, StatString );						// Stat String
 		packet.push_back( 0 );											// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)
 		UTIL_AppendByteArray( packet, slotsTotal, false );				// Slots Total
-		UTIL_AppendByteArray( packet, (uint32_t)mapGameType, false );	// Game Type
+		UTIL_AppendByteArray( packet, mapGameType );					// Game Type
 		UTIL_AppendByteArray( packet, Unknown2, 4 );					// ???
 		UTIL_AppendByteArray( packet, slotsOpen, false );				// Slots Open
 		UTIL_AppendByteArray( packet, upTime, false );					// time since creation

@@ -79,6 +79,7 @@ class CAdminGame;
 class CGHostDB;
 class CLanguage;
 class CMap;
+class CSaveGame;
 class CConfig;
 
 class CGHost
@@ -94,6 +95,7 @@ public:
 	CLanguage *m_Language;			// language
 	CMap *m_Map;					// the currently loaded map (this is global data, CBaseGame just references it so don't modify it unless you know what you're doing)
 	CMap *m_AdminMap;				// the map to use in the admin game
+	CSaveGame *m_SaveGame;			// the save game to use
 	bool m_Exiting;					// set to true to force ghost to shutdown next update (used by SignalCatcher)
 	bool m_Enabled;					// set to false to prevent new games from being created
 	string m_Version;				// GHost++ version string
@@ -104,6 +106,7 @@ public:
 	uint32_t m_MaxGames;			// config value: maximum number of games in progress
 	char m_CommandTrigger;			// config value: the command trigger inside games
 	string m_MapCFGPath;			// config value: map cfg path
+	string m_SaveGamePath;			// config value: savegame path
 	string m_MapPath;				// config value: map path
 	bool m_SpoofChecks;				// config value: do/require spoof checks or not
 	bool m_RefreshMessages;			// config value: display refresh messages or not (by default)
@@ -140,7 +143,7 @@ public:
 
 	void ExtractScripts( );
 	void LoadIPToCountryData( );
-	void CreateGame( unsigned char gameState, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
+	void CreateGame( unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
 };
 
 #endif

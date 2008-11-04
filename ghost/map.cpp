@@ -27,8 +27,8 @@
 #define __STORMLIB_SELF__
 #include <stormlib/StormLib.h>
 
-#define ROTL(x,n) ((x)<<(n))|((x)>>(32-(n)))	// this probably won't work with signed integers
-#define ROTR(x,n) ((x)>>(n))|((x)<<(32-(n)))	// this probably won't work with signed integers
+#define ROTL(x,n) ((x)<<(n))|((x)>>(32-(n)))	// this won't work with signed types
+#define ROTR(x,n) ((x)>>(n))|((x)<<(32-(n)))	// this won't work with signed types
 
 //
 // CMap

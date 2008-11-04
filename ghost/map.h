@@ -43,6 +43,10 @@
 
 #include "gameslot.h"
 
+//
+// CMap
+//
+
 class CMap
 {
 public:

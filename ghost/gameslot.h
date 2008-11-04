@@ -55,7 +55,7 @@ private:
 
 public:
 	CGameSlot( BYTEARRAY &n );
-	CGameSlot( unsigned char nPID, unsigned char nDownloadStatus, unsigned char nSlotStatus, unsigned char nComputer, unsigned char nTeam, unsigned char nColour, unsigned char nRace, unsigned char nComputerType = 1 );
+	CGameSlot( unsigned char nPID, unsigned char nDownloadStatus, unsigned char nSlotStatus, unsigned char nComputer, unsigned char nTeam, unsigned char nColour, unsigned char nRace, unsigned char nComputerType = 1, unsigned char nHandicap = 100 );
 	~CGameSlot( );
 
 	unsigned char GetPID( )				{ return m_PID; }

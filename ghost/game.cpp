@@ -26,6 +26,7 @@
 #include "ghostdb.h"
 #include "bnet.h"
 #include "map.h"
+#include "savegame.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "game.h"
@@ -36,12 +37,13 @@
 // CBaseGame
 //
 
-CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer )
+CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer )
 {
 	m_GHost = nGHost;
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
 	m_Map = nMap;
+	m_SaveGame = nSaveGame;
 	m_Exiting = false;
 	m_HostPort = nHostPort;
 	m_GameState = nGameState;
@@ -79,7 +81,28 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned
 	m_GameLoading = false;
 	m_GameLoaded = false;
 	m_Lagging = false;
-	m_Slots = m_Map->GetSlots( );
+
+	if( m_SaveGame )
+	{
+		m_Slots = m_SaveGame->GetSlots( );
+
+		// the savegame slots contain player entries
+		// we really just want the open/closed/computer entries
+		// so open all the player slots
+		// todotodo: we could use the savegame's slot structure to help determine which slots should be used
+
+		for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); i++ )
+		{
+			if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 )
+			{
+				(*i).SetPID( 0 );
+				(*i).SetDownloadStatus( 255 );
+				(*i).SetSlotStatus( SLOTSTATUS_OPEN );
+			}
+		}
+	}
+	else
+		m_Slots = m_Map->GetSlots( );
 
 	// start listening for connections
 
@@ -239,7 +262,34 @@ bool CBaseGame :: Update( void *fd )
 		// todotodo: should we send a game cancel message somewhere? we'll need to implement a host counter for it to work
 
 		if( !m_CountDownStarted )
-			m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_Map->GetMapGameType( ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
+		{
+			BYTEARRAY MapGameType;
+
+			// construct the correct W3GS_GAMEINFO packet
+
+			if( m_SaveGame )
+			{
+				MapGameType.push_back( 0 );
+				MapGameType.push_back( 2 );
+				MapGameType.push_back( 0 );
+				MapGameType.push_back( 0 );
+				BYTEARRAY MapWidth;
+				MapWidth.push_back( 0 );
+				MapWidth.push_back( 0 );
+				BYTEARRAY MapHeight;
+				MapHeight.push_back( 0 );
+				MapHeight.push_back( 0 );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( MapGameType, m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
+			}
+			else
+			{
+				MapGameType.push_back( m_Map->GetMapGameType( ) );
+				MapGameType.push_back( 0 );
+				MapGameType.push_back( 0 );
+				MapGameType.push_back( 0 );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( MapGameType, m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
+			}
+		}
 
 		m_LastPingTime = GetTime( );
 	}
@@ -253,7 +303,7 @@ bool CBaseGame :: Update( void *fd )
 		// that happens in CGHost :: EventBNETGameRefreshed
 
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, GetTime( ) - m_CreationTime );
+			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime );
 
 		m_LastRefreshTime = GetTime( );
 	}
@@ -1631,53 +1681,55 @@ unsigned char CBaseGame :: GetHostPID( )
 
 unsigned char CBaseGame :: GetEmptySlot( bool reserved )
 {
-	// look for an empty slot for a new player to occupy
-	// if reserved is true then we're willing to use closed or occupied slots as long as it wouldn't displace a player with a reserved slot
-
 	if( m_Slots.size( ) > 255 )
 		return 255;
 
-	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+	if( m_SaveGame )
 	{
-		if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
-			return i;
-	}
+		// unfortunately we don't know which slot each player was assigned in the savegame
+		// but we do know which slots were occupied and which weren't so let's at least force players to use previously occupied slots
 
-	if( reserved )
-	{
-		// no empty slots, but since player is reserved give them a closed slot
+		vector<CGameSlot> SaveGameSlots = m_SaveGame->GetSlots( );
 
 		for( unsigned char i = 0; i < m_Slots.size( ); i++ )
 		{
-			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_CLOSED )
+			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && SaveGameSlots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && SaveGameSlots[i].GetComputer( ) == 0 )
 				return i;
 		}
 
-		// no closed slots either, give them an occupied slot but not one occupied by another reserved player
+		// don't bother with reserved slots in savegames
+	}
+	else
+	{
+		// look for an empty slot for a new player to occupy
+		// if reserved is true then we're willing to use closed or occupied slots as long as it wouldn't displace a player with a reserved slot
 
 		for( unsigned char i = 0; i < m_Slots.size( ); i++ )
 		{
-			CGamePlayer *Player = GetPlayerFromSID( i );
-
-			if( Player && !Player->GetReserved( ) )
+			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
 				return i;
 		}
-	}
 
-	return 255;
-}
+		if( reserved )
+		{
+			// no empty slots, but since player is reserved give them a closed slot
 
-unsigned char CBaseGame :: GetEmptySlot( unsigned char team )
-{
-	if( m_Slots.size( ) > 255 )
-		return 255;
+			for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+			{
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_CLOSED )
+					return i;
+			}
 
-	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
-	{
-		// if slot is open and on the correct team
+			// no closed slots either, give them an occupied slot but not one occupied by another reserved player
 
-		if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team )
-			return i;
+			for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+			{
+				CGamePlayer *Player = GetPlayerFromSID( i );
+
+				if( Player && !Player->GetReserved( ) )
+					return i;
+			}
+		}
 	}
 
 	return 255;
@@ -1702,23 +1754,40 @@ unsigned char CBaseGame :: GetEmptySlot( unsigned char team, unsigned char PID )
 			StartSlot = 0;
 		}
 
-		// now find an empty slot on the correct team starting from StartSlot
-
-		for( unsigned char i = StartSlot; i < m_Slots.size( ); i++ )
+		if( m_SaveGame )
 		{
-			// if slot is open and on the correct team
+			vector<CGameSlot> SaveGameSlots = m_SaveGame->GetSlots( );
 
-			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team )
-				return i;
+			for( unsigned char i = StartSlot; i < m_Slots.size( ); i++ )
+			{
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team && SaveGameSlots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && SaveGameSlots[i].GetComputer( ) == 0 )
+					return i;
+			}
+
+			for( unsigned char i = 0; i < StartSlot; i++ )
+			{
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team && SaveGameSlots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && SaveGameSlots[i].GetComputer( ) == 0 )
+					return i;
+			}
 		}
-
-		// didn't find an empty slot, but we could have missed one with SID < StartSlot
-		// e.g. in the DotA case where I am in slot 4 (yellow), slot 5 (orange) is occupied, and slot 1 (blue) is open and I am trying to move to another slot
-
-		for( unsigned char i = 0; i < StartSlot; i++ )
+		else
 		{
-			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team )
-				return i;
+			// find an empty slot on the correct team starting from StartSlot
+
+			for( unsigned char i = StartSlot; i < m_Slots.size( ); i++ )
+			{
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team )
+					return i;
+			}
+
+			// didn't find an empty slot, but we could have missed one with SID < StartSlot
+			// e.g. in the DotA case where I am in slot 4 (yellow), slot 5 (orange) is occupied, and slot 1 (blue) is open and I am trying to move to another slot
+
+			for( unsigned char i = 0; i < StartSlot; i++ )
+			{
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == team )
+					return i;
+			}
 		}
 	}
 
@@ -2272,7 +2341,7 @@ public:
 // CGame
 //
 
-CGame :: CGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer )
+CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer )
 {
 	m_DBBanLast = NULL;
 	m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
@@ -2406,7 +2475,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			// we use "!a" as an alias for abort because you don't have much time to abort the countdown so it's useful for the abort command to be easy to type
 
-			if( Command == "abort" || Command == "a" && m_CountDownStarted && !m_GameLoading && !m_GameLoaded )
+			if( ( Command == "abort" || Command == "a" ) && m_CountDownStarted && !m_GameLoading && !m_GameLoaded )
 			{
 				SendAllChat( m_GHost->m_Language->CountDownAborted( ) );
 				m_CountDownStarted = false;
@@ -2417,7 +2486,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !BAN
 			//
 
-			if( Command == "addban" || Command == "ban" && !Payload.empty( ) && m_GameLoaded && !m_GHost->m_BNETs.empty( ) )
+			if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) && m_GameLoaded && !m_GHost->m_BNETs.empty( ) )
 			{
 				// extract the victim and the reason
 				// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -2662,7 +2731,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !COMP (computer slot)
 			//
 
-			if( Command == "comp" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
+			if( Command == "comp" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded && !m_SaveGame )
 			{
 				// extract the slot and the skill
 				// e.g. "1 2" -> slot: "1", skill: "2"
@@ -2691,7 +2760,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !COMPCOLOUR (computer colour change)
 			//
 
-			if( Command == "compcolour" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
+			if( Command == "compcolour" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded && !m_SaveGame )
 			{
 				// extract the slot and the colour
 				// e.g. "1 2" -> slot: "1", colour: "2"
@@ -2732,7 +2801,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !COMPHANDICAP (computer handicap change)
 			//
 
-			if( Command == "comphandicap" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
+			if( Command == "comphandicap" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded && !m_SaveGame )
 			{
 				// extract the slot and the handicap
 				// e.g. "1 50" -> slot: "1", handicap: "50"
@@ -2776,7 +2845,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !COMPRACE (computer race change)
 			//
 
-			if( Command == "comprace" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
+			if( Command == "comprace" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded && !m_SaveGame )
 			{
 				// extract the slot and the race
 				// e.g. "1 human" -> slot: "1", race: "human"
@@ -2845,7 +2914,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !COMPTEAM (computer team change)
 			//
 
-			if( Command == "compteam" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
+			if( Command == "compteam" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded && !m_SaveGame )
 			{
 				// extract the slot and the team
 				// e.g. "1 2" -> slot: "1", team: "2"
@@ -2890,7 +2959,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !DL
 			//
 
-			if( Command == "download" || Command == "dl" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
+			if( ( Command == "download" || Command == "dl" ) && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
 			{
 				CGamePlayer *LastMatch = NULL;
 				uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
@@ -3189,7 +3258,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !PRIV (rehost as private game)
 			//
 
-			if( Command == "priv" && !Payload.empty( ) && !m_CountDownStarted )
+			if( Command == "priv" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
 				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as private game [" + Payload + "]" );
 				m_GameState = GAME_PRIVATE;
@@ -3198,7 +3267,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
 					(*i)->SendGameUncreate( );
-					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map );
+					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL );
 				}
 
 				m_CreationTime = GetTime( );
@@ -3209,7 +3278,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !PUB (rehost as public game)
 			//
 
-			if( Command == "pub" && !Payload.empty( ) && !m_CountDownStarted )
+			if( Command == "pub" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
 				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]" );
 				m_GameState = GAME_PUBLIC;
@@ -3218,7 +3287,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
 					(*i)->SendGameUncreate( );
-					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map );
+					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL );
 				}
 
 				m_CreationTime = GetTime( );
@@ -3274,7 +3343,32 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					// so if we try to send accurate numbers it'll always be off by one and results in Warcraft 3 assuming the game is full when it still needs one more player
 					// the easiest solution is to simply send 12 for both so the game will always show up as (1/12) players
 
-					m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_Map->GetMapGameType( ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
+					BYTEARRAY MapGameType;
+
+					// construct the correct W3GS_GAMEINFO packet
+
+					if( m_SaveGame )
+					{
+						MapGameType.push_back( 0 );
+						MapGameType.push_back( 2 );
+						MapGameType.push_back( 0 );
+						MapGameType.push_back( 0 );
+						BYTEARRAY MapWidth;
+						MapWidth.push_back( 0 );
+						MapWidth.push_back( 0 );
+						BYTEARRAY MapHeight;
+						MapHeight.push_back( 0 );
+						MapHeight.push_back( 0 );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( MapGameType, m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
+					}
+					else
+					{
+						MapGameType.push_back( m_Map->GetMapGameType( ) );
+						MapGameType.push_back( 0 );
+						MapGameType.push_back( 0 );
+						MapGameType.push_back( 0 );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( MapGameType, m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
+					}
 				}
 			}
 
@@ -3282,7 +3376,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !SP
 			//
 
-			if( Command == "sp" && !m_CountDownStarted )
+			if( Command == "sp" && !m_CountDownStarted && !m_SaveGame )
 			{
 				SendAllChat( m_GHost->m_Language->ShufflingPlayers( ) );
 				ShuffleSlots( );
@@ -3480,7 +3574,7 @@ void CGame :: EventGameStarted( )
 // CAdminGame
 //
 
-CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword ) : CBaseGame( nGHost, nMap, nHostPort, nGameState, nGameName, string( ), string( ), string( ) )
+CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, string( ), string( ), string( ) )
 {
 	m_VirtualHostName = "|cFFC04040Admin";
 	m_MuteLobby = true;
@@ -3500,8 +3594,8 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 	SendChat( player, "Commands: addadmin, checkadmin, countadmins, deladmin" );
 	SendChat( player, "Commands: disable, enable, end, exit, getgame, getgames" );
-	SendChat( player, "Commands: load, map, password, priv, privby, pub, pubby" );
-	SendChat( player, "Commands: quit, saygames, unhost" );
+	SendChat( player, "Commands: hostsg, load, loadsg, map, password, priv, privby" );
+	SendChat( player, "Commands: pub, pubby, quit, saygames, unhost" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
@@ -3771,6 +3865,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				SendChat( player, m_GHost->m_Language->ThereIsNoGameInTheLobby( UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ) );
 		}
 
+		if( Command == "hostsg" && !Payload.empty( ) )
+			m_GHost->CreateGame( GAME_PRIVATE, true, Payload, User, User, string( ), false );
+
 		//
 		// !LOAD (load config file)
 		// !MAP
@@ -3813,11 +3910,41 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		}
 
 		//
+		// !LOADSG
+		//
+
+		if( Command == "loadsg" && !Payload.empty( ) )
+		{
+			// only load files in the current directory just to be safe
+
+			if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+				SendChat( player, m_GHost->m_Language->UnableToLoadSaveGamesOutside( ) );
+			else
+			{
+				string File = m_GHost->m_SaveGamePath + Payload + ".w3z";
+				string FileNoPath = Payload + ".w3z";
+
+				if( UTIL_FileExists( File ) )
+				{
+					if( m_GHost->m_CurrentGame )
+						SendChat( player, m_GHost->m_Language->UnableToLoadSaveGameGameInLobby( ) );
+					else
+					{
+						SendChat( player, m_GHost->m_Language->LoadingSaveGame( File ) );
+						m_GHost->m_SaveGame->Load( File, FileNoPath );
+					}
+				}
+				else
+					SendChat( player, m_GHost->m_Language->UnableToLoadSaveGameDoesntExist( File ) );
+			}
+		}
+
+		//
 		// !PRIV (host private game)
 		//
 
 		if( Command == "priv" && !Payload.empty( ) )
-			m_GHost->CreateGame( GAME_PRIVATE, Payload, User, User, string( ), false );
+			m_GHost->CreateGame( GAME_PRIVATE, false, Payload, User, User, string( ), false );
 
 		//
 		// !PRIVBY (host private game by other player)
@@ -3836,7 +3963,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			{
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
-				m_GHost->CreateGame( GAME_PRIVATE, GameName, Owner, User, string( ), false );
+				m_GHost->CreateGame( GAME_PRIVATE, false, GameName, Owner, User, string( ), false );
 			}
 		}
 
@@ -3845,7 +3972,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		//
 
 		if( Command == "pub" && !Payload.empty( ) )
-			m_GHost->CreateGame( GAME_PUBLIC, Payload, User, User, string( ), false );
+			m_GHost->CreateGame( GAME_PUBLIC, false, Payload, User, User, string( ), false );
 
 		//
 		// !PUBBY (host public game by other player)
@@ -3864,7 +3991,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			{
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
-				m_GHost->CreateGame( GAME_PUBLIC, GameName, Owner, User, string( ), false );
+				m_GHost->CreateGame( GAME_PUBLIC, false, GameName, Owner, User, string( ), false );
 			}
 		}
 
@@ -3878,7 +4005,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				m_GHost->m_CurrentGame->SendAllChat( Payload );
 
 			for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); i++ )
-				(*i)->SendAllChat( Payload );
+				(*i)->SendAllChat( "ADMIN: " + Payload );
 		}
 
 		//

@@ -29,6 +29,7 @@
 #include "bnetprotocol.h"
 #include "bnet.h"
 #include "map.h"
+#include "savegame.h"
 #include "gameprotocol.h"
 #include "game.h"
 
@@ -194,7 +195,7 @@ bool CBNET :: Update( void *fd )
 
 				if( m_GHost->m_Map->GetValid( ) )
 				{
-					m_GHost->CreateGame( GAME_PUBLIC, GameName, m_RootAdmin, m_RootAdmin, m_Server, false );
+					m_GHost->CreateGame( GAME_PUBLIC, false, GameName, m_RootAdmin, m_RootAdmin, m_Server, false );
 
 					if( m_GHost->m_CurrentGame )
 						m_GHost->m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );
@@ -626,7 +627,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !BAN
 				//
 
-				if( Command == "addban" || Command == "ban" && !Payload.empty( ) )
+				if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) )
 				{
 					// extract the victim and the reason
 					// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -937,7 +938,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !UNBAN
 				//
 
-				if( Command == "delban" || Command == "unban" && !Payload.empty( ) )
+				if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
 				{
 					if( m_GHost->m_DB->BanRemove( Payload ) )
 						QueueChatCommand( m_GHost->m_Language->UnbannedUser( Payload ), User, Whisper );
@@ -1088,6 +1089,13 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
+				// !HOSTSG
+				//
+
+				if( Command == "hostsg" && !Payload.empty( ) )
+					m_GHost->CreateGame( GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
+
+				//
 				// !LOAD (load config file)
 				// !MAP
 				//
@@ -1125,6 +1133,36 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							else
 								QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileDoesntExist( File ), User, Whisper );
 						}
+					}
+				}
+
+				//
+				// !LOADSG
+				//
+
+				if( Command == "loadsg" && !Payload.empty( ) )
+				{
+					// only load files in the current directory just to be safe
+
+					if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+						QueueChatCommand( m_GHost->m_Language->UnableToLoadSaveGamesOutside( ), User, Whisper );
+					else
+					{
+						string File = m_GHost->m_SaveGamePath + Payload + ".w3z";
+						string FileNoPath = Payload + ".w3z";
+
+						if( UTIL_FileExists( File ) )
+						{
+							if( m_GHost->m_CurrentGame )
+								QueueChatCommand( m_GHost->m_Language->UnableToLoadSaveGameGameInLobby( ), User, Whisper );
+							else
+							{
+								QueueChatCommand( m_GHost->m_Language->LoadingSaveGame( File ), User, Whisper );
+								m_GHost->m_SaveGame->Load( File, FileNoPath );
+							}
+						}
+						else
+							QueueChatCommand( m_GHost->m_Language->UnableToLoadSaveGameDoesntExist( File ), User, Whisper );
 					}
 				}
 
@@ -1176,7 +1214,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 
 				if( Command == "priv" && !Payload.empty( ) )
-					m_GHost->CreateGame( GAME_PRIVATE, Payload, User, User, m_Server, Whisper );
+					m_GHost->CreateGame( GAME_PRIVATE, false, Payload, User, User, m_Server, Whisper );
 
 				//
 				// !PRIVBY (host private game by other player)
@@ -1195,7 +1233,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					{
 						Owner = Payload.substr( 0, GameNameStart );
 						GameName = Payload.substr( GameNameStart + 1 );
-						m_GHost->CreateGame( GAME_PRIVATE, GameName, Owner, User, m_Server, Whisper );
+						m_GHost->CreateGame( GAME_PRIVATE, false, GameName, Owner, User, m_Server, Whisper );
 					}
 				}
 
@@ -1204,7 +1242,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 
 				if( Command == "pub" && !Payload.empty( ) )
-					m_GHost->CreateGame( GAME_PUBLIC, Payload, User, User, m_Server, Whisper );
+					m_GHost->CreateGame( GAME_PUBLIC, false, Payload, User, User, m_Server, Whisper );
 
 				//
 				// !PUBBY (host public game by other player)
@@ -1223,7 +1261,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					{
 						Owner = Payload.substr( 0, GameNameStart );
 						GameName = Payload.substr( GameNameStart + 1 );
-						m_GHost->CreateGame( GAME_PUBLIC, GameName, Owner, User, m_Server, Whisper );
+						m_GHost->CreateGame( GAME_PUBLIC, false, GameName, Owner, User, m_Server, Whisper );
 					}
 				}
 
@@ -1246,7 +1284,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_GHost->m_CurrentGame->SendAllChat( Payload );
 
 						for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); i++ )
-							(*i)->SendAllChat( Payload );
+							(*i)->SendAllChat( "ADMIN: " + Payload );
 					}
 					else
 						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
@@ -1256,7 +1294,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !SP
 				//
 
-				if( Command == "sp" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+				if( Command == "sp" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) && !m_GHost->m_CurrentGame->GetSaveGame( ) )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 					{
@@ -1502,24 +1540,18 @@ void CBNET :: SendChatCommand( string chatCommand )
 	}
 }
 
-void CBNET :: SendGameCreate( unsigned char state, string gameName, string hostName, CMap *map )
+void CBNET :: SendGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *savegame )
 {
-	if( hostName.empty( ) )
-	{
-		BYTEARRAY UniqueName = m_Protocol->GetUniqueName( );
-		hostName = string( UniqueName.begin( ), UniqueName.end( ) );
-	}
-
 	if( m_LoggedIn && map )
 	{
 		if( !m_CurrentChannel.empty( ) )
 			m_FirstChannel = m_CurrentChannel;
 
-		// uptime seems to be seconds since game creation so we pass zero here since this is the first STARTADVEX3 packet
-		// we pass an actual uptime value in SendGameRefresh
-
 		m_InChat = false;
-		m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, map->GetMapGameType( ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, 0, map->GetMapPath( ), map->GetMapCRC( ) ) );
+
+		// a game creation message is just a game refresh message with upTime = 0
+
+		SendGameRefresh( state, gameName, hostName, map, savegame, 0 );
 	}
 }
 
@@ -1529,7 +1561,7 @@ void CBNET :: SendGameUncreate( )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_STOPADV( ) );
 }
 
-void CBNET :: SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, uint32_t upTime )
+void CBNET :: SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime )
 {
 	if( hostName.empty( ) )
 	{
@@ -1538,7 +1570,34 @@ void CBNET :: SendGameRefresh( unsigned char state, string gameName, string host
 	}
 
 	if( m_LoggedIn && map )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, map->GetMapGameType( ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ) ) );
+	{
+		BYTEARRAY MapGameType;
+
+		// construct the correct SID_STARTADVEX3 packet
+
+		if( saveGame )
+		{
+			MapGameType.push_back( 0 );
+			MapGameType.push_back( 10 );
+			MapGameType.push_back( 0 );
+			MapGameType.push_back( 0 );
+			BYTEARRAY MapWidth;
+			MapWidth.push_back( 0 );
+			MapWidth.push_back( 0 );
+			BYTEARRAY MapHeight;
+			MapHeight.push_back( 0 );
+			MapHeight.push_back( 0 );
+			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ) ) );
+		}
+		else
+		{
+			MapGameType.push_back( map->GetMapGameType( ) );
+			MapGameType.push_back( 32 );
+			MapGameType.push_back( 73 );
+			MapGameType.push_back( 0 );
+			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ) ) );
+		}
+	}
 }
 
 void CBNET :: SendGameJoin( string gameName )

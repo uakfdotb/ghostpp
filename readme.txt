@@ -175,6 +175,7 @@ Example usage:
 !autohost 4 10 BattleShips!!!
 
 This will auto host up to 4 games at a time, auto starting when 10 players have joined, with names like "BattleShips!!! #1" and "BattleShips!!! #2" and so on.
+To turn off the auto hoster use "!autohost off" or simply "!autohost".
 
 ================
 Map Config Files

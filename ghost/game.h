@@ -51,6 +51,7 @@ protected:
 	queue<CIncomingAction *> m_Actions;			// queue of actions to be sent
 	vector<string> m_Reserved;					// vector of player names with reserved slots (from the !hold command)
 	CMap *m_Map;								// map data (this is a pointer to global data)
+	CSaveGame *m_SaveGame;						// savegame (this is a pointer to global data)
 	bool m_Exiting;								// set to true and this class will be deleted next update
 	uint16_t m_HostPort;						// the port to host games on
 	unsigned char m_GameState;					// game state, public or private
@@ -91,9 +92,10 @@ protected:
 	bool m_Lagging;								// if the lag screen is active or not
 
 public:
-	CBaseGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
+	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CBaseGame( );
 
+	virtual CSaveGame *GetSaveGame( )			{ return m_SaveGame; }
 	virtual uint16_t GetHostPort( )				{ return m_HostPort; }
 	virtual unsigned char GetGameState( )		{ return m_GameState; }
 	virtual string GetGameName( )				{ return m_GameName; }
@@ -186,7 +188,6 @@ public:
 	virtual BYTEARRAY GetPIDs( unsigned char excludePID );
 	virtual unsigned char GetHostPID( );
 	virtual unsigned char GetEmptySlot( bool reserved );
-	virtual unsigned char GetEmptySlot( unsigned char team );
 	virtual unsigned char GetEmptySlot( unsigned char team, unsigned char PID );
 	virtual void SwapSlots( unsigned char SID1, unsigned char SID2 );
 	virtual void OpenSlot( unsigned char SID, bool kick );
@@ -229,7 +230,7 @@ protected:
 	uint32_t m_GameOverTime;					// GetTime when the game was over as reported by the stats class
 
 public:
-	CGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
+	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CGame( );
 
 	virtual void EventPlayerDeleted( CGamePlayer *player );
@@ -251,7 +252,7 @@ protected:
 	vector<TempBan> m_TempBans;
 
 public:
-	CAdminGame( CGHost *nGHost, CMap *nMap, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword );
+	CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword );
 	virtual ~CAdminGame( );
 
 	virtual void SendWelcomeMessage( CGamePlayer *player );

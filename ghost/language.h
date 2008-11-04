@@ -171,6 +171,12 @@ public:
 	string AnnounceMessageDisabled( );
 	string AutoHostEnabled( );
 	string AutoHostDisabled( );
+	string UnableToLoadSaveGamesOutside( );
+	string UnableToLoadSaveGameGameInLobby( );
+	string LoadingSaveGame( string file );
+	string UnableToLoadSaveGameDoesntExist( string file );
+	string UnableToCreateGameInvalidSaveGame( string gamename );
+	string UnableToCreateGameSaveGameMapMismatch( string gamename );
 };
 
 #endif

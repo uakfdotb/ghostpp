@@ -110,9 +110,9 @@ public:
 	void SendEnterChat( );
 	void SendJoinChannel( string channel );
 	void SendChatCommand( string chatCommand );
-	void SendGameCreate( unsigned char state, string gameName, string hostName, CMap *map );
+	void SendGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame );
 	void SendGameUncreate( );
-	void SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, uint32_t upTime );
+	void SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime );
 	void SendGameJoin( string gameName );
 	void SendGetFriendsList( );
 	void SendGetClanList( );

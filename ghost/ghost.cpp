@@ -29,6 +29,7 @@
 #include "ghostdbsqlite.h"
 #include "bnet.h"
 #include "map.h"
+#include "savegame.h"
 #include "gameprotocol.h"
 #include "game.h"
 
@@ -54,6 +55,7 @@
 #include "bnetprotocol.h"
 #include "bnet.h"
 #include "map.h"
+#include "savegame.h"
 #include "gameslot.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
@@ -261,6 +263,7 @@ CGHost :: CGHost( CConfig *CFG )
 
 	m_CommandTrigger = BotCommandTrigger[0];
 	m_MapCFGPath = CFG->GetString( "bot_mapcfgpath", string( ) );
+	m_SaveGamePath = CFG->GetString( "bot_savegamepath", string( ) );
 	m_MapPath = CFG->GetString( "bot_mappath", string( ) );
 	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
 	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
@@ -352,6 +355,7 @@ CGHost :: CGHost( CConfig *CFG )
 	MapCFG.Read( m_MapCFGPath + "map.cfg" );
 	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + "map.cfg" );
 	m_AdminMap = new CMap( this );
+	m_SaveGame = new CSaveGame( this );
 
 	// load the iptocountry data
 
@@ -362,7 +366,7 @@ CGHost :: CGHost( CConfig *CFG )
 	if( m_AdminGameCreate )
 	{
 		CONSOLE_Print( "[GHOST] creating admin game" );
-		m_AdminGame = new CAdminGame( this, m_AdminMap, m_AdminGamePort, 0, "GHost++ Admin Game", m_AdminGamePassword );
+		m_AdminGame = new CAdminGame( this, m_AdminMap, NULL, m_AdminGamePort, 0, "GHost++ Admin Game", m_AdminGamePassword );
 
 		if( m_AdminGamePort == m_HostPort )
 			CONSOLE_Print( "[GHOST] warning - admingame_port and bot_hostport are set to the same value, you won't be able to host any games" );
@@ -394,6 +398,7 @@ CGHost :: ~CGHost( )
 	delete m_Language;
 	delete m_Map;
 	delete m_AdminMap;
+	delete m_SaveGame;
 }
 
 bool CGHost :: Update( long usecBlock )
@@ -732,7 +737,7 @@ void CGHost :: LoadIPToCountryData( )
 	}
 }
 
-void CGHost :: CreateGame( unsigned char gameState, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper )
+void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper )
 {
 	if( !m_Enabled )
 	{
@@ -776,6 +781,42 @@ void CGHost :: CreateGame( unsigned char gameState, string gameName, string owne
 		return;
 	}
 
+	if( saveGame )
+	{
+		if( !m_SaveGame->GetValid( ) )
+		{
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+			{
+				if( (*i)->GetServer( ) == creatorServer )
+					(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidSaveGame( gameName ), creatorName, whisper );
+			}
+
+			if( m_AdminGame )
+				m_AdminGame->SendAllChat( m_Language->UnableToCreateGameInvalidSaveGame( gameName ) );
+
+			return;
+		}
+
+		string MapPath1 = m_SaveGame->GetMapPath( );
+		string MapPath2 = m_Map->GetMapPath( );
+		transform( MapPath1.begin( ), MapPath1.end( ), MapPath1.begin( ), (int(*)(int))tolower );
+		transform( MapPath2.begin( ), MapPath2.end( ), MapPath2.begin( ), (int(*)(int))tolower );
+
+		if( MapPath1 != MapPath2 )
+		{
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+			{
+				if( (*i)->GetServer( ) == creatorServer )
+					(*i)->QueueChatCommand( m_Language->UnableToCreateGameSaveGameMapMismatch( gameName ), creatorName, whisper );
+			}
+
+			if( m_AdminGame )
+				m_AdminGame->SendAllChat( m_Language->UnableToCreateGameSaveGameMapMismatch( gameName ) );
+
+			return;
+		}
+	}
+
 	if( m_CurrentGame )
 	{
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
@@ -805,7 +846,11 @@ void CGHost :: CreateGame( unsigned char gameState, string gameName, string owne
 	}
 
 	CONSOLE_Print( "[GHOST] creating game [" + gameName + "]" );
-	m_CurrentGame = new CGame( this, m_Map, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
+
+	if( saveGame )
+		m_CurrentGame = new CGame( this, m_Map, m_SaveGame, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
+	else
+		m_CurrentGame = new CGame( this, m_Map, NULL, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
 
 	// todotodo: check if listening failed and report the error to the user
 
@@ -832,7 +877,10 @@ void CGHost :: CreateGame( unsigned char gameState, string gameName, string owne
 				(*i)->ImmediateChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ) );
 		}
 
-		(*i)->SendGameCreate( gameState, gameName, string( ), m_Map );
+		if( saveGame )
+			(*i)->SendGameCreate( gameState, gameName, string( ), m_Map, m_SaveGame );
+		else
+			(*i)->SendGameCreate( gameState, gameName, string( ), m_Map, NULL );
 	}
 
 	if( m_AdminGame )

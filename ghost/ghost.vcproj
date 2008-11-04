@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib"
+				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib;..\zlib\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,9 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib StormLibRAS.lib"
+				AdditionalDependencies="ws2_32.lib zdll.lib StormLibRAS.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=""
+				AdditionalLibraryDirectories="..\zlib\lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -118,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib"
+				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib;..\zlib\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -137,9 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib StormLibRAS.lib"
+				AdditionalDependencies="ws2_32.lib zdll.lib StormLibRAS.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories=""
+				AdditionalLibraryDirectories="..\zlib\lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -247,6 +247,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\savegame.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\socket.cpp"
 				>
 			</File>
@@ -338,6 +342,10 @@
 			</File>
 			<File
 				RelativePath=".\ms_stdint.h"
+				>
+			</File>
+			<File
+				RelativePath=".\savegame.h"
 				>
 			</File>
 			<File

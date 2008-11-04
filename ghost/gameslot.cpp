@@ -61,7 +61,7 @@ CGameSlot :: CGameSlot( BYTEARRAY &n )
 	}
 }
 
-CGameSlot :: CGameSlot( unsigned char nPID, unsigned char nDownloadStatus, unsigned char nSlotStatus, unsigned char nComputer, unsigned char nTeam, unsigned char nColour, unsigned char nRace, unsigned char nComputerType )
+CGameSlot :: CGameSlot( unsigned char nPID, unsigned char nDownloadStatus, unsigned char nSlotStatus, unsigned char nComputer, unsigned char nTeam, unsigned char nColour, unsigned char nRace, unsigned char nComputerType, unsigned char nHandicap )
 {
 	m_PID = nPID;
 	m_DownloadStatus = nDownloadStatus;
@@ -71,7 +71,7 @@ CGameSlot :: CGameSlot( unsigned char nPID, unsigned char nDownloadStatus, unsig
 	m_Colour = nColour;
 	m_Race = nRace;
 	m_ComputerType = nComputerType;
-	m_Handicap = 100;
+	m_Handicap = nHandicap;
 }
 
 CGameSlot :: ~CGameSlot( )

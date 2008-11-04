@@ -591,7 +591,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CHECKAD( )
 	return packet;
 }
 
-BYTEARRAY CBNETProtocol :: SEND_SID_STARTADVEX3( unsigned char state, unsigned char mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC )
+BYTEARRAY CBNETProtocol :: SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC )
 {
 	// todotodo: sort out how GameType works, the documentation is horrendous
 
@@ -619,15 +619,13 @@ Flags:
 
 */
 
-	unsigned char mgt = mapGameType;
-	unsigned char GameType[]	= { mgt, 32, 73,  0 };
 	unsigned char Unknown[]		= { 255,  3,  0,  0 };
 	unsigned char CustomGame[]	= {   0,  0,  0,  0 };
 	unsigned char HostCounter[]	= {  49, 48, 48, 48, 48, 48, 48, 48 };	// '1','0','0','0','0','0','0','0'
 
 	BYTEARRAY packet;
 
-	if( mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 )
+	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 )
 	{
 		// make the stat string
 
@@ -653,7 +651,7 @@ Flags:
 		packet.push_back( 0 );									// State continued...
 		packet.push_back( 0 );									// State continued...
 		UTIL_AppendByteArray( packet, upTime, false );			// time since creation
-		UTIL_AppendByteArray( packet, GameType, 4 );			// Game Type, Parameter
+		UTIL_AppendByteArray( packet, mapGameType );			// Game Type, Parameter
 		UTIL_AppendByteArray( packet, Unknown, 4 );				// ???
 		UTIL_AppendByteArray( packet, CustomGame, 4 );			// Custom Game
 		UTIL_AppendByteArray( packet, gameName );				// Game Name
