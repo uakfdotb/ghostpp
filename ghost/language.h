@@ -179,6 +179,7 @@ public:
 	string UnableToCreateGameSaveGameMapMismatch( string gamename );
 	string AutoSaveEnabled( );
 	string AutoSaveDisabled( );
+	string DesyncDetected( );
 };
 
 #endif

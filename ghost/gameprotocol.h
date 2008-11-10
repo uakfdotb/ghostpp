@@ -104,7 +104,7 @@ public:
 	bool RECEIVE_W3GS_LEAVEGAME( BYTEARRAY data );
 	bool RECEIVE_W3GS_GAMELOADED_SELF( BYTEARRAY data );
 	CIncomingAction *RECEIVE_W3GS_OUTGOING_ACTION( BYTEARRAY data, unsigned char PID );
-	bool RECEIVE_W3GS_OUTGOING_KEEPALIVE( BYTEARRAY data );
+	uint32_t RECEIVE_W3GS_OUTGOING_KEEPALIVE( BYTEARRAY data );
 	CIncomingChatPlayer *RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data );
 	bool RECEIVE_W3GS_SEARCHGAME( BYTEARRAY data );
 	CIncomingMapSize *RECEIVE_W3GS_MAPSIZE( BYTEARRAY data, BYTEARRAY mapSize );
@@ -114,11 +114,11 @@ public:
 	// send functions
 
 	BYTEARRAY SEND_W3GS_PING_FROM_HOST( );
-	BYTEARRAY SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY externalIP, vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots );
+	BYTEARRAY SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots );
 	BYTEARRAY SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP );
 	BYTEARRAY SEND_W3GS_PLAYERLEAVE_OTHERS( unsigned char PID, uint32_t leftCode );
 	BYTEARRAY SEND_W3GS_GAMELOADED_OTHERS( unsigned char PID );
-	BYTEARRAY SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots );
+	BYTEARRAY SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots );
 	BYTEARRAY SEND_W3GS_COUNTDOWN_START( );
 	BYTEARRAY SEND_W3GS_COUNTDOWN_END( );
 	BYTEARRAY SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> actions, uint16_t sendInterval );
@@ -140,7 +140,7 @@ public:
 private:
 	bool AssignLength( BYTEARRAY &content );
 	bool ValidateLength( BYTEARRAY &content );
-	BYTEARRAY EncodeSlotInfo( vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots );
+	BYTEARRAY EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots );
 };
 
 //

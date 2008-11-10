@@ -118,19 +118,20 @@ CIncomingAction *CGameProtocol :: RECEIVE_W3GS_OUTGOING_ACTION( BYTEARRAY data, 
 	return NULL;
 }
 
-bool CGameProtocol :: RECEIVE_W3GS_OUTGOING_KEEPALIVE( BYTEARRAY data )
+uint32_t CGameProtocol :: RECEIVE_W3GS_OUTGOING_KEEPALIVE( BYTEARRAY data )
 {
 	// DEBUG_Print( "RECEIVED W3GS_OUTGOING_KEEPALIVE" );
 	// DEBUG_Print( data );
 
 	// 2 bytes					-> Header
 	// 2 bytes					-> Length
-	// 5 bytes					-> ???
+	// 1 byte					-> ???
+	// 4 bytes					-> CheckSum??? (used in replays)
 
 	if( ValidateLength( data ) && data.size( ) == 9 )
-		return true;
+		return UTIL_ByteArrayToUInt32( data, false, 5 );
 
-	return false;
+	return 0;
 }
 
 CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data )
@@ -301,11 +302,11 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_PING_FROM_HOST( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY externalIP, vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots )
 {
 	unsigned char Zeros[] = { 0, 0, 0, 0 };
 
-	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, gameType, playerSlots );
+	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, gameType, playerSlots );
 	BYTEARRAY packet;
 
 	if( externalIP.size( ) == 4 )
@@ -419,9 +420,9 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMELOADED_OTHERS( unsigned char PID )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots )
 {
-	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, gameType, playerSlots );
+	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, gameType, playerSlots );
 	BYTEARRAY packet;
 	packet.push_back( W3GS_HEADER_CONSTANT );									// W3GS header constant
 	packet.push_back( W3GS_SLOTINFO );											// W3GS_SLOTINFO
@@ -482,7 +483,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> a
 			actions.pop( );
 			BYTEARRAY ActionData = Action->GetAction( );
 			subpacket.push_back( Action->GetPID( ) );
-			UTIL_AppendByteArray( subpacket, UTIL_CreateByteArray( (uint16_t)ActionData.size( ), false ) );
+			UTIL_AppendByteArray( subpacket, (uint16_t)ActionData.size( ), false );
 			UTIL_AppendByteArray( subpacket, ActionData );
 		}
 
@@ -813,7 +814,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION2( queue<CIncomingAction *> 
 			actions.pop( );
 			BYTEARRAY ActionData = Action->GetAction( );
 			subpacket.push_back( Action->GetPID( ) );
-			UTIL_AppendByteArray( subpacket, UTIL_CreateByteArray( (uint16_t)ActionData.size( ), false ) );
+			UTIL_AppendByteArray( subpacket, (uint16_t)ActionData.size( ), false );
 			UTIL_AppendByteArray( subpacket, ActionData );
 		}
 
@@ -875,7 +876,7 @@ bool CGameProtocol :: ValidateLength( BYTEARRAY &content )
 	return false;
 }
 
-BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, unsigned char gameType, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots )
 {
 	BYTEARRAY SlotInfo;
 	SlotInfo.push_back( (unsigned char)slots.size( ) );		// number of slots
@@ -883,7 +884,7 @@ BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, unsigned ch
 	for( unsigned int i = 0; i < slots.size( ); i++ )
 		UTIL_AppendByteArray( SlotInfo, slots[i].GetByteArray( ) );
 
-	UTIL_AppendByteArray( SlotInfo, GetTicks( ), false );	// GetTicks
+	UTIL_AppendByteArray( SlotInfo, randomSeed, false );	// random seed
 	SlotInfo.push_back( gameType );							// GameType (seems to be 0 for regular game, 3 for custom game)
 	SlotInfo.push_back( playerSlots );						// number of player slots (non observer)
 	return SlotInfo;

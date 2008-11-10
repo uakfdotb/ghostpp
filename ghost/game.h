@@ -32,6 +32,8 @@ class CGameProtocol;
 class CPotentialPlayer;
 class CGamePlayer;
 class CMap;
+class CSaveGame;
+class CReplay;
 class CIncomingJoinPlayer;
 class CIncomingAction;
 class CIncomingChatPlayer;
@@ -51,7 +53,8 @@ protected:
 	queue<CIncomingAction *> m_Actions;			// queue of actions to be sent
 	vector<string> m_Reserved;					// vector of player names with reserved slots (from the !hold command)
 	CMap *m_Map;								// map data (this is a pointer to global data)
-	CSaveGame *m_SaveGame;						// savegame (this is a pointer to global data)
+	CSaveGame *m_SaveGame;						// savegame data (this is a pointer to global data)
+	CReplay *m_Replay;							// replay
 	bool m_Exiting;								// set to true and this class will be deleted next update
 	uint16_t m_HostPort;						// the port to host games on
 	unsigned char m_GameState;					// game state, public or private
@@ -62,10 +65,13 @@ protected:
 	string m_CreatorName;						// name of the player who created this game
 	string m_CreatorServer;						// battle.net server the player who created this game was on
 	string m_AnnounceMessage;					// a message to be sent every m_AnnounceInterval seconds
+	string m_StatString;						// the stat string when the game started (used when saving replays)
+	uint32_t m_RandomSeed;						// the random seed sent to the Warcraft III clients
 	uint32_t m_HostCounter;						// a unique game number
 	uint32_t m_Latency;							// the number of ms to wait between sending action packets (we queue any received during this time)
 	uint32_t m_SyncLimit;						// the maximum number of packets a player can fall out of sync before starting the lag screen
 	uint32_t m_MaxSyncCounter;					// the largest number of keepalives received from any one player (for determining if anyone is lagging)
+	uint32_t m_GameTicks;						// ingame ticks
 	uint32_t m_CreationTime;					// GetTime when the game was created
 	uint32_t m_LastPingTime;					// GetTime when the last ping was sent
 	uint32_t m_LastRefreshTime;					// GetTime when the last game refresh was sent
@@ -89,6 +95,7 @@ protected:
 	bool m_CountDownStarted;					// if the game start countdown has started or not
 	bool m_GameLoading;							// if the game is currently loading or not
 	bool m_GameLoaded;							// if the game has loaded or not
+	bool m_Desynced;							// if the game has desynced or not
 	bool m_Lagging;								// if the lag screen is active or not
 	bool m_AutoSave;							// if we should auto save the game before someone disconnects
 
@@ -161,6 +168,7 @@ public:
 	virtual void EventPlayerLeft( CGamePlayer *player );
 	virtual void EventPlayerLoaded( CGamePlayer *player );
 	virtual void EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
+	virtual void EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum );
 	virtual void EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlayer *chatPlayer );
 	virtual void EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
 	virtual void EventPlayerChangeTeam( CGamePlayer *player, unsigned char team );

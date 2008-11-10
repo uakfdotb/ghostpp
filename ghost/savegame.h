@@ -27,35 +27,29 @@
 // CSaveGame
 //
 
-class CSaveGame
+class CSaveGame : public CPacked
 {
-public:
-	CGHost *m_GHost;
-
 private:
-	bool m_Valid;
 	string m_FileName;
 	string m_FileNameNoPath;
 	string m_MapPath;
-	string m_SaveGameData;
-	string m_SaveGameDecompressedData;
 	vector<CGameSlot> m_Slots;
 	BYTEARRAY m_MagicNumber;
 
 public:
 	CSaveGame( CGHost *nGHost );
-	CSaveGame( CGHost *nGHost, string nFileName, string nFileNameNoPath );
-	~CSaveGame( );
+	virtual ~CSaveGame( );
 
-	bool GetValid( )					{ return m_Valid; }
 	string GetFileName( )				{ return m_FileName; }
 	string GetFileNameNoPath( )			{ return m_FileNameNoPath; }
 	string GetMapPath( )				{ return m_MapPath; }
 	vector<CGameSlot> GetSlots( )		{ return m_Slots; }
 	BYTEARRAY GetMagicNumber( )			{ return m_MagicNumber; }
 
-	void Load( string nFileName, string nFileNameNoPath );
-	void Decompress( );
+	void SetFileName( string nFileName )				{ m_FileName = nFileName; }
+	void SetFileNameNoPath( string nFileNameNoPath )	{ m_FileNameNoPath = nFileNameNoPath; }
+
+	void ParseSaveGame( );
 };
 
 #endif

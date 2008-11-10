@@ -29,6 +29,7 @@
 #include "bnetprotocol.h"
 #include "bnet.h"
 #include "map.h"
+#include "packed.h"
 #include "savegame.h"
 #include "gameprotocol.h"
 #include "game.h"
@@ -332,7 +333,6 @@ void CBNET :: ProcessPackets( )
 
 				delete GameHost;
 				GameHost = NULL;
-
 				break;
 
 			case CBNETProtocol :: SID_ENTERCHAT:
@@ -353,7 +353,6 @@ void CBNET :: ProcessPackets( )
 
 				delete ChatEvent;
 				ChatEvent = NULL;
-
 				break;
 
 			case CBNETProtocol :: SID_CHECKAD:
@@ -1158,7 +1157,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							else
 							{
 								QueueChatCommand( m_GHost->m_Language->LoadingSaveGame( File ), User, Whisper );
-								m_GHost->m_SaveGame->Load( File, FileNoPath );
+								m_GHost->m_SaveGame->Load( File, false );
+								m_GHost->m_SaveGame->ParseSaveGame( );
+								m_GHost->m_SaveGame->SetFileName( File );
+								m_GHost->m_SaveGame->SetFileNameNoPath( FileNoPath );
 							}
 						}
 						else

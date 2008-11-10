@@ -108,6 +108,8 @@ public:
 	string m_MapCFGPath;			// config value: map cfg path
 	string m_SaveGamePath;			// config value: savegame path
 	string m_MapPath;				// config value: map path
+	bool m_SaveReplays;				// config value: save replays
+	string m_ReplayPath;			// config value: replay path
 	bool m_SpoofChecks;				// config value: do/require spoof checks or not
 	bool m_RefreshMessages;			// config value: display refresh messages or not (by default)
 	bool m_AutoLock;				// config value: auto lock games when the owner is present

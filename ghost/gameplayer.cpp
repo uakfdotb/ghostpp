@@ -319,6 +319,8 @@ void CGamePlayer :: ProcessPackets( )
 	CIncomingChatPlayer *ChatPlayer = NULL;
 	CIncomingMapSize *MapSize = NULL;
 	bool HasMap = false;
+	uint32_t CheckSum = 0;
+	uint32_t Pong = 0;
 
 	// process all the received packets in the m_Packets queue
 
@@ -358,8 +360,10 @@ void CGamePlayer :: ProcessPackets( )
 				break;
 
 			case CGameProtocol :: W3GS_OUTGOING_KEEPALIVE:
-				m_Protocol->RECEIVE_W3GS_OUTGOING_KEEPALIVE( Packet->GetData( ) );
+				CheckSum = m_Protocol->RECEIVE_W3GS_OUTGOING_KEEPALIVE( Packet->GetData( ) );
+				m_CheckSums.push( CheckSum );
 				m_SyncCounter++;
+				m_Game->EventPlayerKeepAlive( this, CheckSum );
 				break;
 
 			case CGameProtocol :: W3GS_CHAT_TO_HOST:
@@ -370,7 +374,6 @@ void CGamePlayer :: ProcessPackets( )
 
 				delete ChatPlayer;
 				ChatPlayer = NULL;
-
 				break;
 
 			case CGameProtocol :: W3GS_DROPREQ:
@@ -392,11 +395,10 @@ void CGamePlayer :: ProcessPackets( )
 
 				delete MapSize;
 				MapSize = NULL;
-
 				break;
 
 			case CGameProtocol :: W3GS_PONG_TO_HOST:
-				uint32_t Pong = m_Protocol->RECEIVE_W3GS_PONG_TO_HOST( Packet->GetData( ) );
+				Pong = m_Protocol->RECEIVE_W3GS_PONG_TO_HOST( Packet->GetData( ) );
 
 				// we discard pong values of 1
 				// the client sends one of these when connecting plus we return 1 on error to kill two birds with one stone
@@ -420,7 +422,6 @@ void CGamePlayer :: ProcessPackets( )
 				}
 
 				m_Game->EventPlayerPongToHost( this, Pong );
-
 				break;
 			}
 		}

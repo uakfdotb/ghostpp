@@ -374,6 +374,19 @@ bool UTIL_FileWrite( string file, unsigned char *data, uint32_t length )
 	return true;
 }
 
+string UTIL_FileSafeName( string fileName )
+{
+	string :: size_type BadStart = fileName.find_first_of( "\\/:*?<>|" );
+
+	while( BadStart != string :: npos )
+	{
+		fileName.replace( BadStart, 1, 1, '_' );
+		BadStart = fileName.find_first_of( "\\/:*?<>|" );
+	}
+
+	return fileName;
+}
+
 BYTEARRAY UTIL_EncodeStatString( BYTEARRAY &data )
 {
 	unsigned char Mask = 1;

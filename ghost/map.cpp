@@ -212,12 +212,9 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 			{
 				uint32_t Val = 0;
 				Val = Val ^ XORRotateLeft( (unsigned char *)CommonJ.c_str( ), CommonJ.size( ) );
-				// DEBUG_Print( UTIL_CreateByteArray( Val, false ) );
 				Val = Val ^ XORRotateLeft( (unsigned char *)BlizzardJ.c_str( ), BlizzardJ.size( ) );
-				// DEBUG_Print( UTIL_CreateByteArray( Val, false ) );
 				Val = ROTL( Val, 3 );
 				Val = ROTL( Val ^ 0x03F1379E, 3 );
-				// DEBUG_Print( UTIL_CreateByteArray( Val, false ) );
 
 				if( MapMPQReady )
 				{
@@ -254,7 +251,6 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 									Val = ROTL( Val ^ XORRotateLeft( (unsigned char *)SubFileData, BytesRead ), 3 );
 									// DEBUG_Print( "*** found: " + *i );
-									// DEBUG_Print( UTIL_CreateByteArray( Val, false ) );
 								}
 
 								delete [] SubFileData;

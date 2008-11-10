@@ -26,12 +26,16 @@
 #include "ghostdb.h"
 #include "bnet.h"
 #include "map.h"
+#include "packed.h"
 #include "savegame.h"
+#include "replay.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "game.h"
 #include "stats.h"
 #include "statsdota.h"
+
+#include <time.h>
 
 //
 // CBaseGame
@@ -44,6 +48,12 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Protocol = new CGameProtocol( m_GHost );
 	m_Map = nMap;
 	m_SaveGame = nSaveGame;
+
+	if( m_GHost->m_SaveReplays )
+		m_Replay = new CReplay( m_GHost );
+	else
+		m_Replay = NULL;
+
 	m_Exiting = false;
 	m_HostPort = nHostPort;
 	m_GameState = nGameState;
@@ -53,10 +63,12 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_OwnerName = nOwnerName;
 	m_CreatorName = nCreatorName;
 	m_CreatorServer = nCreatorServer;
+	m_RandomSeed = GetTicks( );
 	m_HostCounter = m_GHost->m_HostCounter++;
 	m_Latency = m_GHost->m_Latency;
 	m_SyncLimit = m_GHost->m_SyncLimit;
 	m_MaxSyncCounter = 0;
+	m_GameTicks = 0;
 	m_CreationTime = GetTime( );
 	m_LastPingTime = GetTime( );
 	m_LastRefreshTime = GetTime( );
@@ -80,6 +92,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_CountDownStarted = false;
 	m_GameLoading = false;
 	m_GameLoaded = false;
+	m_Desynced = false;
 	m_Lagging = false;
 	m_AutoSave = m_GHost->m_AutoSave;
 
@@ -117,8 +130,30 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 
 CBaseGame :: ~CBaseGame( )
 {
+	// save replay
+
+	if( m_Replay && ( m_GameLoading || m_GameLoaded ) )
+	{
+		time_t Now = time( NULL );
+		char Time[17];
+		memset( Time, 0, sizeof( char ) * 17 );
+		strftime( Time, sizeof( char ) * 17, "%Y-%m-%d %H-%M", localtime( &Now ) );
+		string MinString = UTIL_ToString( ( m_GameTicks / 1000 ) / 60 );
+		string SecString = UTIL_ToString( ( m_GameTicks / 1000 ) % 60 );
+
+		if( MinString.size( ) == 1 )
+			MinString.insert( 0, "0" );
+
+		if( SecString.size( ) == 1 )
+			SecString.insert( 0, "0" );
+
+		m_Replay->BuildReplay( m_GameName, m_StatString );
+		m_Replay->Save( m_GHost->m_ReplayPath + UTIL_FileSafeName( "GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
+	}
+
 	delete m_Socket;
 	delete m_Protocol;
+	delete m_Replay;
 
 	for( vector<CPotentialPlayer *> :: iterator i = m_Potentials.begin( ); i != m_Potentials.end( ); i++ )
 		delete *i;
@@ -164,7 +199,7 @@ string CBaseGame :: GetDescription( )
 	string Description = m_GameName + " : " + m_OwnerName + " : " + UTIL_ToString( GetNumPlayers( ) ) + "/" + UTIL_ToString( m_GameLoading || m_GameLoaded ? m_StartPlayers : m_Slots.size( ) );
 
 	if( m_GameLoading || m_GameLoaded )
-		Description += " : " + UTIL_ToString( ( GetTime( ) - m_StartedLoadingTime ) / 60 ) + "m";
+		Description += " : " + UTIL_ToString( ( m_GameTicks / 1000 ) / 60 ) + "m";
 	else
 		Description += " : " + UTIL_ToString( ( GetTime( ) - m_CreationTime ) / 60 ) + "m";
 
@@ -465,10 +500,7 @@ bool CBaseGame :: Update( void *fd )
 	// we queue player actions in EventPlayerAction then just resend them in batches to all players here
 
 	if( m_GameLoaded && !m_Lagging && GetTicks( ) >= m_LastActionSentTicks + m_Latency )
-	{
 		SendAllActions( );
-		m_LastActionSentTicks = GetTicks( );
-	}
 
 	// if there aren't any players left and the game is loading/loaded then it's over and we can mark ourselves for deletion
 
@@ -597,16 +629,22 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 			if( message.size( ) > 220 )
 				message = message.substr( 0, 220 );
 
+			// this is a lobby ghost chat message
+
 			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 16, BYTEARRAY( ), message ) );
 		}
 		else
 		{
-			unsigned char ExtraFlags[] = { 0, 0, 0, 0 };
-
 			if( message.size( ) > 120 )
 				message = message.substr( 0, 120 );
 
-			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 32, UTIL_CreateByteArray( ExtraFlags, 4 ), message ) );
+			// this is an ingame ghost chat message, print it to the console
+
+			CONSOLE_Print( "[GAME: " + m_GameName + "] [Local]: " + message );
+			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 32, UTIL_CreateByteArray( (uint32_t)0, false ), message ) );
+
+			if( m_Replay )
+				m_Replay->AddChatMessage( fromPID, 32, 0, message );
 		}
 	}
 }
@@ -619,7 +657,7 @@ void CBaseGame :: SendAllChat( string message )
 void CBaseGame :: SendAllSlotInfo( )
 {
 	if( !m_GameLoading && !m_GameLoaded )
-		SendAll( m_Protocol->SEND_W3GS_SLOTINFO( m_Slots, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+		SendAll( m_Protocol->SEND_W3GS_SLOTINFO( m_Slots, m_RandomSeed, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
 }
 
 void CBaseGame :: SendVirtualHostPlayerInfo( CGamePlayer *player )
@@ -637,6 +675,14 @@ void CBaseGame :: SendVirtualHostPlayerInfo( CGamePlayer *player )
 
 void CBaseGame :: SendAllActions( )
 {
+	uint16_t SendInterval = GetTicks( ) - m_LastActionSentTicks;
+	m_GameTicks += SendInterval;
+
+	// add actions to replay
+
+	if( m_Replay )
+		m_Replay->AddTimeSlot( SendInterval, m_Actions );
+
 	// we aren't allowed to send more than 1460 bytes in a single packet but it's possible we might have more than that many bytes waiting in the queue
 
 	if( !m_Actions.empty( ) )
@@ -678,7 +724,7 @@ void CBaseGame :: SendAllActions( )
 			SubActionsLength += Action->GetLength( );
 		}
 
-		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, (uint16_t)( GetTicks( ) - m_LastActionSentTicks ) ) );
+		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, SendInterval ) );
 
 		while( !SubActions.empty( ) )
 		{
@@ -687,7 +733,9 @@ void CBaseGame :: SendAllActions( )
 		}
 	}
 	else
-		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, (uint16_t)( GetTicks( ) - m_LastActionSentTicks ) ) );
+		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, SendInterval ) );
+
+	m_LastActionSentTicks = GetTicks( );
 }
 
 void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
@@ -723,33 +771,9 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 	// autosave
 
-	if( m_GameLoaded && m_AutoSave && player->GetLeftCode( ) == PLAYERLEAVE_DISCONNECT )
+	if( m_AutoSave && m_GameLoaded && player->GetLeftCode( ) == PLAYERLEAVE_DISCONNECT )
 	{
-		// calculate timestamp
-
-		uint32_t Time = GetTime( ) - m_StartedLoadingTime;
-		string MinString = UTIL_ToString( Time / 60 );
-		string SecString = UTIL_ToString( Time % 60 );
-
-		if( MinString.size( ) == 1 )
-			MinString.insert( 0, "0" );
-
-		if( SecString.size( ) == 1 )
-			SecString.insert( 0, "0" );
-
-		// calculate safe name
-
-		string SafeName = player->GetName( );
-		transform( SafeName.begin( ), SafeName.end( ), SafeName.begin( ), (int(*)(int))tolower );
-		string :: size_type BadStart = SafeName.find_first_not_of( "abcdefghijklmnopqrstuvwxyz0123456789_" );
-
-		while( BadStart != string :: npos )
-		{
-			SafeName.replace( BadStart, 1, 1, '_' );
-			BadStart = SafeName.find_first_not_of( "abcdefghijklmnopqrstuvwxyz0123456789_" );
-		}
-
-		string SaveGameName = "GHost AutoSave " + MinString + "m" + SecString + "s (" + SafeName + ").w3z";
+		string SaveGameName = UTIL_FileSafeName( "GHost++ AutoSave " + m_GameName + " (" + player->GetName( ) + ").w3z" );
 		CONSOLE_Print( "[GAME: " + m_GameName + "] auto saving [" + SaveGameName + "] before player drop, shortened send interval = " + UTIL_ToString( GetTicks( ) - m_LastActionSentTicks ) );
 		BYTEARRAY CRC;
 		BYTEARRAY Action;
@@ -757,12 +781,24 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 		UTIL_AppendByteArray( Action, SaveGameName );
 		m_Actions.push( new CIncomingAction( player->GetPID( ), CRC, Action ) );
 		SendAllActions( );
-		m_LastActionSentTicks = GetTicks( );
 	}
 
 	// tell everyone about the player leaving
 
 	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
+
+	// set the replay's host PID and name to the last player to leave the game
+	// this will get overwritten as each player leaves the game so it will eventually be set to the last player
+
+	if( m_Replay && ( m_GameLoading || m_GameLoaded ) )
+	{
+		m_Replay->SetHostPID( player->GetPID( ) );
+		m_Replay->SetHostName( player->GetName( ) );
+
+		// add leave message to replay
+
+		m_Replay->AddLeaveGame( 1, player->GetPID( ), player->GetLeftCode( ) );
+	}
 
 	// abort the countdown if there was one in progress
 
@@ -992,7 +1028,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// send slot info to the new player
 	// the SLOTINFOJOIN packet also tells the client their assigned PID and that the join was successful
 
-	Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player->GetPID( ), Player->GetExternalIP( ), m_Slots, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+	Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player->GetPID( ), Player->GetExternalIP( ), m_Slots, m_RandomSeed, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
 
 	// send virtual host info to the new player
 
@@ -1064,6 +1100,36 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 	m_Actions.push( action );
 }
 
+void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
+{
+	// check for desyncs
+
+	uint32_t FirstCheckSum = player->GetCheckSums( )->front( );
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		if( (*i)->GetCheckSums( )->empty( ) )
+			return;
+
+		if( !m_Desynced && (*i)->GetCheckSums( )->front( ) != FirstCheckSum )
+		{
+			m_Desynced = true;
+			CONSOLE_Print( "[GAME: " + m_GameName + "] desync detected" );
+			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
+			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
+			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
+		}
+	}
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		(*i)->GetCheckSums( )->pop( );
+
+	// add checksum to replay but only if we're not desynced
+
+	if( m_Replay && !m_Desynced )
+		m_Replay->AddCheckSum( FirstCheckSum );
+}
+
 void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlayer *chatPlayer )
 {
 	if( chatPlayer->GetFromPID( ) == player->GetPID( ) )
@@ -1079,9 +1145,8 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 
 				// calculate timestamp
 
-				uint32_t Time = GetTime( ) - m_StartedLoadingTime;
-				string MinString = UTIL_ToString( Time / 60 );
-				string SecString = UTIL_ToString( Time % 60 );
+				string MinString = UTIL_ToString( ( m_GameTicks / 1000 ) / 60 );
+				string SecString = UTIL_ToString( ( m_GameTicks / 1000 ) % 60 );
 
 				if( MinString.size( ) == 1 )
 					MinString.insert( 0, "0" );
@@ -1102,6 +1167,15 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 
 						if( m_MuteAll )
 							Relay = false;
+					}
+
+					if( Relay )
+					{
+						// add chat message to replay
+						// this includes allied chat and private chat from both teams as long as it was relayed
+
+						if( m_Replay )
+							m_Replay->AddChatMessage( chatPlayer->GetFromPID( ), chatPlayer->GetFlag( ), UTIL_ByteArrayToUInt32( chatPlayer->GetExtraFlags( ), false ), chatPlayer->GetMessage( ) );
 					}
 				}
 				else
@@ -1479,6 +1553,42 @@ void CBaseGame :: EventGameStarted( )
 		delete *i;
 
 	m_Potentials.clear( );
+
+	// set initial values for replay
+
+	if( m_Replay )
+	{
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+			m_Replay->AddPlayer( (*i)->GetPID( ), (*i)->GetName( ) );
+
+		m_Replay->SetSlots( m_Slots );
+		m_Replay->SetRandomSeed( m_RandomSeed );
+		m_Replay->SetSelectMode( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0 );
+		m_Replay->SetStartSpotCount( m_Map->GetMapNumPlayers( ) );
+
+		if( !m_Players.empty( ) )
+		{
+			// this might not be necessary since we're going to overwrite the replay's host PID and name everytime a player leaves
+
+			m_Replay->SetHostPID( m_Players[0]->GetPID( ) );
+			m_Replay->SetHostName( m_Players[0]->GetName( ) );
+		}
+	}
+
+	// build a stat string for use when saving the replay
+	// we have to build this now because the map data could change now that the game has started
+
+	BYTEARRAY StatString;
+	UTIL_AppendByteArray( StatString, m_Map->GetMapGameFlags( ) );
+	StatString.push_back( 0 );
+	UTIL_AppendByteArray( StatString, m_Map->GetMapWidth( ) );
+	UTIL_AppendByteArray( StatString, m_Map->GetMapHeight( ) );
+	UTIL_AppendByteArray( StatString, m_Map->GetMapCRC( ) );
+	UTIL_AppendByteArray( StatString, m_Map->GetMapPath( ) );
+	UTIL_AppendByteArray( StatString, "GHost++" );
+	StatString.push_back( 0 );
+	StatString = UTIL_EncodeStatString( StatString );
+	m_StatString = string( StatString.begin( ), StatString.end( ) );
 
 	// move the game to the games in progress vector
 
@@ -3996,7 +4106,10 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 					else
 					{
 						SendChat( player, m_GHost->m_Language->LoadingSaveGame( File ) );
-						m_GHost->m_SaveGame->Load( File, FileNoPath );
+						m_GHost->m_SaveGame->Load( File, false );
+						m_GHost->m_SaveGame->ParseSaveGame( );
+						m_GHost->m_SaveGame->SetFileName( File );
+						m_GHost->m_SaveGame->SetFileNameNoPath( FileNoPath );
 					}
 				}
 				else

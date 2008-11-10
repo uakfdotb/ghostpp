@@ -79,6 +79,7 @@ private:
 	string m_Name;								// the player's name
 	BYTEARRAY m_InternalIP;						// the player's internal IP address as reported by the player when connecting
 	vector<uint32_t> m_Pings;					// store the last few (20) pings received so we can take an average
+	queue<uint32_t> m_CheckSums;				// the last few checksums the player has sent (for detecting desyncs)
 	string m_LeftReason;						// the reason the player left the game
 	string m_SpoofedRealm;						// the realm the player last spoof checked on
 	uint32_t m_LeftCode;						// the code to be sent in W3GS_PLAYERLEAVE_OTHERS for why this player left the game
@@ -112,6 +113,8 @@ public:
 	string GetName( )						{ return m_Name; }
 	BYTEARRAY GetInternalIP( )				{ return m_InternalIP; }
 	unsigned int GetNumPings( )				{ return m_Pings.size( ); }
+	unsigned int GetNumCheckSums( )			{ return m_CheckSums.size( ); }
+	queue<uint32_t> *GetCheckSums( )		{ return &m_CheckSums; }
 	string GetLeftReason( )					{ return m_LeftReason; }
 	string GetSpoofedRealm( )				{ return m_SpoofedRealm; }
 	uint32_t GetLeftCode( )					{ return m_LeftCode; }

@@ -247,6 +247,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\packed.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\replay.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\savegame.cpp"
 				>
 			</File>
@@ -342,6 +350,14 @@
 			</File>
 			<File
 				RelativePath=".\ms_stdint.h"
+				>
+			</File>
+			<File
+				RelativePath=".\packed.h"
+				>
+			</File>
+			<File
+				RelativePath=".\replay.h"
 				>
 			</File>
 			<File

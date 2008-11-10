@@ -1035,3 +1035,8 @@ string CLanguage :: AutoSaveDisabled( )
 {
 	return m_CFG->GetString( "lang_0143", "lang_0143" );
 }
+
+string CLanguage :: DesyncDetected( )
+{
+	return m_CFG->GetString( "lang_0144", "lang_0144" );
+}
