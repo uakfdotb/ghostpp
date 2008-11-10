@@ -150,6 +150,7 @@ public:
 	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )				{ m_StatsDotASentTime = nStatsDotASentTime; }
 	void SetLoggedIn( bool nLoggedIn )										{ m_LoggedIn = nLoggedIn; }
 	void SetSpoofed( bool nSpoofed )										{ m_Spoofed = nSpoofed; }
+	void SetReserved( bool nReserved )										{ m_Reserved = nReserved; }
 	void SetDownloadAllowed( bool nDownloadAllowed )						{ m_DownloadAllowed = nDownloadAllowed; }
 	void SetDownloadStarted( bool nDownloadStarted )						{ m_DownloadStarted = nDownloadStarted; }
 	void SetDownloadFinished( bool nDownloadFinished )						{ m_DownloadFinished = nDownloadFinished; }
@@ -157,7 +158,7 @@ public:
 	void SetDropVote( bool nDropVote )										{ m_DropVote = nDropVote; }
 	void SetLeftMessageSent( bool nLeftMessageSent )						{ m_LeftMessageSent = nLeftMessageSent; }
 
-	uint32_t GetPing( );
+	uint32_t GetPing( bool LCPing );
 
 	// processing functions
 

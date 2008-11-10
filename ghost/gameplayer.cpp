@@ -238,10 +238,9 @@ CGamePlayer :: ~CGamePlayer( )
 
 }
 
-uint32_t CGamePlayer :: GetPing( )
+uint32_t CGamePlayer :: GetPing( bool LCPing )
 {
 	// just average all the pings in the vector, nothing fancy
-	// if we're using LC style pings the division by two is handled elsewhere, just return the actual averaged ping here
 
 	if( m_Pings.empty( ) )
 		return 0;
@@ -253,7 +252,10 @@ uint32_t CGamePlayer :: GetPing( )
 
 	AvgPing /= m_Pings.size( );
 
-	return AvgPing;
+	if( LCPing )
+		return AvgPing / 2;
+	else
+		return AvgPing;
 }
 
 bool CGamePlayer :: Update( void *fd )

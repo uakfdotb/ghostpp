@@ -49,7 +49,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Map = nMap;
 	m_SaveGame = nSaveGame;
 
-	if( m_GHost->m_SaveReplays )
+	if( m_GHost->m_SaveReplays && !m_SaveGame )
 		m_Replay = new CReplay( m_GHost );
 	else
 		m_Replay = NULL;
@@ -286,10 +286,17 @@ bool CBaseGame :: Update( void *fd )
 
 	// ping every 5 seconds
 	// changed this to ping during game loading as well to hopefully fix some problems with people disconnecting during loading
+	// changed this to ping during the game as well
 
-	if( !m_GameLoaded && GetTime( ) >= m_LastPingTime + 5 )
+	if( GetTime( ) >= m_LastPingTime + 5 )
 	{
-		SendAll( m_Protocol->SEND_W3GS_PING_FROM_HOST( ) );
+		// don't send pings to players who are downloading
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( !(*i)->GetDownloadStarted( ) || (*i)->GetDownloadFinished( ) )
+				Send( (*i), m_Protocol->SEND_W3GS_PING_FROM_HOST( ) );
+		}
 
 		// we also broadcast the game to the local network every 5 seconds so we hijack this timer for our nefarious purposes
 		// however we only want to broadcast if the countdown hasn't started
@@ -334,11 +341,12 @@ bool CBaseGame :: Update( void *fd )
 	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 5 )
 	{
 		// send a game refresh packet to each battle.net connection
-		// we don't print a message here because we do so when we receive a response from battle.net so we know the refresh was successful
-		// that happens in CGHost :: EventBNETGameRefreshed
 
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime );
+
+		if( m_RefreshMessages )
+			SendAllChat( m_GHost->m_Language->GameRefreshed( ) );
 
 		m_LastRefreshTime = GetTime( );
 	}
@@ -1488,36 +1496,15 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 	// also don't kick anyone if the game is loading or loaded - this could happen because we send pings during loading but we stop sending them after the game is loaded
 	// see the Update function for where we send pings
 
-	if( !m_GameLoading && !m_GameLoaded && !player->GetReserved( ) && player->GetNumPings( ) >= 3 )
+	if( !m_GameLoading && !m_GameLoaded && !player->GetReserved( ) && player->GetNumPings( ) >= 3 && player->GetPing( m_GHost->m_LCPings ) > m_GHost->m_AutoKickPing )
 	{
-		if( m_GHost->m_LCPings )
-		{
-			if( player->GetPing( ) / 2 > m_GHost->m_AutoKickPing )
-			{
-				// send a chat message because we don't normally do so when a player leaves the lobby
-				// we only send one if the game has started
+		// send a chat message because we don't normally do so when a player leaves the lobby
 
-				SendAllChat( m_GHost->m_Language->AutokickingPlayerForExcessivePing( player->GetName( ), UTIL_ToString( player->GetPing( ) / 2 ) ) );
-				player->SetDeleteMe( true );
-				player->SetLeftReason( "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( ) / 2 ) );
-				player->SetLeftCode( PLAYERLEAVE_LOBBY );
-				OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
-			}
-		}
-		else
-		{
-			if( player->GetPing( ) > m_GHost->m_AutoKickPing )
-			{
-				// send a chat message because we don't normally do so when a player leaves the lobby
-				// we only send one if the game has started
-
-				SendAllChat( m_GHost->m_Language->AutokickingPlayerForExcessivePing( player->GetName( ), UTIL_ToString( player->GetPing( ) ) ) );
-				player->SetDeleteMe( true );
-				player->SetLeftReason( "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( ) ) );
-				player->SetLeftCode( PLAYERLEAVE_LOBBY );
-				OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
-			}
-		}
+		SendAllChat( m_GHost->m_Language->AutokickingPlayerForExcessivePing( player->GetName( ), UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) ) );
+		player->SetDeleteMe( true );
+		player->SetLeftReason( "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) );
+		player->SetLeftCode( PLAYERLEAVE_LOBBY );
+		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 	}
 }
 
@@ -2212,6 +2199,17 @@ void CBaseGame :: AddToReserved( string name )
 	}
 
 	m_Reserved.push_back( name );
+
+	// upgrade the user if they're already in the game
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		string NameLower = (*i)->GetName( );
+		transform( NameLower.begin( ), NameLower.end( ), NameLower.begin( ), (int(*)(int))tolower );
+
+		if( NameLower == name )
+			(*i)->SetReserved( true );
+	}
 }
 
 bool CBaseGame :: IsOwner( string name )
@@ -2477,7 +2475,7 @@ class CGamePlayerSortAscByPing
 public:
 	bool operator( ) ( CGamePlayer *Player1, CGamePlayer *Player2 ) const
 	{
-		return Player1->GetPing( ) < Player2->GetPing( );
+		return Player1->GetPing( false ) < Player2->GetPing( false );
 	}
 };
 
@@ -2486,7 +2484,7 @@ class CGamePlayerSortDescByPing
 public:
 	bool operator( ) ( CGamePlayer *Player1, CGamePlayer *Player2 ) const
 	{
-		return Player1->GetPing( ) > Player2->GetPing( );
+		return Player1->GetPing( false ) > Player2->GetPing( false );
 	}
 };
 
@@ -2836,12 +2834,12 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					if( Matches == 0 )
 						SendAllChat( m_GHost->m_Language->UnableToCheckPlayerNoMatchesFound( Payload ) );
 					else if( Matches == 1 )
-						SendAllChat( m_GHost->m_Language->CheckedPlayer( LastMatch->GetName( ), m_GHost->m_DB->AdminCheck( LastMatch->GetSpoofedRealm( ), LastMatch->GetName( ) ) || RootAdminCheck ? "Yes" : "No", IsOwner( LastMatch->GetName( ) ) ? "Yes" : "No", LastMatch->GetSpoofed( ) ? "Yes" : "No", LastMatch->GetSpoofedRealm( ).empty( ) ? "N/A" : LastMatch->GetSpoofedRealm( ), LastMatch->GetReserved( ) ? "Yes" : "No" ) );
+						SendAllChat( m_GHost->m_Language->CheckedPlayer( LastMatch->GetName( ), LastMatch->GetNumPings( ) > 0 ? UTIL_ToString( LastMatch->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DB->FromCheck( UTIL_ByteArrayToUInt32( LastMatch->GetExternalIP( ), true ) ), m_GHost->m_DB->AdminCheck( LastMatch->GetSpoofedRealm( ), LastMatch->GetName( ) ) || RootAdminCheck ? "Yes" : "No", IsOwner( LastMatch->GetName( ) ) ? "Yes" : "No", LastMatch->GetSpoofed( ) ? "Yes" : "No", LastMatch->GetSpoofedRealm( ).empty( ) ? "N/A" : LastMatch->GetSpoofedRealm( ), LastMatch->GetReserved( ) ? "Yes" : "No" ) );
 					else
 						SendAllChat( m_GHost->m_Language->UnableToCheckPlayerFoundMoreThanOneMatch( Payload ) );
 				}
 				else
-					SendAllChat( m_GHost->m_Language->CheckedPlayer( User, m_GHost->m_DB->AdminCheck( player->GetSpoofedRealm( ), User ) || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "N/A" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );
+					SendAllChat( m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DB->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), m_GHost->m_DB->AdminCheck( player->GetSpoofedRealm( ), User ) || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "N/A" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );
 			}
 
 			//
@@ -3180,7 +3178,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !FROM
 			//
 
-			if( Command == "from" && !m_GameLoading && !m_GameLoaded )
+			if( Command == "from" )
 			{
 				string Froms;
 
@@ -3364,14 +3362,15 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !PING
 			//
 
-			if( Command == "ping" && !m_GameLoading && !m_GameLoaded )
+			if( Command == "ping" )
 			{
 				// kick players with ping higher than payload if payload isn't empty
+				// we only do this if the game hasn't started since we don't want to kick players from a game in progress
 
-				unsigned int Kicked = 0;
+				uint32_t Kicked = 0;
 				uint32_t KickPing = 0;
 
-				if( !Payload.empty( ) )
+				if( !m_GameLoading && !m_GameLoaded && !Payload.empty( ) )
 					KickPing = UTIL_ToUInt32( Payload );
 
 				// copy the m_Players vector so we can sort by descending ping so it's easier to find players with high pings
@@ -3387,31 +3386,15 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 					if( (*i)->GetNumPings( ) > 0 )
 					{
-						if( m_GHost->m_LCPings )
-						{
-							Pings += UTIL_ToString( (*i)->GetPing( ) / 2 );
+						Pings += UTIL_ToString( (*i)->GetPing( m_GHost->m_LCPings ) );
 
-							if( !Payload.empty( ) && (*i)->GetPing( ) / 2 > KickPing )
-							{
-								(*i)->SetDeleteMe( true );
-								(*i)->SetLeftReason( "was kicked for excessive LC ping [" + UTIL_ToString( (*i)->GetPing( ) / 2 ) + "] > [" + UTIL_ToString( KickPing ) + "]" );
-								(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
-								OpenSlot( GetSIDFromPID( (*i)->GetPID( ) ), false );
-								Kicked++;
-							}
-						}
-						else
+						if( !m_GameLoading && !m_GameLoaded && !(*i)->GetReserved( ) && !Payload.empty( ) && (*i)->GetPing( m_GHost->m_LCPings ) > KickPing )
 						{
-							Pings += UTIL_ToString( (*i)->GetPing( ) );
-
-							if( !Payload.empty( ) && (*i)->GetPing( ) > KickPing )
-							{
-								(*i)->SetDeleteMe( true );
-								(*i)->SetLeftReason( "was kicked for excessive ping [" + UTIL_ToString( (*i)->GetPing( ) ) + "] > [" + UTIL_ToString( KickPing ) + "]" );
-								(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
-								OpenSlot( GetSIDFromPID( (*i)->GetPID( ) ), false );
-								Kicked++;
-							}
+							(*i)->SetDeleteMe( true );
+							(*i)->SetLeftReason( "was kicked for excessive ping " + UTIL_ToString( (*i)->GetPing( m_GHost->m_LCPings ) ) + " > " + UTIL_ToString( KickPing ) );
+							(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
+							OpenSlot( GetSIDFromPID( (*i)->GetPID( ) ), false );
+							Kicked++;
 						}
 
 						Pings += "ms";
@@ -3659,7 +3642,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		else
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] admin command ignored, the game is locked" );
-			SendAllChat( m_GHost->m_Language->TheGameIsLocked( ) );
+			SendChat( player, m_GHost->m_Language->TheGameIsLocked( ) );
 		}
 	}
 	else
@@ -3668,6 +3651,13 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	/*********************
 	* NON ADMIN COMMANDS *
 	*********************/
+
+	//
+	// !CHECKME
+	//
+
+	if( Command == "checkme" )
+		SendChat( player, m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DB->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), m_GHost->m_DB->AdminCheck( player->GetSpoofedRealm( ), User ) || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "N/A" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );
 
 	//
 	// !STATS

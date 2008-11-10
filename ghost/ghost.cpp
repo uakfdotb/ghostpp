@@ -268,7 +268,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_MapCFGPath = CFG->GetString( "bot_mapcfgpath", string( ) );
 	m_SaveGamePath = CFG->GetString( "bot_savegamepath", string( ) );
 	m_MapPath = CFG->GetString( "bot_mappath", string( ) );
-	m_SaveReplays = CFG->GetInt( "bot_savereplays", 0 );
+	m_SaveReplays = CFG->GetInt( "bot_savereplays", 0 ) == 0 ? false : true;
 	m_ReplayPath = CFG->GetString( "bot_replaypath", string( ) );
 	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
 	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
@@ -556,9 +556,6 @@ void CGHost :: EventBNETLoggedIn( CBNET *bnet )
 
 void CGHost :: EventBNETGameRefreshed( CBNET *bnet )
 {
-	if( m_CurrentGame && m_CurrentGame->GetRefreshMessages( ) )
-		m_CurrentGame->SendAllChat( m_Language->GameRefreshed( bnet->GetServer( ) ) );
-
 	if( m_AdminGame )
 		m_AdminGame->SendAllChat( m_Language->BNETGameHostingSucceeded( bnet->GetServer( ) ) );
 }

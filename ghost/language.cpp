@@ -356,11 +356,9 @@ string CLanguage :: SpoofCheckByReplying( )
 	return m_CFG->GetString( "lang_0041", "lang_0041" );
 }
 
-string CLanguage :: GameRefreshed( string server )
+string CLanguage :: GameRefreshed( )
 {
-	string Out = m_CFG->GetString( "lang_0042", "lang_0042" );
-	Replace( Out, "$SERVER$", server );
-	return Out;
+	return m_CFG->GetString( "lang_0042", "lang_0042" );
 }
 
 string CLanguage :: SpoofPossibleIsAway( string user )
@@ -901,10 +899,12 @@ string CLanguage :: UnableToCheckPlayerNoMatchesFound( string victim )
 	return Out;
 }
 
-string CLanguage :: CheckedPlayer( string victim, string admin, string owner, string spoofed, string spoofedrealm, string reserved )
+string CLanguage :: CheckedPlayer( string victim, string ping, string from, string admin, string owner, string spoofed, string spoofedrealm, string reserved )
 {
 	string Out = m_CFG->GetString( "lang_0122", "lang_0122" );
 	Replace( Out, "$VICTIM$", victim );
+	Replace( Out, "$PING$", ping );
+	Replace( Out, "$FROM$", from );
 	Replace( Out, "$ADMIN$", admin );
 	Replace( Out, "$OWNER$", owner );
 	Replace( Out, "$SPOOFED$", spoofed );

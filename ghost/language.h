@@ -77,7 +77,7 @@ public:
 	string UnableToCreateGameMaxGamesReached( string gamename, string max );
 	string GameIsOver( string description );
 	string SpoofCheckByReplying( );
-	string GameRefreshed( string server );
+	string GameRefreshed( );
 	string SpoofPossibleIsAway( string user );
 	string SpoofPossibleIsUnavailable( string user );
 	string SpoofPossibleIsRefusingMessages( string user );
@@ -157,7 +157,7 @@ public:
 	string UnableToStartDownloadFoundMoreThanOneMatch( string victim );
 	string UnableToSetGameOwner( string owner );
 	string UnableToCheckPlayerNoMatchesFound( string victim );
-	string CheckedPlayer( string victim, string admin, string owner, string spoofed, string spoofedrealm, string reserved );
+	string CheckedPlayer( string victim, string ping, string from, string admin, string owner, string spoofed, string spoofedrealm, string reserved );
 	string UnableToCheckPlayerFoundMoreThanOneMatch( string victim );
 	string TheGameIsLockedBNET( );
 	string UnableToCreateGameDisabled( string gamename );
