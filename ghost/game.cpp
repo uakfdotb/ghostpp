@@ -960,10 +960,20 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	if( SID == 255 && IsOwner( joinPlayer->GetName( ) ) )
 	{
-		// the owner player is trying to join the game but it's full and we couldn't even find a reserved slot, kick the player in slot 0
-		// todotodo: this could be a computer player (e.g. in BattleShips maps) so we may want to kick an actual player instead
+		// the owner player is trying to join the game but it's full and we couldn't even find a reserved slot, kick the player in the lowest numbered slot
+		// updated this to try to find a player slot so that we don't end up kicking a computer
 
 		SID = 0;
+
+		for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+		{
+			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetComputer( ) == 0 )
+			{
+				SID = i;
+				break;
+			}
+		}
+
 		CGamePlayer *KickedPlayer = GetPlayerFromSID( SID );
 
 		if( KickedPlayer )
@@ -3782,7 +3792,7 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "Commands: addadmin, checkadmin, countadmins, deladmin" );
 	SendChat( player, "Commands: disable, enable, end, exit, getgame, getgames" );
 	SendChat( player, "Commands: hostsg, load, loadsg, map, password, priv, privby" );
-	SendChat( player, "Commands: pub, pubby, quit, saygames, unhost" );
+	SendChat( player, "Commands: pub, pubby, quit, saygame, saygames, unhost" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
@@ -4182,6 +4192,43 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
 				m_GHost->CreateGame( GAME_PUBLIC, false, GameName, Owner, User, string( ), false );
+			}
+		}
+
+		//
+		// !SAYGAME
+		//
+
+		if( Command == "saygame" && !Payload.empty( ) )
+		{
+			// extract the game number and the message
+			// e.g. "3 hello everyone" -> game number: "3", message: "hello everyone"
+
+			uint32_t GameNumber;
+			string Message;
+			stringstream SS;
+			SS << Payload;
+			SS >> GameNumber;
+
+			if( SS.fail( ) )
+				CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to saygame command" );
+			else
+			{
+				if( SS.eof( ) )
+					CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to saygame command" );
+				else
+				{
+					getline( SS, Message );
+					string :: size_type Start = Message.find_first_not_of( " " );
+
+					if( Start != string :: npos )
+						Message = Message.substr( Start );
+
+					if( GameNumber - 1 < m_GHost->m_Games.size( ) )
+						m_GHost->m_Games[GameNumber - 1]->SendAllChat( "ADMIN: " + Message );
+					else
+						SendChat( player, m_GHost->m_Language->GameNumberDoesntExist( UTIL_ToString( GameNumber ) ) );
+				}
 			}
 		}
 

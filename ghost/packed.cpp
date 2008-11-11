@@ -87,11 +87,13 @@ void CPacked :: Load( string fileName, bool allBlocks )
 
 bool CPacked :: Save( string fileName )
 {
-	CONSOLE_Print( "[PACKED] saving data to file [" + fileName + "]" );
 	Compress( );
 
 	if( m_Valid )
+	{
+		CONSOLE_Print( "[PACKED] saving data to file [" + fileName + "]" );
 		return UTIL_FileWrite( fileName, (unsigned char *)m_Compressed.c_str( ), m_Compressed.size( ) );
+	}
 	else
 		return false;
 }

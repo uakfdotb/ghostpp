@@ -1275,6 +1275,48 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					QueueChatCommand( Payload );
 
 				//
+				// !SAYGAME
+				//
+
+				if( Command == "saygame" && !Payload.empty( ) )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						// extract the game number and the message
+						// e.g. "3 hello everyone" -> game number: "3", message: "hello everyone"
+
+						uint32_t GameNumber;
+						string Message;
+						stringstream SS;
+						SS << Payload;
+						SS >> GameNumber;
+
+						if( SS.fail( ) )
+							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to saygame command" );
+						else
+						{
+							if( SS.eof( ) )
+								CONSOLE_Print( "[BNET: " + m_Server + "] missing input #2 to saygame command" );
+							else
+							{
+								getline( SS, Message );
+								string :: size_type Start = Message.find_first_not_of( " " );
+
+								if( Start != string :: npos )
+									Message = Message.substr( Start );
+
+								if( GameNumber - 1 < m_GHost->m_Games.size( ) )
+									m_GHost->m_Games[GameNumber - 1]->SendAllChat( "ADMIN: " + Message );
+								else
+									QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( UTIL_ToString( GameNumber ) ), User, Whisper );
+							}
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
 				// !SAYGAMES
 				//
 
@@ -1296,7 +1338,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !SP
 				//
 
-				if( Command == "sp" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) && !m_GHost->m_CurrentGame->GetSaveGame( ) )
+				if( Command == "sp" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 					{

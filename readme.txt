@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 10.4
+GHost++ Version 11.0
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -18,6 +18,29 @@ The program itself runs in console mode and does not take any console input (it 
 ***You need to edit ghost.cfg before running GHost++***
 ***You need to edit ghost.cfg before running GHost++***
 
+GHost++ takes one command line argument, the name of the main config file. It defaults to ghost.cfg if no arguments are provided.
+
+==============
+Required Files
+==============
+
+If you want to be able to connect to battle.net:
+
+-> "game.dll" in your bot_war3path
+-> "storm.dll" in your bot_war3path (Linux users note that GHost++ searches for this file in all lowercase)
+-> "war3.exe" in your bot_war3path
+
+If you want GHost++ to automatically extract blizzard.j and common.j on startup (used when automatically calculating map values):
+
+-> "War3Patch.mpq" in your bot_war3path
+
+If you want GHost++ to automatically calculate map values:
+
+-> "blizzard.j" in your bot_mapcfgpath
+-> "common.j" in your bot_mapcfgpath
+
+Note that blizzard.j and common.j will be automatically extracted from War3Patch.mpq if you provide GHost++ with your War3Patch.mpq file (as mentioned above).
+
 ===============
 How Admins Work
 ===============
@@ -28,13 +51,15 @@ There are three types of admins:
 
 Each battle.net server has a root admin defined in ghost.cfg.
 Root admins have access to every command both in battle.net and in the lobby and ingame.
-In particular this includes !addadmin, !checkadmin, !countadmins, !deladmin, !exit, and !quit.
+In particular this includes !addadmin, !checkadmin, !countadmins, !deladmin, !exit, and !quit among others.
 
 2.) Game Owners.
 
 Each game has an owner defined as the user who ran the !priv or !pub command or the user specified with the !privby or !pubby command.
 Game owners have access to every command in the lobby and ingame but NO commands in battle.net.
 You can think of the game owner as a temporary admin for one game only - it doesn't have to be a root admin or a regular admin.
+The game owner is also the only user who can use commands inside a game which is locked (see the !lock and !unlock commands for more information).
+The game owner for a particular can be changed after the game is created with the !owner command.
 
 3.) Admins.
 
@@ -89,13 +114,15 @@ If the player is considered a reserved player they will be given preference when
 
 Additionally, if the player is the game owner they will be guaranteed a slot in the following way:
 
-4.) The player in slot 0 (the first slot) will be kicked and the game owner will join that slot.
+4.) The player in the lowest numbered slot will be kicked and the game owner will join that slot.
+5.) The computer in slot 0 (the first slot) will be kicked and the game owner will join that slot.
 
 ===============================================================
 The Admin Game (or: how to use GHost++ with one set of CD keys)
 ===============================================================
 
 Since Version 9.0 GHost++ can be used with only one set of CD keys.
+This feature can also be used to host LAN games without connecting to battle.net at all.
 Here's how:
 
 1.) You need to set admingame_create to 1 in ghost.cfg to enable the admin game.
@@ -107,15 +134,16 @@ Now, when you start GHost++:
 1.) GHost++ automatically hosts a Warcraft 3 game (the "Admin Game") and broadcasts it to the local network.
  a.) If you aren't on the local network you won't be able to join the Admin Game.
  b.) The Admin Game is not created on battle.net. It is a local network (LAN) game only.
-2.) GHost++ logs into battle.net as usual. If GHost++ is unable to login to battle.net for whatever reason you will not be able to create games through the Admin Game.
+2.) If configured to do so GHost++ logs into battle.net as usual.
  a.) This means you need to edit ghost.cfg if you haven't already done so and enter your CD keys, battle.net username, battle.net password, etc...
+ b.) If you only want to host LAN games and don't want to connect to battle.net at all you can skip this step.
 3.) Open Warcraft 3 and go to the LAN screen. After a few seconds you will see a game called "GHost++ Admin Game" appear. Join it.
 4.) Use the password command to enter your Admin Game password (e.g. "!password your_password_here").
  a.) If you enter the wrong password you will be kicked from the game and temporarily banned for 5 seconds.
 5.) Use the map or load command to load a map.
-6.) Use the priv/privby/pub/pubby commands to create a game. You should wait until it says "Battle.net game hosting succeeded" before continuing.
+6.) Use the priv/privby/pub/pubby commands to create a game. If connecting to battle.net you should wait until it says "Battle.net game hosting succeeded" for each battle.net server before continuing.
 7.) Leave the game and return to the LAN screen. After a few seconds you will see your newly created game appear. Join it.
-8.) You are now ready to play. Your game has been created on battle.net.
+8.) You are now ready to play. Your game has been created on the local network and, if configured to do so, on each battle.net server.
 9.) If you make a mistake and want to unhost the game you can use !unhost in either game (the Admin Game or your newly created game).
 
 ================================
@@ -125,7 +153,7 @@ Using GHost++ on Multiple Realms
 Since Version 10.0 GHost++ can connect to multiple realms at the same time.
 Here's how:
 
-1.) When GHost++ starts up it reads up to 10 sets of battle.net connection information from ghost.cfg.
+1.) When GHost++ starts up it reads up to 9 sets of battle.net connection information from ghost.cfg.
 2.) A set of battle.net connection information contains the following keys:
  a.) *_server (required)
  b.) *_cdkeyroc (required)
@@ -176,6 +204,68 @@ Example usage:
 
 This will auto host up to 4 games at a time, auto starting when 10 players have joined, with names like "BattleShips!!! #1" and "BattleShips!!! #2" and so on.
 To turn off the auto hoster use "!autohost off" or simply "!autohost".
+
+=================
+Using Saved Games
+=================
+
+Since Version 11.0 GHost++ can autosave games and load saved games.
+GHost++ will never create saved games itself, you must provide GHost++ with saved games which were created by Warcraft III.
+To load a saved game:
+
+1.) You need to set bot_savegamepath in ghost.cfg to the path where you put your saved games.
+
+Now, when you start GHost++:
+
+1.) Use the map or load command to load the correct map (the map the saved game was created on).
+2.) Use the loadsg command to load the saved game.
+3.) Use the hostsg command to host the saved game. If the saved game was created on a different map it will refuse to host the game.
+ a.) Saved games are always created as private games and cannot be rehosted.
+4.) GHost++ is not smart enough to know which player belongs in which slot. It is your responsibility to ensure each player is in the correct slot before starting the game.
+ a.) The slot numbers are not adjusted to match the number of players.
+ b.) This means the slot commands such as close, open, and swap use the original slot numbers.
+ c.) It's possible to swap someone into an invisible slot if you aren't careful.
+ d.) If you start the game with any players in the wrong slot you may experience glitches in the game.
+5.) Use the start command to start the saved game.
+
+GHost++ also supports autosaving the game just before someone disconnects.
+This is an experimental feature and is not recommended for competitive play as it causes glitches in the game.
+Here's how:
+
+1.) You need to set bot_autosave to 1 in ghost.cfg to enable autosaving.
+
+When a player unexpectedly disconnects from the game GHost++ will forge a savegame request from that player.
+This causes all remaining players to save the game.
+It is important to realize that GHost++ does not create a saved game itself.
+The player who disconnected from the game will also not save the game because they have already disconnected.
+Since saved games are unique to the player who created them it is impossible to obtain the correct saved game for the disconnected player at this point.
+Therefore, one of the remaining players must send their saved game to the disconnected player.
+The saved game must come from a player on the same team as the disconnected player otherwise the fog of war is reversed for that player.
+This procedure causes additional glitches in the game due to the incorrect saved game even if it comes from a player on the same team.
+
+***A QUICK NOTE FOR COMPETITIVE PLAYERS***
+
+Although the autosave feature is experimental and glitchy the load feature is not.
+As long as each player has the correct saved game and each player is in the correct slot before starting no glitches have been observed.
+This means you will still need to manually save the game on a periodic basis in order to ensure that each player has the correct saved game after a disconnect.
+It also means you will need to be careful to ensure that each player is in the correct slot when loading the game.
+
+==============
+Saving Replays
+==============
+
+Since Version 11.0 GHost++ can automatically create replays for hosted games.
+Here's how:
+
+1.) You need to set bot_savereplays to 1 in ghost.cfg to enable automatic creation of replays.
+2.) You need to set bot_replaypath in ghost.cfg to the path where you want GHost++ to create replays.
+
+GHost++ will create a replay for each game in the bot_replaypath directory after the game has finished.
+These replays will contain chat messages from all players (including allied and private chat from players on every team).
+These replays will also be complete replays regardless of the order in which players leave the game.
+As a slight amendment to the above due to a technical problem the last few frames (normally less than a second) of the game will be missing.
+When GHost++ is configured to save replays it will store replay data for each game in memory as the game progresses.
+This means you will see a noticeable increase in GHost++'s memory usage as the replay data grows. When the game is finished the memory will be released.
 
 ================
 Map Config Files
@@ -246,58 +336,65 @@ Commands
 
 In battle.net (via local chat or whisper at any time):
 
-!addadmin <name>        add a new admin to the database for this realm
-!addban <name> <reason> add a new ban to the database for this realm
-!announce <sec> <msg>   set the announce message (the bot will print <msg> every <sec> seconds in the game lobby), leave blank or "off" to disable the announce message
-!autohost <m> <p> <n>   auto host up to <m> games, auto starting when <p> players have joined, with name <n>, leave blank or "off" to disable auto hosting
-!autostart <players>    auto start the game when the specified number of players have joined, leave blank or "off" to disable auto start
-!ban                    alias to !addban
-!channel <name>         change channel
-!checkadmin <name>      check if a user is an admin on this realm
-!checkban <name>        check if a user is banned on this realm
-!close <number> ...     close slot
-!closeall               close all open slots
-!countadmins            display the total number of admins for this realm
-!countbans              display the total number of bans for this realm
-!deladmin <name>        remove an admin from the database for this realm
-!delban <name>          remove a ban from the database for this realm
-!disable                disable creation of new games
-!enable                 enable creation of new games
-!end <number>           end a game in progress (disconnect everyone)
-!exit [force]           shutdown ghost++, optionally add [force] to skip checks
-!getclan                refresh the internal copy of the clan members list
-!getfriends             refresh the internal copy of the friends list
-!getgame <number>       display information on a game in progress
-!getgames               display information on all games
-!hold <name> ...        hold a slot for someone
-!load <filename>        load a config file (for changing maps), leave blank to see current map - the ".cfg" is automatically appended to the filename
-!map <filename>         alias to !load
-!open <number> ...      open slot
-!openall                open all closed slots
-!priv <name>            host private game
-!privby <owner> <name>  host private game by another player (gives <owner> access to admin commands in the game lobby and in the game)
-!pub <name>             host public game
-!pubby <owner> <name>   host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
-!quit [force]           alias to !exit
-!say <text>             send <text> to battle.net as a chat command
-!saygames <text>        send <text> to all games
-!sp                     shuffle players
-!start [force]          start game, optionally add [force] to skip checks
-!stats [name]           display basic player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
-!statsdota [name]       display DotA player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
-!swap <n1> <n2>         swap slots
-!unban                  alias to !delban
-!unhost                 unhost game in lobby
-!version                display version information (can be used by non admins)
+!addadmin <name>         add a new admin to the database for this realm
+!addban <name> <reason>  add a new ban to the database for this realm
+!announce <sec> <msg>    set the announce message (the bot will print <msg> every <sec> seconds in the game lobby), leave blank or "off" to disable the announce message
+!autohost <m> <p> <n>    auto host up to <m> games, auto starting when <p> players have joined, with name <n>, leave blank or "off" to disable auto hosting
+!autostart <players>     auto start the game when the specified number of players have joined, leave blank or "off" to disable auto start
+!ban                     alias to !addban
+!channel <name>          change channel
+!checkadmin <name>       check if a user is an admin on this realm
+!checkban <name>         check if a user is banned on this realm
+!close <number> ...      close slot
+!closeall                close all open slots
+!countadmins             display the total number of admins for this realm
+!countbans               display the total number of bans for this realm
+!deladmin <name>         remove an admin from the database for this realm
+!delban <name>           remove a ban from the database for this realm
+!disable                 disable creation of new games
+!enable                  enable creation of new games
+!end <number>            end a game in progress (disconnect everyone)
+!exit [force]            shutdown ghost++, optionally add [force] to skip checks
+!getclan                 refresh the internal copy of the clan members list
+!getfriends              refresh the internal copy of the friends list
+!getgame <number>        display information on a game in progress
+!getgames                display information on all games
+!hold <name> ...         hold a slot for someone
+!hostsg <name>           host a saved game
+!load <filename>         load a config file (for changing maps), leave blank to see current map - the ".cfg" is automatically appended to the filename
+!loadsg <filename>       load a saved game
+!map <filename>          alias to !load
+!open <number> ...       open slot
+!openall                 open all closed slots
+!priv <name>             host private game
+!privby <owner> <name>   host private game by another player (gives <owner> access to admin commands in the game lobby and in the game)
+!pub <name>              host public game
+!pubby <owner> <name>    host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
+!quit [force]            alias to !exit
+!say <text>              send <text> to battle.net as a chat command
+!saygame <number> <text> send <text> to the specified game in progress
+!saygames <text>         send <text> to all games
+!sp                      shuffle players
+!start [force]           start game, optionally add [force] to skip checks
+!stats [name]            display basic player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
+!statsdota [name]        display DotA player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
+!swap <n1> <n2>          swap slots
+!unban                   alias to !delban
+!unhost                  unhost game in lobby
+!version                 display version information (can be used by non admins)
 
 In game lobby:
 
 !a                      alias to !abort
 !abort                  abort countdown
+!addban <name> <reason> add a new ban to the database (it tries to do a partial match)
 !announce <sec> <msg>   set the announce message (the bot will print <msg> every <sec> seconds), leave blank or "off" to disable the announce message
 !autostart <players>    auto start the game when the specified number of players have joined, leave blank or "off" to disable auto start
+!autosave <on/off>      enable or disable autosaving
+!ban                    alias to !addban
 !check <name>           check a user's status (leave blank to check your own status)
 !checkban <name>        check if a user is banned on any realm
+!checkme                check your own status (can be used by non admins, sends a private message visible only to the user)
 !close <number> ...     close slot
 !closeall               close all open slots
 !comp <slot> <skill>    create a computer in slot <slot> of skill <skill> (skill is 0 for easy, 1 for normal, 2 for insane)
@@ -333,17 +430,21 @@ In game lobby:
 In game:
 
 !addban <name> <reason> add a new ban to the database (it tries to do a partial match)
+!autosave <on/off>      enable or disable autosaving
 !ban                    alias to !addban
 !banlast <reason>       ban the last leaver
 !check <name>           check a user's status (leave blank to check your own status)
 !checkban <name>        check if a user is banned on any realm
+!checkme                check your own status (can be used by non admins, sends a private message visible only to the user)
 !drop                   drop all lagging players
 !end                    end the game (disconnect everyone)
+!from                   display the country each player is from
 !kick <name>            kick a player (it tries to do a partial match)
 !latency <number>       set game latency (50-500), leave blank to see current latency
 !lock                   lock the game so only the game owner can run commands
 !muteall                mute global chat (allied and private chat still works)
 !owner [name]           set game owner to yourself, optionally add [name] to set game owner to someone else
+!ping                   ping players
 !stats [name]           display basic player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
 !statsdota [name]       display DotA player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
 !synclimit <number>     set sync limit for the lag screen (10-10000), leave blank to see current sync limit
@@ -363,7 +464,9 @@ In admin game lobby:
 !exit [force]              shutdown ghost++, optionally add [force] to skip checks
 !getgame <number>          display information on a game in progress
 !getgames                  display information on all games
+!hostsg <name>             host a saved game
 !load <filename>           load a config file (for changing maps), leave blank to see current map - the ".cfg" is automatically appended to the filename
+!loadsg <filename>         load a saved game
 !map <filename>            alias to !load
 !password <p>              login (the password is set in ghost.cfg with admingame_password)
 !priv <name>               host private game
@@ -371,6 +474,7 @@ In admin game lobby:
 !pub <name>                host public game
 !pubby <owner> <name>      host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force]              alias to !exit
+!saygame <number> <text>   send <text> to the specified game in progress
 !saygames <text>           send <text> to all games
 !unhost                    unhost game
 
@@ -437,6 +541,40 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 =========
 CHANGELOG
 =========
+
+Version 11.0
+ - updated SQLite to SQLite 3.6.4
+ - added zlib to the project
+ - modified the StormLib Visual C++ project file to fix a build confliction with zlib on Windows
+ - added support for autosaving games and loading games
+  * see the "Using Saved Games" section of this readme for more information
+ - added support for automatically saving replays
+  * see the "Saving Replays" section of this readme for more information
+ - added new config value bot_savegamepath to specify the directory where saved games will be loaded from
+ - added new config value bot_autosave to enable or disable autosaving by default
+ - added new config value bot_savereplays to enable or disable automatic saving of replays
+ - added new config value bot_replaypath to specify the directory where replays will be saved to
+ - added new command !loadsg to load a saved game
+ - added new command !hostsg to host a saved game
+ - added new command !autosave to enable or disable autosaving for a particular game
+ - added new command !saygame to send a message to a specified game in progress
+ - added new command !checkme for non admins to use (the response to this command is sent privately)
+ - the "game is locked" response is now sent privately
+ - the "game refreshed" message is now printed only once per refresh rather than once per server per refresh
+ - the !ping command can now be used ingame
+ - the !from command can now be used ingame
+ - pings are now sent to players ingame in order to continue tracking player pings after the game has started
+ - pings are no longer sent to players who are downloading the map
+ - when using the !hold command if the player is already in the game they will now be immediately upgraded to reserved status
+ - the !saygame and !saygames commands now prefix your message with "ADMIN: "
+ - the !check and !checkme commands now display ping and from fields in addition to the other fields
+ - the !addban and !ban commands can now be used in the game lobby
+ - game timestamps are now calculated based on actual ingame time instead of real time since the game started loading
+ - when the owner player joins the game it now attempts to kick a real player instead of the entity in slot 0
+ - added automatic detection of desyncs (a warning message will be printed to chat if a desync is detected)
+ - fixed a bug where commands with aliases could be executed when they shouldn't be
+ - updated some outdated information in this readme
+ - many changes and additions to language.cfg
 
 Version 10.4
  - added support for auto starting games

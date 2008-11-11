@@ -252,7 +252,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_DB = new CGHostDBSQLite( CFG );
 	m_Exiting = false;
 	m_Enabled = true;
-	m_Version = "10.4";
+	m_Version = "11.0";
 	m_HostCounter = 1;
 	m_LanguageFile = CFG->GetString( "bot_language", "language.cfg" );
 	m_Language = new CLanguage( m_LanguageFile );
