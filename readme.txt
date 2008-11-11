@@ -1,6 +1,6 @@
-====================
-GHost++ Version 11.0
-====================
+=====================
+GHost++ Version 11.01
+=====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
 The original GHost project can be found here: http://ghost.pwner.org/
@@ -541,6 +541,11 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 =========
 CHANGELOG
 =========
+
+Version 11.01
+ - bot_savereplays now defaults to 0
+ - added new map configs for DotA 6.57
+ - modified GHost++ to prevent excessive traffic when connecting to PVPGN servers
 
 Version 11.0
  - updated SQLite to SQLite 3.6.4

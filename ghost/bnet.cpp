@@ -320,9 +320,11 @@ void CBNET :: ProcessPackets( )
 			switch( Packet->GetID( ) )
 			{
 			case CBNETProtocol :: SID_NULL:
-				if( m_Protocol->RECEIVE_SID_NULL( Packet->GetData( ) ) )
-					m_Socket->PutBytes( m_Protocol->SEND_SID_NULL( ) );
+				// warning: we do not respond to NULL packets with a NULL packet of our own
+				// this is because PVPGN servers are programmed to respond to NULL packets so it will create a vicious cycle of useless traffic
+				// official battle.net servers do not respond to NULL packets
 
+				m_Protocol->RECEIVE_SID_NULL( Packet->GetData( ) );
 				break;
 
 			case CBNETProtocol :: SID_GETADVLISTEX:
