@@ -2637,7 +2637,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !BAN
 			//
 
-			if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) && m_GameLoaded && !m_GHost->m_BNETs.empty( ) )
+			if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
 			{
 				// extract the victim and the reason
 				// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -2657,58 +2657,80 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						Reason = Reason.substr( Start );
 				}
 
-				string VictimLower = Victim;
-				transform( VictimLower.begin( ), VictimLower.end( ), VictimLower.begin( ), (int(*)(int))tolower );
-				unsigned int Matches = 0;
-				CDBBan *LastMatch;
-
-				// try to match each player with the passed string (e.g. "Varlock" would be matched with "lock")
-				// we use the m_DBBans vector for this in case the player already left and thus isn't in the m_Players vector anymore
-
-				for( vector<CDBBan *> :: iterator i = m_DBBans.begin( ); i != m_DBBans.end( ); i++ )
+				if( m_GameLoaded )
 				{
-					string TestName = (*i)->GetName( );
-					transform( TestName.begin( ), TestName.end( ), TestName.begin( ), (int(*)(int))tolower );
+					string VictimLower = Victim;
+					transform( VictimLower.begin( ), VictimLower.end( ), VictimLower.begin( ), (int(*)(int))tolower );
+					uint32_t Matches = 0;
+					CDBBan *LastMatch = NULL;
 
-					if( TestName.find( VictimLower ) != string :: npos )
+					// try to match each player with the passed string (e.g. "Varlock" would be matched with "lock")
+					// we use the m_DBBans vector for this in case the player already left and thus isn't in the m_Players vector anymore
+
+					for( vector<CDBBan *> :: iterator i = m_DBBans.begin( ); i != m_DBBans.end( ); i++ )
 					{
-						Matches++;
-						LastMatch = *i;
+						string TestName = (*i)->GetName( );
+						transform( TestName.begin( ), TestName.end( ), TestName.begin( ), (int(*)(int))tolower );
+
+						if( TestName.find( VictimLower ) != string :: npos )
+						{
+							Matches++;
+							LastMatch = *i;
+						}
 					}
-				}
 
-				if( Matches == 0 )
-				{
-					// didn't find any matches
-
-					SendAllChat( m_GHost->m_Language->UnableToBanNoMatchesFound( Victim ) );
-				}
-				else if( Matches == 1 )
-				{
-					// found a match
-
-					if( !LastMatch->GetServer( ).empty( ) )
+					if( Matches == 0 )
+						SendAllChat( m_GHost->m_Language->UnableToBanNoMatchesFound( Victim ) );
+					else if( Matches == 1 )
 					{
-						// the user was spoof checked, ban only on the spoofed realm
+						if( !LastMatch->GetServer( ).empty( ) )
+						{
+							// the user was spoof checked, ban only on the spoofed realm
 
-						m_GHost->m_DB->BanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason );
+							m_GHost->m_DB->BanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason );
+						}
+						else
+						{
+							// the user wasn't spoof checked, ban on every realm
+
+							for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+								m_GHost->m_DB->BanAdd( (*i)->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason );
+						}
+
+						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + User + "]" );
+						SendAllChat( m_GHost->m_Language->PlayerWasBannedByPlayer( LastMatch->GetName( ), User ) );
 					}
 					else
-					{
-						// the user wasn't spoof checked, ban on every realm
-
-						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-							m_GHost->m_DB->BanAdd( (*i)->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason );
-					}
-
-					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + User + "]" );
-					SendAllChat( m_GHost->m_Language->PlayerWasBannedByPlayer( LastMatch->GetName( ), User ) );
+						SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
 				}
 				else
 				{
-					// found more than one match so we don't know who to ban
+					CGamePlayer *LastMatch = NULL;
+					uint32_t Matches = GetPlayerFromNamePartial( Victim, &LastMatch );
 
-					SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
+					if( Matches == 0 )
+						SendAllChat( m_GHost->m_Language->UnableToBanNoMatchesFound( Victim ) );
+					else if( Matches == 1 )
+					{
+						if( !LastMatch->GetSpoofedRealm( ).empty( ) )
+						{
+							// the user was spoof checked, ban only on the spoofed realm
+
+							m_GHost->m_DB->BanAdd( LastMatch->GetSpoofedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason );
+						}
+						else
+						{
+							// the user wasn't spoof checked, ban on every realm
+
+							for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+								m_GHost->m_DB->BanAdd( (*i)->GetServer( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason );
+						}
+
+						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + User + "]" );
+						SendAllChat( m_GHost->m_Language->PlayerWasBannedByPlayer( LastMatch->GetName( ), User ) );
+					}
+					else
+						SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
 				}
 			}
 
@@ -3534,7 +3556,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !SP
 			//
 
-			if( Command == "sp" && !m_CountDownStarted && !m_SaveGame )
+			if( Command == "sp" && !m_CountDownStarted )
 			{
 				SendAllChat( m_GHost->m_Language->ShufflingPlayers( ) );
 				ShuffleSlots( );
