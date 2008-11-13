@@ -28,6 +28,7 @@
 #define W3GS_HEADER_CONSTANT		247
 
 #define GAME_NONE					0		// this case isn't part of the protocol, it's for internal use only
+#define GAME_FULL					2
 #define GAME_PUBLIC					16
 #define GAME_PRIVATE				17
 

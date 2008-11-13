@@ -35,6 +35,7 @@
 #include "stats.h"
 #include "statsdota.h"
 
+#include <string.h>
 #include <time.h>
 
 //
@@ -336,14 +337,21 @@ bool CBaseGame :: Update( void *fd )
 		m_LastPingTime = GetTime( );
 	}
 
-	// refresh every 5 seconds
+	// refresh every 10 seconds
 
-	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 5 )
+	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 10 )
 	{
 		// send a game refresh packet to each battle.net connection
 
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			// we send two game refreshes, the first one to indicate the game is full and the second one to indicate the game is open
+			// this is why "refreshing the slots" in Warcraft III works because battle.net seems to advertise games that change states more than those that don't
+			// therefore by doing this we're following the same procedure Warcraft III does except that we don't actually have to close and open any slots
+
+			(*i)->SendGameRefresh( m_GameState | GAME_FULL, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime );
 			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime );
+		}
 
 		if( m_RefreshMessages )
 			SendAllChat( m_GHost->m_Language->GameRefreshed( ) );
