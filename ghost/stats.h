@@ -37,7 +37,7 @@ class CGHostDB;
 
 class CStats
 {
-public:
+protected:
 	CBaseGame *m_Game;
 
 public:

@@ -302,14 +302,14 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_PING_FROM_HOST( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots )
 {
 	unsigned char Zeros[] = { 0, 0, 0, 0 };
 
 	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, gameType, playerSlots );
 	BYTEARRAY packet;
 
-	if( externalIP.size( ) == 4 )
+	if( port.size( ) == 2 && externalIP.size( ) == 4 )
 	{
 		packet.push_back( W3GS_HEADER_CONSTANT );									// W3GS header constant
 		packet.push_back( W3GS_SLOTINFOJOIN );										// W3GS_SLOTINFOJOIN
@@ -320,8 +320,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY 
 		packet.push_back( PID );													// PID
 		packet.push_back( 2 );														// AF_INET
 		packet.push_back( 0 );														// AF_INET continued...
-		packet.push_back( 0 );														// port
-		packet.push_back( 0 );														// port continued...
+		UTIL_AppendByteArray( packet, port );										// port
 		UTIL_AppendByteArray( packet, externalIP );									// external IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );									// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );									// ???
