@@ -3724,12 +3724,21 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( GamePlayerSummary )
 		{
-			SendAllChat( m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsUser, GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
+			if( player->GetSpoofed( ) && ( m_GHost->m_DB->AdminCheck( player->GetSpoofedRealm( ), User ) || RootAdminCheck || IsOwner( User ) ) )
+				SendAllChat( m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsUser, GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
+			else
+				SendChat( player, m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsUser, GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
+
 			delete GamePlayerSummary;
 			GamePlayerSummary = NULL;
 		}
 		else
-			SendAllChat( m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsUser ) );
+		{
+			if( player->GetSpoofed( ) && ( m_GHost->m_DB->AdminCheck( player->GetSpoofedRealm( ), User ) || RootAdminCheck || IsOwner( User ) ) )
+				SendAllChat( m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsUser ) );
+			else
+				SendChat( player, m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsUser ) );
+		}
 
 		player->SetStatsSentTime( GetTime( ) );
 	}
@@ -3749,12 +3758,21 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( DotAPlayerSummary )
 		{
-			SendAllChat( m_GHost->m_Language->HasPlayedDotAGamesWithThisBot( StatsUser, UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ) ) );
+			if( player->GetSpoofed( ) && ( m_GHost->m_DB->AdminCheck( player->GetSpoofedRealm( ), User ) || RootAdminCheck || IsOwner( User ) ) )
+				SendAllChat( m_GHost->m_Language->HasPlayedDotAGamesWithThisBot( StatsUser, UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ) ) );
+			else
+				SendChat( player, m_GHost->m_Language->HasPlayedDotAGamesWithThisBot( StatsUser, UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ) ) );
+
 			delete DotAPlayerSummary;
 			DotAPlayerSummary = NULL;
 		}
 		else
-			SendAllChat( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsUser ) );
+		{
+			if( player->GetSpoofed( ) && ( m_GHost->m_DB->AdminCheck( player->GetSpoofedRealm( ), User ) || RootAdminCheck || IsOwner( User ) ) )
+				SendAllChat( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsUser ) );
+			else
+				SendChat( player, m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsUser ) );
+		}
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
