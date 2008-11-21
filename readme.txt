@@ -337,12 +337,12 @@ Commands
 In battle.net (via local chat or whisper at any time):
 
 !addadmin <name>         add a new admin to the database for this realm
-!addban <name> <reason>  add a new ban to the database for this realm
-!announce <sec> <msg>    set the announce message (the bot will print <msg> every <sec> seconds in the game lobby), leave blank or "off" to disable the announce message
-!autohost <m> <p> <n>    auto host up to <m> games, auto starting when <p> players have joined, with name <n>, leave blank or "off" to disable auto hosting
-!autostart <players>     auto start the game when the specified number of players have joined, leave blank or "off" to disable auto start
+!addban <name> [reason]  add a new ban to the database for this realm
+!announce <sec> <msg>    set the announce message (the bot will print <msg> every <sec> seconds in the lobby), use "off" to disable the announce message
+!autohost <m> <p> <n>    auto host up to <m> games, auto starting when <p> players have joined, with name <n>, use "off" to disable auto hosting
+!autostart <players>     auto start the game when the specified number of players have joined, use "off" to disable auto start
 !ban                     alias to !addban
-!channel <name>          change channel
+!channel <name>          change battle.net channel
 !checkadmin <name>       check if a user is an admin on this realm
 !checkban <name>         check if a user is banned on this realm
 !close <number> ...      close slot
@@ -350,15 +350,15 @@ In battle.net (via local chat or whisper at any time):
 !countadmins             display the total number of admins for this realm
 !countbans               display the total number of bans for this realm
 !deladmin <name>         remove an admin from the database for this realm
-!delban <name>           remove a ban from the database for this realm
+!delban <name>           remove a ban from the database for all realms
 !disable                 disable creation of new games
 !enable                  enable creation of new games
-!end <number>            end a game in progress (disconnect everyone)
+!end <number>            end the specified game in progress (disconnect everyone)
 !exit [force]            shutdown ghost++, optionally add [force] to skip checks
 !getclan                 refresh the internal copy of the clan members list
 !getfriends              refresh the internal copy of the friends list
-!getgame <number>        display information on a game in progress
-!getgames                display information on all games
+!getgame <number>        display information about a game in progress
+!getgames                display information about all games
 !hold <name> ...         hold a slot for someone
 !hostsg <name>           host a saved game
 !load <filename>         load a config file (for changing maps), leave blank to see current map - the ".cfg" is automatically appended to the filename
