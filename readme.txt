@@ -571,6 +571,9 @@ Version 11.1
  - statsdota now parses the "id" value, DotA stats should be accurate when using -sp or -switch now
  - added the "lobby time limit" code written by LuCasn (thank you!)
  - added new config value bot_lobbytimelimit
+ - added map config files for DotA 6.58b
+ - fixed a bug where you could start a game with no players
+ - you can now use the !owner command if you are a root admin even if the owner is already in the game
 
 Version 11.01
  - bot_savereplays now defaults to 0

@@ -3442,7 +3442,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			if( Command == "owner" )
 			{
-				if( IsOwner( User ) || !GetPlayerFromName( m_OwnerName, false ) )
+				if( RootAdminCheck || IsOwner( User ) || !GetPlayerFromName( m_OwnerName, false ) )
 				{
 					if( !Payload.empty( ) )
 					{
