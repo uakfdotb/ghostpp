@@ -21,6 +21,7 @@
 #include "ghost.h"
 #include "util.h"
 #include "bnetprotocol.h"
+#include "gameprotocol.h"
 
 CBNETProtocol :: CBNETProtocol( )
 {
@@ -625,21 +626,21 @@ Flags:
 
 	BYTEARRAY packet;
 
-	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 )
+	// make the stat string
+
+	BYTEARRAY StatString;
+	UTIL_AppendByteArray( StatString, mapFlags );
+	StatString.push_back( 0 );
+	UTIL_AppendByteArray( StatString, mapWidth );
+	UTIL_AppendByteArray( StatString, mapHeight );
+	UTIL_AppendByteArray( StatString, mapCRC );
+	UTIL_AppendByteArray( StatString, mapPath );
+	UTIL_AppendByteArray( StatString, hostName );
+	StatString.push_back( 0 );
+	StatString = UTIL_EncodeStatString( StatString );
+
+	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 && StatString.size( ) < 128 )
 	{
-		// make the stat string
-
-		BYTEARRAY StatString;
-		UTIL_AppendByteArray( StatString, mapFlags );
-		StatString.push_back( 0 );
-		UTIL_AppendByteArray( StatString, mapWidth );
-		UTIL_AppendByteArray( StatString, mapHeight );
-		UTIL_AppendByteArray( StatString, mapCRC );
-		UTIL_AppendByteArray( StatString, mapPath );
-		UTIL_AppendByteArray( StatString, hostName );
-		StatString.push_back( 0 );
-		StatString = UTIL_EncodeStatString( StatString );
-
 		// make the rest of the packet
 
 		packet.push_back( BNET_HEADER_CONSTANT );				// BNET header constant
@@ -656,7 +657,12 @@ Flags:
 		UTIL_AppendByteArray( packet, CustomGame, 4 );			// Custom Game
 		UTIL_AppendByteArray( packet, gameName );				// Game Name
 		packet.push_back( 0 );									// Game Password is NULL
-		packet.push_back( 98 );									// Slots Free (ascii 98 = hex 'b' = 11 slots free)
+
+		if( state & GAME_FULL )
+			packet.push_back( 48 );								// Slots Free (ascii 48 = hex '0' = 0 slots free)
+		else
+			packet.push_back( 98 );								// Slots Free (ascii 98 = hex 'b' = 11 slots free)
+
 		UTIL_AppendByteArray( packet, HostCounter, 8 );			// Host Counter
 		UTIL_AppendByteArray( packet, StatString );				// Stat String
 		packet.push_back( 0 );									// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)

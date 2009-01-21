@@ -127,6 +127,7 @@ public:
 	bool m_PingDuringDownloads;				// config value: ping during map downloads or not
 	bool m_LCPings;							// config value: use LC style pings (divide actual pings by two)
 	uint32_t m_AutoKickPing;				// config value: auto kick players with ping higher than this
+	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players
 	uint32_t m_Latency;						// config value: the latency (by default)
 	uint32_t m_SyncLimit;					// config value: the maximum number of packets a player can fall out of sync before starting the lag screen (by default)
 	bool m_AdminGameCreate;					// config value: create the admin game or not

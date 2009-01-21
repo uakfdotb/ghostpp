@@ -87,6 +87,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_LastActionSentTicks = 0;
 	m_StartedLaggingTime = 0;
 	m_LastLagScreenTime = 0;
+	m_LastReservedSeen = GetTime( );
 	m_Locked = false;
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
 	m_MuteAll = false;
@@ -401,6 +402,27 @@ bool CBaseGame :: Update( void *fd )
 		}
 
 		m_LastCountDownTicks = GetTicks( );
+	}
+
+	// check if the lobby is "abandoned" and needs to be closed since it will never start
+
+	if( !m_GameLoading && !m_GameLoaded && m_AutoStartPlayers == 0 && m_GHost->m_LobbyTimeLimit > 0 )
+	{
+		// check if there's a player with reserved status in the game
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( (*i)->GetReserved( ) )
+				m_LastReservedSeen = GetTime( );
+		}
+
+		// check if we've hit the time limit
+
+		if( GetTime( ) > m_LastReservedSeen + m_GHost->m_LobbyTimeLimit * 60 )
+		{
+			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby time limit hit)" );
+			return true;
+		}
 	}
 
 	// check if the game is loaded
@@ -3876,6 +3898,14 @@ CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint
 CAdminGame :: ~CAdminGame( )
 {
 
+}
+
+bool CAdminGame :: Update( void *fd )
+{
+	// reset the last reserved seen timer since the admin game should never be considered abandoned
+
+	m_LastReservedSeen = GetTime( );
+	return CBaseGame :: Update( fd );
 }
 
 void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )

@@ -1,6 +1,6 @@
-=====================
-GHost++ Version 11.01
-=====================
+====================
+GHost++ Version 11.1
+====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
 The original GHost project can be found here: http://ghost.pwner.org/
@@ -409,6 +409,7 @@ In game lobby:
 !kick <name>            kick a player (it tries to do a partial match)
 !latency <number>       set game latency (50-500), leave blank to see current latency
 !lock                   lock the game so only the game owner can run commands
+!mute <name>            mute a player (it tries to do a partial match)
 !open <number> ...      open slot
 !openall                open all closed slots
 !owner [name]           set game owner to yourself, optionally add [name] to set game owner to someone else
@@ -425,7 +426,9 @@ In game lobby:
 !synclimit <number>     set sync limit for the lag screen (10-10000), leave blank to see current sync limit
 !unhost                 unhost game
 !unlock                 unlock the game
-!version                display version information (can be used by non admins)
+!unmute <name>          unmute a player (it tries to do a partial match)
+!version                display version information (can be used by non admins, sends a private message visible only to the user)
+!virtualhost <name>     change the virtual host name
 
 In game:
 
@@ -442,6 +445,7 @@ In game:
 !kick <name>            kick a player (it tries to do a partial match)
 !latency <number>       set game latency (50-500), leave blank to see current latency
 !lock                   lock the game so only the game owner can run commands
+!mute <name>            mute a player (it tries to do a partial match)
 !muteall                mute global chat (allied and private chat still works)
 !owner [name]           set game owner to yourself, optionally add [name] to set game owner to someone else
 !ping                   ping players
@@ -449,12 +453,14 @@ In game:
 !statsdota [name]       display DotA player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
 !synclimit <number>     set sync limit for the lag screen (10-10000), leave blank to see current sync limit
 !unlock                 unlock the game
+!unmute <name>          unmute a player (it tries to do a partial match)
 !unmuteall              unmute global chat
-!version                display version information (can be used by non admins)
+!version                display version information (can be used by non admins, sends a private message visible only to the user)
 
 In admin game lobby:
 
 !addadmin <name> <realm>   add a new admin to the database for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!autohost <m> <p> <n>      auto host up to <m> games, auto starting when <p> players have joined, with name <n>, use "off" to disable auto hosting
 !checkadmin <name> <realm> check if a user is an admin for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
 !countadmins <realm>       display the total number of admins for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
 !deladmin <name> <realm>   remove an admin from the database for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
@@ -541,6 +547,30 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 =========
 CHANGELOG
 =========
+
+Version 11.1
+ - updated SQLite to SQLite 3.6.10
+ - updated ip-to-country.csv to the latest version from December 19, 2008
+ - updated the game refresh procedure on battle.net to more closely match the way Warcraft III does it
+ - added new command !virtualhost to change the virtual host name
+ - the !stats and !statsdota commands now send private responses when used in a lobby or in a game (it still sends public responses when used by an admin)
+ - the !version command now sends a private response when used in a lobby or in a game
+ - the !autohost command can now be used in the admin game
+ - added new config value bot_bindaddress
+ - added new config value bot_virtualhostname
+ - map_gametype can now be set to 2 (non-blizzard melee map) in addition to 1 and 9
+ - added a console warning when the map_path starts with '\'
+ - optimized saving of game data to the database when a game ends
+ - players who are lagging are now automatically dropped after 80 seconds to prevent all players from disconnecting
+ - players who are downloading the map are once again sent pings to prevent them from disconnecting after 90 seconds
+ - fixed a bug where after an invalid saved game was loaded no other saved games could be loaded until the bot was restarted
+ - fixed a security flaw where non admins could cause the bot to execute battle.net commands
+ - increased the flood protection timer from 2 seconds to 2.5 seconds
+ - added new command !mute to mute a player
+ - added new command !unmute to unmute a player
+ - statsdota now parses the "id" value, DotA stats should be accurate when using -sp or -switch now
+ - added the "lobby time limit" code written by LuCasn (thank you!)
+ - added new config value bot_lobbytimelimit
 
 Version 11.01
  - bot_savereplays now defaults to 0
