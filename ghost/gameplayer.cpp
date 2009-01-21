@@ -186,7 +186,9 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_SyncCounter = 0;
 	m_JoinTime = GetTime( );
 	m_LastMapPartSent = 0;
+	m_LastMapPartAcked = 0;
 	m_StartedDownloadingTicks = 0;
+	m_FinishedDownloadingTime = 0;
 	m_FinishedLoadingTicks = 0;
 	m_StartedLaggingTicks = 0;
 	m_StatsSentTime = 0;
@@ -216,7 +218,9 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_SyncCounter = 0;
 	m_JoinTime = GetTime( );
 	m_LastMapPartSent = 0;
+	m_LastMapPartAcked = 0;
 	m_StartedDownloadingTicks = 0;
+	m_FinishedDownloadingTime = 0;
 	m_FinishedLoadingTicks = 0;
 	m_StartedLaggingTicks = 0;
 	m_StatsSentTime = 0;
@@ -261,11 +265,11 @@ uint32_t CGamePlayer :: GetPing( bool LCPing )
 
 bool CGamePlayer :: Update( void *fd )
 {
-	// wait 3 seconds after joining before sending the /whois or /w
+	// wait 4 seconds after joining before sending the /whois or /w
 	// if we send the /whois too early battle.net may not have caught up with where the player is and return erroneous results
 	// when connecting to multiple realms we send a /whois or /w on every realm
 
-	if( m_Game->m_GHost->m_SpoofChecks && !m_WhoisSent && GetTime( ) > m_JoinTime + 3 )
+	if( m_Game->m_GHost->m_SpoofChecks && !m_WhoisSent && GetTime( ) >= m_JoinTime + 4 )
 	{
 		// todotodo: we could get kicked from battle.net for sending a command with invalid characters, do some basic checking
 
@@ -285,7 +289,7 @@ bool CGamePlayer :: Update( void *fd )
 	// this works because in the lobby we send pings every 5 seconds and expect a response to each one
 	// and in the game the Warcraft 3 client sends keepalives frequently (at least once per second it looks like)
 
-	if( m_Socket && GetTime( ) > m_Socket->GetLastRecv( ) + 30 )
+	if( m_Socket && GetTime( ) >= m_Socket->GetLastRecv( ) + 30 )
 		m_Game->EventPlayerDisconnectTimedOut( this );
 
 	// base class update
@@ -409,8 +413,9 @@ void CGamePlayer :: ProcessPackets( )
 				if( Pong != 1 )
 				{
 					// we also discard pong values when we're downloading because they're almost certainly inaccurate
+					// this statement also gives the player a 5 second grace period after downloading the map to allow queued (i.e. delayed) ping packets to be ignored
 
-					if( !m_DownloadStarted || m_DownloadFinished )
+					if( !m_DownloadStarted || ( m_DownloadFinished && GetTime( ) >= m_FinishedDownloadingTime + 5 ) )
 					{
 						// we also discard pong values when anyone else is downloading if we're configured to
 

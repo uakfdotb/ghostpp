@@ -87,7 +87,9 @@ private:
 	uint32_t m_SyncCounter;						// the number of keepalive packets received from this player
 	uint32_t m_JoinTime;						// GetTime when the player joined the game (used to delay sending the /whois a few seconds to allow for some lag)
 	uint32_t m_LastMapPartSent;					// the last mappart sent to the player (for sending more than one part at a time)
+	uint32_t m_LastMapPartAcked;				// the last mappart acknowledged by the player
 	uint32_t m_StartedDownloadingTicks;			// GetTicks when the player started downloading the map
+	uint32_t m_FinishedDownloadingTime;			// GetTime when the player finished downloading the map
 	uint32_t m_FinishedLoadingTicks;			// GetTicks when the player finished loading the game
 	uint32_t m_StartedLaggingTicks;				// GetTicks when the player started lagging
 	uint32_t m_StatsSentTime;					// GetTime when we sent this player's stats to the chat (to prevent players from spamming !stats)
@@ -122,7 +124,9 @@ public:
 	uint32_t GetLoginAttempts( )			{ return m_LoginAttempts; }
 	uint32_t GetSyncCounter( )				{ return m_SyncCounter; }
 	uint32_t GetLastMapPartSent( )			{ return m_LastMapPartSent; }
+	uint32_t GetLastMapPartAcked( )			{ return m_LastMapPartAcked; }
 	uint32_t GetStartedDownloadingTicks( )	{ return m_StartedDownloadingTicks; }
+	uint32_t GetFinishedDownloadingTime( )	{ return m_FinishedDownloadingTime; }
 	uint32_t GetFinishedLoadingTicks( )		{ return m_FinishedLoadingTicks; }
 	uint32_t GetStartedLaggingTicks( )		{ return m_StartedLaggingTicks; }
 	uint32_t GetStatsSentTime( )			{ return m_StatsSentTime; }
@@ -146,7 +150,9 @@ public:
 	void SetLoginAttempts( uint32_t nLoginAttempts )						{ m_LoginAttempts = nLoginAttempts; }
 	void SetSyncCounter( uint32_t nSyncCounter )							{ m_SyncCounter = nSyncCounter; }
 	void SetLastMapPartSent( uint32_t nLastMapPartSent )					{ m_LastMapPartSent = nLastMapPartSent; }
+	void SetLastMapPartAcked( uint32_t nLastMapPartAcked )					{ m_LastMapPartAcked = nLastMapPartAcked; }
 	void SetStartedDownloadingTicks( uint32_t nStartedDownloadingTicks )	{ m_StartedDownloadingTicks = nStartedDownloadingTicks; }
+	void SetFinishedDownloadingTime( uint32_t nFinishedDownloadingTime )	{ m_FinishedDownloadingTime = nFinishedDownloadingTime; }
 	void SetStartedLaggingTicks( uint32_t nStartedLaggingTicks )			{ m_StartedLaggingTicks = nStartedLaggingTicks; }
 	void SetStatsSentTime( uint32_t nStatsSentTime )						{ m_StatsSentTime = nStatsSentTime; }
 	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )				{ m_StatsDotASentTime = nStatsDotASentTime; }

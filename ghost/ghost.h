@@ -126,6 +126,8 @@ public:
 	bool m_AutoSave;						// config value: auto save before someone disconnects
 	uint32_t m_AllowDownloads;				// config value: allow map downloads or not
 	bool m_PingDuringDownloads;				// config value: ping during map downloads or not
+	uint32_t m_MaxDownloaders;				// config value: maximum number of map downloaders at the same time
+	uint32_t m_MaxDownloadSpeed;			// config value: maximum total map download speed in KB/sec
 	bool m_LCPings;							// config value: use LC style pings (divide actual pings by two)
 	uint32_t m_AutoKickPing;				// config value: auto kick players with ping higher than this
 	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players

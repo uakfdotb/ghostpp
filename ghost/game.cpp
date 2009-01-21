@@ -73,8 +73,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_CreationTime = GetTime( );
 	m_LastPingTime = GetTime( );
 	m_LastRefreshTime = GetTime( );
-	m_LastDLCounterTicks = GetTime( );
-	m_DLCounter = 0;
+	m_LastDownloadTicks = GetTime( );
 	m_LastAnnounceTime = 0;
 	m_AnnounceInterval = 0;
 	m_LastAutoStartTime = GetTime( );
@@ -364,6 +363,47 @@ bool CBaseGame :: Update( void *fd )
 		m_LastRefreshTime = GetTime( );
 	}
 
+	// send more map data
+
+	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) >= m_LastDownloadTicks + 1000 )
+	{
+		uint32_t Downloaders = 0;
+		uint32_t DownloadCounter = 0;
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( (*i)->GetDownloadStarted( ) && !(*i)->GetDownloadFinished( ) )
+			{
+				Downloaders++;
+
+				if( m_GHost->m_MaxDownloaders > 0 && Downloaders > m_GHost->m_MaxDownloaders )
+					break;
+
+				// send up to 50 pieces of the map at once so that the download goes faster
+				// if we wait for each MAPPART packet to be acknowledged by the client it'll take a long time to download
+				// this is because we would have to wait the round trip time (the ping time) between sending every 1442 bytes of map data
+				// doing it this way allows us to send at least 70 KB in each round trip interval which is much more reasonable
+				// the theoretical throughput is [70 KB * 1000 / ping] in KB/sec so someone with 100 ping (round trip ping, not LC ping) could download at 700 KB/sec
+
+				uint32_t MapSize = UTIL_ByteArrayToUInt32( m_Map->GetMapSize( ), false );
+
+				while( (*i)->GetLastMapPartSent( ) < (*i)->GetLastMapPartAcked( ) + 1442 * 50 && (*i)->GetLastMapPartSent( ) < MapSize )
+				{
+					// limit the download speed if we're sending too much data
+
+					if( DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 )
+						break;
+
+					Send( *i, m_Protocol->SEND_W3GS_MAPPART( GetHostPID( ), (*i)->GetPID( ), (*i)->GetLastMapPartSent( ), m_Map->GetMapData( ) ) );
+					(*i)->SetLastMapPartSent( (*i)->GetLastMapPartSent( ) + 1442 );
+					DownloadCounter += 1442;
+				}
+			}
+		}
+
+		m_LastDownloadTicks = GetTicks( );
+	}
+
 	// announce every m_AnnounceInterval seconds
 
 	if( !m_AnnounceMessage.empty( ) && !m_CountDownStarted && GetTime( ) >= m_LastAnnounceTime + m_AnnounceInterval )
@@ -418,7 +458,7 @@ bool CBaseGame :: Update( void *fd )
 
 		// check if we've hit the time limit
 
-		if( GetTime( ) > m_LastReservedSeen + m_GHost->m_LobbyTimeLimit * 60 )
+		if( GetTime( ) >= m_LastReservedSeen + m_GHost->m_LobbyTimeLimit * 60 )
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby time limit hit)" );
 			return true;
@@ -503,7 +543,7 @@ bool CBaseGame :: Update( void *fd )
 			// we cannot allow the lag screen to stay up for more than ~65 seconds because Warcraft III disconnects if it doesn't receive an action packet at least this often
 			// one (easy) solution is to simply drop all the laggers if they lag for more than 60 seconds, which is what we do here
 
-			if( GetTime( ) > m_StartedLaggingTime + 60 )
+			if( GetTime( ) >= m_StartedLaggingTime + 60 )
 				StopLaggers( "was automatically dropped after 60 seconds" );
 
 			// check if anyone has stopped lagging normally
@@ -864,7 +904,7 @@ void CBaseGame :: EventPlayerDisconnectTimedOut( CGamePlayer *player )
 	// this is because Warcraft 3 stops sending packets during the lag screen
 	// so when the lag screen finishes we would immediately disconnect everyone if we didn't give them some extra time
 
-	if( GetTime( ) > m_LastLagScreenTime + 10 )
+	if( GetTime( ) >= m_LastLagScreenTime + 10 )
 	{
 		player->SetDeleteMe( true );
 		player->SetLeftReason( m_GHost->m_Language->HasLostConnectionTimedOut( ) );
@@ -1514,19 +1554,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 						player->SetStartedDownloadingTicks( GetTicks( ) );
 					}
 					else
-					{
-						// send up to 50 pieces of the map at once so that the download goes faster
-						// if we wait for each MAPPART packet to be acknowledged by the client it'll take a long time to download
-						// this is because we would have to wait the round trip time (the ping time) between sending every 1442 bytes of map data
-						// doing it this way allows us to send at least 70 KB in each round trip interval which is much more reasonable
-						// the theoretical throughput is [70 KB * 1000 / ping] in KB/sec so someone with 100 ping (round trip ping, not LC ping) could download at 700 KB/sec
-
-						while( player->GetLastMapPartSent( ) < mapSize->GetMapSize( ) + 1442 * 50 && player->GetLastMapPartSent( ) < MapSize )
-						{
-							Send( player, m_Protocol->SEND_W3GS_MAPPART( GetHostPID( ), player->GetPID( ), player->GetLastMapPartSent( ), MapData ) );
-							player->SetLastMapPartSent( player->GetLastMapPartSent( ) + 1442 );
-						}
-					}
+						player->SetLastMapPartAcked( mapSize->GetMapSize( ) );
 				}
 			}
 			else
@@ -1556,6 +1584,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 			CONSOLE_Print( "[GAME: " + m_GameName + "] map download finished for player [" + player->GetName( ) + "] in " + UTIL_ToString( Seconds, 1 ) + " seconds" );
 			SendAllChat( m_GHost->m_Language->PlayerDownloadedTheMap( player->GetName( ), UTIL_ToString( Seconds, 1 ), UTIL_ToString( Rate, 1 ) ) );
 			player->SetDownloadFinished( true );
+			player->SetFinishedDownloadingTime( GetTime( ) );
 
 			// add to database
 
