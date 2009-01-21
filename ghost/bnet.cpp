@@ -64,7 +64,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyT
 	m_PasswordHashType = nPasswordHashType;
 	m_NextConnectTime = GetTime( );
 	m_LastNullTime = 0;
-	m_LastChatCommandTime = 0;
+	m_LastChatCommandTicks = 0;
 	m_WaitingToConnect = true;
 	m_LoggedIn = false;
 	m_InChat = false;
@@ -155,15 +155,16 @@ bool CBNET :: Update( void *fd )
 		ProcessPackets( );
 
 		// check if at least one chat command is waiting to be sent and if we've waited long enough to prevent flooding
-		// the original VB source used a formula based on the message length but 2 seconds seems to work fine
+		// the original VB source used a formula based on the message length but 2.5 seconds seems to work fine
+		// note: updated this from 2 seconds to 2.5 seconds because 2 seconds is NOT enough
 
-		if( !m_ChatCommands.empty( ) && GetTime( ) >= m_LastChatCommandTime + 2 )
+		if( !m_ChatCommands.empty( ) && GetTicks( ) >= m_LastChatCommandTicks + 2500 )
 		{
 			string ChatCommand = m_ChatCommands.front( );
 			m_ChatCommands.pop( );
 			CONSOLE_Print( "[LOCAL: " + m_Server + "] " + ChatCommand );
 			SendChatCommand( ChatCommand );
-			m_LastChatCommandTime = GetTime( );
+			m_LastChatCommandTicks = GetTicks( );
 		}
 
 		// send a null packet every 60 seconds to detect disconnects
@@ -192,7 +193,7 @@ bool CBNET :: Update( void *fd )
 			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version ) );
 			m_Socket->DoSend( );
 			m_LastNullTime = GetTime( );
-			m_LastChatCommandTime = GetTime( );
+			m_LastChatCommandTicks = GetTicks( );
 			return m_Exiting;
 		}
 		else if( GetTime( ) >= m_NextConnectTime + 15 )
@@ -514,6 +515,7 @@ void CBNET :: ProcessPackets( )
 void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 {
 	CBNETProtocol :: IncomingChatEvent Event = chatEvent->GetChatEvent( );
+	bool Whisper = ( Event == CBNETProtocol :: EID_WHISPER );
 	string User = chatEvent->GetUser( );
 	string Message = chatEvent->GetMessage( );
 
@@ -551,7 +553,922 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				Command = Message.substr( 1 );
 
 			transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
-			m_GHost->HandleCommandBNET( this, User, Command, Payload, Event == CBNETProtocol :: EID_WHISPER );
+
+			if( m_GHost->m_DB->AdminCheck( m_Server, User ) || IsRootAdmin( User ) )
+			{
+				CONSOLE_Print( "[BNET: " + m_Server + "] admin [" + User + "] sent command [" + Message + "]" );
+
+				/*****************
+				* ADMIN COMMANDS *
+				******************/
+
+				//
+				// !ADDADMIN
+				//
+
+				if( Command == "addadmin" && !Payload.empty( ) )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						if( m_GHost->m_DB->AdminCheck( m_Server, Payload ) )
+							QueueChatCommand( m_GHost->m_Language->UserIsAlreadyAnAdmin( m_Server, Payload ), User, Whisper );
+						else
+						{
+							if( m_GHost->m_DB->AdminAdd( m_Server, Payload ) )
+								QueueChatCommand( m_GHost->m_Language->AddedUserToAdminDatabase( m_Server, Payload ), User, Whisper );
+							else
+								QueueChatCommand( m_GHost->m_Language->ErrorAddingUserToAdminDatabase( m_Server, Payload ), User, Whisper );
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !ADDBAN
+				// !BAN
+				//
+
+				if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) )
+				{
+					// extract the victim and the reason
+					// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
+
+					string Victim;
+					string Reason;
+					stringstream SS;
+					SS << Payload;
+					SS >> Victim;
+
+					if( !SS.eof( ) )
+					{
+						getline( SS, Reason );
+						string :: size_type Start = Reason.find_first_not_of( " " );
+
+						if( Start != string :: npos )
+							Reason = Reason.substr( Start );
+					}
+
+					CDBBan *Ban = m_GHost->m_DB->BanCheck( m_Server, Victim );
+
+					if( Ban )
+					{
+						QueueChatCommand( m_GHost->m_Language->UserIsAlreadyBanned( m_Server, Victim ), User, Whisper );
+						delete Ban;
+						Ban = NULL;
+					}
+					else
+					{
+						if( m_GHost->m_DB->BanAdd( m_Server, Victim, string( ), string( ), User, Reason ) )
+							QueueChatCommand( m_GHost->m_Language->BannedUser( m_Server, Victim ), User, Whisper );
+						else
+							QueueChatCommand( m_GHost->m_Language->ErrorBanningUser( m_Server, Victim ), User, Whisper );
+					}
+				}
+
+				//
+				// !ANNOUNCE
+				//
+
+				if( Command == "announce" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+				{
+					if( Payload.empty( ) || Payload == "off" )
+					{
+						QueueChatCommand( m_GHost->m_Language->AnnounceMessageDisabled( ), User, Whisper );
+						m_GHost->m_CurrentGame->SetAnnounce( 0, string( ) );
+					}
+					else
+					{
+						// extract the interval and the message
+						// e.g. "30 hello everyone" -> interval: "30", message: "hello everyone"
+
+						uint32_t Interval;
+						string Message;
+						stringstream SS;
+						SS << Payload;
+						SS >> Interval;
+
+						if( SS.fail( ) || Interval == 0 )
+							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to announce command" );
+						else
+						{
+							if( SS.eof( ) )
+								CONSOLE_Print( "[BNET: " + m_Server + "] missing input #2 to announce command" );
+							else
+							{
+								getline( SS, Message );
+								string :: size_type Start = Message.find_first_not_of( " " );
+
+								if( Start != string :: npos )
+									Message = Message.substr( Start );
+
+								QueueChatCommand( m_GHost->m_Language->AnnounceMessageEnabled( ), User, Whisper );
+								m_GHost->m_CurrentGame->SetAnnounce( Interval, Message );
+							}
+						}
+					}
+				}
+
+				//
+				// !AUTOHOST
+				//
+
+				if( Command == "autohost" )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						if( Payload.empty( ) || Payload == "off" )
+						{
+							QueueChatCommand( m_GHost->m_Language->AutoHostDisabled( ), User, Whisper );
+							m_GHost->m_AutoHostGameName.clear( );
+							m_GHost->m_AutoHostMapCFG.clear( );
+							m_GHost->m_AutoHostMaximumGames = 0;
+							m_GHost->m_AutoHostAutoStartPlayers = 0;
+							m_GHost->m_LastAutoHostTime = GetTime( );
+						}
+						else
+						{
+							// extract the maximum games, auto start players, and the game name
+							// e.g. "5 10 BattleShips Pro" -> maximum games: "5", auto start players: "10", game name: "BattleShips Pro"
+
+							uint32_t MaximumGames;
+							uint32_t AutoStartPlayers;
+							string GameName;
+							stringstream SS;
+							SS << Payload;
+							SS >> MaximumGames;
+
+							if( SS.fail( ) || MaximumGames == 0 )
+								CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to autohost command" );
+							else
+							{
+								SS >> AutoStartPlayers;
+
+								if( SS.fail( ) || AutoStartPlayers == 0 )
+									CONSOLE_Print( "[BNET: " + m_Server + "] bad input #2 to autohost command" );
+								else
+								{
+									if( SS.eof( ) )
+										CONSOLE_Print( "[BNET: " + m_Server + "] missing input #3 to autohost command" );
+									else
+									{
+										getline( SS, GameName );
+										string :: size_type Start = GameName.find_first_not_of( " " );
+
+										if( Start != string :: npos )
+											GameName = GameName.substr( Start );
+
+										QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
+										m_GHost->m_AutoHostGameName = GameName;
+										m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
+										m_GHost->m_AutoHostMaximumGames = MaximumGames;
+										m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+										m_GHost->m_LastAutoHostTime = GetTime( );
+									}
+								}
+							}
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !AUTOSTART
+				//
+
+				if( Command == "autostart" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+				{
+					if( Payload.empty( ) || Payload == "off" )
+					{
+						QueueChatCommand( m_GHost->m_Language->AutoStartDisabled( ), User, Whisper );
+						m_GHost->m_CurrentGame->SetAutoStartPlayers( 0 );
+					}
+					else
+					{
+						uint32_t AutoStartPlayers = UTIL_ToUInt32( Payload );
+
+						if( AutoStartPlayers != 0 )
+						{
+							QueueChatCommand( m_GHost->m_Language->AutoStartEnabled( UTIL_ToString( AutoStartPlayers ) ), User, Whisper );
+							m_GHost->m_CurrentGame->SetAutoStartPlayers( AutoStartPlayers );
+						}
+					}
+				}
+
+				//
+				// !CHANNEL (change channel)
+				//
+
+				if( Command == "channel" && !Payload.empty( ) )
+					QueueChatCommand( "/join " + Payload );
+
+				//
+				// !CHECKADMIN
+				//
+
+				if( Command == "checkadmin" && !Payload.empty( ) )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						if( m_GHost->m_DB->AdminCheck( m_Server, Payload ) )
+							QueueChatCommand( m_GHost->m_Language->UserIsAnAdmin( m_Server, Payload ), User, Whisper );
+						else
+							QueueChatCommand( m_GHost->m_Language->UserIsNotAnAdmin( m_Server, Payload ), User, Whisper );
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !CHECKBAN
+				//
+
+				if( Command == "checkban" && !Payload.empty( ) )
+				{
+					CDBBan *Ban = m_GHost->m_DB->BanCheck( m_Server, Payload );
+
+					if( Ban )
+					{
+						QueueChatCommand( m_GHost->m_Language->UserWasBannedOnByBecause( m_Server, Payload, Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ), User, Whisper );
+						delete Ban;
+						Ban = NULL;
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->UserIsNotBanned( m_Server, Payload ), User, Whisper );
+				}
+
+				//
+				// !CLOSE (close slot)
+				//
+
+				if( Command == "close" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+				{
+					if( !m_GHost->m_CurrentGame->GetLocked( ) )
+					{
+						// close as many slots as specified, e.g. "5 10" closes slots 5 and 10
+
+						stringstream SS;
+						SS << Payload;
+
+						while( !SS.eof( ) )
+						{
+							uint32_t SID;
+							SS >> SID;
+
+							if( SS.fail( ) )
+							{
+								CONSOLE_Print( "[BNET: " + m_Server + "] bad input to close command" );
+								break;
+							}
+							else
+								m_GHost->m_CurrentGame->CloseSlot( (unsigned char)( SID - 1 ), true );
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
+				}
+
+				//
+				// !CLOSEALL
+				//
+
+				if( Command == "closeall" && m_GHost->m_CurrentGame )
+				{
+					if( !m_GHost->m_CurrentGame->GetLocked( ) )
+						m_GHost->m_CurrentGame->CloseAllSlots( );
+					else
+						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
+				}
+
+				//
+				// !COUNTADMINS
+				//
+
+				if( Command == "countadmins" )
+				{
+					uint32_t Count = m_GHost->m_DB->AdminCount( m_Server );
+
+					if( Count == 0 )
+						QueueChatCommand( m_GHost->m_Language->ThereAreNoAdmins( m_Server ), User, Whisper );
+					else if( Count == 1 )
+						QueueChatCommand( m_GHost->m_Language->ThereIsAdmin( m_Server ), User, Whisper );
+					else
+						QueueChatCommand( m_GHost->m_Language->ThereAreAdmins( m_Server, UTIL_ToString( Count ) ), User, Whisper );
+				}
+
+				//
+				// !COUNTBANS
+				//
+
+				if( Command == "countbans" )
+				{
+					uint32_t Count = m_GHost->m_DB->BanCount( m_Server );
+
+					if( Count == 0 )
+						QueueChatCommand( m_GHost->m_Language->ThereAreNoBannedUsers( m_Server ), User, Whisper );
+					else if( Count == 1 )
+						QueueChatCommand( m_GHost->m_Language->ThereIsBannedUser( m_Server ), User, Whisper );
+					else
+						QueueChatCommand( m_GHost->m_Language->ThereAreBannedUsers( m_Server, UTIL_ToString( Count ) ), User, Whisper );
+				}
+
+				//
+				// !DELADMIN
+				//
+
+				if( Command == "deladmin" && !Payload.empty( ) )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						if( !m_GHost->m_DB->AdminCheck( m_Server, Payload ) )
+							QueueChatCommand( m_GHost->m_Language->UserIsNotAnAdmin( m_Server, Payload ), User, Whisper );
+						else
+						{
+							if( m_GHost->m_DB->AdminRemove( m_Server, Payload ) )
+								QueueChatCommand( m_GHost->m_Language->DeletedUserFromAdminDatabase( m_Server, Payload ), User, Whisper );
+							else
+								QueueChatCommand( m_GHost->m_Language->ErrorDeletingUserFromAdminDatabase( m_Server, Payload ), User, Whisper );
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !DELBAN
+				// !UNBAN
+				//
+
+				if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
+				{
+					if( m_GHost->m_DB->BanRemove( Payload ) )
+						QueueChatCommand( m_GHost->m_Language->UnbannedUser( Payload ), User, Whisper );
+					else
+						QueueChatCommand( m_GHost->m_Language->ErrorUnbanningUser( Payload ), User, Whisper );
+				}
+
+				//
+				// !DISABLE
+				//
+
+				if( Command == "disable" )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						QueueChatCommand( m_GHost->m_Language->BotDisabled( ), User, Whisper );
+						m_GHost->m_Enabled = false;
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !ENABLE
+				//
+
+				if( Command == "enable" )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						QueueChatCommand( m_GHost->m_Language->BotEnabled( ), User, Whisper );
+						m_GHost->m_Enabled = true;
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !END
+				//
+
+				if( Command == "end" && !Payload.empty( ) )
+				{
+					// todotodo: what if a game ends just as you're typing this command and the numbering changes?
+
+					uint32_t GameNumber = UTIL_ToUInt32( Payload ) - 1;
+
+					if( GameNumber < m_GHost->m_Games.size( ) )
+					{
+						QueueChatCommand( m_GHost->m_Language->EndingGame( m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper );
+						CONSOLE_Print( "[GAME: " + m_GHost->m_Games[GameNumber]->GetGameName( ) + "] is over (admin ended game)" );
+						m_GHost->m_Games[GameNumber]->StopPlayers( "was disconnected (admin ended game)" );
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( Payload ), User, Whisper );
+				}
+
+				//
+				// !EXIT
+				// !QUIT
+				//
+
+				if( Command == "exit" || Command == "quit" )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						if( Payload == "force" )
+							m_Exiting = true;
+						else
+						{
+							if( m_GHost->m_CurrentGame || !m_GHost->m_Games.empty( ) )
+								QueueChatCommand( m_GHost->m_Language->AtLeastOneGameActiveUseForceToShutdown( ), User, Whisper );
+							else
+								m_Exiting = true;
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !GETCLAN
+				//
+
+				if( Command == "getclan" )
+					SendGetClanList( );
+
+				//
+				// !GETFRIENDS
+				//
+
+				if( Command == "getfriends" )
+					SendGetFriendsList( );
+
+				//
+				// !GETGAME
+				//
+
+				if( Command == "getgame" && !Payload.empty( ) )
+				{
+					uint32_t GameNumber = UTIL_ToUInt32( Payload ) - 1;
+
+					if( GameNumber < m_GHost->m_Games.size( ) )
+						QueueChatCommand( m_GHost->m_Language->GameNumberIs( Payload, m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper );
+					else
+						QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( Payload ), User, Whisper );
+				}
+
+				//
+				// !GETGAMES
+				//
+
+				if( Command == "getgames" )
+				{
+					if( m_GHost->m_CurrentGame )
+						QueueChatCommand( m_GHost->m_Language->GameIsInTheLobby( m_GHost->m_CurrentGame->GetDescription( ), UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
+					else
+						QueueChatCommand( m_GHost->m_Language->ThereIsNoGameInTheLobby( UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
+				}
+
+				//
+				// !HOLD (hold a slot for someone)
+				//
+
+				if( Command == "hold" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+				{
+					// hold as many players as specified, e.g. "Varlock Kilranin" holds players "Varlock" and "Kilranin"
+
+					stringstream SS;
+					SS << Payload;
+
+					while( !SS.eof( ) )
+					{
+						string HoldName;
+						SS >> HoldName;
+
+						if( SS.fail( ) )
+						{
+							CONSOLE_Print( "[BNET: " + m_Server + "] bad input to hold command" );
+							break;
+						}
+						else
+						{
+							QueueChatCommand( m_GHost->m_Language->AddedPlayerToTheHoldList( HoldName ), User, Whisper );
+							m_GHost->m_CurrentGame->AddToReserved( HoldName );
+						}
+					}
+				}
+
+				//
+				// !HOSTSG
+				//
+
+				if( Command == "hostsg" && !Payload.empty( ) )
+					m_GHost->CreateGame( GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
+
+				//
+				// !LOAD (load config file)
+				// !MAP
+				//
+
+				if( Command == "load" || Command == "map" )
+				{
+					if( Payload.empty( ) )
+						QueueChatCommand( m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ), User, Whisper );
+					else
+					{
+						// only load files in the current directory just to be safe
+
+						if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+							QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFilesOutside( ), User, Whisper );
+						else
+						{
+							string File = m_GHost->m_MapCFGPath + Payload + ".cfg";
+
+							if( UTIL_FileExists( File ) )
+							{
+								// we have to be careful here because we didn't copy the map data when creating the game (there's only one global copy)
+								// therefore if we change the map data while a game is in the lobby everything will get screwed up
+								// the easiest solution is to simply reject the command if a game is in the lobby
+
+								if( m_GHost->m_CurrentGame )
+									QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ), User, Whisper );
+								else
+								{
+									QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
+									CConfig MapCFG;
+									MapCFG.Read( File );
+									m_GHost->m_Map->Load( &MapCFG, File );
+								}
+							}
+							else
+								QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileDoesntExist( File ), User, Whisper );
+						}
+					}
+				}
+
+				//
+				// !LOADSG
+				//
+
+				if( Command == "loadsg" && !Payload.empty( ) )
+				{
+					// only load files in the current directory just to be safe
+
+					if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+						QueueChatCommand( m_GHost->m_Language->UnableToLoadSaveGamesOutside( ), User, Whisper );
+					else
+					{
+						string File = m_GHost->m_SaveGamePath + Payload + ".w3z";
+						string FileNoPath = Payload + ".w3z";
+
+						if( UTIL_FileExists( File ) )
+						{
+							if( m_GHost->m_CurrentGame )
+								QueueChatCommand( m_GHost->m_Language->UnableToLoadSaveGameGameInLobby( ), User, Whisper );
+							else
+							{
+								QueueChatCommand( m_GHost->m_Language->LoadingSaveGame( File ), User, Whisper );
+								m_GHost->m_SaveGame->Load( File, false );
+								m_GHost->m_SaveGame->ParseSaveGame( );
+								m_GHost->m_SaveGame->SetFileName( File );
+								m_GHost->m_SaveGame->SetFileNameNoPath( FileNoPath );
+							}
+						}
+						else
+							QueueChatCommand( m_GHost->m_Language->UnableToLoadSaveGameDoesntExist( File ), User, Whisper );
+					}
+				}
+
+				//
+				// !OPEN (open slot)
+				//
+
+				if( Command == "open" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+				{
+					if( !m_GHost->m_CurrentGame->GetLocked( ) )
+					{
+						// open as many slots as specified, e.g. "5 10" opens slots 5 and 10
+
+						stringstream SS;
+						SS << Payload;
+
+						while( !SS.eof( ) )
+						{
+							uint32_t SID;
+							SS >> SID;
+
+							if( SS.fail( ) )
+							{
+								CONSOLE_Print( "[BNET: " + m_Server + "] bad input to open command" );
+								break;
+							}
+							else
+								m_GHost->m_CurrentGame->OpenSlot( (unsigned char)( SID - 1 ), true );
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
+				}
+
+				//
+				// !OPENALL
+				//
+
+				if( Command == "openall" && m_GHost->m_CurrentGame )
+				{
+					if( !m_GHost->m_CurrentGame->GetLocked( ) )
+						m_GHost->m_CurrentGame->OpenAllSlots( );
+					else
+						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
+				}
+
+				//
+				// !PRIV (host private game)
+				//
+
+				if( Command == "priv" && !Payload.empty( ) )
+					m_GHost->CreateGame( GAME_PRIVATE, false, Payload, User, User, m_Server, Whisper );
+
+				//
+				// !PRIVBY (host private game by other player)
+				//
+
+				if( Command == "privby" && !Payload.empty( ) )
+				{
+					// extract the owner and the game name
+					// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
+
+					string Owner;
+					string GameName;
+					string :: size_type GameNameStart = Payload.find( " " );
+
+					if( GameNameStart != string :: npos )
+					{
+						Owner = Payload.substr( 0, GameNameStart );
+						GameName = Payload.substr( GameNameStart + 1 );
+						m_GHost->CreateGame( GAME_PRIVATE, false, GameName, Owner, User, m_Server, Whisper );
+					}
+				}
+
+				//
+				// !PUB (host public game)
+				//
+
+				if( Command == "pub" && !Payload.empty( ) )
+					m_GHost->CreateGame( GAME_PUBLIC, false, Payload, User, User, m_Server, Whisper );
+
+				//
+				// !PUBBY (host public game by other player)
+				//
+
+				if( Command == "pubby" && !Payload.empty( ) )
+				{
+					// extract the owner and the game name
+					// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
+
+					string Owner;
+					string GameName;
+					string :: size_type GameNameStart = Payload.find( " " );
+
+					if( GameNameStart != string :: npos )
+					{
+						Owner = Payload.substr( 0, GameNameStart );
+						GameName = Payload.substr( GameNameStart + 1 );
+						m_GHost->CreateGame( GAME_PUBLIC, false, GameName, Owner, User, m_Server, Whisper );
+					}
+				}
+
+				//
+				// !SAY
+				//
+
+				if( Command == "say" && !Payload.empty( ) )
+					QueueChatCommand( Payload );
+
+				//
+				// !SAYGAME
+				//
+
+				if( Command == "saygame" && !Payload.empty( ) )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						// extract the game number and the message
+						// e.g. "3 hello everyone" -> game number: "3", message: "hello everyone"
+
+						uint32_t GameNumber;
+						string Message;
+						stringstream SS;
+						SS << Payload;
+						SS >> GameNumber;
+
+						if( SS.fail( ) )
+							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to saygame command" );
+						else
+						{
+							if( SS.eof( ) )
+								CONSOLE_Print( "[BNET: " + m_Server + "] missing input #2 to saygame command" );
+							else
+							{
+								getline( SS, Message );
+								string :: size_type Start = Message.find_first_not_of( " " );
+
+								if( Start != string :: npos )
+									Message = Message.substr( Start );
+
+								if( GameNumber - 1 < m_GHost->m_Games.size( ) )
+									m_GHost->m_Games[GameNumber - 1]->SendAllChat( "ADMIN: " + Message );
+								else
+									QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( UTIL_ToString( GameNumber ) ), User, Whisper );
+							}
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !SAYGAMES
+				//
+
+				if( Command == "saygames" && !Payload.empty( ) )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						if( m_GHost->m_CurrentGame )
+							m_GHost->m_CurrentGame->SendAllChat( Payload );
+
+						for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); i++ )
+							(*i)->SendAllChat( "ADMIN: " + Payload );
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !SP
+				//
+
+				if( Command == "sp" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+				{
+					if( !m_GHost->m_CurrentGame->GetLocked( ) )
+					{
+						m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->ShufflingPlayers( ) );
+						m_GHost->m_CurrentGame->ShuffleSlots( );
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
+				}
+
+				//
+				// !START
+				//
+
+				if( Command == "start" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+				{
+					if( !m_GHost->m_CurrentGame->GetLocked( ) )
+					{
+						// if the player sent "!start force" skip the checks and start the countdown
+						// otherwise check that the game is ready to start
+
+						if( Payload == "force" )
+							m_GHost->m_CurrentGame->StartCountDown( true );
+						else
+							m_GHost->m_CurrentGame->StartCountDown( false );
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
+				}
+
+				//
+				// !SWAP (swap slots)
+				//
+
+				if( Command == "swap" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+				{
+					if( !m_GHost->m_CurrentGame->GetLocked( ) )
+					{
+						uint32_t SID1;
+						uint32_t SID2;
+						stringstream SS;
+						SS << Payload;
+						SS >> SID1;
+
+						if( SS.fail( ) )
+							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to swap command" );
+						else
+						{
+							if( SS.eof( ) )
+								CONSOLE_Print( "[BNET: " + m_Server + "] missing input #2 to swap command" );
+							else
+							{
+								SS >> SID2;
+
+								if( SS.fail( ) )
+									CONSOLE_Print( "[BNET: " + m_Server + "] bad input #2 to swap command" );
+								else
+									m_GHost->m_CurrentGame->SwapSlots( (unsigned char)( SID1 - 1 ), (unsigned char)( SID2 - 1 ) );
+							}
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
+				}
+
+				//
+				// !UNHOST
+				//
+
+				if( Command == "unhost" )
+				{
+					if( m_GHost->m_CurrentGame )
+					{
+						if( m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+							QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameCountdownStarted( m_GHost->m_CurrentGame->GetDescription( ) ), User, Whisper );
+						else
+						{
+							QueueChatCommand( m_GHost->m_Language->UnhostingGame( m_GHost->m_CurrentGame->GetDescription( ) ), User, Whisper );
+							m_GHost->m_CurrentGame->SetExiting( true );
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameNoGameInLobby( ), User, Whisper );
+				}
+			}
+			else
+				CONSOLE_Print( "[BNET: " + m_Server + "] user [" + User + "] sent command [" + Message + "]" );
+
+			/*********************
+			* NON ADMIN COMMANDS *
+			*********************/
+
+			// don't respond to non admins if there are more than 3 messages already in the queue
+			// this prevents malicious users from filling up the bot's chat queue and crippling the bot
+			// in some cases the queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
+			// e.g. when several users join a game at the same time and cause multiple /whois messages to be queued at once
+
+			if( m_GHost->m_DB->AdminCheck( m_Server, User ) || IsRootAdmin( User ) || m_ChatCommands.size( ) <= 3 )
+			{
+				//
+				// !STATS
+				//
+
+				if( Command == "stats" )
+				{
+					string StatsUser = User;
+
+					if( !Payload.empty( ) )
+						StatsUser = Payload;
+
+					// check for potential abuse
+
+					if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
+					{
+						CDBGamePlayerSummary *GamePlayerSummary = m_GHost->m_DB->GamePlayerSummaryCheck( StatsUser );
+
+						if( GamePlayerSummary )
+						{
+							QueueChatCommand( m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsUser, GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ), User, Whisper );
+							delete GamePlayerSummary;
+							GamePlayerSummary = NULL;
+						}
+						else
+							QueueChatCommand( m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsUser ), User, Whisper );
+					}
+				}
+
+				//
+				// !STATSDOTA
+				//
+
+				if( Command == "statsdota" )
+				{
+					string StatsUser = User;
+
+					if( !Payload.empty( ) )
+						StatsUser = Payload;
+
+					// check for potential abuse
+
+					if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
+					{
+						CDBDotAPlayerSummary *DotAPlayerSummary = m_GHost->m_DB->DotAPlayerSummaryCheck( StatsUser );
+
+						if( DotAPlayerSummary )
+						{
+							QueueChatCommand( m_GHost->m_Language->HasPlayedDotAGamesWithThisBot( StatsUser, UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ), UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ) ), User, Whisper );
+							delete DotAPlayerSummary;
+							DotAPlayerSummary = NULL;
+						}
+						else
+							QueueChatCommand( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsUser ) );
+					}
+				}
+
+				//
+				// !VERSION
+				//
+
+				if( Command == "version" )
+				{
+					if( m_GHost->m_DB->AdminCheck( m_Server, User ) || IsRootAdmin( User ) )
+						QueueChatCommand( m_GHost->m_Language->VersionAdmin( m_GHost->m_Version ), User, Whisper );
+					else
+						QueueChatCommand( m_GHost->m_Language->VersionNotAdmin( m_GHost->m_Version ), User, Whisper );
+				}
+			}
 		}
 	}
 	else if( Event == CBNETProtocol :: EID_CHANNEL )
@@ -744,11 +1661,11 @@ void CBNET :: ImmediateChatCommand( string chatCommand )
 	if( chatCommand.empty( ) )
 		return;
 
-	if( GetTime( ) >= m_LastChatCommandTime + 2 )
+	if( GetTicks( ) >= m_LastChatCommandTicks + 2500 )
 	{
 		CONSOLE_Print( "[LOCAL: " + m_Server + "] " + chatCommand );
 		SendChatCommand( chatCommand );
-		m_LastChatCommandTime = GetTime( );
+		m_LastChatCommandTicks = GetTicks( );
 	}
 }
 

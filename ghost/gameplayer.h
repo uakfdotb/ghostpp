@@ -102,6 +102,7 @@ private:
 	bool m_FinishedLoading;						// if the player has finished loading or not
 	bool m_Lagging;								// if the player is lagging or not (on the lag screen)
 	bool m_DropVote;							// if the player voted to drop the laggers or not (on the lag screen)
+	bool m_Muted;								// if the player is muted or not
 	bool m_LeftMessageSent;						// if the playerleave message has been sent or not
 
 public:
@@ -136,6 +137,7 @@ public:
 	bool GetFinishedLoading( )				{ return m_FinishedLoading; }
 	bool GetLagging( )						{ return m_Lagging; }
 	bool GetDropVote( )						{ return m_DropVote; }
+	bool GetMuted( )						{ return m_Muted; }
 	bool GetLeftMessageSent( )				{ return m_LeftMessageSent; }
 
 	void SetLeftReason( string nLeftReason )								{ m_LeftReason = nLeftReason; }
@@ -156,6 +158,7 @@ public:
 	void SetDownloadFinished( bool nDownloadFinished )						{ m_DownloadFinished = nDownloadFinished; }
 	void SetLagging( bool nLagging )										{ m_Lagging = nLagging; }
 	void SetDropVote( bool nDropVote )										{ m_DropVote = nDropVote; }
+	void SetMuted( bool nMuted )											{ m_Muted = nMuted; }
 	void SetLeftMessageSent( bool nLeftMessageSent )						{ m_LeftMessageSent = nLeftMessageSent; }
 
 	uint32_t GetPing( bool LCPing );

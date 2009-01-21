@@ -229,6 +229,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									m_Players[ID]->SetItem( 5, string( Value.rbegin( ), Value.rend( ) ) );
 								else if( KeyString == "9" )
 									m_Players[ID]->SetHero( string( Value.rbegin( ), Value.rend( ) ) );
+								else if( KeyString == "id" )
+									m_Players[ID]->SetColour( ValueInt );
 							}
 						}
 
@@ -262,6 +264,31 @@ void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
 	// save the dotagame
 
 	DB->DotAGameAdd( GameID, m_Winner, m_Min, m_Sec );
+
+	// check for invalid colours and duplicates
+	// this can only happen if DotA sends us garbage in the "id" value but we should check anyway
+
+	for( unsigned int i = 0; i < 12; i++ )
+	{
+		uint32_t Colour = m_Players[i]->GetColour( );
+
+		if( !( ( Colour >= 1 && Colour <= 5 ) || ( Colour >= 7 && Colour <= 11 ) ) )
+		{
+			CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, invalid colour found" );
+			return;
+		}
+
+		// this nested loop is inefficient but not worth fixing
+
+		for( unsigned int j = i + 1; j < 12; j++ )
+		{
+			if( m_Players[i] && m_Players[j] && m_Players[i]->GetColour( ) == m_Players[j]->GetColour( ) )
+			{
+				CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, duplicate colour found" );
+				return;
+			}
+		}				
+	}
 
 	// save the dotaplayers
 

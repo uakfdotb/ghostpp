@@ -201,6 +201,7 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_FinishedLoading = false;
 	m_Lagging = false;
 	m_DropVote = false;
+	m_Muted = false;
 	m_LeftMessageSent = false;
 }
 

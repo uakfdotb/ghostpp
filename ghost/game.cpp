@@ -60,7 +60,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_GameState = nGameState;
 	m_VirtualHostPID = 255;
 	m_GameName = nGameName;
-	m_VirtualHostName = "|cFF4080C0GHost";
+	m_VirtualHostName = m_GHost->m_VirtualHostName;
 	m_OwnerName = nOwnerName;
 	m_CreatorName = nCreatorName;
 	m_CreatorServer = nCreatorServer;
@@ -85,6 +85,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_StartedLoadingTime = 0;
 	m_StartPlayers = 0;
 	m_LastActionSentTicks = 0;
+	m_StartedLaggingTime = 0;
 	m_LastLagScreenTime = 0;
 	m_Locked = false;
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
@@ -120,7 +121,12 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 
 	// start listening for connections
 
-	if( m_Socket->Listen( string( ), m_HostPort ) )
+	if( !m_GHost->m_BindAddress.empty( ) )
+		CONSOLE_Print( "[GAME: " + m_GameName + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]" );
+	else
+		CONSOLE_Print( "[GAME: " + m_GameName + "] attempting to bind to all available addresses" );
+
+	if( m_Socket->Listen( m_GHost->m_BindAddress, m_HostPort ) )
 		CONSOLE_Print( "[GAME: " + m_GameName + "] listening on port " + UTIL_ToString( m_HostPort ) );
 	else
 	{
@@ -291,13 +297,11 @@ bool CBaseGame :: Update( void *fd )
 
 	if( GetTime( ) >= m_LastPingTime + 5 )
 	{
-		// don't send pings to players who are downloading
+		// note: we must send pings to players who are downloading the map because Warcraft III disconnects from the lobby if it doesn't receive a ping every ~90 seconds
+		// so if the player takes longer than 90 seconds to download the map they would be disconnected unless we keep sending pings
+		// todotodo: ignore pings received from players who have recently finished download the map
 
-		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		{
-			if( !(*i)->GetDownloadStarted( ) || (*i)->GetDownloadFinished( ) )
-				Send( (*i), m_Protocol->SEND_W3GS_PING_FROM_HOST( ) );
-		}
+		SendAll( m_Protocol->SEND_W3GS_PING_FROM_HOST( ) );
 
 		// we also broadcast the game to the local network every 5 seconds so we hijack this timer for our nefarious purposes
 		// however we only want to broadcast if the countdown hasn't started
@@ -449,6 +453,7 @@ bool CBaseGame :: Update( void *fd )
 					(*i)->SetLagging( true );
 					(*i)->SetStartedLaggingTicks( GetTicks( ) );
 					m_Lagging = true;
+					m_StartedLaggingTime = GetTime( );
 
 					if( LaggingString.empty( ) )
 						LaggingString = (*i)->GetName( );
@@ -471,11 +476,17 @@ bool CBaseGame :: Update( void *fd )
 			}
 		}
 
-		// check if anyone has stopped lagging
-		// we consider a player to have stopped lagging if they're less than half m_SyncLimit keepalives behind
-
 		if( m_Lagging )
 		{
+			// we cannot allow the lag screen to stay up for more than ~90 seconds because Warcraft III disconnects if it doesn't receive an action packet at least this often
+			// one (easy) solution is to simply drop all the laggers if they lag for more than 80 seconds, which is what we do here
+
+			if( GetTime( ) > m_StartedLaggingTime + 80 )
+				StopLaggers( "was automatically dropped after 80 seconds" );
+
+			// check if anyone has stopped lagging normally
+			// we consider a player to have stopped lagging if they're less than half m_SyncLimit keepalives behind
+
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 			{
 				if( (*i)->GetLagging( ) && m_MaxSyncCounter - (*i)->GetSyncCounter( ) < m_SyncLimit / 2 )
@@ -1166,7 +1177,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 
 			if( !m_GameLoading )
 			{
-				bool Relay = true;
+				bool Relay = !player->GetMuted( );
 				BYTEARRAY ExtraFlags = chatPlayer->GetExtraFlags( );
 
 				// calculate timestamp
@@ -2527,21 +2538,29 @@ CGame :: ~CGame( )
 {
 	if( m_GameLoading || m_GameLoaded )
 	{
-		// store the CDBGame in the database
-
-		uint32_t GameID = m_GHost->m_DB->GameAdd( m_GHost->m_BNETs.size( ) == 1 ? m_GHost->m_BNETs[0]->GetServer( ) : string( ), m_DBGame->GetMap( ), m_GameName, m_OwnerName, GetTime( ) - m_StartedLoadingTime, m_GameState, m_CreatorName, m_CreatorServer );
-
-		if( GameID > 0 )
+		if( !m_GHost->m_DB->Begin( ) )
+			CONSOLE_Print( "[GAME: " + m_GameName + "] warning - failed to begin database transaction, game data not saved" );
+		else
 		{
-			// store the CDBGamePlayers in the database
+			// store the CDBGame in the database
 
-			for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); i++ )
-				m_GHost->m_DB->GamePlayerAdd( GameID, (*i)->GetName( ), (*i)->GetIP( ), (*i)->GetSpoofed( ), (*i)->GetSpoofedRealm( ), (*i)->GetReserved( ), (*i)->GetLoadingTime( ), (*i)->GetLeft( ), (*i)->GetLeftReason( ), (*i)->GetTeam( ), (*i)->GetColour( ) );
+			uint32_t GameID = m_GHost->m_DB->GameAdd( m_GHost->m_BNETs.size( ) == 1 ? m_GHost->m_BNETs[0]->GetServer( ) : string( ), m_DBGame->GetMap( ), m_GameName, m_OwnerName, GetTime( ) - m_StartedLoadingTime, m_GameState, m_CreatorName, m_CreatorServer );
 
-			// store the stats in the database
+			if( GameID > 0 )
+			{
+				// store the CDBGamePlayers in the database
 
-			if( m_Stats )
-				m_Stats->Save( m_GHost->m_DB, GameID );
+				for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); i++ )
+					m_GHost->m_DB->GamePlayerAdd( GameID, (*i)->GetName( ), (*i)->GetIP( ), (*i)->GetSpoofed( ), (*i)->GetSpoofedRealm( ), (*i)->GetReserved( ), (*i)->GetLoadingTime( ), (*i)->GetLeft( ), (*i)->GetLeftReason( ), (*i)->GetTeam( ), (*i)->GetColour( ) );
+
+				// store the stats in the database
+
+				if( m_Stats )
+					m_Stats->Save( m_GHost->m_DB, GameID );
+			}
+
+			if( !m_GHost->m_DB->Commit( ) )
+				CONSOLE_Print( "[GAME: " + m_GameName + "] warning - failed to commit database transaction, game data not saved" );
 		}
 	}
 
@@ -3333,6 +3352,26 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !MUTE
+			//
+
+			if( Command == "mute" )
+			{
+				CGamePlayer *LastMatch = NULL;
+				uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
+
+				if( Matches == 0 )
+					SendAllChat( m_GHost->m_Language->UnableToMuteNoMatchesFound( Payload ) );
+				else if( Matches == 1 )
+				{
+					SendAllChat( m_GHost->m_Language->MutedPlayer( LastMatch->GetName( ), User ) );
+					LastMatch->SetMuted( true );
+				}
+				else
+					SendAllChat( m_GHost->m_Language->UnableToMuteFoundMoreThanOneMatch( Payload ) );
+			}
+
+			//
 			// !MUTEALL
 			//
 
@@ -3670,6 +3709,26 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !UNMUTE
+			//
+
+			if( Command == "unmute" )
+			{
+				CGamePlayer *LastMatch = NULL;
+				uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
+
+				if( Matches == 0 )
+					SendAllChat( m_GHost->m_Language->UnableToMuteNoMatchesFound( Payload ) );
+				else if( Matches == 1 )
+				{
+					SendAllChat( m_GHost->m_Language->UnmutedPlayer( LastMatch->GetName( ), User ) );
+					LastMatch->SetMuted( false );
+				}
+				else
+					SendAllChat( m_GHost->m_Language->UnableToMuteFoundMoreThanOneMatch( Payload ) );
+			}
+
+			//
 			// !UNMUTEALL
 			//
 
@@ -3784,9 +3843,9 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	if( Command == "version" )
 	{
 		if( player->GetSpoofed( ) && ( m_GHost->m_DB->AdminCheck( player->GetSpoofedRealm( ), User ) || RootAdminCheck || IsOwner( User ) ) )
-			SendAllChat( m_GHost->m_Language->VersionAdmin( m_GHost->m_Version ) );
+			SendChat( player, m_GHost->m_Language->VersionAdmin( m_GHost->m_Version ) );
 		else
-			SendAllChat( m_GHost->m_Language->VersionNotAdmin( m_GHost->m_Version ) );
+			SendChat( player, m_GHost->m_Language->VersionNotAdmin( m_GHost->m_Version ) );
 	}
 }
 
@@ -3825,7 +3884,7 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, " " );
 	SendChat( player, "GHost++ Admin Game                    http://forum.codelain.com/" );
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
-	SendChat( player, "Commands: addadmin, checkadmin, countadmins, deladmin" );
+	SendChat( player, "Commands: addadmin, autohost, checkadmin, countadmins, deladmin" );
 	SendChat( player, "Commands: disable, enable, end, exit, getgame, getgames" );
 	SendChat( player, "Commands: hostsg, load, loadsg, map, password, priv, privby" );
 	SendChat( player, "Commands: pub, pubby, quit, saygame, saygames, unhost" );
@@ -3913,6 +3972,65 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 						SendChat( player, m_GHost->m_Language->AddedUserToAdminDatabase( Server, Name ) );
 					else
 						SendChat( player, m_GHost->m_Language->ErrorAddingUserToAdminDatabase( Server, Name ) );
+				}
+			}
+		}
+
+		//
+		// !AUTOHOST
+		//
+
+		if( Command == "autohost" )
+		{
+			if( Payload.empty( ) || Payload == "off" )
+			{
+				SendChat( player, m_GHost->m_Language->AutoHostDisabled( ) );
+				m_GHost->m_AutoHostGameName.clear( );
+				m_GHost->m_AutoHostMapCFG.clear( );
+				m_GHost->m_AutoHostMaximumGames = 0;
+				m_GHost->m_AutoHostAutoStartPlayers = 0;
+				m_GHost->m_LastAutoHostTime = GetTime( );
+			}
+			else
+			{
+				// extract the maximum games, auto start players, and the game name
+				// e.g. "5 10 BattleShips Pro" -> maximum games: "5", auto start players: "10", game name: "BattleShips Pro"
+
+				uint32_t MaximumGames;
+				uint32_t AutoStartPlayers;
+				string GameName;
+				stringstream SS;
+				SS << Payload;
+				SS >> MaximumGames;
+
+				if( SS.fail( ) || MaximumGames == 0 )
+					CONSOLE_Print( "[ADMINGAME] bad input #1 to autohost command" );
+				else
+				{
+					SS >> AutoStartPlayers;
+
+					if( SS.fail( ) || AutoStartPlayers == 0 )
+						CONSOLE_Print( "[ADMINGAME] bad input #2 to autohost command" );
+					else
+					{
+						if( SS.eof( ) )
+							CONSOLE_Print( "[ADMINGAME] missing input #3 to autohost command" );
+						else
+						{
+							getline( SS, GameName );
+							string :: size_type Start = GameName.find_first_not_of( " " );
+
+							if( Start != string :: npos )
+								GameName = GameName.substr( Start );
+
+							SendChat( player, m_GHost->m_Language->AutoHostEnabled( ) );
+							m_GHost->m_AutoHostGameName = GameName;
+							m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
+							m_GHost->m_AutoHostMaximumGames = MaximumGames;
+							m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+							m_GHost->m_LastAutoHostTime = GetTime( );
+						}
+					}
 				}
 			}
 		}

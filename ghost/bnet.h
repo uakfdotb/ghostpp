@@ -62,7 +62,7 @@ private:
 	string m_PasswordHashType;					// password hash type for PvPGN users
 	uint32_t m_NextConnectTime;					// GetTime when we should try connecting to battle.net next (after we get disconnected)
 	uint32_t m_LastNullTime;					// GetTime when the last null packet was sent for detecting disconnects
-	uint32_t m_LastChatCommandTime;				// GetTime when the last chat command was sent for the m_ChatCommands queue
+	uint32_t m_LastChatCommandTicks;			// GetTicks when the last chat command was sent for the m_ChatCommands queue
 	bool m_WaitingToConnect;					// if we're waiting to reconnect to battle.net after being disconnected
 	bool m_LoggedIn;							// if we've logged into battle.net or not
 	bool m_InChat;								// if we've entered chat or not (but we're not necessarily in a chat channel yet)
@@ -73,7 +73,6 @@ public:
 	CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType );
 	~CBNET( );
 
-	unsigned int GetNumChatCommands( )	{ return m_ChatCommands.size( ); }
 	bool GetExiting( )					{ return m_Exiting; }
 	string GetServer( )					{ return m_Server; }
 	string GetCDKeyROC( )				{ return m_CDKeyROC; }

@@ -80,6 +80,7 @@ CPacked :: ~CPacked( )
 
 void CPacked :: Load( string fileName, bool allBlocks )
 {
+	m_Valid = true;
 	CONSOLE_Print( "[PACKED] loading data from file [" + fileName + "]" );
 	m_Compressed = UTIL_FileRead( fileName );
 	Decompress( allBlocks );
@@ -100,6 +101,7 @@ bool CPacked :: Save( string fileName )
 
 bool CPacked :: Extract( string inFileName, string outFileName )
 {
+	m_Valid = true;
 	CONSOLE_Print( "[PACKED] extracting data from file [" + inFileName + "] to file [" + outFileName + "]" );
 	m_Compressed = UTIL_FileRead( inFileName );
 	Decompress( true );

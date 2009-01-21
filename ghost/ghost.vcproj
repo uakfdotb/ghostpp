@@ -231,10 +231,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ghost_cmd.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ghostdb.cpp"
 				>
 			</File>
@@ -276,10 +272,6 @@
 			</File>
 			<File
 				RelativePath=".\statsdota.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\user.cpp"
 				>
 			</File>
 			<File
@@ -390,10 +382,6 @@
 			</File>
 			<File
 				RelativePath=".\statsdota.h"
-				>
-			</File>
-			<File
-				RelativePath=".\user.h"
 				>
 			</File>
 			<File

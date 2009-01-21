@@ -87,7 +87,8 @@ protected:
 	uint32_t m_StartedLoadingTime;				// GetTime when the game started loading
 	uint32_t m_StartPlayers;					// number of players when the game started
 	uint32_t m_LastActionSentTicks;				// GetTicks when the last action packet was sent
-	uint32_t m_LastLagScreenTime;				// GetTime when the last lag screen was active
+	uint32_t m_StartedLaggingTime;				// GetTime when the last lag screen started
+	uint32_t m_LastLagScreenTime;				// GetTime when the last lag screen was active (continuously updated)
 	bool m_Locked;								// if the game owner is the only one allowed to run game commands or not
 	bool m_RefreshMessages;						// if we should display "game refreshed..." messages or not
 	bool m_MuteAll;								// if we should stop forwarding ingame chat messages targeted for all players or not

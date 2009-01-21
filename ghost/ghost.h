@@ -81,7 +81,6 @@ class CLanguage;
 class CMap;
 class CSaveGame;
 class CConfig;
-class CUser;
 
 class CGHost
 {
@@ -110,6 +109,7 @@ public:
 	uint32_t m_LastAutoHostTime;			// GetTime when the last auto host was attempted
 	string m_LanguageFile;					// config value: language file
 	string m_Warcraft3Path;					// config value: Warcraft 3 path
+	string m_BindAddress;					// config value: the address to host games on
 	uint16_t m_HostPort;					// config value: the port to host games on
 	uint32_t m_MaxGames;					// config value: maximum number of games in progress
 	char m_CommandTrigger;					// config value: the command trigger inside games
@@ -118,6 +118,7 @@ public:
 	string m_MapPath;						// config value: map path
 	bool m_SaveReplays;						// config value: save replays
 	string m_ReplayPath;					// config value: replay path
+	string m_VirtualHostName;				// config value: virtual host name
 	bool m_SpoofChecks;						// config value: do/require spoof checks or not
 	bool m_RefreshMessages;					// config value: display refresh messages or not (by default)
 	bool m_AutoLock;						// config value: auto lock games when the owner is present
@@ -149,57 +150,6 @@ public:
 	void EventBNETGameRefreshFailed( CBNET *bnet );
 	void EventBNETConnectTimedOut( CBNET *bnet );
 	void EventGameDeleted( CBaseGame *game );
-
-	// handling functions
-
-	void HandleCommandAdminGame( CAdminGame *game, string user, string command, string payload );
-	void HandleCommandBNET( CBNET *bnet, string user, string command, string payload, bool whisper );
-	void HandleCommandGame( CBaseGame *game, string user, string command, string payload );
-
-	// commands
-
-	string CmdAddAdminBNET( CUser *user, CBNET *bnet, string payload );
-	string CmdAddBanBNET( CUser *user, CBNET *bnet, string payload );
-	string CmdAnnounce( CUser *user, CBaseGame *game, string payload );
-	string CmdAutoHost( CUser *user, string owner, string server, string payload );
-	string CmdAutoStart( CUser *user, CBaseGame *game, string payload );
-	string CmdChannel( CUser *user, CBNET *bnet, string payload );
-	string CmdCheckAdminBNET( CUser *user, CBNET *bnet, string payload );
-	string CmdCheckBanBNET( CUser *user, CBNET *bnet, string payload );
-	string CmdClose( CUser *user, CBNET *bnet, CBaseGame *game, string payload );
-	string CmdCloseAll( CUser *user, CBaseGame *game );
-	string CmdCountAdmins( CUser *user, string server );
-	string CmdCountBans( CUser *user, string server );
-	string CmdDelAdminBNET( CUser *user, CBNET *bnet, string payload );
-	string CmdDelBan( CUser *user, string payload );
-	string CmdDisable( CUser *user );
-	string CmdEnable( CUser *user );
-	string CmdEndGame( CUser *user, string payload );
-	string CmdExit( CUser *user, string payload );
-	string CmdGetClan( CUser *user, CBNET *bnet );
-	string CmdGetFriends( CUser *user, CBNET *bnet );
-	string CmdGetGame( CUser *user, string payload );
-	string CmdGetGames( CUser *user );
-	string CmdHold( CUser *user, CBaseGame *game, string payload );
-	string CmdHostSG( CUser *user, string creator, string server, string payload, bool whisper );
-	string CmdLoad( CUser *user, string payload );
-	string CmdLoadSG( CUser *user, string payload );
-	string CmdOpen( CUser *user, CBNET *bnet, CBaseGame *game, string payload );
-	string CmdOpenAll( CUser *user, CBaseGame *game );
-	string CmdPriv( CUser *user, string creator, string server, string payload, bool whisper );
-	string CmdPrivBy( CUser *user, string creator, string server, string payload, bool whisper );
-	string CmdPub( CUser *user, string creator, string server, string payload, bool whisper );
-	string CmdPubBy( CUser *user, string creator, string server, string payload, bool whisper );
-	string CmdSay( CUser *user, CBNET *bnet, string payload );
-	string CmdSayGame( CUser *user, string payload );
-	string CmdSayGames( CUser *user, string payload );
-	string CmdSP( CUser *user, CBaseGame *game );
-	string CmdStart( CUser *user, CBaseGame *game, string payload );
-	string CmdStats( CUser *user, string payload );
-	string CmdStatsDotA( CUser *user, string payload );
-	string CmdSwap( CUser *user, CBaseGame *game, string payload );
-	string CmdUnhost( CUser *user, CBaseGame *game );
-	string CmdVersion( CUser *user );
 
 	// other functions
 

@@ -1041,132 +1041,32 @@ string CLanguage :: DesyncDetected( )
 	return m_CFG->GetString( "lang_0144", "lang_0144" );
 }
 
-string CLanguage :: CurrentlyLoadedSaveGameIs( string file )
+string CLanguage :: UnableToMuteNoMatchesFound( string victim )
 {
-	return "x";
+	string Out = m_CFG->GetString( "lang_0145", "lang_0145" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
 }
 
-string CLanguage :: GameNotFoundOrAlreadyStarted( )
+string CLanguage :: MutedPlayer( string victim, string user )
 {
-	return "Game not found or already started.";
+	string Out = m_CFG->GetString( "lang_0146", "lang_0146" );
+	Replace( Out, "$VICTIM$", victim );
+	Replace( Out, "$USER$", user );
+	return Out;
 }
 
-string CLanguage :: UsageAddAdminBNET( )
+string CLanguage :: UnmutedPlayer( string victim, string user )
 {
-	return "usage: addadmin <name>: add a new admin to the database for this realm";
+	string Out = m_CFG->GetString( "lang_0147", "lang_0147" );
+	Replace( Out, "$VICTIM$", victim );
+	Replace( Out, "$USER$", user );
+	return Out;
 }
 
-string CLanguage :: UsageAddBanBNET( )
+string CLanguage :: UnableToMuteFoundMoreThanOneMatch( string victim )
 {
-	return "usage: addban/ban <name> [reason]: add a new ban to the database for this realm";
-}
-
-string CLanguage :: UsageAnnounce( )
-{
-	return "usage: announce <sec> <msg>: set the announce message (the bot will print <msg> every <sec> seconds in the lobby), use \"off\" to disable the announce message";
-}
-
-string CLanguage :: UsageAutoHost( )
-{
-	return "usage: autohost <m> <p> <n>: auto host up to <m> games, auto starting when <p> players have joined, with name <n>, use \"off\" to disable auto hosting";
-}
-
-string CLanguage :: UsageAutoStart( )
-{
-	return "usage: autostart <players>: auto start the game when the specified number of players have joined, use \"off\" to disable auto start";
-}
-
-string CLanguage :: UsageChannel( )
-{
-	return "usage: channel <name>: change battle.net channel";
-}
-
-string CLanguage :: UsageCheckAdminBNET( )
-{
-	return "usage: checkadmin <name>: check if a user is an admin on this realm";
-}
-
-string CLanguage :: UsageCheckBanBNET( )
-{
-	return "usage: checkban <name>: check if a user is banned on this realm";
-}
-
-string CLanguage :: UsageClose( )
-{
-	return "usage: close <number> ...: close slot";
-}
-
-string CLanguage :: UsageDelAdminBNET( )
-{
-	return "usage: deladmin <name>: remove an admin from the database for this realm";
-}
-
-string CLanguage :: UsageDelBan( )
-{
-	return "usage: delban <name>: remove a ban from the database for all realms";
-}
-
-string CLanguage :: UsageEndGame( )
-{
-	return "usage: end <number>: end the specified game in progress (disconnect everyone)";
-}
-
-string CLanguage :: UsageGetGame( )
-{
-	return "usage: getgame <number>: display information about a game in progress";
-}
-
-string CLanguage :: UsageHold( )
-{
-	return "usage: hold <name> ...: hold a slot for someone";
-}
-
-string CLanguage :: UsageHostSG( )
-{
-	return "usage: hostsg <name>: host a saved game";
-}
-
-string CLanguage :: UsageOpen( )
-{
-	return "usage: open <number> ...: open slot";
-}
-
-string CLanguage :: UsagePriv( )
-{
-	return "usage: priv <name>: host private game";
-}
-
-string CLanguage :: UsagePrivBy( )
-{
-	return "usage: privby <owner> <name>: host private game by another player (gives <owner> access to admin commands in the game lobby and in the game)";
-}
-
-string CLanguage :: UsagePub( )
-{
-	return "usage: pub <name>: host public game";
-}
-
-string CLanguage :: UsagePubBy( )
-{
-	return "usage: pubby <owner> <name>: host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)";
-}
-
-string CLanguage :: UsageSay( )
-{
-	return "usage: say <text>: send <text> to battle.net as a chat command";
-}
-
-string CLanguage :: UsageSayGame( )
-{
-	return "usage: saygame <number> <text>: send <text> to the specified game in progress";
-}
-
-string CLanguage :: UsageSayGames( )
-{
-	return "usage: saygames <text>: send <text> to all games";
-}
-
-string CLanguage :: UsageSwap( )
-{
-	return "usage: swap <n1> <n2>: swap slots";
+	string Out = m_CFG->GetString( "lang_0148", "lang_0148" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
 }

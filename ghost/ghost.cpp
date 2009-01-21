@@ -25,7 +25,6 @@
 #include "config.h"
 #include "language.h"
 #include "socket.h"
-#include "user.h"
 #include "ghostdb.h"
 #include "ghostdbsqlite.h"
 #include "bnet.h"
@@ -51,7 +50,6 @@
 #include "language.h"
 #include "socket.h"
 #include "commandpacket.h"
-#include "user.h"
 #include "ghostdb.h"
 #include "ghostdbsqlite.h"
 #include "bncsutilinterface.h"
@@ -254,7 +252,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_DB = new CGHostDBSQLite( CFG );
 	m_Exiting = false;
 	m_Enabled = true;
-	m_Version = "11.01";
+	m_Version = "11.1";
 	m_HostCounter = 1;
 	m_AutoHostMaximumGames = 0;
 	m_AutoHostAutoStartPlayers = 0;
@@ -262,6 +260,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_LanguageFile = CFG->GetString( "bot_language", "language.cfg" );
 	m_Language = new CLanguage( m_LanguageFile );
 	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
+	m_BindAddress = CFG->GetString( "bot_bindaddress", string( ) );
 	m_HostPort = CFG->GetInt( "bot_hostport", 6112 );
 	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );
 	string BotCommandTrigger = CFG->GetString( "bot_commandtrigger", "!" );
@@ -275,6 +274,14 @@ CGHost :: CGHost( CConfig *CFG )
 	m_MapPath = CFG->GetString( "bot_mappath", string( ) );
 	m_SaveReplays = CFG->GetInt( "bot_savereplays", 0 ) == 0 ? false : true;
 	m_ReplayPath = CFG->GetString( "bot_replaypath", string( ) );
+	m_VirtualHostName = CFG->GetString( "bot_virtualhostname", "|cFF4080C0GHost" );
+
+	if( m_VirtualHostName.size( ) > 15 )
+	{
+		m_VirtualHostName = "|cFF4080C0GHost";
+		CONSOLE_Print( "[GHOST] warning - bot_virtualhostname is longer than 15 characters, using default virtual host name" );
+	}
+
 	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
 	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
 	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;
@@ -645,130 +652,6 @@ void CGHost :: EventGameDeleted( CBaseGame *game )
 		if( (*i)->GetServer( ) == game->GetCreatorServer( ) )
 			(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ), game->GetCreatorName( ), true );
 	}
-}
-
-void CGHost :: HandleCommandAdminGame( CAdminGame *game, string user, string command, string payload )
-{
-
-}
-
-void CGHost :: HandleCommandBNET( CBNET *bnet, string user, string command, string payload, bool whisper )
-{
-	CUser User;
-	User.SetName( user );
-
-	if( bnet->IsRootAdmin( user ) )
-	{
-		CONSOLE_Print( "[GHOST] bnet root admin [" + user + "] sent command [" + command + "] with payload [" + payload + "]" );
-		User.SetAccess( ACCESSGROUP_ALL );
-	}
-	else if( m_DB->AdminCheck( bnet->GetServer( ), user ) )
-	{
-		CONSOLE_Print( "[GHOST] bnet admin [" + user + "] sent command [" + command + "] with payload [" + payload + "]" );
-		User.SetAccess( ACCESSGROUP_ADMIN );
-	}
-	else
-	{
-		CONSOLE_Print( "[GHOST] bnet user [" + user + "] sent command [" + command + "] with payload [" + payload + "]" );
-		User.SetAccess( ACCESSGROUP_USER );
-	}
-
-	string Response;
-
-	if( command == "addadmin" && User.GetAccess( ) & ACCESS_ADMIN_MANAGEMENT )
-		Response = CmdAddAdminBNET( &User, bnet, payload );
-	else if( ( command == "addban" || command == "ban" ) && User.GetAccess( ) & ACCESS_BAN_MANAGEMENT )
-		Response = CmdAddBanBNET( &User, bnet, payload );
-	else if( command == "announce" && User.GetAccess( ) & ACCESS_ANNOUNCE )
-		Response = CmdAnnounce( &User, m_CurrentGame, payload );
-	else if( command == "autohost" && User.GetAccess( ) & ACCESS_AUTOHOST )
-		Response = CmdAutoHost( &User, user, bnet->GetServer( ), payload );
-	else if( command == "autostart" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdAutoStart( &User, m_CurrentGame, payload );
-	else if( command == "channel" && User.GetAccess( ) & ACCESS_BNET_MANAGEMENT )
-		Response = CmdChannel( &User, bnet, payload );
-	else if( command == "checkadmin" && User.GetAccess( ) & ACCESS_ADMIN_CHECKING )
-		Response = CmdCheckAdminBNET( &User, bnet, payload );
-	else if( command == "checkban" && User.GetAccess( ) & ACCESS_BAN_CHECKING )
-		Response = CmdCheckBanBNET( &User, bnet, payload );
-	else if( command == "close" && User.GetAccess( ) & ACCESS_SLOT_MANAGEMENT )
-		Response = CmdClose( &User, bnet, m_CurrentGame, payload );
-	else if( command == "closeall" && User.GetAccess( ) & ACCESS_SLOT_MANAGEMENT )
-		Response = CmdCloseAll( &User, m_CurrentGame );
-	else if( command == "countadmins" && User.GetAccess( ) & ACCESS_ADMIN_CHECKING )
-		Response = CmdCountAdmins( &User, bnet->GetServer( ) );
-	else if( command == "countbans" && User.GetAccess( ) & ACCESS_BAN_CHECKING )
-		Response = CmdCountBans( &User, bnet->GetServer( ) );
-	else if( command == "deladmin" && User.GetAccess( ) & ACCESS_ADMIN_MANAGEMENT )
-		Response = CmdDelAdminBNET( &User, bnet, payload );
-	else if( ( command == "delban" || command == "unban" ) && User.GetAccess( ) & ACCESS_BAN_MANAGEMENT )
-		Response = CmdDelBan( &User, payload );
-	else if( command == "disable" && User.GetAccess( ) & ACCESS_BOT_MANAGEMENT )
-		Response = CmdDisable( &User );
-	else if( command == "enable" && User.GetAccess( ) & ACCESS_BOT_MANAGEMENT )
-		Response = CmdEnable( &User );
-	else if( command == "endgame" && User.GetAccess( ) & ACCESS_ENDGAME )
-		Response = CmdEndGame( &User, payload );
-	else if( ( command == "exit" || command == "quit" ) && User.GetAccess( ) & ACCESS_BOT_MANAGEMENT )
-		Response = CmdExit( &User, payload );
-	else if( command == "getclan" && User.GetAccess( ) & ACCESS_BNET_MANAGEMENT )
-		Response = CmdGetClan( &User, bnet );
-	else if( command == "getfriends" && User.GetAccess( ) & ACCESS_BNET_MANAGEMENT )
-		Response = CmdGetFriends( &User, bnet );
-	else if( command == "getgame" && User.GetAccess( ) & ( ACCESS_ENDGAME | ACCESS_SAYGAMES ) )
-		Response = CmdGetGame( &User, payload );
-	else if( command == "getgames" && User.GetAccess( ) & ( ACCESS_ENDGAME | ACCESS_SAYGAMES ) )
-		Response = CmdGetGames( &User );
-	else if( command == "hold" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdHold( &User, m_CurrentGame, payload );
-	else if( command == "hostsg" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdHostSG( &User, user, bnet->GetServer( ), payload, whisper );
-	else if( ( command == "load" || command == "map" ) && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdLoad( &User, payload );
-	else if( command == "loadsg" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdLoadSG( &User, payload );
-	else if( command == "open" && User.GetAccess( ) & ACCESS_SLOT_MANAGEMENT )
-		Response = CmdOpen( &User, bnet, m_CurrentGame, payload );
-	else if( command == "openall" && User.GetAccess( ) & ACCESS_SLOT_MANAGEMENT )
-		Response = CmdOpenAll( &User, m_CurrentGame );
-	else if( command == "priv" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdPriv( &User, user, bnet->GetServer( ), payload, whisper );
-	else if( command == "privby" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdPrivBy( &User, user, bnet->GetServer( ), payload, whisper );
-	else if( command == "pub" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdPub( &User, user, bnet->GetServer( ), payload, whisper );
-	else if( command == "pubby" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdPubBy( &User, user, bnet->GetServer( ), payload, whisper );
-	else if( command == "say" && User.GetAccess( ) & ACCESS_BNET_MANAGEMENT )
-		Response = CmdSay( &User, bnet, payload );
-	else if( command == "saygame" && User.GetAccess( ) & ACCESS_SAYGAMES )
-		Response = CmdSayGame( &User, payload );
-	else if( command == "saygames" && User.GetAccess( ) & ACCESS_SAYGAMES )
-		Response = CmdSayGames( &User, payload );
-	else if( command == "sp" && User.GetAccess( ) & ACCESS_SLOT_MANAGEMENT )
-		Response = CmdSP( &User, m_CurrentGame );
-	else if( command == "start" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdStart( &User, m_CurrentGame, payload );
-	else if( command == "stats" && User.GetAccess( ) & ACCESS_STATS && bnet->GetNumChatCommands( ) < 3 )
-		Response = CmdStats( &User, payload );
-	else if( command == "statsdota" && User.GetAccess( ) & ACCESS_STATS && bnet->GetNumChatCommands( ) < 3 )
-		Response = CmdStatsDotA( &User, payload );
-	else if( command == "swap" && User.GetAccess( ) & ACCESS_SLOT_MANAGEMENT )
-		Response = CmdSwap( &User, m_CurrentGame, payload );
-	else if( command == "unhost" && User.GetAccess( ) & ACCESS_GAME_MANAGEMENT )
-		Response = CmdUnhost( &User, m_CurrentGame );
-	else if( command == "version" && User.GetAccess( ) & ACCESS_VERSION && bnet->GetNumChatCommands( ) < 3 )
-		Response = CmdVersion( &User );
-
-	// done
-
-	if( !Response.empty( ) )
-		bnet->QueueChatCommand( Response, user, whisper );
-}
-
-void CGHost :: HandleCommandGame( CBaseGame *game, string user, string command, string payload )
-{
-
 }
 
 void CGHost :: ExtractScripts( )

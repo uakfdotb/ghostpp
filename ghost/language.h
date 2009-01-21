@@ -180,32 +180,10 @@ public:
 	string AutoSaveEnabled( );
 	string AutoSaveDisabled( );
 	string DesyncDetected( );
-	string CurrentlyLoadedSaveGameIs( string file );
-	string GameNotFoundOrAlreadyStarted( );
-	string UsageAddAdminBNET( );
-	string UsageAddBanBNET( );
-	string UsageAnnounce( );
-	string UsageAutoHost( );
-	string UsageAutoStart( );
-	string UsageChannel( );
-	string UsageCheckAdminBNET( );
-	string UsageCheckBanBNET( );
-	string UsageClose( );
-	string UsageDelAdminBNET( );
-	string UsageDelBan( );
-	string UsageEndGame( );
-	string UsageGetGame( );
-	string UsageHold( );
-	string UsageHostSG( );
-	string UsageOpen( );
-	string UsagePriv( );
-	string UsagePrivBy( );
-	string UsagePub( );
-	string UsagePubBy( );
-	string UsageSay( );
-	string UsageSayGame( );
-	string UsageSayGames( );
-	string UsageSwap( );
+	string UnableToMuteNoMatchesFound( string victim );
+	string MutedPlayer( string victim, string user );
+	string UnmutedPlayer( string victim, string user );
+	string UnableToMuteFoundMoreThanOneMatch( string victim );
 };
 
 #endif

@@ -646,6 +646,8 @@ void CMap :: CheckValid( )
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_path detected" );
 	}
+	else if( m_MapPath[0] == '\\' )
+		CONSOLE_Print( "[MAP] warning - map_path starts with '\\', any replays saved by GHost++ will not be playable in Warcraft III" );
 
 	if( m_MapSize.size( ) != 4 )
 	{
@@ -685,7 +687,7 @@ void CMap :: CheckValid( )
 
 	// todotodo: m_MapFlags
 
-	if( m_MapGameType != 1 && m_MapGameType != 9 )
+	if( m_MapGameType != 1 && m_MapGameType != 2 && m_MapGameType != 9 )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_gametype detected" );
