@@ -50,6 +50,8 @@ private:
 	string m_Server;							// battle.net server to connect to
 	string m_CDKeyROC;							// ROC CD key
 	string m_CDKeyTFT;							// TFT CD key
+	string m_CountryAbbrev;						// country abbreviation
+	string m_Country;							// country
 	string m_UserName;							// battle.net username
 	string m_UserPassword;						// battle.net password
 	string m_FirstChannel;						// the first chat channel to join upon entering chat (note: we hijack this to store the last channel when entering a game)
@@ -70,7 +72,7 @@ private:
 	bool m_HoldClan;							// whether to auto hold clan members when creating a game or not
 
 public:
-	CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType );
+	CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType );
 	~CBNET( );
 
 	bool GetExiting( )					{ return m_Exiting; }

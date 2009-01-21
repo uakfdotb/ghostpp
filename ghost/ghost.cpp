@@ -275,6 +275,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_SaveReplays = CFG->GetInt( "bot_savereplays", 0 ) == 0 ? false : true;
 	m_ReplayPath = CFG->GetString( "bot_replaypath", string( ) );
 	m_VirtualHostName = CFG->GetString( "bot_virtualhostname", "|cFF4080C0GHost" );
+	m_HideIPAddresses = CFG->GetInt( "bot_hideipaddresses", 0 ) == 0 ? false : true;
 
 	if( m_VirtualHostName.size( ) > 15 )
 	{
@@ -312,6 +313,8 @@ CGHost :: CGHost( CConfig *CFG )
 		string Server = CFG->GetString( Prefix + "server", string( ) );
 		string CDKeyROC = CFG->GetString( Prefix + "cdkeyroc", string( ) );
 		string CDKeyTFT = CFG->GetString( Prefix + "cdkeytft", string( ) );
+		string CountryAbbrev = CFG->GetString( Prefix + "countryabbrev", "CAN" );
+		string Country = CFG->GetString( Prefix + "country", "Canada" );
 		string UserName = CFG->GetString( Prefix + "username", string( ) );
 		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
 		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );
@@ -356,7 +359,7 @@ CGHost :: CGHost( CConfig *CFG )
 		}
 
 		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
-		m_BNETs.push_back( new CBNET( this, Server, CDKeyROC, CDKeyTFT, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, War3Version, EXEVersion, EXEVersionHash, PasswordHashType ) );
+		m_BNETs.push_back( new CBNET( this, Server, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, War3Version, EXEVersion, EXEVersionHash, PasswordHashType ) );
 	}
 
 	if( m_BNETs.empty( ) )

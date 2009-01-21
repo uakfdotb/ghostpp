@@ -1070,3 +1070,28 @@ string CLanguage :: UnableToMuteFoundMoreThanOneMatch( string victim )
 	Replace( Out, "$VICTIM$", victim );
 	return Out;
 }
+
+string CLanguage :: PlayerIsSavingTheGame( string player )
+{
+	string Out = m_CFG->GetString( "lang_0149", "lang_0149" );
+	Replace( Out, "$PLAYER$", player );
+	return Out;
+}
+
+string CLanguage :: UpdatingClanList( )
+{
+	return m_CFG->GetString( "lang_0150", "lang_0150" );
+}
+
+string CLanguage :: UpdatingFriendsList( )
+{
+	return m_CFG->GetString( "lang_0151", "lang_0151" );
+}
+
+string CLanguage :: MultipleIPAddressUsageDetected( string player, string others )
+{
+	string Out = m_CFG->GetString( "lang_0152", "lang_0152" );
+	Replace( Out, "$PLAYER$", player );
+	Replace( Out, "$OTHERS$", others );
+	return Out;
+}

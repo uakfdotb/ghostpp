@@ -270,24 +270,27 @@ void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
 
 	for( unsigned int i = 0; i < 12; i++ )
 	{
-		uint32_t Colour = m_Players[i]->GetColour( );
-
-		if( !( ( Colour >= 1 && Colour <= 5 ) || ( Colour >= 7 && Colour <= 11 ) ) )
+		if( m_Players[i] )
 		{
-			CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, invalid colour found" );
-			return;
-		}
+			uint32_t Colour = m_Players[i]->GetColour( );
 
-		// this nested loop is inefficient but not worth fixing
-
-		for( unsigned int j = i + 1; j < 12; j++ )
-		{
-			if( m_Players[i] && m_Players[j] && m_Players[i]->GetColour( ) == m_Players[j]->GetColour( ) )
+			if( !( ( Colour >= 1 && Colour <= 5 ) || ( Colour >= 7 && Colour <= 11 ) ) )
 			{
-				CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, duplicate colour found" );
+				CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, invalid colour found" );
 				return;
 			}
-		}				
+
+			// this nested loop is inefficient but not worth fixing
+
+			for( unsigned int j = i + 1; j < 12; j++ )
+			{
+				if( m_Players[j] && Colour == m_Players[j]->GetColour( ) )
+				{
+					CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, duplicate colour found" );
+					return;
+				}
+			}
+		}
 	}
 
 	// save the dotaplayers

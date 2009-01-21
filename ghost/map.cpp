@@ -211,8 +211,72 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 			else
 			{
 				uint32_t Val = 0;
-				Val = Val ^ XORRotateLeft( (unsigned char *)CommonJ.c_str( ), CommonJ.size( ) );
-				Val = Val ^ XORRotateLeft( (unsigned char *)BlizzardJ.c_str( ), BlizzardJ.size( ) );
+
+				// update: it's possible for maps to include their own copies of common.j and/or blizzard.j
+				// this code now overrides the default copies if required
+
+				bool OverrodeCommonJ = false;
+				bool OverrodeBlizzardJ = false;
+
+				if( MapMPQReady )
+				{
+					HANDLE SubFile;
+
+					// override common.j
+
+					if( SFileOpenFileEx( MapMPQ, "Scripts\\common.j", 0, &SubFile ) )
+					{
+						uint32_t FileLength = SFileGetFileSize( SubFile, NULL );
+
+						if( FileLength > 0 && FileLength != 0xFFFFFFFF )
+						{
+							char *SubFileData = new char[FileLength];
+							DWORD BytesRead = 0;
+
+							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+							{
+								CONSOLE_Print( "[MAP] overriding default common.j with map copy while calculating map_crc" );
+								OverrodeCommonJ = true;
+								Val = Val ^ XORRotateLeft( (unsigned char *)SubFileData, BytesRead );
+							}
+
+							delete [] SubFileData;
+						}
+
+						SFileCloseFile( SubFile );
+					}
+
+					// override blizzard.j
+
+					if( SFileOpenFileEx( MapMPQ, "Scripts\\blizzard.j", 0, &SubFile ) )
+					{
+						uint32_t FileLength = SFileGetFileSize( SubFile, NULL );
+
+						if( FileLength > 0 && FileLength != 0xFFFFFFFF )
+						{
+							char *SubFileData = new char[FileLength];
+							DWORD BytesRead = 0;
+
+							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+							{
+								CONSOLE_Print( "[MAP] overriding default blizzard.j with map copy while calculating map_crc" );
+								OverrodeBlizzardJ = true;
+								Val = Val ^ XORRotateLeft( (unsigned char *)SubFileData, BytesRead );
+							}
+
+							delete [] SubFileData;
+						}
+
+						SFileCloseFile( SubFile );
+					}
+				}
+
+				if( !OverrodeCommonJ )
+					Val = Val ^ XORRotateLeft( (unsigned char *)CommonJ.c_str( ), CommonJ.size( ) );
+
+				if( !OverrodeBlizzardJ )
+					Val = Val ^ XORRotateLeft( (unsigned char *)BlizzardJ.c_str( ), BlizzardJ.size( ) );
+
 				Val = ROTL( Val, 3 );
 				Val = ROTL( Val ^ 0x03F1379E, 3 );
 

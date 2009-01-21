@@ -38,7 +38,7 @@
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -52,6 +52,8 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyT
 	m_CDKeyTFT = nCDKeyTFT;
 	transform( m_CDKeyROC.begin( ), m_CDKeyROC.end( ), m_CDKeyROC.begin( ), (int(*)(int))toupper );
 	transform( m_CDKeyTFT.begin( ), m_CDKeyTFT.end( ), m_CDKeyTFT.begin( ), (int(*)(int))toupper );
+	m_CountryAbbrev = nCountryAbbrev;
+	m_Country = nCountry;
 	m_UserName = nUserName;
 	m_UserPassword = nUserPassword;
 	m_FirstChannel = nFirstChannel;
@@ -190,7 +192,7 @@ bool CBNET :: Update( void *fd )
 			CONSOLE_Print( "[BNET: " + m_Server + "] connected" );
 			m_GHost->EventBNETConnected( this );
 			m_Socket->PutBytes( m_Protocol->SEND_PROTOCOL_INITIALIZE_SELECTOR( ) );
-			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version ) );
+			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version, m_CountryAbbrev, m_Country ) );
 			m_Socket->DoSend( );
 			m_LastNullTime = GetTime( );
 			m_LastChatCommandTicks = GetTicks( );
@@ -986,14 +988,20 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 
 				if( Command == "getclan" )
+				{
 					SendGetClanList( );
+					QueueChatCommand( m_GHost->m_Language->UpdatingClanList( ), User, Whisper );
+				}
 
 				//
 				// !GETFRIENDS
 				//
 
 				if( Command == "getfriends" )
+				{
 					SendGetFriendsList( );
+					QueueChatCommand( m_GHost->m_Language->UpdatingFriendsList( ), User, Whisper );
+				}
 
 				//
 				// !GETGAME

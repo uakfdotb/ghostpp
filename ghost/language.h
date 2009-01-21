@@ -184,6 +184,10 @@ public:
 	string MutedPlayer( string victim, string user );
 	string UnmutedPlayer( string victim, string user );
 	string UnableToMuteFoundMoreThanOneMatch( string victim );
+	string PlayerIsSavingTheGame( string player );
+	string UpdatingClanList( );
+	string UpdatingFriendsList( );
+	string MultipleIPAddressUsageDetected( string player, string others );
 };
 
 #endif

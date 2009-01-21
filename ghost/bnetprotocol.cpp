@@ -750,7 +750,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_NETGAMEPORT( uint16_t serverPort )
 	return packet;
 }
 
-BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver )
+BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, string countryAbbrev, string country )
 {
 	unsigned char ProtocolID[]		= {   0,   0,   0,   0 };
 	unsigned char PlatformID[]		= {  54,  56,  88,  73 };	// "IX86"
@@ -776,8 +776,8 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver )
 	UTIL_AppendByteArray( packet, TimeZoneBias, 4 );	// Time Zone Bias
 	UTIL_AppendByteArray( packet, LocaleID, 4 );		// Locale ID
 	UTIL_AppendByteArray( packet, LanguageID, 4 );		// Language ID
-	UTIL_AppendByteArray( packet, "CAN" );				// Country Abbreviation
-	UTIL_AppendByteArray( packet, "Canada" );			// Country
+	UTIL_AppendByteArray( packet, countryAbbrev );		// Country Abbreviation
+	UTIL_AppendByteArray( packet, country );			// Country
 	AssignLength( packet );
 	// DEBUG_Print( "SENT SID_AUTH_INFO" );
 	// DEBUG_Print( packet );

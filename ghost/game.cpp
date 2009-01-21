@@ -500,11 +500,11 @@ bool CBaseGame :: Update( void *fd )
 
 		if( m_Lagging )
 		{
-			// we cannot allow the lag screen to stay up for more than ~90 seconds because Warcraft III disconnects if it doesn't receive an action packet at least this often
-			// one (easy) solution is to simply drop all the laggers if they lag for more than 80 seconds, which is what we do here
+			// we cannot allow the lag screen to stay up for more than ~65 seconds because Warcraft III disconnects if it doesn't receive an action packet at least this often
+			// one (easy) solution is to simply drop all the laggers if they lag for more than 60 seconds, which is what we do here
 
-			if( GetTime( ) > m_StartedLaggingTime + 80 )
-				StopLaggers( "was automatically dropped after 80 seconds" );
+			if( GetTime( ) > m_StartedLaggingTime + 60 )
+				StopLaggers( "was automatically dropped after 60 seconds" );
 
 			// check if anyone has stopped lagging normally
 			// we consider a player to have stopped lagging if they're less than half m_SyncLimit keepalives behind
@@ -1093,6 +1093,12 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	SendVirtualHostPlayerInfo( Player );
 
+	BYTEARRAY BlankIP;
+	BlankIP.push_back( 0 );
+	BlankIP.push_back( 0 );
+	BlankIP.push_back( 0 );
+	BlankIP.push_back( 0 );
+
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
 		if( !(*i)->GetLeftMessageSent( ) && *i != Player )
@@ -1100,11 +1106,19 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 			// send info about the new player to every other player
 
 			if( (*i)->GetSocket( ) )
-				(*i)->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), Player->GetExternalIP( ), Player->GetInternalIP( ) ) );
+			{
+				if( m_GHost->m_HideIPAddresses )
+					(*i)->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), BlankIP, BlankIP ) );
+				else
+					(*i)->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), Player->GetExternalIP( ), Player->GetInternalIP( ) ) );
+			}
 
 			// send info about every other player to the new player
 
-			Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ) ) );
+			if( m_GHost->m_HideIPAddresses )
+				Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), BlankIP, BlankIP ) );
+			else
+				Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ) ) );
 		}
 	}
 
@@ -1119,6 +1133,24 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// send a welcome message
 
 	SendWelcomeMessage( Player );
+
+	// check for multiple IP usage
+
+	string Others;
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		if( Player != *i && Player->GetExternalIPString( ) == (*i)->GetExternalIPString( ) )
+		{
+			if( Others.empty( ) )
+				Others = (*i)->GetName( );
+			else
+				Others += ", " + (*i)->GetName( );
+		}
+	}
+
+	if( !Others.empty( ) )
+		SendAllChat( m_GHost->m_Language->MultipleIPAddressUsageDetected( joinPlayer->GetName( ), Others ) );
 
 	// abort the countdown if there was one in progress
 
@@ -1157,6 +1189,14 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 {
 	m_Actions.push( action );
+
+	// check for players saving the game and notify everyone
+
+	if( !action->GetAction( ).empty( ) && action->GetAction( )[0] == 6 )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] is saving the game" );
+		SendAllChat( m_GHost->m_Language->PlayerIsSavingTheGame( player->GetName( ) ) );
+	}
 }
 
 void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )

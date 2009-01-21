@@ -150,7 +150,7 @@ public:
 	BYTEARRAY SEND_SID_PING( BYTEARRAY pingValue );
 	BYTEARRAY SEND_SID_LOGONRESPONSE( BYTEARRAY clientToken, BYTEARRAY serverToken, BYTEARRAY passwordHash, string accountName );
 	BYTEARRAY SEND_SID_NETGAMEPORT( uint16_t serverPort );
-	BYTEARRAY SEND_SID_AUTH_INFO( unsigned char ver );
+	BYTEARRAY SEND_SID_AUTH_INFO( unsigned char ver, string countryAbbrev, string country );
 	BYTEARRAY SEND_SID_AUTH_CHECK( BYTEARRAY clientToken, BYTEARRAY exeVersion, BYTEARRAY exeVersionHash, BYTEARRAY keyInfoROC, BYTEARRAY keyInfoTFT, string exeInfo, string keyOwnerName );
 	BYTEARRAY SEND_SID_AUTH_ACCOUNTLOGON( BYTEARRAY clientPublicKey, string accountName );
 	BYTEARRAY SEND_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY clientPasswordProof );
