@@ -365,7 +365,7 @@ bool CBaseGame :: Update( void *fd )
 
 	// send more map data
 
-	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) >= m_LastDownloadTicks + 1000 )
+	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) >= m_LastDownloadTicks + 250 )
 	{
 		uint32_t Downloaders = 0;
 		uint32_t DownloadCounter = 0;
@@ -390,8 +390,9 @@ bool CBaseGame :: Update( void *fd )
 				while( (*i)->GetLastMapPartSent( ) < (*i)->GetLastMapPartAcked( ) + 1442 * 50 && (*i)->GetLastMapPartSent( ) < MapSize )
 				{
 					// limit the download speed if we're sending too much data
+					// we divide by 4 because we run this code every 250ms (i.e. four times per second)
 
-					if( DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 )
+					if( DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 / 4 )
 						break;
 
 					Send( *i, m_Protocol->SEND_W3GS_MAPPART( GetHostPID( ), (*i)->GetPID( ), (*i)->GetLastMapPartSent( ), m_Map->GetMapData( ) ) );

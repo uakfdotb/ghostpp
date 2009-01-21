@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 11.1
+GHost++ Version 11.2
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -547,6 +547,20 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 =========
 CHANGELOG
 =========
+
+Version 11.2
+ - fixed a crash bug introduced in GHost++ 11.1 when saving DotA stats
+ - shortened the auto drop timer to 60 seconds when players are lagging
+ - when a player saves the game GHost++ will now send a message identifying who did it
+ - improved automatic calculation of map_crc, it should work with more (but still not all) maps now
+ - added some responses to the !getclan and !getfriends commands
+ - added automatic detection of multiple IP address usage
+ - added new config value bnet<x>_countryabbrev to specify the user's country
+ - added new config value bnet<x>_country to specify the user's country
+ - added new config value bot_hideipaddresses to hide IP addresses from players
+ - added a 5 second grace period after downloading the map where pings are discarded from the player
+ - added new config value bot_maxdownloaders
+ - added new config value bot_maxdownloadspeed
 
 Version 11.1
  - updated SQLite to SQLite 3.6.10
