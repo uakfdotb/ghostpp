@@ -859,6 +859,9 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 		{
 			getline( in, Line );
 
+			if( in.eof( ) )
+				break;
+
 			if( Line.empty( ) )
 				SendChat( player, " " );
 			else
@@ -888,6 +891,9 @@ void CBaseGame :: SendEndMessage( )
 		while( !in.eof( ) && Count < 8 )
 		{
 			getline( in, Line );
+
+			if( in.eof( ) )
+				break;
 
 			if( Line.empty( ) )
 				SendAllChat( " " );
@@ -1811,6 +1817,9 @@ void CBaseGame :: EventGameLoaded( )
 		while( !in.eof( ) && Count < 8 )
 		{
 			getline( in, Line );
+
+			if( in.eof( ) )
+				break;
 
 			if( Line.empty( ) )
 				SendAllChat( " " );
