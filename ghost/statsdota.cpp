@@ -103,7 +103,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							// you could use these to calculate killing sprees and double or triple kills (you'd have to make up your own time restrictions though)
 							// you could also build a table of "who killed who" data
 
-							if( KeyString.size( ) >= 4 && KeyString.substr( 0, 4 ) == "Hero" )
+							if( KeyString.size( ) >= 5 && KeyString.substr( 0, 4 ) == "Hero" )
 							{
 								// a hero died
 
@@ -111,8 +111,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t VictimColour = UTIL_ToUInt32( VictimColourString );
 								CGamePlayer *Killer = m_Game->GetPlayerFromColour( ValueInt );
 								CGamePlayer *Victim = m_Game->GetPlayerFromColour( VictimColour );
-
-								// print a console message just for fun, we don't use this data for anything else
 
 								if( Killer && Victim )
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed player [" + Victim->GetName( ) + "]" );
@@ -124,25 +122,118 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge killed player [" + Victim->GetName( ) + "]" );
 								}
 							}
-							else if( KeyString.size( ) >= 7 && KeyString.substr( 0, 7 ) == "Courier" )
+							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 7 ) == "Courier" )
 							{
 								// a chicken died
+
+								string VictimColourString = KeyString.substr( 7 );
+								uint32_t VictimColour = UTIL_ToUInt32( VictimColourString );
+								CGamePlayer *Killer = m_Game->GetPlayerFromColour( ValueInt );
+								CGamePlayer *Victim = m_Game->GetPlayerFromColour( VictimColour );
+
+								if( Killer && Victim )
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed a chicken owned by player [" + Victim->GetName( ) + "]" );
+								else if( Victim )
+								{
+									if( ValueInt == 0 )
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel killed a chicken owned by player [" + Victim->GetName( ) + "]" );
+									else if( ValueInt == 6 )
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge killed a chicken owned by player [" + Victim->GetName( ) + "]" );
+								}
 							}
-							else if( KeyString.size( ) >= 5 && KeyString.substr( 0, 5 ) == "Tower" )
+							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 5 ) == "Tower" )
 							{
 								// a tower died
+
+								string Alliance = KeyString.substr( 5, 1 );
+								string Level = KeyString.substr( 6, 1 );
+								string Side = KeyString.substr( 7, 1 );
+								CGamePlayer *Killer = m_Game->GetPlayerFromColour( ValueInt );
+								string AllianceString;
+								string SideString;
+
+								if( Alliance == "0" )
+									AllianceString = "Sentinel";
+								else if( Alliance == "1" )
+									AllianceString = "Scourge";
+								else
+									AllianceString = "unknown";
+
+								if( Side == "0" )
+									SideString = "top";
+								else if( Side == "1" )
+									SideString = "mid";
+								else if( Side == "2" )
+									SideString = "bottom";
+								else
+									SideString = "unknown";
+
+								if( Killer )
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] destroyed a level [" + Level + "] " + AllianceString + " tower (side = " + SideString + ")" );
+								else
+								{
+									if( ValueInt == 0 )
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel destroyed a level [" + Level + "] tower (side = " + SideString + ")" );
+									else if( ValueInt == 6 )
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge destroyed a level [" + Level + "] tower (side = " + SideString + ")" );
+								}
 							}
-							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 3 ) == "Rax" )
+							else if( KeyString.size( ) >= 6 && KeyString.substr( 0, 3 ) == "Rax" )
 							{
 								// a rax died
+
+								string Alliance = KeyString.substr( 3, 1 );
+								string Side = KeyString.substr( 4, 1 );
+								string Type = KeyString.substr( 5, 1 );
+								CGamePlayer *Killer = m_Game->GetPlayerFromColour( ValueInt );
+								string AllianceString;
+								string SideString;
+								string TypeString;
+
+								if( Alliance == "0" )
+									AllianceString = "Sentinel";
+								else if( Alliance == "1" )
+									AllianceString = "Scourge";
+								else
+									AllianceString = "unknown";
+
+								if( Side == "0" )
+									SideString = "top";
+								else if( Side == "1" )
+									SideString = "mid";
+								else if( Side == "2" )
+									SideString = "bottom";
+								else
+									SideString = "unknown";
+
+								if( Type == "0" )
+									TypeString = "melee";
+								else if( Type == "1" )
+									TypeString = "ranged";
+								else
+									TypeString = "unknown";
+
+								if( Killer )
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] destroyed a " + TypeString + " " + AllianceString + " rax (side = " + SideString + ")" );
+								else
+								{
+									if( ValueInt == 0 )
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel destroyed a " + TypeString + " rax (side = " + SideString + ")" );
+									else if( ValueInt == 6 )
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge destroyed a " + TypeString + " rax (side = " + SideString + ")" );
+								}
 							}
 							else if( KeyString.size( ) >= 6 && KeyString.substr( 0, 6 ) == "Throne" )
 							{
 								// the frozen throne got hurt
+
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + " the Frozen Throne is at " + UTIL_ToString( ValueInt ) + "% HP" );
 							}
 							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 4 ) == "Tree" )
 							{
 								// the world tree got hurt
+
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + " the World Tree is at " + UTIL_ToString( ValueInt ) + "% HP" );
 							}
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "CK" )
 							{
