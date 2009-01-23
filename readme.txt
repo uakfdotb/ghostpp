@@ -553,6 +553,7 @@ Version 11.3
   * GHost++ will automatically update your database schema if it's out of date
   * new colour, tower kills, rax kills, and courier kills are now recorded to the database when using statsdota
  - if bot_maxdownloadspeed = 0 the download speed will not be limited
+ - fixed a bug where games created with !autohost did not have an owner (first appeared in GHost++ 11.1)
  - fixed a bug where some players would be automatically muted when joining the game (first appeared in GHost++ 11.1)
  - fixed the statsdota parser to correctly parse the "id" value (first appeared in GHost++ 11.1)
  - updated the !statsdota command to print more information
