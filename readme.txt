@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 11.2
+GHost++ Version 11.3
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -547,6 +547,19 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 =========
 CHANGELOG
 =========
+
+Version 11.3
+ - the database schema has been updated to version number 6
+  * GHost++ will automatically update your database schema if it's out of date
+  * new colour, tower kills, rax kills, and courier kills are now recorded to the database when using statsdota
+ - if bot_maxdownloadspeed = 0 the download speed will not be limited
+ - fixed a bug where some players would be automatically muted when joining the game (first appeared in GHost++ 11.1)
+ - fixed the statsdota parser to correctly parse the "id" value (first appeared in GHost++ 11.1)
+ - updated the !statsdota command to print more information
+ - the bot now reads from motd.txt for the welcome message
+ - the bot now reads from gameloaded.txt for the game loaded message
+ - the bot now reads from gameover.txt for the game over message
+ - added default gameloaded.txt and gameover.txt
 
 Version 11.2
  - fixed a crash bug introduced in GHost++ 11.1 when saving DotA stats
