@@ -583,7 +583,7 @@ string CLanguage :: YourLoadingTimeWas( string loadingtime )
 	return Out;
 }
 
-string CLanguage :: HasPlayedDotAGamesWithThisBot( string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills )
+string CLanguage :: HasPlayedDotAGamesWithThisBot( string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills, string totaltowerkills, string totalraxkills, string totalcourierkills, string avgkills, string avgdeaths, string avgcreepkills, string avgcreepdenies, string avgassists, string avgneutralkills, string avgtowerkills, string avgraxkills, string avgcourierkills )
 {
 	string Out = m_CFG->GetString( "lang_0074", "lang_0074" );
 	Replace( Out, "$USER$", user );
@@ -596,6 +596,18 @@ string CLanguage :: HasPlayedDotAGamesWithThisBot( string user, string totalgame
 	Replace( Out, "$TOTALCREEPDENIES$", totalcreepdenies );
 	Replace( Out, "$TOTALASSISTS$", totalassists );
 	Replace( Out, "$TOTALNEUTRALKILLS$", totalneutralkills );
+	Replace( Out, "$TOTALTOWERKILLS$", totaltowerkills );
+	Replace( Out, "$TOTALRAXKILLS$", totalraxkills );
+	Replace( Out, "$TOTALCOURIERKILLS$", totalcourierkills );
+	Replace( Out, "$AVGKILLS$", avgkills );
+	Replace( Out, "$AVGDEATHS$", avgdeaths );
+	Replace( Out, "$AVGCREEPKILLS$", avgcreepkills );
+	Replace( Out, "$AVGCREEPDENIES$", avgcreepdenies );
+	Replace( Out, "$AVGASSISTS$", avgassists );
+	Replace( Out, "$AVGNEUTRALKILLS$", avgneutralkills );
+	Replace( Out, "$AVGTOWERKILLS$", avgtowerkills );
+	Replace( Out, "$AVGRAXKILLS$", avgraxkills );
+	Replace( Out, "$AVGCOURIERKILLS$", avgcourierkills );
 	return Out;
 }
 

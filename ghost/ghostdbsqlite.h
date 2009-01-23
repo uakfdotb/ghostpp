@@ -96,7 +96,10 @@ CREATE TABLE dotaplayers (
 	item5 TEXT NOT NULL,
 	item6 TEXT NOT NULL,
 	hero TEXT NOT NULL DEFAULT "",
-	newcolour NOT NULL DEFAULT 0
+	newcolour NOT NULL DEFAULT 0,
+	towerkills NOT NULL DEFAULT 0,
+	raxkills NOT NULL DEFAULT 0,
+	courierkills NOT NULL DEFAULT 0
 )
 
 CREATE TABLE config (
@@ -179,6 +182,7 @@ public:
 	virtual void Upgrade2_3( );
 	virtual void Upgrade3_4( );
 	virtual void Upgrade4_5( );
+	virtual void Upgrade5_6( );
 
 	virtual bool Begin( );
 	virtual bool Commit( );
@@ -196,7 +200,7 @@ public:
 	virtual uint32_t GamePlayerCount( string name );
 	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( string name );
 	virtual uint32_t DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec );
-	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour );
+	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
 	virtual uint32_t DotAPlayerCount( string name );
 	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name );
 	virtual string FromCheck( uint32_t ip );

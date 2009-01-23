@@ -60,7 +60,7 @@ public:
 	virtual uint32_t GamePlayerCount( string name );
 	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( string name );
 	virtual uint32_t DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec );
-	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour );
+	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
 	virtual uint32_t DotAPlayerCount( string name );
 	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name );
 	virtual string FromCheck( uint32_t ip );
@@ -254,10 +254,13 @@ private:
 	string m_Items[6];
 	string m_Hero;
 	uint32_t m_NewColour;
+	uint32_t m_TowerKills;
+	uint32_t m_RaxKills;
+	uint32_t m_CourierKills;
 
 public:
 	CDBDotAPlayer( );
-	CDBDotAPlayer( uint32_t nID, uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero, uint32_t nNewColour );
+	CDBDotAPlayer( uint32_t nID, uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero, uint32_t nNewColour, uint32_t nTowerKills, uint32_t nRaxKills, uint32_t nCourierKills );
 	~CDBDotAPlayer( );
 
 	uint32_t GetID( )			{ return m_ID; }
@@ -273,6 +276,9 @@ public:
 	string GetItem( unsigned int i );
 	string GetHero( )			{ return m_Hero; }
 	uint32_t GetNewColour( )	{ return m_NewColour; }
+	uint32_t GetTowerKills( )	{ return m_TowerKills; }
+	uint32_t GetRaxKills( )		{ return m_RaxKills; }
+	uint32_t GetCourierKills( )	{ return m_CourierKills; }
 
 	void SetColour( uint32_t nColour )				{ m_Colour = nColour; }
 	void SetKills( uint32_t nKills )				{ m_Kills = nKills; }
@@ -285,6 +291,9 @@ public:
 	void SetItem( unsigned int i, string item );
 	void SetHero( string nHero )					{ m_Hero = nHero; }
 	void SetNewColour( uint32_t nNewColour )		{ m_NewColour = nNewColour; }
+	void SetTowerKills( uint32_t nTowerKills )		{ m_TowerKills = nTowerKills; }
+	void SetRaxKills( uint32_t nRaxKills )			{ m_RaxKills = nRaxKills; }
+	void SetCourierKills( uint32_t nCourierKills )	{ m_CourierKills = nCourierKills; }
 };
 
 //
@@ -305,9 +314,12 @@ private:
 	uint32_t m_TotalCreepDenies;	// total number of creep denies
 	uint32_t m_TotalAssists;		// total number of assists
 	uint32_t m_TotalNeutralKills;	// total number of neutral kills
+	uint32_t m_TotalTowerKills;		// total number of tower kills
+	uint32_t m_TotalRaxKills;		// total number of rax kills
+	uint32_t m_TotalCourierKills;	// total number of courier kills
 
 public:
-	CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills );
+	CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills );
 	~CDBDotAPlayerSummary( );
 
 	string GetServer( )					{ return m_Server; }
@@ -321,6 +333,19 @@ public:
 	uint32_t GetTotalCreepDenies( )		{ return m_TotalCreepDenies; }
 	uint32_t GetTotalAssists( )			{ return m_TotalAssists; }
 	uint32_t GetTotalNeutralKills( )	{ return m_TotalNeutralKills; }
+	uint32_t GetTotalTowerKills( )		{ return m_TotalTowerKills; }
+	uint32_t GetTotalRaxKills( )		{ return m_TotalRaxKills; }
+	uint32_t GetTotalCourierKills( )	{ return m_TotalCourierKills; }
+
+	float GetAvgKills( )				{ return m_TotalGames > 0 ? (float)m_TotalKills / m_TotalGames : 0; }
+	float GetAvgDeaths( )				{ return m_TotalGames > 0 ? (float)m_TotalDeaths / m_TotalGames : 0; }
+	float GetAvgCreepKills( )			{ return m_TotalGames > 0 ? (float)m_TotalCreepKills / m_TotalGames : 0; }
+	float GetAvgCreepDenies( )			{ return m_TotalGames > 0 ? (float)m_TotalCreepDenies / m_TotalGames : 0; }
+	float GetAvgAssists( )				{ return m_TotalGames > 0 ? (float)m_TotalAssists / m_TotalGames : 0; }
+	float GetAvgNeutralKills( )			{ return m_TotalGames > 0 ? (float)m_TotalNeutralKills / m_TotalGames : 0; }
+	float GetAvgTowerKills( )			{ return m_TotalGames > 0 ? (float)m_TotalTowerKills / m_TotalGames : 0; }
+	float GetAvgRaxKills( )				{ return m_TotalGames > 0 ? (float)m_TotalRaxKills / m_TotalGames : 0; }
+	float GetAvgCourierKills( )			{ return m_TotalGames > 0 ? (float)m_TotalCourierKills / m_TotalGames : 0; }
 };
 
 #endif

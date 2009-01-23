@@ -116,7 +116,7 @@ uint32_t CGHostDB :: DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min
 	return 0;
 }
 
-uint32_t CGHostDB :: DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour )
+uint32_t CGHostDB :: DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
 {
 	return 0;
 }
@@ -273,9 +273,12 @@ CDBDotAPlayer :: CDBDotAPlayer( )
 	m_Gold = 0;
 	m_NeutralKills = 0;
 	m_NewColour = 0;
+	m_TowerKills = 0;
+	m_RaxKills = 0;
+	m_CourierKills = 0;
 }
 
-CDBDotAPlayer :: CDBDotAPlayer( uint32_t nID, uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero, uint32_t nNewColour )
+CDBDotAPlayer :: CDBDotAPlayer( uint32_t nID, uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero, uint32_t nNewColour, uint32_t nTowerKills, uint32_t nRaxKills, uint32_t nCourierKills )
 {
 	m_ID = nID;
 	m_GameID = nGameID;
@@ -295,6 +298,9 @@ CDBDotAPlayer :: CDBDotAPlayer( uint32_t nID, uint32_t nGameID, uint32_t nColour
 	m_Items[5] = nItem6;
 	m_Hero = nHero;
 	m_NewColour = nNewColour;
+	m_TowerKills = nTowerKills;
+	m_RaxKills = nRaxKills;
+	m_CourierKills = nCourierKills;
 }
 
 CDBDotAPlayer :: ~CDBDotAPlayer( )
@@ -320,7 +326,7 @@ void CDBDotAPlayer :: SetItem( unsigned int i, string item )
 // CDBDotAPlayerSummary
 //
 
-CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills )
+CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills )
 {
 	m_Server = nServer;
 	m_Name = nName;
@@ -333,6 +339,9 @@ CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint
 	m_TotalCreepDenies = nTotalCreepDenies;
 	m_TotalAssists = nTotalAssists;
 	m_TotalNeutralKills = nTotalNeutralKills;
+	m_TotalTowerKills = nTotalTowerKills;
+	m_TotalRaxKills = nTotalRaxKills;
+	m_TotalCourierKills = nTotalCourierKills;
 }
 
 CDBDotAPlayerSummary :: ~CDBDotAPlayerSummary( )
