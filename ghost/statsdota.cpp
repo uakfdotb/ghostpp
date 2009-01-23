@@ -227,13 +227,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// the frozen throne got hurt
 
-								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + " the Frozen Throne is at " + UTIL_ToString( ValueInt ) + "% HP" );
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Frozen Throne is at " + UTIL_ToString( ValueInt ) + "% HP" );
 							}
 							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 4 ) == "Tree" )
 							{
 								// the world tree got hurt
 
-								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + " the World Tree is at " + UTIL_ToString( ValueInt ) + "% HP" );
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the World Tree is at " + UTIL_ToString( ValueInt ) + "% HP" );
 							}
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "CK" )
 							{
