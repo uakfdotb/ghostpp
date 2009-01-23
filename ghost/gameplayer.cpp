@@ -235,6 +235,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_FinishedLoading = false;
 	m_Lagging = false;
 	m_DropVote = false;
+	m_Muted = false;
 	m_LeftMessageSent = false;
 }
 

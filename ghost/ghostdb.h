@@ -60,7 +60,7 @@ public:
 	virtual uint32_t GamePlayerCount( string name );
 	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( string name );
 	virtual uint32_t DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec );
-	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero );
+	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour );
 	virtual uint32_t DotAPlayerCount( string name );
 	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name );
 	virtual string FromCheck( uint32_t ip );
@@ -253,10 +253,11 @@ private:
 	uint32_t m_NeutralKills;
 	string m_Items[6];
 	string m_Hero;
+	uint32_t m_NewColour;
 
 public:
 	CDBDotAPlayer( );
-	CDBDotAPlayer( uint32_t nID, uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero );
+	CDBDotAPlayer( uint32_t nID, uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero, uint32_t nNewColour );
 	~CDBDotAPlayer( );
 
 	uint32_t GetID( )			{ return m_ID; }
@@ -271,6 +272,7 @@ public:
 	uint32_t GetNeutralKills( )	{ return m_NeutralKills; }
 	string GetItem( unsigned int i );
 	string GetHero( )			{ return m_Hero; }
+	uint32_t GetNewColour( )	{ return m_NewColour; }
 
 	void SetColour( uint32_t nColour )				{ m_Colour = nColour; }
 	void SetKills( uint32_t nKills )				{ m_Kills = nKills; }
@@ -282,6 +284,7 @@ public:
 	void SetNeutralKills( uint32_t nNeutralKills )	{ m_NeutralKills = nNeutralKills; }
 	void SetItem( unsigned int i, string item );
 	void SetHero( string nHero )					{ m_Hero = nHero; }
+	void SetNewColour( uint32_t nNewColour )		{ m_NewColour = nNewColour; }
 };
 
 //

@@ -245,6 +245,14 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 						SFileCloseFile( SubFile );
 					}
+				}
+
+				if( !OverrodeCommonJ )
+					Val = Val ^ XORRotateLeft( (unsigned char *)CommonJ.c_str( ), CommonJ.size( ) );
+
+				if( MapMPQReady )
+				{
+					HANDLE SubFile;
 
 					// override blizzard.j
 
@@ -270,9 +278,6 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 						SFileCloseFile( SubFile );
 					}
 				}
-
-				if( !OverrodeCommonJ )
-					Val = Val ^ XORRotateLeft( (unsigned char *)CommonJ.c_str( ), CommonJ.size( ) );
 
 				if( !OverrodeBlizzardJ )
 					Val = Val ^ XORRotateLeft( (unsigned char *)BlizzardJ.c_str( ), BlizzardJ.size( ) );

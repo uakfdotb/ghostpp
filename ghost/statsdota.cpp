@@ -199,7 +199,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								// Key "8_3"	-> Item 4
 								// Key "8_4"	-> Item 5
 								// Key "8_5"	-> Item 6
-								// Key "id"
+								// Key "id"		-> ID (1-5 for sentinel, 6-10 for scourge, accurate after using -sp and/or -switch)
 
 								if( KeyString == "1" )
 									m_Players[ID]->SetKills( ValueInt );
@@ -230,7 +230,15 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								else if( KeyString == "9" )
 									m_Players[ID]->SetHero( string( Value.rbegin( ), Value.rend( ) ) );
 								else if( KeyString == "id" )
-									m_Players[ID]->SetColour( ValueInt );
+								{
+									// DotA sends id values from 1-10 with 1-5 being sentinel players and 6-10 being scourge players
+									// unfortunately the actual player colours are from 1-5 and from 7-11 so we need to deal with this case here
+
+									if( ValueInt >= 6 )
+										m_Players[ID]->SetNewColour( ValueInt + 1 );
+									else
+										m_Players[ID]->SetNewColour( ValueInt );
+								}
 							}
 						}
 
@@ -280,8 +288,6 @@ void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
 				return;
 			}
 
-			// this nested loop is inefficient but not worth fixing
-
 			for( unsigned int j = i + 1; j < 12; j++ )
 			{
 				if( m_Players[j] && Colour == m_Players[j]->GetColour( ) )
@@ -299,7 +305,7 @@ void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
 	{
 		if( m_Players[i] )
 		{
-			DB->DotAPlayerAdd( GameID, m_Players[i]->GetColour( ), m_Players[i]->GetKills( ), m_Players[i]->GetDeaths( ), m_Players[i]->GetCreepKills( ), m_Players[i]->GetCreepDenies( ), m_Players[i]->GetAssists( ), m_Players[i]->GetGold( ), m_Players[i]->GetNeutralKills( ), m_Players[i]->GetItem( 0 ), m_Players[i]->GetItem( 1 ), m_Players[i]->GetItem( 2 ), m_Players[i]->GetItem( 3 ), m_Players[i]->GetItem( 4 ), m_Players[i]->GetItem( 5 ), m_Players[i]->GetHero( ) );
+			DB->DotAPlayerAdd( GameID, m_Players[i]->GetColour( ), m_Players[i]->GetKills( ), m_Players[i]->GetDeaths( ), m_Players[i]->GetCreepKills( ), m_Players[i]->GetCreepDenies( ), m_Players[i]->GetAssists( ), m_Players[i]->GetGold( ), m_Players[i]->GetNeutralKills( ), m_Players[i]->GetItem( 0 ), m_Players[i]->GetItem( 1 ), m_Players[i]->GetItem( 2 ), m_Players[i]->GetItem( 3 ), m_Players[i]->GetItem( 4 ), m_Players[i]->GetItem( 5 ), m_Players[i]->GetHero( ), m_Players[i]->GetNewColour( ) );
 			Players++;
 		}
 	}
