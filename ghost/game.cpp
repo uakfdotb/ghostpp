@@ -830,18 +830,65 @@ void CBaseGame :: SendAllActions( )
 
 void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 {
-	SendChat( player, " " );
-	SendChat( player, " " );
-	SendChat( player, " " );
-	SendChat( player, " " );
-	SendChat( player, "GHost++                                        http://forum.codelain.com/" );
-	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
-	SendChat( player, "          Game Name:     " + m_GameName );
+	// read from motd.txt if available (thanks to zeeg for this addition)
+
+	ifstream in;
+	in.open( "motd.txt" );
+
+	if( in.fail( ) )
+	{
+		// default welcome message
+
+		SendChat( player, " " );
+		SendChat( player, " " );
+		SendChat( player, " " );
+		SendChat( player, " " );
+		SendChat( player, "GHost++                                        http://forum.codelain.com/" );
+		SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
+		SendChat( player, "          Game Name:     " + m_GameName );
+	}
+	else
+	{
+		// custom welcome message
+		// don't print more than 8 lines
+
+		uint32_t Count = 0;
+		string Line;
+
+		while( !in.eof( ) && Count < 8 )
+		{
+			getline( in, Line );
+			SendChat( player, Line );
+			Count++;
+		}
+
+		in.close( );
+	}
 }
 
 void CBaseGame :: SendEndMessage( )
 {
+	// read from gameover.txt if available
 
+	ifstream in;
+	in.open( "gameover.txt" );
+
+	if( !in.fail( ) )
+	{
+		// don't print more than 8 lines
+
+		uint32_t Count = 0;
+		string Line;
+
+		while( !in.eof( ) && Count < 8 )
+		{
+			getline( in, Line );
+			SendAllChat( Line );
+			Count++;
+		}
+
+		in.close( );
+	}
 }
 
 void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
@@ -1738,6 +1785,28 @@ void CBaseGame :: EventGameLoaded( )
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		SendChat( *i, m_GHost->m_Language->YourLoadingTimeWas( UTIL_ToString( (float)( (*i)->GetFinishedLoadingTicks( ) - m_StartedLoadingTicks ) / 1000, 2 ) ) );
+
+	// read from gameloaded.txt if available
+
+	ifstream in;
+	in.open( "gameloaded.txt" );
+
+	if( !in.fail( ) )
+	{
+		// don't print more than 8 lines
+
+		uint32_t Count = 0;
+		string Line;
+
+		while( !in.eof( ) && Count < 8 )
+		{
+			getline( in, Line );
+			SendAllChat( Line );
+			Count++;
+		}
+
+		in.close( );
+	}
 }
 
 unsigned char CBaseGame :: GetSIDFromPID( unsigned char PID )
