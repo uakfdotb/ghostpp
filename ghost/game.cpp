@@ -4194,6 +4194,8 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				SendChat( player, m_GHost->m_Language->AutoHostDisabled( ) );
 				m_GHost->m_AutoHostGameName.clear( );
 				m_GHost->m_AutoHostMapCFG.clear( );
+				m_GHost->m_AutoHostOwner.clear( );
+				m_GHost->m_AutoHostServer.clear( );
 				m_GHost->m_AutoHostMaximumGames = 0;
 				m_GHost->m_AutoHostAutoStartPlayers = 0;
 				m_GHost->m_LastAutoHostTime = GetTime( );
@@ -4233,6 +4235,8 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							SendChat( player, m_GHost->m_Language->AutoHostEnabled( ) );
 							m_GHost->m_AutoHostGameName = GameName;
 							m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
+							m_GHost->m_AutoHostOwner = User;
+							m_GHost->m_AutoHostServer.clear( );
 							m_GHost->m_AutoHostMaximumGames = MaximumGames;
 							m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 							m_GHost->m_LastAutoHostTime = GetTime( );
