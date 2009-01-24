@@ -90,6 +90,7 @@ protected:
 	uint32_t m_LastLagScreenTime;				// GetTime when the last lag screen was active (continuously updated)
 	uint32_t m_LastReservedSeen;				// GetTime when the last reserved player was seen in the lobby
 	bool m_Locked;								// if the game owner is the only one allowed to run game commands or not
+	bool m_RefreshCompleted;					// if the second half of the refresh sequence has been completed or not
 	bool m_RefreshMessages;						// if we should display "game refreshed..." messages or not
 	bool m_MuteAll;								// if we should stop forwarding ingame chat messages targeted for all players or not
 	bool m_MuteLobby;							// if we should stop forwarding lobby chat messages

@@ -88,6 +88,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_LastLagScreenTime = 0;
 	m_LastReservedSeen = GetTime( );
 	m_Locked = false;
+	m_RefreshCompleted = false;
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
 	m_MuteAll = false;
 	m_MuteLobby = false;
@@ -341,7 +342,7 @@ bool CBaseGame :: Update( void *fd )
 		m_LastPingTime = GetTime( );
 	}
 
-	// refresh every 10 seconds
+	// refresh (part 1) every 10 seconds
 
 	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 10 )
 	{
@@ -352,15 +353,27 @@ bool CBaseGame :: Update( void *fd )
 			// we send two game refreshes, the first one to indicate the game is full and the second one to indicate the game is open
 			// this is why "refreshing the slots" in Warcraft III works because battle.net seems to advertise games that change states more than those that don't
 			// therefore by doing this we're following the same procedure Warcraft III does except that we don't actually have to close and open any slots
+			// update: only the first packet is sent now, we delay for 2 seconds before sending the second packet
 
 			(*i)->SendGameRefresh( m_GameState | GAME_FULL, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
-			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
 		}
+
+		m_RefreshCompleted = false;
 
 		if( m_RefreshMessages )
 			SendAllChat( m_GHost->m_Language->GameRefreshed( ) );
 
 		m_LastRefreshTime = GetTime( );
+	}
+
+	// refresh (part 2)
+
+	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && !m_RefreshCompleted && GetTime( ) >= m_LastRefreshTime + 2 )
+	{
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
+
+		m_RefreshCompleted = true;
 	}
 
 	// send more map data

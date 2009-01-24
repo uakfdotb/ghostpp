@@ -1649,10 +1649,6 @@ void CBNET :: SendGameRefresh( unsigned char state, string gameName, string host
 			MapGameType.push_back( 0 );
 			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
 		}
-
-		// flush the socket because we normally send refreshes in pairs and it's more realistic if they arrive in different segments
-
-		m_Socket->DoSend( );
 	}
 }
 
