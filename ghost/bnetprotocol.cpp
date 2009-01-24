@@ -662,7 +662,7 @@ Flags:
 		UTIL_AppendByteArray( packet, CustomGame, 4 );				// Custom Game
 		UTIL_AppendByteArray( packet, gameName );					// Game Name
 		packet.push_back( 0 );										// Game Password is NULL
-		packet.push_back( 57 );										// Slots Free (ascii 57 = char '9' = 9 slots free)
+		packet.push_back( 98 );										// Slots Free (ascii 98 = char 'b' = 11 slots free) - note: do not reduce this as this is the # of PID's Warcraft III will allocate
 		UTIL_AppendByteArray( packet, HostCounterString, false );	// Host Counter
 		UTIL_AppendByteArray( packet, StatString );					// Stat String
 		packet.push_back( 0 );										// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)
