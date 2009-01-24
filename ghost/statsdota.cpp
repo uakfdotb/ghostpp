@@ -99,7 +99,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 						if( DataString == "Data" )
 						{
 							// these are received during the game
-							// we ignore these for now because they don't provide much more information than we already receive at the end of the game
 							// you could use these to calculate killing sprees and double or triple kills (you'd have to make up your own time restrictions though)
 							// you could also build a table of "who killed who" data
 

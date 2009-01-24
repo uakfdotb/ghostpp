@@ -112,6 +112,7 @@ public:
 	virtual string GetOwnerName( )				{ return m_OwnerName; }
 	virtual string GetCreatorName( )			{ return m_CreatorName; }
 	virtual string GetCreatorServer( )			{ return m_CreatorServer; }
+	virtual uint32_t GetHostCounter( )			{ return m_HostCounter; }
 	virtual uint32_t GetLastLagScreenTime( )	{ return m_LastLagScreenTime; }
 	virtual bool GetLocked( )					{ return m_Locked; }
 	virtual bool GetRefreshMessages( )			{ return m_RefreshMessages; }

@@ -938,9 +938,9 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 		}
 
 		if( saveGame )
-			(*i)->SendGameCreate( gameState, gameName, string( ), m_Map, m_SaveGame );
+			(*i)->SendGameCreate( gameState, gameName, string( ), m_Map, m_SaveGame, m_CurrentGame->GetHostCounter( ) );
 		else
-			(*i)->SendGameCreate( gameState, gameName, string( ), m_Map, NULL );
+			(*i)->SendGameCreate( gameState, gameName, string( ), m_Map, NULL, m_CurrentGame->GetHostCounter( ) );
 	}
 
 	if( m_AdminGame )

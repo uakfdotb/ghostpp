@@ -21,7 +21,6 @@
 #include "ghost.h"
 #include "util.h"
 #include "bnetprotocol.h"
-#include "gameprotocol.h"
 
 CBNETProtocol :: CBNETProtocol( )
 {
@@ -592,7 +591,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CHECKAD( )
 	return packet;
 }
 
-BYTEARRAY CBNETProtocol :: SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC )
+BYTEARRAY CBNETProtocol :: SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t hostCounter )
 {
 	// todotodo: sort out how GameType works, the documentation is horrendous
 
@@ -622,7 +621,13 @@ Flags:
 
 	unsigned char Unknown[]		= { 255,  3,  0,  0 };
 	unsigned char CustomGame[]	= {   0,  0,  0,  0 };
-	unsigned char HostCounter[]	= {  49, 48, 48, 48, 48, 48, 48, 48 };	// '1','0','0','0','0','0','0','0'
+
+	string HostCounterString = UTIL_ToString( hostCounter );
+
+	if( HostCounterString.size( ) < 8 )
+		HostCounterString.insert( 0, 8 - HostCounterString.size( ), '0' );
+
+	HostCounterString = string( HostCounterString.rbegin( ), HostCounterString.rend( ) );
 
 	BYTEARRAY packet;
 
@@ -639,33 +644,28 @@ Flags:
 	StatString.push_back( 0 );
 	StatString = UTIL_EncodeStatString( StatString );
 
-	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 && StatString.size( ) < 128 )
+	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 && StatString.size( ) < 128 && HostCounterString.size( ) == 8 )
 	{
 		// make the rest of the packet
 
-		packet.push_back( BNET_HEADER_CONSTANT );				// BNET header constant
-		packet.push_back( SID_STARTADVEX3 );					// SID_STARTADVEX3
-		packet.push_back( 0 );									// packet length will be assigned later
-		packet.push_back( 0 );									// packet length will be assigned later
-		packet.push_back( state );								// State (16 = public, 17 = private, 18 = close)
-		packet.push_back( 0 );									// State continued...
-		packet.push_back( 0 );									// State continued...
-		packet.push_back( 0 );									// State continued...
-		UTIL_AppendByteArray( packet, upTime, false );			// time since creation
-		UTIL_AppendByteArray( packet, mapGameType );			// Game Type, Parameter
-		UTIL_AppendByteArray( packet, Unknown, 4 );				// ???
-		UTIL_AppendByteArray( packet, CustomGame, 4 );			// Custom Game
-		UTIL_AppendByteArray( packet, gameName );				// Game Name
-		packet.push_back( 0 );									// Game Password is NULL
-
-		if( state & GAME_FULL )
-			packet.push_back( 48 );								// Slots Free (ascii 48 = hex '0' = 0 slots free)
-		else
-			packet.push_back( 98 );								// Slots Free (ascii 98 = hex 'b' = 11 slots free)
-
-		UTIL_AppendByteArray( packet, HostCounter, 8 );			// Host Counter
-		UTIL_AppendByteArray( packet, StatString );				// Stat String
-		packet.push_back( 0 );									// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)
+		packet.push_back( BNET_HEADER_CONSTANT );					// BNET header constant
+		packet.push_back( SID_STARTADVEX3 );						// SID_STARTADVEX3
+		packet.push_back( 0 );										// packet length will be assigned later
+		packet.push_back( 0 );										// packet length will be assigned later
+		packet.push_back( state );									// State (16 = public, 17 = private, 18 = close)
+		packet.push_back( 0 );										// State continued...
+		packet.push_back( 0 );										// State continued...
+		packet.push_back( 0 );										// State continued...
+		UTIL_AppendByteArray( packet, upTime, false );				// time since creation
+		UTIL_AppendByteArray( packet, mapGameType );				// Game Type, Parameter
+		UTIL_AppendByteArray( packet, Unknown, 4 );					// ???
+		UTIL_AppendByteArray( packet, CustomGame, 4 );				// Custom Game
+		UTIL_AppendByteArray( packet, gameName );					// Game Name
+		packet.push_back( 0 );										// Game Password is NULL
+		packet.push_back( 57 );										// Slots Free (ascii 57 = char '9' = 9 slots free)
+		UTIL_AppendByteArray( packet, HostCounterString, false );	// Host Counter
+		UTIL_AppendByteArray( packet, StatString );					// Stat String
+		packet.push_back( 0 );										// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)
 		AssignLength( packet );
 	}
 	else

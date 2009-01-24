@@ -353,8 +353,8 @@ bool CBaseGame :: Update( void *fd )
 			// this is why "refreshing the slots" in Warcraft III works because battle.net seems to advertise games that change states more than those that don't
 			// therefore by doing this we're following the same procedure Warcraft III does except that we don't actually have to close and open any slots
 
-			(*i)->SendGameRefresh( m_GameState | GAME_FULL, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime );
-			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime );
+			(*i)->SendGameRefresh( m_GameState | GAME_FULL, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
+			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
 		}
 
 		if( m_RefreshMessages )
@@ -3688,8 +3688,9 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
+					m_HostCounter = m_GHost->m_HostCounter++;
 					(*i)->SendGameUncreate( );
-					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL );
+					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL, m_HostCounter );
 				}
 
 				m_CreationTime = GetTime( );
@@ -3708,8 +3709,9 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
+					m_HostCounter = m_GHost->m_HostCounter++;
 					(*i)->SendGameUncreate( );
-					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL );
+					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL, m_HostCounter );
 				}
 
 				m_CreationTime = GetTime( );

@@ -104,12 +104,14 @@ void UTIL_AppendByteArray( BYTEARRAY &b, unsigned char *a, int size )
 	UTIL_AppendByteArray( b, UTIL_CreateByteArray( a, size ) );
 }
 
-void UTIL_AppendByteArray( BYTEARRAY &b, string append )
+void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator )
 {
 	// append the string plus a null terminator
 
 	b.insert( b.end( ), append.begin( ), append.end( ) );
-	b.push_back( 0 );
+
+	if( terminator )
+		b.push_back( 0 );
 }
 
 void UTIL_AppendByteArray( BYTEARRAY &b, uint16_t i, bool reverse )

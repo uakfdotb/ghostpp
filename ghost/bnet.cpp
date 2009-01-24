@@ -1592,7 +1592,7 @@ void CBNET :: SendChatCommand( string chatCommand )
 	}
 }
 
-void CBNET :: SendGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *savegame )
+void CBNET :: SendGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *savegame, uint32_t hostCounter )
 {
 	if( m_LoggedIn && map )
 	{
@@ -1603,7 +1603,7 @@ void CBNET :: SendGameCreate( unsigned char state, string gameName, string hostN
 
 		// a game creation message is just a game refresh message with upTime = 0
 
-		SendGameRefresh( state, gameName, hostName, map, savegame, 0 );
+		SendGameRefresh( state, gameName, hostName, map, savegame, 0, hostCounter );
 	}
 }
 
@@ -1613,7 +1613,7 @@ void CBNET :: SendGameUncreate( )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_STOPADV( ) );
 }
 
-void CBNET :: SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime )
+void CBNET :: SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter )
 {
 	if( hostName.empty( ) )
 	{
@@ -1639,7 +1639,7 @@ void CBNET :: SendGameRefresh( unsigned char state, string gameName, string host
 			BYTEARRAY MapHeight;
 			MapHeight.push_back( 0 );
 			MapHeight.push_back( 0 );
-			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ) ) );
+			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), hostCounter ) );
 		}
 		else
 		{
@@ -1647,8 +1647,12 @@ void CBNET :: SendGameRefresh( unsigned char state, string gameName, string host
 			MapGameType.push_back( 32 );
 			MapGameType.push_back( 73 );
 			MapGameType.push_back( 0 );
-			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ) ) );
+			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
 		}
+
+		// flush the socket because we normally send refreshes in pairs and it's more realistic if they arrive in different segments
+
+		m_Socket->DoSend( );
 	}
 }
 
