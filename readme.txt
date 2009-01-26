@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 11.3
+GHost++ Version 11.4
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -429,6 +429,9 @@ In game lobby:
 !unmute <name>          unmute a player (it tries to do a partial match)
 !version                display version information (can be used by non admins, sends a private message visible only to the user)
 !virtualhost <name>     change the virtual host name
+!votecancel             cancel a votekick
+!votekick <name>        start a votekick (it tries to do a partial match, can be used by non admins)
+!yes                    register a vote in the votekick (can be used by non admins)
 
 In game:
 
@@ -456,6 +459,9 @@ In game:
 !unmute <name>          unmute a player (it tries to do a partial match)
 !unmuteall              unmute global chat
 !version                display version information (can be used by non admins, sends a private message visible only to the user)
+!votecancel             cancel a votekick
+!votekick <name>        start a votekick (it tries to do a partial match, can be used by non admins)
+!yes                    register a vote in the votekick (can be used by non admins)
 
 In admin game lobby:
 
@@ -547,6 +553,35 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 =========
 CHANGELOG
 =========
+
+Version 11.4
+ - the database schema has been updated to version number 6
+  * GHost++ will automatically update your database schema if it's out of date
+ - major optimizations to the database to improve statsdota performance
+ - chat messages sent to battle.net servers are now limited to 255 characters instead of 220
+ - chat messages sent to pvpgn servers are now limited to bnet<x>_custom_maxmessagelength characters
+ - added new config value bnet<x>_custom_maxmessagelength
+ - chat messages sent in the game lobby are now limited to 254 characters
+ - chat messages sent ingame are now limited to 127 characters
+ - added new config value bot_votekickallowed
+ - added new config value bot_votekickpercentage
+ - added new config value bot_defaultmap
+ - added new config value bot_motdfile
+ - added new config value bot_gameloadedfile
+ - added new config value bot_gameoverfile
+ - added new command !votekick
+ - added new command !votecancel
+ - added new command !yes
+ - root admins can now use lobby and game commands while the game is locked
+ - root admins can now use the !lock and !unlock commands
+ - modified the battle.net refresh procedure to improve performance
+ - refresh messages are sent every 12 seconds now instead of 10
+ - added a silent gameover timer triggered by one player being left and/or by the stats class
+ - statsdota now checks the "id" value for validity
+ - fixed a bug where games couldn't be rehosted on pvpgn servers (first appeared with the new refresh code)
+ - fixed a minor bug where users would sometimes be listed as admins when a root admin used the !check command (they weren't)
+ - autohosted games are no longer created with an owner
+ - minor adjustments to same language.cfg entries
 
 Version 11.3
  - the database schema has been updated to version number 6
