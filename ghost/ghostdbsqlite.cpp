@@ -486,11 +486,15 @@ void CGHostDBSQLite :: Upgrade6_7( )
 
 	if( m_DB->Exec( "CREATE INDEX idx_gameid ON gameplayers ( gameid )" ) != SQLITE_OK )
 		CONSOLE_Print( "[SQLITE3] error creating idx_gameid index on gameplayers table - " + m_DB->GetError( ) );
+	else
+		CONSOLE_Print( "[SQLITE3] added new index idx_gameid to table gameplayers" );
 
 	// add new index to table dotaplayers
 
 	if( m_DB->Exec( "CREATE INDEX idx_gameid_colour ON dotaplayers ( gameid, colour )" ) != SQLITE_OK )
 		CONSOLE_Print( "[SQLITE3] error creating idx_gameid_colour index on dotaplayers table - " + m_DB->GetError( ) );
+	else
+		CONSOLE_Print( "[SQLITE3] added new index idx_gameid_colour to table dotaplayers" );
 
 	// update schema number
 
