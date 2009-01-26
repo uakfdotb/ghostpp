@@ -87,6 +87,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_StartedLaggingTime = 0;
 	m_LastLagScreenTime = 0;
 	m_LastReservedSeen = GetTime( );
+	m_GameOverTime = 0;
 	m_Locked = false;
 	m_RefreshCompleted = false;
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
@@ -342,9 +343,9 @@ bool CBaseGame :: Update( void *fd )
 		m_LastPingTime = GetTime( );
 	}
 
-	// refresh (part 1) every 10 seconds
+	// refresh (part 1) every 12 seconds
 
-	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 10 )
+	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 12 )
 	{
 		// send a game refresh packet to each battle.net connection
 
@@ -353,7 +354,7 @@ bool CBaseGame :: Update( void *fd )
 			// we send two game refreshes, the first one to indicate the game is full and the second one to indicate the game is open
 			// this is why "refreshing the slots" in Warcraft III works because battle.net seems to advertise games that change states more than those that don't
 			// therefore by doing this we're following the same procedure Warcraft III does except that we don't actually have to close and open any slots
-			// update: only the first packet is sent now, we delay for 2 seconds before sending the second packet
+			// update: only the first packet is sent now, we delay for 3 seconds before sending the second packet
 
 			(*i)->SendGameRefresh( m_GameState | GAME_FULL, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
 		}
@@ -368,7 +369,7 @@ bool CBaseGame :: Update( void *fd )
 
 	// refresh (part 2)
 
-	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && !m_RefreshCompleted && GetTime( ) >= m_LastRefreshTime + 2 )
+	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && !m_RefreshCompleted && GetTime( ) >= m_LastRefreshTime + 3 )
 	{
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
@@ -605,7 +606,23 @@ bool CBaseGame :: Update( void *fd )
 	if( m_GameLoaded && !m_Lagging && GetTicks( ) >= m_LastActionSentTicks + m_Latency )
 		SendAllActions( );
 
-	// if there aren't any players left and the game is loading/loaded then it's over and we can mark ourselves for deletion
+	// start the gameover timer if there's only one player left
+
+	if( m_Players.size( ) == 1 && m_GameOverTime == 0 && ( m_GameLoading || m_GameLoaded ) )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (one player left)" );
+		m_GameOverTime = GetTime( );
+	}
+
+	// finish the gameover timer
+
+	if( m_GameOverTime != 0 && GetTime( ) >= m_GameOverTime + 60 )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] is over (gameover timer finished)" );
+		StopPlayers( "was disconnected (gameover timer finished)" );
+	}
+
+	// end the game if there aren't any players left
 
 	if( m_Players.empty( ) && ( m_GameLoading || m_GameLoaded ) )
 	{
@@ -2728,8 +2745,6 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_Stats = new CStatsDOTA( this );
 	else
 		m_Stats = NULL;
-
-	m_GameOverTime = 0;
 }
 
 CGame :: ~CGame( )
@@ -2817,7 +2832,7 @@ void CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 
 	if( m_Stats && m_Stats->ProcessAction( action ) && m_GameOverTime == 0 )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] stats class reported game over" );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (stats class reported game over)" );
 		SendEndMessage( );
 		m_GameOverTime = GetTime( );
 	}

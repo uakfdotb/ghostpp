@@ -394,7 +394,7 @@ void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
 	{
 		if( m_Players[i] )
 		{
-			uint32_t Colour = m_Players[i]->GetColour( );
+			uint32_t Colour = m_Players[i]->GetNewColour( );
 
 			if( !( ( Colour >= 1 && Colour <= 5 ) || ( Colour >= 7 && Colour <= 11 ) ) )
 			{
@@ -404,7 +404,7 @@ void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
 
 			for( unsigned int j = i + 1; j < 12; j++ )
 			{
-				if( m_Players[j] && Colour == m_Players[j]->GetColour( ) )
+				if( m_Players[j] && Colour == m_Players[j]->GetNewColour( ) )
 				{
 					CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, duplicate colour found" );
 					return;

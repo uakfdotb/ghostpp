@@ -89,6 +89,7 @@ protected:
 	uint32_t m_StartedLaggingTime;				// GetTime when the last lag screen started
 	uint32_t m_LastLagScreenTime;				// GetTime when the last lag screen was active (continuously updated)
 	uint32_t m_LastReservedSeen;				// GetTime when the last reserved player was seen in the lobby
+	uint32_t m_GameOverTime;					// GetTime when the game was over
 	bool m_Locked;								// if the game owner is the only one allowed to run game commands or not
 	bool m_RefreshCompleted;					// if the second half of the refresh sequence has been completed or not
 	bool m_RefreshMessages;						// if we should display "game refreshed..." messages or not
@@ -240,7 +241,6 @@ protected:
 	CDBGame *m_DBGame;							// potential game data for the database
 	vector<CDBGamePlayer *> m_DBGamePlayers;	// vector of potential gameplayer data for the database
 	CStats *m_Stats;							// class to keep track of game stats such as kills/deaths/assists in dota
-	uint32_t m_GameOverTime;					// GetTime when the game was over as reported by the stats class
 
 public:
 	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );

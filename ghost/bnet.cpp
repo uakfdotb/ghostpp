@@ -1585,8 +1585,16 @@ void CBNET :: SendChatCommand( string chatCommand )
 
 	if( m_LoggedIn )
 	{
-		if( chatCommand.size( ) > 220 )
-			chatCommand = chatCommand.substr( 0, 220 );
+		if( m_PasswordHashType != "pvpgn" )
+		{
+			if( chatCommand.size( ) > 220 )
+				chatCommand = chatCommand.substr( 0, 220 );
+		}
+		else
+		{
+			if( chatCommand.size( ) > 200 )
+				chatCommand = chatCommand.substr( 0, 200 );
+		}
 
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
 	}
