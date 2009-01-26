@@ -38,7 +38,7 @@
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -64,6 +64,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyT
 	m_EXEVersion = nEXEVersion;
 	m_EXEVersionHash = nEXEVersionHash;
 	m_PasswordHashType = nPasswordHashType;
+	m_MaxMessageLength = nMaxMessageLength;
 	m_NextConnectTime = GetTime( );
 	m_LastNullTime = 0;
 	m_LastChatCommandTicks = 0;
@@ -1585,16 +1586,11 @@ void CBNET :: SendChatCommand( string chatCommand )
 
 	if( m_LoggedIn )
 	{
-		if( m_PasswordHashType != "pvpgn" )
-		{
-			if( chatCommand.size( ) > 220 )
-				chatCommand = chatCommand.substr( 0, 220 );
-		}
-		else
-		{
-			if( chatCommand.size( ) > 200 )
-				chatCommand = chatCommand.substr( 0, 200 );
-		}
+		if( m_PasswordHashType == "pvpgn" && chatCommand.size( ) > m_MaxMessageLength )
+			chatCommand = chatCommand.substr( 0, m_MaxMessageLength );
+
+		if( chatCommand.size( ) > 255 )
+			chatCommand = chatCommand.substr( 0, 255 );
 
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
 	}

@@ -507,7 +507,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTE
 {
 	BYTEARRAY packet;
 
-	if( !toPIDs.empty( ) && !message.empty( ) )
+	if( !toPIDs.empty( ) && !message.empty( ) && message.size( ) < 255 )
 	{
 		packet.push_back( W3GS_HEADER_CONSTANT );	// W3GS header constant
 		packet.push_back( W3GS_CHAT_FROM_HOST );	// W3GS_CHAT_FROM_HOST

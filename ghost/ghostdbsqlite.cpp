@@ -187,7 +187,7 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 			// note to self: update the SchemaNumber and the database structure when making a new schema
 
 			CONSOLE_Print( "[SQLITE3] couldn't find admins table, assuming database is empty" );
-			SchemaNumber = "6";
+			SchemaNumber = "7";
 
 			if( m_DB->Exec( "CREATE TABLE admins ( id INTEGER PRIMARY KEY, name TEXT NOT NULL, server TEXT NOT NULL DEFAULT \"\" )" ) != SQLITE_OK )
 				CONSOLE_Print( "[SQLITE3] error creating admins table - " + m_DB->GetError( ) );
@@ -227,6 +227,12 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 
 			if( m_DB->Exec( "CREATE TABLE downloads ( id INTEGER PRIMARY KEY, map TEXT NOT NULL, mapsize INTEGER NOT NULL, datetime TEXT NOT NULL, name TEXT NOT NULL, ip TEXT NOT NULL, spoofed INTEGER NOT NULL, spoofedrealm TEXT NOT NULL, downloadtime INTEGER NOT NULL )" ) != SQLITE_OK )
 				CONSOLE_Print( "[SQLITE3] error creating downloads table - " + m_DB->GetError( ) );
+
+			if( m_DB->Exec( "CREATE INDEX idx_gameid ON gameplayers ( gameid )" ) != SQLITE_OK )
+				CONSOLE_Print( "[SQLITE3] error creating idx_gameid index on gameplayers table - " + m_DB->GetError( ) );
+
+			if( m_DB->Exec( "CREATE INDEX idx_gameid_colour ON dotaplayers ( gameid, colour )" ) != SQLITE_OK )
+				CONSOLE_Print( "[SQLITE3] error creating idx_gameid_colour index on dotaplayers table - " + m_DB->GetError( ) );
 		}
 	}
 	else
@@ -260,6 +266,12 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 	{
 		Upgrade5_6( );
 		SchemaNumber = "6";
+	}
+
+	if( SchemaNumber == "6" )
+	{
+		Upgrade6_7( );
+		SchemaNumber = "7";
 	}
 
 	if( m_DB->Exec( "CREATE TEMPORARY TABLE iptocountry ( ip1 INTEGER NOT NULL, ip2 INTEGER NOT NULL, country TEXT NOT NULL, PRIMARY KEY ( ip1, ip2 ) )" ) != SQLITE_OK )
@@ -464,6 +476,30 @@ void CGHostDBSQLite :: Upgrade5_6( )
 		CONSOLE_Print( "[SQLITE3] updated schema number [6]" );
 
 	CONSOLE_Print( "[SQLITE3] schema upgrade v5 to v6 finished" );
+}
+
+void CGHostDBSQLite :: Upgrade6_7( )
+{
+	CONSOLE_Print( "[SQLITE3] schema upgrade v6 to v7 started" );
+
+	// add new index to table gameplayers
+
+	if( m_DB->Exec( "CREATE INDEX idx_gameid ON gameplayers ( gameid )" ) != SQLITE_OK )
+		CONSOLE_Print( "[SQLITE3] error creating idx_gameid index on gameplayers table - " + m_DB->GetError( ) );
+
+	// add new index to table dotaplayers
+
+	if( m_DB->Exec( "CREATE INDEX idx_gameid_colour ON dotaplayers ( gameid, colour )" ) != SQLITE_OK )
+		CONSOLE_Print( "[SQLITE3] error creating idx_gameid_colour index on dotaplayers table - " + m_DB->GetError( ) );
+
+	// update schema number
+
+	if( m_DB->Exec( "UPDATE config SET value=\"7\" where name=\"schema_number\"" ) != SQLITE_OK )
+		CONSOLE_Print( "[SQLITE3] error updating schema number [7] - " + m_DB->GetError( ) );
+	else
+		CONSOLE_Print( "[SQLITE3] updated schema number [7]" );
+
+	CONSOLE_Print( "[SQLITE3] schema upgrade v6 to v7 finished" );
 }
 
 bool CGHostDBSQLite :: Begin( )

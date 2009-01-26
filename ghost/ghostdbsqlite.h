@@ -126,6 +126,9 @@ CREATE TEMPORARY TABLE iptocountry (
 	PRIMARY KEY ( ip1, ip2 )
 )
 
+CREATE INDEX idx_gameid ON gameplayers ( gameid )
+CREATE INDEX idx_gameid_colour ON dotaplayers ( gameid, colour )
+
  **************
  *** SCHEMA ***
  **************/
@@ -183,6 +186,7 @@ public:
 	virtual void Upgrade3_4( );
 	virtual void Upgrade4_5( );
 	virtual void Upgrade5_6( );
+	virtual void Upgrade6_7( );
 
 	virtual bool Begin( );
 	virtual bool Commit( );

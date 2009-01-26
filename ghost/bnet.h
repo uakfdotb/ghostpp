@@ -62,6 +62,7 @@ private:
 	BYTEARRAY m_EXEVersion;						// custom exe version for PvPGN users
 	BYTEARRAY m_EXEVersionHash;					// custom exe version hash for PvPGN users
 	string m_PasswordHashType;					// password hash type for PvPGN users
+	uint32_t m_MaxMessageLength;				// maximum message length for PvPGN users
 	uint32_t m_NextConnectTime;					// GetTime when we should try connecting to battle.net next (after we get disconnected)
 	uint32_t m_LastNullTime;					// GetTime when the last null packet was sent for detecting disconnects
 	uint32_t m_LastChatCommandTicks;			// GetTicks when the last chat command was sent for the m_ChatCommands queue
@@ -72,7 +73,7 @@ private:
 	bool m_HoldClan;							// whether to auto hold clan members when creating a game or not
 
 public:
-	CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType );
+	CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength );
 	~CBNET( );
 
 	bool GetExiting( )					{ return m_Exiting; }

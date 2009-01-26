@@ -133,6 +133,12 @@ public:
 	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players
 	uint32_t m_Latency;						// config value: the latency (by default)
 	uint32_t m_SyncLimit;					// config value: the maximum number of packets a player can fall out of sync before starting the lag screen (by default)
+	bool m_VoteKickAllowed;					// config value: if votekicks are allowed or not
+	uint32_t m_VoteKickPercentage;			// config value: percentage of players required to vote yes for a votekick to pass
+	string m_DefaultMap;					// config value: default map (map.cfg)
+	string m_MOTDFile;						// config value: motd.txt
+	string m_GameLoadedFile;				// config value: gameloaded.txt
+	string m_GameOverFile;					// config value: gameover.txt
 	bool m_AdminGameCreate;					// config value: create the admin game or not
 	uint16_t m_AdminGamePort;				// config value: the port to host the admin game on
 	string m_AdminGamePassword;				// config value: the admin game password

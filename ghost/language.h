@@ -164,7 +164,7 @@ public:
 	string BotDisabled( );
 	string BotEnabled( );
 	string UnableToCreateGameInvalidMap( string gamename );
-	string WaitingForPlayersBeforeAutoStart( string players );
+	string WaitingForPlayersBeforeAutoStart( string players, string playersleft );
 	string AutoStartDisabled( );
 	string AutoStartEnabled( string players );
 	string AnnounceMessageEnabled( );
@@ -188,6 +188,20 @@ public:
 	string UpdatingClanList( );
 	string UpdatingFriendsList( );
 	string MultipleIPAddressUsageDetected( string player, string others );
+	string UnableToVoteKickAlreadyInProgress( );
+	string UnableToVoteKickNotEnoughPlayers( );
+	string UnableToVoteKickNoMatchesFound( string victim );
+	string UnableToVoteKickPlayerIsReserved( string victim );
+	string StartedVoteKick( string victim, string user, string votesneeded );
+	string UnableToVoteKickFoundMoreThanOneMatch( string victim );
+	string VoteKickPassed( string victim );
+	string ErrorVoteKickingPlayer( string victim );
+	string VoteKickAcceptedNeedMoreVotes( string victim, string user, string votes );
+	string VoteKickCancelled( string victim );
+	string VoteKickExpired( string victim );
+	string WasKickedByVote( );
+	string TypeYesToVote( string commandtrigger );
+	string PlayersNotYetPingedAutoStart( string notpinged );
 };
 
 #endif

@@ -961,10 +961,11 @@ string CLanguage :: UnableToCreateGameInvalidMap( string gamename )
 	return Out;
 }
 
-string CLanguage :: WaitingForPlayersBeforeAutoStart( string players )
+string CLanguage :: WaitingForPlayersBeforeAutoStart( string players, string playersleft )
 {
 	string Out = m_CFG->GetString( "lang_0129", "lang_0129" );
 	Replace( Out, "$PLAYERS$", players );
+	Replace( Out, "$PLAYERSLEFT$", playersleft );
 	return Out;
 }
 
@@ -1105,5 +1106,101 @@ string CLanguage :: MultipleIPAddressUsageDetected( string player, string others
 	string Out = m_CFG->GetString( "lang_0152", "lang_0152" );
 	Replace( Out, "$PLAYER$", player );
 	Replace( Out, "$OTHERS$", others );
+	return Out;
+}
+
+string CLanguage :: UnableToVoteKickAlreadyInProgress( )
+{
+	return m_CFG->GetString( "lang_0153", "lang_0153" );
+}
+
+string CLanguage :: UnableToVoteKickNotEnoughPlayers( )
+{
+	return m_CFG->GetString( "lang_0154", "lang_0154" );
+}
+
+string CLanguage :: UnableToVoteKickNoMatchesFound( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0155", "lang_0155" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: UnableToVoteKickPlayerIsReserved( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0156", "lang_0156" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: StartedVoteKick( string victim, string user, string votesneeded )
+{
+	string Out = m_CFG->GetString( "lang_0157", "lang_0157" );
+	Replace( Out, "$VICTIM$", victim );
+	Replace( Out, "$USER$", user );
+	Replace( Out, "$VOTESNEEDED$", votesneeded );
+	return Out;
+}
+
+string CLanguage :: UnableToVoteKickFoundMoreThanOneMatch( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0158", "lang_0158" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: VoteKickPassed( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0159", "lang_0159" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: ErrorVoteKickingPlayer( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0160", "lang_0160" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: VoteKickAcceptedNeedMoreVotes( string victim, string user, string votes )
+{
+	string Out = m_CFG->GetString( "lang_0161", "lang_0161" );
+	Replace( Out, "$VICTIM$", victim );
+	Replace( Out, "$USER$", user );
+	Replace( Out, "$VOTES$", votes );
+	return Out;
+}
+
+string CLanguage :: VoteKickCancelled( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0162", "lang_0162" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: VoteKickExpired( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0163", "lang_0163" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: WasKickedByVote( )
+{
+	return m_CFG->GetString( "lang_0164", "lang_0164" );
+}
+
+string CLanguage :: TypeYesToVote( string commandtrigger )
+{
+	string Out = m_CFG->GetString( "lang_0165", "lang_0165" );
+	Replace( Out, "$COMMANDTRIGGER$", commandtrigger );
+	return Out;
+}
+
+string CLanguage :: PlayersNotYetPingedAutoStart( string notpinged )
+{
+	string Out = m_CFG->GetString( "lang_0166", "lang_0166" );
+	Replace( Out, "$NOTPINGED$", notpinged );
 	return Out;
 }

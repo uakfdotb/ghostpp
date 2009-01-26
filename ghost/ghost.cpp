@@ -252,7 +252,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_DB = new CGHostDBSQLite( CFG );
 	m_Exiting = false;
 	m_Enabled = true;
-	m_Version = "11.3";
+	m_Version = "11.4";
 	m_HostCounter = 1;
 	m_AutoHostMaximumGames = 0;
 	m_AutoHostAutoStartPlayers = 0;
@@ -296,6 +296,19 @@ CGHost :: CGHost( CConfig *CFG )
 	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
 	m_Latency = CFG->GetInt( "bot_latency", 100 );
 	m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
+	m_VoteKickAllowed = CFG->GetInt( "bot_votekickallowed", 1 ) == 0 ? false : true;
+	m_VoteKickPercentage = CFG->GetInt( "bot_votekickpercentage", 100 );
+
+	if( m_VoteKickPercentage > 100 )
+	{
+		m_VoteKickPercentage = 100;
+		CONSOLE_Print( "[GHOST] warning - bot_votekickpercentage is greater than 100, using 100 instead" );
+	}
+
+	m_DefaultMap = CFG->GetString( "bot_defaultmap", "map" );
+	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
+	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
+	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );
 	m_AdminGameCreate = CFG->GetInt( "admingame_create", 0 ) == 0 ? false : true;
 	m_AdminGamePort = CFG->GetInt( "admingame_port", 6113 );
 	m_AdminGamePassword = CFG->GetString( "admingame_password", string( ) );
@@ -332,6 +345,7 @@ CGHost :: CGHost( CConfig *CFG )
 		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversion", string( ) ), 4 );
 		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
 		string PasswordHashType = CFG->GetString( Prefix + "custom_passwordhashtype", string( ) );
+		uint32_t MaxMessageLength = CFG->GetInt( Prefix + "custom_maxmessagelength", 200 );
 
 		if( Server.empty( ) )
 			break;
@@ -361,7 +375,7 @@ CGHost :: CGHost( CConfig *CFG )
 		}
 
 		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
-		m_BNETs.push_back( new CBNET( this, Server, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, War3Version, EXEVersion, EXEVersionHash, PasswordHashType ) );
+		m_BNETs.push_back( new CBNET( this, Server, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, MaxMessageLength ) );
 	}
 
 	if( m_BNETs.empty( ) )
@@ -376,8 +390,8 @@ CGHost :: CGHost( CConfig *CFG )
 	// load the default maps (note: make sure to run ExtractScripts first)
 
 	CConfig MapCFG;
-	MapCFG.Read( m_MapCFGPath + "map.cfg" );
-	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + "map.cfg" );
+	MapCFG.Read( m_MapCFGPath + m_DefaultMap + ".cfg" );
+	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap + ".cfg" );
 	m_AdminMap = new CMap( this );
 	m_SaveGame = new CSaveGame( this );
 
@@ -564,7 +578,7 @@ bool CGHost :: Update( long usecBlock )
 
 			if( m_Map->GetValid( ) )
 			{
-				CreateGame( GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
+				CreateGame( GAME_PUBLIC, false, GameName, string( ), m_AutoHostOwner, m_AutoHostServer, false );
 
 				if( m_CurrentGame )
 					m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );

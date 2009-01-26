@@ -66,6 +66,7 @@ protected:
 	string m_CreatorServer;						// battle.net server the player who created this game was on
 	string m_AnnounceMessage;					// a message to be sent every m_AnnounceInterval seconds
 	string m_StatString;						// the stat string when the game started (used when saving replays)
+	string m_KickVotePlayer;					// the player to be kicked with the currently running kick vote
 	uint32_t m_RandomSeed;						// the random seed sent to the Warcraft III clients
 	uint32_t m_HostCounter;						// a unique game number
 	uint32_t m_Latency;							// the number of ms to wait between sending action packets (we queue any received during this time)
@@ -89,6 +90,7 @@ protected:
 	uint32_t m_StartedLaggingTime;				// GetTime when the last lag screen started
 	uint32_t m_LastLagScreenTime;				// GetTime when the last lag screen was active (continuously updated)
 	uint32_t m_LastReservedSeen;				// GetTime when the last reserved player was seen in the lobby
+	uint32_t m_StartedKickVoteTime;				// GetTime when the kick vote was started
 	uint32_t m_GameOverTime;					// GetTime when the game was over
 	bool m_Locked;								// if the game owner is the only one allowed to run game commands or not
 	bool m_RefreshCompleted;					// if the second half of the refresh sequence has been completed or not
