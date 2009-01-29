@@ -328,8 +328,8 @@ CGHost :: CGHost( CConfig *CFG )
 		string Server = CFG->GetString( Prefix + "server", string( ) );
 		string CDKeyROC = CFG->GetString( Prefix + "cdkeyroc", string( ) );
 		string CDKeyTFT = CFG->GetString( Prefix + "cdkeytft", string( ) );
-		string CountryAbbrev = CFG->GetString( Prefix + "countryabbrev", "CAN" );
-		string Country = CFG->GetString( Prefix + "country", "Canada" );
+		string CountryAbbrev = CFG->GetString( Prefix + "countryabbrev", "USA" );
+		string Country = CFG->GetString( Prefix + "country", "United States" );
 		string UserName = CFG->GetString( Prefix + "username", string( ) );
 		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
 		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );

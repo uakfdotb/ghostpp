@@ -758,9 +758,9 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, string country
 	unsigned char Version[]			= { ver,   0,   0,   0 };
 	unsigned char Language[]		= {  83,  85, 110, 101 };	// "enUS"
 	unsigned char LocalIP[]			= { 127,   0,   0,   1 };
-	unsigned char TimeZoneBias[]	= { 108, 253, 255, 255 };
-	unsigned char LocaleID[]		= {   9,  12,   0,   0 };
-	unsigned char LanguageID[]		= {   9,   4,   0,   0 };
+	unsigned char TimeZoneBias[]	= {  44,   1,   0,   0 };	// 300 minutes (GMT -0500)
+	unsigned char LocaleID[]		= {   9,   4,   0,   0 };	// 0x0409 English (United States)
+	unsigned char LanguageID[]		= {   9,   4,   0,   0 };	// 0x0409 English (United States)
 
 	BYTEARRAY packet;
 	packet.push_back( BNET_HEADER_CONSTANT );			// BNET header constant
