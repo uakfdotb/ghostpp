@@ -137,14 +137,17 @@ BOOL CheckWildCard(const char * szString, const char * szWildCard)
 static int DoMPQSearch(TMPQSearch * hs, SFILE_FIND_DATA * lpFindFileData)
 {
     TMPQArchive * ha = hs->ha;
-    TFileNode * pNode;
+    TFileNode * pNode = NULL;
+    TMPQBlock * pBlock;
+    TMPQHash * pFoundHash = NULL;
     TMPQHash * pHashEnd = ha->pHashTable + ha->pHeader->dwHashTableSize;
     TMPQHash * pHash = ha->pHashTable + hs->dwNextIndex;
+    DWORD dwIndex = hs->dwNextIndex;
 
-    // Do until some file found or no more files
+    // Do until a file is found or no more files
     while(pHash < pHashEnd)
     {
-        pNode = ha->pListFile[hs->dwNextIndex++];
+        pNode = ha->pListFile[dwIndex++];
 
         // If this entry is free, do nothing
         if(pHash->dwBlockIndex < HASH_ENTRY_DELETED && (DWORD_PTR)pNode < LISTFILE_ENTRY_DELETED)
@@ -152,28 +155,55 @@ static int DoMPQSearch(TMPQSearch * hs, SFILE_FIND_DATA * lpFindFileData)
             // Check the file name.
             if(CheckWildCard(pNode->szFileName, hs->szSearchMask))
             {
-                TMPQBlock * pBlock = ha->pBlockTable + pHash->dwBlockIndex;
-
-                lpFindFileData->lcLocale     = pHash->lcLocale;
-                lpFindFileData->dwFileSize   = pBlock->dwFSize;
-                lpFindFileData->dwFileFlags  = pBlock->dwFlags;
-                lpFindFileData->dwBlockIndex = pHash->dwBlockIndex;
-                lpFindFileData->dwCompSize   = pBlock->dwCSize;
-
-                // Fill the file name and plain file name
-                strcpy(lpFindFileData->cFileName, pNode->szFileName);
-                lpFindFileData->szPlainName = strrchr(lpFindFileData->cFileName, '\\');
-                if(lpFindFileData->szPlainName == NULL)
-                    lpFindFileData->szPlainName = lpFindFileData->cFileName;
-                else
-                    lpFindFileData->szPlainName++;
-
-                // Fill the next entry
-                return ERROR_SUCCESS;
+                pFoundHash = pHash;
+                pHash++;
+                break;
             }
         }
 
+        // Move to the next hash
         pHash++;
+    }
+
+    // In case there will be more equal entries in the hash table
+    if(pFoundHash != NULL)
+    {
+        while(pHash < pHashEnd)
+        {
+            if(pHash->dwName1 != pFoundHash->dwName1 ||
+               pHash->dwName2 != pFoundHash->dwName2 ||
+               pHash->lcLocale != pFoundHash->lcLocale ||
+               pHash->wPlatform != pFoundHash->wPlatform)
+            {
+                break;
+            }
+
+            // Move to the next hash
+            pFoundHash = pHash;
+            pHash++;
+        }
+
+        // Fill the found entry
+        pBlock = ha->pBlockTable + pFoundHash->dwBlockIndex;
+        lpFindFileData->lcLocale     = pFoundHash->lcLocale;
+        lpFindFileData->dwFileSize   = pBlock->dwFSize;
+        lpFindFileData->dwFileFlags  = pBlock->dwFlags;
+        lpFindFileData->dwBlockIndex = pFoundHash->dwBlockIndex;
+        lpFindFileData->dwCompSize   = pBlock->dwCSize;
+
+        // Fill the file name and plain file name
+        strcpy(lpFindFileData->cFileName, pNode->szFileName);
+        lpFindFileData->szPlainName = strrchr(lpFindFileData->cFileName, '\\');
+        if(lpFindFileData->szPlainName == NULL)
+            lpFindFileData->szPlainName = lpFindFileData->cFileName;
+        else
+            lpFindFileData->szPlainName++;
+
+        // Adjust the next hash index to search
+        hs->dwNextIndex = (DWORD)(pFoundHash - ha->pHashTable) + 1;
+
+        // Fill the next entry
+        return ERROR_SUCCESS;
     }
 
     // No more files found, return error

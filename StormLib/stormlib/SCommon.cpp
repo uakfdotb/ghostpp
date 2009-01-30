@@ -465,8 +465,9 @@ TMPQHash * GetHashEntry(TMPQArchive * ha, const char * szFileName)
 // Retrieves the locale-specific hash entry
 TMPQHash * GetHashEntryEx(TMPQArchive * ha, const char * szFileName, LCID lcLocale)
 {
+    TMPQHash * pHashNeutral = NULL;     // Language-neutral hash entry
+    TMPQHash * pHashExact = NULL;       // Exact hash entry
     TMPQHash * pHashEnd = ha->pHashTable + ha->pHeader->dwHashTableSize;
-    TMPQHash * pHash0 = NULL;           // Language-neutral hash entry
     TMPQHash * pHash = GetHashEntry(ha, szFileName);
 
     if(pHash != NULL)
@@ -475,26 +476,30 @@ TMPQHash * GetHashEntryEx(TMPQArchive * ha, const char * szFileName, LCID lcLoca
         DWORD dwName1 = pHash->dwName1;
         DWORD dwName2 = pHash->dwName2;
 
-        while(pHash->dwBlockIndex != HASH_ENTRY_FREE)
+        // Parse the entire block of equal files (differing by language ID only)
+        while(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex != HASH_ENTRY_FREE)
         {
-            if(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2)
-            {
-                if(pHash->lcLocale == LANG_NEUTRAL)
-                    pHash0 = pHash;
-                if(pHash->lcLocale == lcLocale)
-                    return pHash;
-            }
+            // Remember hash entry for neutral file and for lag-exact file
+            if(pHash->lcLocale == LANG_NEUTRAL)
+                pHashNeutral = pHash;
+            if(pHash->lcLocale == lcLocale)
+                pHashExact = pHash;
 
+            // Move to th next hash
             if(++pHash >= pHashEnd)
                 pHash = ha->pHashTable;
             if(pHash == pHashStart)
-                return pHash0;
+                break;
         }
 
-        return pHash0;
+        // If we found language-exact hash, return that one
+        // If not, return language neutral hash
+        if(pHashExact != NULL)
+            return pHashExact;
     }
 
-    return pHash;
+    // Not found
+    return pHashNeutral;
 }
 
 // Encrypts file name and gets the hash entry
@@ -880,12 +885,6 @@ int AddFileToArchive(
         WriteFile(ha->hFile, hf->pdwBlockPos, dwBlockPosLen, &dwTransferred, NULL);
         BSWAP_ARRAY32_UNSIGNED(hf->pdwBlockPos, 1);
 
-        // From this position, the archive is considered changed,
-        // so the hash table and block table will be written when the archive is closed.
-        // Note that block positions are NOT included in the compressed file size
-//      hf->pBlock->dwCSize = dwTransferred;
-        ha->dwFlags |= MPQ_FLAG_CHANGED;
-
         if(dwTransferred == dwBlockPosLen)
             hf->pBlock->dwCSize += dwBlockPosLen;
         else
@@ -969,7 +968,6 @@ int AddFileToArchive(
 
             // Update the hash table position and the compressed file size
             hf->pBlock->dwCSize += dwTransferred;
-            ha->dwFlags |= MPQ_FLAG_CHANGED;
         }
 
         // Finish calculating of CRC32 and MD5
@@ -1041,6 +1039,7 @@ int AddFileToArchive(
         // Update archive size (only valid for version V1)
         ha->MpqSize = TempPos;
         ha->pHeader->dwArchiveSize = TempPos.LowPart;
+        ha->dwFlags |= MPQ_FLAG_CHANGED;
     }
     else
     {

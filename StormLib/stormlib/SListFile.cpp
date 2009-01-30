@@ -152,10 +152,10 @@ int SListFileCreateNodeForAllLocales(TMPQArchive * ha, const char * szFileName)
     dwName2 = pHash->dwName2;
 
     // Pass all entries in the hash table
-    while(pHash->dwBlockIndex != HASH_ENTRY_FREE)
+    while(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex != HASH_ENTRY_FREE)
     {
-        // There may be an entry deleted amongst various lang versions
-        if(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex != HASH_ENTRY_DELETED)
+        // There may be an entry deleted amongst various language versions
+        if(pHash->dwBlockIndex != HASH_ENTRY_DELETED)
         {
             // Create the lang version, if none
             dwHashIndex = (DWORD)(pHash - ha->pHashTable);

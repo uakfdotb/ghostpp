@@ -248,9 +248,6 @@ static DWORD WINAPI ReadMPQFileSingleUnit(TMPQFile * hf, DWORD dwFilePos, BYTE *
     TMPQArchive * ha = hf->ha; 
     DWORD dwBytesRead = 0;
 
-    // Move file pointer to the begin of the file
-    SetFilePointer(ha->hFile, hf->RawFilePos.LowPart, &hf->RawFilePos.HighPart, FILE_BEGIN);
-
     // If the file is really compressed, decompress it.
     // Otherwise, read the data as-is to the caller.
     if(hf->pBlock->dwCSize < hf->pBlock->dwFSize)
@@ -265,6 +262,9 @@ static DWORD WINAPI ReadMPQFileSingleUnit(TMPQFile * hf, DWORD dwFilePos, BYTE *
             inputBuffer = ALLOCMEM(BYTE, inputBufferSize);
             if(inputBuffer != NULL && hf->pbFileBuffer != NULL)
             {
+                // Move file pointer to the begin of the file, move to inner, modified by PeakGao,2008.10.28
+                SetFilePointer(ha->hFile, hf->RawFilePos.LowPart, &hf->RawFilePos.HighPart, FILE_BEGIN);
+
                 // Read the compressed file data
                 ReadFile(ha->hFile, inputBuffer, inputBufferSize, &dwBytesRead, NULL);
 
@@ -293,6 +293,12 @@ static DWORD WINAPI ReadMPQFileSingleUnit(TMPQFile * hf, DWORD dwFilePos, BYTE *
     }
     else
     {
+        LARGE_INTEGER RawFilePos = hf->RawFilePos;
+
+        // Move file pointer to the dwFilePos of the file, added by PeakGao, 2008.10.28
+        RawFilePos.QuadPart += dwFilePos;
+        SetFilePointer(ha->hFile, RawFilePos.LowPart, &RawFilePos.HighPart, FILE_BEGIN);
+ 
         // Read the uncompressed file data
         ReadFile(ha->hFile, pbBuffer, dwToRead, &dwBytesRead, NULL);
     }

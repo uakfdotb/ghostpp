@@ -75,18 +75,18 @@ HANDLE CreateFile(const char *sFileName, DWORD ulMode, DWORD ulSharing, void *pS
 {
     switch (ulCreation)
     {
-        case OPEN_EXISTING:
-            return (HANDLE)open(sFileName, O_RDONLY | O_LARGEFILE);
+    case OPEN_EXISTING:
+        return (HANDLE)open(sFileName, O_RDONLY | O_LARGEFILE);
 
-        case OPEN_ALWAYS:
-            return (HANDLE)open(sFileName, O_RDWR | O_CREAT);
+    case OPEN_ALWAYS:
+        return (HANDLE)open(sFileName, O_RDWR | O_CREAT);
 
-        case CREATE_ALWAYS:
-        case CREATE_NEW:
-            return (HANDLE)open(sFileName, O_RDWR | O_CREAT | O_TRUNC);
+    case CREATE_ALWAYS:
+    case CREATE_NEW:
+        return (HANDLE)open(sFileName, O_RDWR | O_CREAT | O_TRUNC);
 
-        default:
-            return INVALID_HANDLE_VALUE;
+    default:
+        return INVALID_HANDLE_VALUE;
     }
 }
 
@@ -95,7 +95,7 @@ BOOL CloseHandle(HANDLE hFile)
     return (close((intptr_t)hFile) == 0);
 }
 
-DWORD GetFileSize(HANDLE hFile, DWORD * ulOffSetHigh)
+DWORD GetFileSize(HANDLE hFile, DWORD *ulOffSetHigh)
 {
     // Fix by Taiche : removed the hFile == NULL test because the CreateFile function above
     // can return a HANDLE equal to 0 WHICH IS A LEGAL VALUE and does not mean the handle is NULL.

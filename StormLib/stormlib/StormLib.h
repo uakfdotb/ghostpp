@@ -467,7 +467,7 @@ struct TMPQFile
 struct TMPQSearch
 {
     TMPQArchive * ha;                   // Handle to MPQ, where the search runs
-    DWORD  dwNextIndex;                 // The next searched hash index
+    DWORD  dwNextIndex;                 // Next hash index to be checked
     DWORD  dwName1;                     // Lastly found Name1
     DWORD  dwName2;                     // Lastly found Name2
     char   szSearchMask[1];             // Search mask (variable length)
@@ -601,7 +601,7 @@ BOOL  WINAPI SFileSetCompactCallback(HANDLE hMpq, COMPACTCB CompactCB, void * lp
 BOOL  WINAPI SFileCompactArchive(HANDLE hMpq, const char * szListFile = NULL, BOOL bReserved = 0);
 
 // Locale support
-int   WINAPI SFileEnumLocales(HANDLE hMpq, const char * szFileName, LCID * plcLocales, DWORD * pdwMaxLocales, DWORD dwSearchScope = SFILE_OPEN_BY_INDEX);
+int   WINAPI SFileEnumLocales(HANDLE hMpq, const char * szFileName, LCID * plcLocales, DWORD * pdwMaxLocales, DWORD dwSearchScope);
 
 // (De)compression
 int WINAPI SCompCompress   (char * pbOutBuffer, int * pdwOutLength, char * pbInBuffer, int dwInLength, int uCompressions, int nCmpType, int nCmpLevel);

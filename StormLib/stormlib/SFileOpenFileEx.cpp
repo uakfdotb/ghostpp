@@ -106,11 +106,8 @@ int WINAPI SFileEnumLocales(
         }
         else
             pHash = GetHashEntry(ha, szFileName);
-    }
 
-    // If the file was not found, sorry
-    if(nError == ERROR_SUCCESS)
-    {
+        // If the file was not found, sorry
         if(pHash == NULL)
             nError = ERROR_FILE_NOT_FOUND;
     }
@@ -118,22 +115,37 @@ int WINAPI SFileEnumLocales(
     // Count the entries which correspond to the same file name
     if(nError == ERROR_SUCCESS)
     {
+        TMPQHash * pStartHash = pHash;
         TMPQHash * pSaveHash = pHash;
         DWORD dwName1 = pHash->dwName1;
         DWORD dwName2 = pHash->dwName2;
+        LCID PrevLocale = 0xFFFFFFFF;
 
-        // For nameless access, return 1 locale always
-        if(dwSearchScope == SFILE_OPEN_BY_INDEX)
-            dwLocales++;
-        else
+        if(dwSearchScope != SFILE_OPEN_BY_INDEX)
         {
-            while(pHash < pHashEnd && pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2)
+            while(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex < HASH_ENTRY_DELETED)
             {
-                dwLocales++;
-                pHash++;
+                // If the locale is different from previous one, count it.
+                if(pHash->lcLocale != PrevLocale)
+                {
+                    PrevLocale = pHash->lcLocale;
+                    dwLocales++;
+                }
+
+                // Move to the next hash
+                if(++pHash >= pHashEnd)
+                    pHash = ha->pHashTable;
+                if(pHash == pStartHash)
+                    break;
             }
         }
+        else
+        {
+            // For nameless access, return 1 locale always
+            dwLocales++;
+        }
 
+        // Restore the has pointer
         pHash = pSaveHash;
     }
 
@@ -147,11 +159,37 @@ int WINAPI SFileEnumLocales(
             nError = ERROR_INSUFFICIENT_BUFFER;
     }
 
-    // Fill all the locales
+    // Fill all present locales
     if(nError == ERROR_SUCCESS)
     {
-        for(DWORD i = 0; i < dwLocales; i++, pHash++)
+        TMPQHash * pStartHash = pHash;
+        DWORD dwName1 = pHash->dwName1;
+        DWORD dwName2 = pHash->dwName2;
+        LCID PrevLocale = 0xFFFFFFFF;
+
+        if(dwSearchScope != SFILE_OPEN_BY_INDEX)
+        {
+            while(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex < HASH_ENTRY_DELETED)
+            {
+                // If the locale is different from previous one, count it.
+                if(pHash->lcLocale != PrevLocale)
+                {
+                    *plcLocales++ = (LCID)pHash->lcLocale;
+                    PrevLocale = pHash->lcLocale;
+                }
+
+                // Move to the next hash
+                if(++pHash >= pHashEnd)
+                    pHash = ha->pHashTable;
+                if(pHash == pStartHash)
+                    break;
+            }
+        }
+        else
+        {
+            // For nameless access, return 1 locale always
             *plcLocales++ = (LCID)pHash->lcLocale;
+        }
     }
     return nError;
 }

@@ -37,21 +37,23 @@ BOOL WINAPI SFileExtractFile(HANDLE hMpq, const char * szToExtract, const char *
     if(nError == ERROR_SUCCESS)
     {
         char  szBuffer[0x1000];
-        DWORD dwTransferred = 1;
+        DWORD dwTransferred;
 
-        while(dwTransferred > 0)
+        for(;;)
         {
+            // dwTransferred is only set to nonzero if something has been read.
+            // nError can be ERROR_SUCCESS or ERROR_HANDLE_EOF
             if(!SFileReadFile(hMpqFile, szBuffer, sizeof(szBuffer), &dwTransferred, NULL))
-            {
-                if(GetLastError() != ERROR_HANDLE_EOF)
-                    break;
-            }
+                nError = GetLastError();
+            if(nError == ERROR_HANDLE_EOF)
+                nError = ERROR_SUCCESS;
             if(dwTransferred == 0)
                 break;
 
+            // If something has been actually read, write it
             WriteFile(hLocalFile, szBuffer, dwTransferred, &dwTransferred, NULL);
             if(dwTransferred == 0)
-                break;
+                nError = ERROR_DISK_FULL;
         }
     }
 
