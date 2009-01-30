@@ -302,6 +302,11 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 					for( vector<string> :: iterator i = FileList.begin( ); i != FileList.end( ); i++ )
 					{
+						// don't use scripts\war3map.j if we've already used war3map.j (yes, some maps have both but only war3map.j is used)
+
+						if( FoundScript && *i == "scripts\\war3map.j" )
+							continue;
+
 						HANDLE SubFile;
 
 						if( SFileOpenFileEx( MapMPQ, (*i).c_str( ), 0, &SubFile ) )
