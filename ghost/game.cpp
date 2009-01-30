@@ -1210,7 +1210,11 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 		if( NumOtherPlayers < m_Map->GetMapNumPlayers( ) )
 		{
-			m_Slots[SID].SetTeam( 0 );
+			if( SID < m_Map->GetMapNumTeams( ) )
+				m_Slots[SID].SetTeam( SID );
+			else
+				m_Slots[SID].SetTeam( 0 );
+
 			m_Slots[SID].SetColour( GetNewColour( ) );
 		}
 	}

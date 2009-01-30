@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 11.4
+GHost++ Version 11.5
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -167,6 +167,8 @@ Here's how:
  j.) *_custom_exeversion
  k.) *_custom_exeversionhash
  l.) *_custom_passwordhashtype
+ m.) *_custom_countryabbrev
+ n.) *_custom_country
 3.) GHost++ will search for battle.net connection information by replacing the "*" in each key above with "bnet_" then "bnet2_" then "bnet3_" and so on until "bnet9_".
  a.) Note that GHost++ doesn't search for "bnet1_" for backwards compatibility reasons.
 4.) If GHost++ doesn't find a *_server key it stops searching for any further battle.net connection information.
@@ -554,8 +556,19 @@ GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may nee
 CHANGELOG
 =========
 
+Version 11.5
+ - updated ip-to-country.csv to the latest version from January 23, 2009
+ - updated StormLib
+ - updated the map_crc calculation algorithm (thanks Strilanc!)
+ - the bot should now correctly calculate map values for many maps that previously did not calculate properly
+ - the bot now identifies itself as originating from the United States instead of Canada by default when connecting to battle.net
+ - updated the refresh method to more closely match the way LC does it
+  * refresh messages are no longer displayed because the bot refreshes much more quickly than it used to and it would create too much spam
+ - players are now given a new team when joining melee maps rather than always team 1
+ - added map config files for DotA 6.59
+
 Version 11.4
- - the database schema has been updated to version number 6
+ - the database schema has been updated to version number 7
   * GHost++ will automatically update your database schema if it's out of date
  - major optimizations to the database to improve statsdota performance
  - chat messages sent to battle.net servers are now limited to 255 characters instead of 220
