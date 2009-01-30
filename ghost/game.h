@@ -93,7 +93,6 @@ protected:
 	uint32_t m_StartedKickVoteTime;				// GetTime when the kick vote was started
 	uint32_t m_GameOverTime;					// GetTime when the game was over
 	bool m_Locked;								// if the game owner is the only one allowed to run game commands or not
-	bool m_RefreshCompleted;					// if the second half of the refresh sequence has been completed or not
 	bool m_RefreshMessages;						// if we should display "game refreshed..." messages or not
 	bool m_MuteAll;								// if we should stop forwarding ingame chat messages targeted for all players or not
 	bool m_MuteLobby;							// if we should stop forwarding lobby chat messages
