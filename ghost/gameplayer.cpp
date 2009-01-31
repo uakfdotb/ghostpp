@@ -116,7 +116,7 @@ void CPotentialPlayer :: ExtractPackets( )
 			{
 				m_Packets.push( new CCommandPacket( W3GS_HEADER_CONSTANT, Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
 				*RecvBuffer = RecvBuffer->substr( Length );
-				Bytes  = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
+				Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
 			}
 			else
 				return;

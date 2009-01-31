@@ -25,9 +25,10 @@
 
 BYTEARRAY UTIL_CreateByteArray( unsigned char *a, int size )
 {
-	// todotodo: this should be optimized
+	// todotodo: this should *still* be optimized - meaning that these horrific BYTEARRAYS should be completely eliminated from the project
 
 	BYTEARRAY result;
+	result.reserve( size );
 
 	for( int i = 0; i < size; i++ )
 		result.push_back( a[i] );

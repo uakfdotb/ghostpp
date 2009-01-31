@@ -1489,7 +1489,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							DotAPlayerSummary = NULL;
 						}
 						else
-							QueueChatCommand( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsUser ) );
+							QueueChatCommand( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsUser ), User, Whisper );
 					}
 				}
 
