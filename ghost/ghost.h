@@ -166,6 +166,7 @@ public:
 	void ExtractScripts( );
 	void LoadIPToCountryData( );
 	void CreateGame( unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
+	void CreateCascadedGame( string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
 };
 
 #endif
