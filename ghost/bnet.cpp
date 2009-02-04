@@ -1064,13 +1064,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
-				// !HOSTCAS
-				//
-
-				if( Command == "hostcas" && !Payload.empty( ) )
-					m_GHost->CreateCascadedGame( Payload, User, User, m_Server, Whisper );
-
-				//
 				// !HOSTSG
 				//
 

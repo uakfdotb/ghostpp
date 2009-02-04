@@ -1204,25 +1204,3 @@ string CLanguage :: PlayersNotYetPingedAutoStart( string notpinged )
 	Replace( Out, "$NOTPINGED$", notpinged );
 	return Out;
 }
-
-string CLanguage :: CreatingCascadedGame( string gamename, string user )
-{
-	string Out = m_CFG->GetString( "lang_0167", "lang_0167" );
-	Replace( Out, "$GAMENAME$", gamename );
-	Replace( Out, "$USER$", user );
-	return Out;
-}
-
-string CLanguage :: PlayerJoinedTheGame( string user )
-{
-	string Out = m_CFG->GetString( "lang_0168", "lang_0168" );
-	Replace( Out, "$USER$", user );
-	return Out;
-}
-
-string CLanguage :: PlayerLeftTheGame( string user )
-{
-	string Out = m_CFG->GetString( "lang_0169", "lang_0169" );
-	Replace( Out, "$USER$", user );
-	return Out;
-}

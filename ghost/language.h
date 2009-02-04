@@ -202,9 +202,6 @@ public:
 	string WasKickedByVote( );
 	string TypeYesToVote( string commandtrigger );
 	string PlayersNotYetPingedAutoStart( string notpinged );
-	string CreatingCascadedGame( string gamename, string user );
-	string PlayerJoinedTheGame( string user );
-	string PlayerLeftTheGame( string user );
 };
 
 #endif

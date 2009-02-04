@@ -33,7 +33,6 @@
 #include "savegame.h"
 #include "gameprotocol.h"
 #include "game.h"
-#include "game_cascaded.h"
 
 #include <signal.h>
 #include <stdlib.h>
@@ -64,7 +63,6 @@
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "game.h"
-#include "game_cascaded.h"
 #include "stats.h"
 #include "statsdota.h"
 #include "sqlite3.h"
@@ -979,119 +977,6 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 				(*i)->SendEnterChat( );
 		}
 	}
-
-	// hold friends and/or clan members
-
-	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-	{
-		if( (*i)->GetHoldFriends( ) )
-			(*i)->HoldFriends( m_CurrentGame );
-
-		if( (*i)->GetHoldClan( ) )
-			(*i)->HoldClan( m_CurrentGame );
-	}
-}
-
-void CGHost :: CreateCascadedGame( string gameName, string ownerName, string creatorName, string creatorServer, bool whisper )
-{
-	if( !m_Enabled )
-	{
-		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-		{
-			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameDisabled( gameName ), creatorName, whisper );
-		}
-
-		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameDisabled( gameName ) );
-
-		return;
-	}
-
-	if( gameName.size( ) > 31 )
-	{
-		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-		{
-			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameNameTooLong( gameName ), creatorName, whisper );
-		}
-
-		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameNameTooLong( gameName ) );
-
-		return;
-	}
-
-	if( !m_Map->GetValid( ) )
-	{
-		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-		{
-			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidMap( gameName ), creatorName, whisper );
-		}
-
-		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameInvalidMap( gameName ) );
-
-		return;
-	}
-
-	if( m_CurrentGame )
-	{
-		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-		{
-			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameAnotherGameInLobby( gameName, m_CurrentGame->GetDescription( ) ), creatorName, whisper );
-		}
-
-		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameAnotherGameInLobby( gameName, m_CurrentGame->GetDescription( ) ) );
-
-		return;
-	}
-
-	if( m_Games.size( ) >= m_MaxGames )
-	{
-		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-		{
-			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameMaxGamesReached( gameName, UTIL_ToString( m_MaxGames ) ), creatorName, whisper );
-		}
-
-		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameMaxGamesReached( gameName, UTIL_ToString( m_MaxGames ) ) );
-
-		return;
-	}
-
-	CONSOLE_Print( "[GHOST] creating cascaded game [" + gameName + "]" );
-
-	m_CurrentGame = new CCascadedGame( this, m_Map, NULL, m_HostPort, GAME_PUBLIC, gameName, ownerName, creatorName, creatorServer );
-
-	// todotodo: check if listening failed and report the error to the user
-
-	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-	{
-		if( whisper && (*i)->GetServer( ) == creatorServer )
-		{
-			// note that we send this whisper only on the creator server
-
-			(*i)->QueueChatCommand( m_Language->CreatingCascadedGame( gameName, ownerName ), creatorName, whisper );
-		}
-		else
-		{
-			// try to send an immediate chat command if it's not a whisper
-			// this is because if we queue the chat command it will get sent after the game creation message and battle.net will discard it
-			// note that we send this on all bnet servers
-
-			(*i)->ImmediateChatCommand( m_Language->CreatingCascadedGame( gameName, ownerName ) );
-		}
-
-		(*i)->SendGameCreate( GAME_PUBLIC, gameName, string( ), m_Map, NULL, m_CurrentGame->GetHostCounter( ) );
-	}
-
-	if( m_AdminGame )
-		m_AdminGame->SendAllChat( m_Language->CreatingCascadedGame( gameName, ownerName ) );
 
 	// hold friends and/or clan members
 

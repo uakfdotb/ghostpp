@@ -215,10 +215,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\game_cascaded.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\gameplayer.cpp"
 				>
 			</File>
@@ -318,10 +314,6 @@
 			</File>
 			<File
 				RelativePath=".\game.h"
-				>
-			</File>
-			<File
-				RelativePath=".\game_cascaded.h"
 				>
 			</File>
 			<File
