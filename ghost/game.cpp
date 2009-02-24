@@ -909,6 +909,13 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !DBSTATUS
+			//
+
+			if( Command == "dbstatus" )
+				SendAllChat( m_GHost->m_DB->GetStatus( ) );
+
+			//
 			// !DOWNLOAD
 			// !DL
 			//

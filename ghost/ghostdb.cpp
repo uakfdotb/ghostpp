@@ -23,8 +23,6 @@
 #include "config.h"
 #include "ghostdb.h"
 
-#include <boost/thread.hpp>
-
 //
 // CGHostDB
 //
@@ -260,24 +258,12 @@ CCallableDownloadAdd *CGHostDB :: ThreadedDownloadAdd( string map, uint32_t maps
 
 void CBaseCallable :: Init( )
 {
-	// todotodo: it's dangerous to use cout from within a thread because it isn't protected
-
-	boost :: thread :: id threadid = boost :: this_thread :: get_id( );
-	cout << "[THREAD: " << threadid << "] init" << endl;
-
 	m_StartTicks = GetTicks( );
 }
 
 void CBaseCallable :: Close( )
 {
-	boost :: thread :: id threadid = boost :: this_thread :: get_id( );
-	cout << "[THREAD: " << threadid << "] close" << endl;
-
-	if( !m_Error.empty( ) )
-		cout << "[THREAD: " << threadid << "] error - " << m_Error << endl;
-
 	m_EndTicks = GetTicks( );
-	cout << "[THREAD: " << threadid << "] duration " << UTIL_ToString( m_EndTicks - m_StartTicks ) << " ms" << endl;
 	m_Ready = true;
 }
 
