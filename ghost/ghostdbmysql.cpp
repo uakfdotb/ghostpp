@@ -49,6 +49,7 @@ CGHostDBMySQL :: CGHostDBMySQL( CConfig *CFG ) : CGHostDB( CFG )
 
 	// create the first connection
 
+	CONSOLE_Print( "[MYSQL] connecting to database server" );
 	MYSQL *Connection = NULL;
 
 	if( !( Connection = mysql_init( NULL ) ) )
@@ -91,7 +92,7 @@ CGHostDBMySQL :: ~CGHostDBMySQL( )
 
 string CGHostDBMySQL :: GetStatus( )
 {
-	return "Connections: " + UTIL_ToString( m_IdleConnections.size( ) ) + "/" + UTIL_ToString( m_NumConnections ) + " idle. Outstanding callables: " + UTIL_ToString( m_OutstandingCallables ) + ".";
+	return "DB STATUS --- Connections: " + UTIL_ToString( m_IdleConnections.size( ) ) + "/" + UTIL_ToString( m_NumConnections ) + " idle. Outstanding callables: " + UTIL_ToString( m_OutstandingCallables ) + ".";
 }
 
 void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )

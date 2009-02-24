@@ -147,7 +147,7 @@ public:
 	CGHostDBMySQL( CConfig *CFG );
 	virtual ~CGHostDBMySQL( );
 
-	string GetStatus( );
+	virtual string GetStatus( );
 
 	virtual void RecoverCallable( CBaseCallable *callable );
 

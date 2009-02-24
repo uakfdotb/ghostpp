@@ -59,9 +59,9 @@ public:
 	CGHostDB( CConfig *CFG );
 	virtual ~CGHostDB( );
 
-	bool HasError( )		{ return m_HasError; }
-	string GetError( )		{ return m_Error; }
-	string GetStatus( )		{ return "OK"; }
+	bool HasError( )			{ return m_HasError; }
+	string GetError( )			{ return m_Error; }
+	virtual string GetStatus( )	{ return "DB STATUS --- OK"; }
 
 	virtual void RecoverCallable( CBaseCallable *callable );
 
