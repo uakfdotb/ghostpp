@@ -475,6 +475,20 @@ bool CGHost :: Update( long usecBlock )
 		return true;
 	}
 
+	// update callables
+
+	for( vector<CBaseCallable *> :: iterator i = m_Callables.begin( ); i != m_Callables.end( ); )
+	{
+		if( (*i)->GetReady( ) )
+		{
+			m_DB->RecoverCallable( *i );
+			delete *i;
+			i = m_Callables.erase( i );
+		}
+		else
+			i++;
+	}
+
 	unsigned int NumFDs = 0;
 
 	// take every socket we own and throw it in one giant select statement so we can block on all sockets
