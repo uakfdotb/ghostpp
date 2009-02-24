@@ -77,6 +77,7 @@ class CBNET;
 class CBaseGame;
 class CAdminGame;
 class CGHostDB;
+class CBaseCallable;
 class CLanguage;
 class CMap;
 class CSaveGame;
@@ -92,6 +93,8 @@ public:
 	CAdminGame *m_AdminGame;				// this "fake game" allows an admin who knows the password to control the bot from the local network
 	vector<CBaseGame *> m_Games;			// these games are in progress
 	CGHostDB *m_DB;							// database
+	CGHostDB *m_DBLocal;					// local database (for temporary data)
+	vector<CBaseCallable *> m_Callables;	// vector of orphaned callables waiting to die
 	CLanguage *m_Language;					// language
 	CMap *m_Map;							// the currently loaded map (this is global data, CBaseGame just references it so don't modify it unless you know what you're doing)
 	CMap *m_AdminMap;						// the map to use in the admin game

@@ -27,11 +27,13 @@
 #include "socket.h"
 #include "ghostdb.h"
 #include "ghostdbsqlite.h"
+#include "ghostdbmysql.h"
 #include "bnet.h"
 #include "map.h"
 #include "packed.h"
 #include "savegame.h"
 #include "gameprotocol.h"
+#include "game_base.h"
 #include "game.h"
 
 #include <signal.h>
@@ -52,6 +54,7 @@
 #include "commandpacket.h"
 #include "ghostdb.h"
 #include "ghostdbsqlite.h"
+#include "ghostdbmysql.h"
 #include "bncsutilinterface.h"
 #include "bnetprotocol.h"
 #include "bnet.h"
@@ -62,6 +65,7 @@
 #include "gameslot.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
+#include "game_base.h"
 #include "game.h"
 #include "stats.h"
 #include "statsdota.h"
@@ -249,10 +253,17 @@ CGHost :: CGHost( CConfig *CFG )
 	m_CRC = new CCRC32( );
 	m_CRC->Initialize( );
 	m_CurrentGame = NULL;
-	m_DB = new CGHostDBSQLite( CFG );
+	string DBType = CFG->GetString( "db_type", "sqlite3" );
+
+	if( DBType == "mysql" )
+		m_DB = new CGHostDBMySQL( CFG );
+	else
+		m_DB = new CGHostDBSQLite( CFG );
+
+	m_DBLocal = new CGHostDBSQLite( CFG );
 	m_Exiting = false;
 	m_Enabled = true;
-	m_Version = "11.5";
+	m_Version = "12.0 Alpha";
 	m_HostCounter = 1;
 	m_AutoHostMaximumGames = 0;
 	m_AutoHostAutoStartPlayers = 0;
@@ -433,6 +444,15 @@ CGHost :: ~CGHost( )
 		delete *i;
 
 	delete m_DB;
+	delete m_DBLocal;
+
+	// warning: we don't delete any entries of m_Callables here because we can't be guaranteed that the associated threads have terminated
+	// this is fine if the program is currently exiting because the OS will clean up after us
+	// but if you try to recreate the CGHost object within a single session you will probably leak resources!
+
+	if( !m_Callables.empty( ) )
+		CONSOLE_Print( "[GHOST] warning - " + UTIL_ToString( m_Callables.size( ) ) + " orphaned callables were leaked (this is not an error)" );
+
 	delete m_Language;
 	delete m_Map;
 	delete m_AdminMap;
@@ -446,6 +466,12 @@ bool CGHost :: Update( long usecBlock )
 	if( m_DB->HasError( ) )
 	{
 		CONSOLE_Print( "[GHOST] database error - " + m_DB->GetError( ) );
+		return true;
+	}
+
+	if( m_DBLocal->HasError( ) )
+	{
+		CONSOLE_Print( "[GHOST] local database error - " + m_DBLocal->GetError( ) );
 		return true;
 	}
 
@@ -759,8 +785,8 @@ void CGHost :: LoadIPToCountryData( )
 		// we're about to insert ~4 MB of data into the database so if we allow the database to treat each insert as a transaction it will take a LONG time
 		// todotodo: handle begin/commit failures a bit more gracefully
 
-		if( !m_DB->Begin( ) )
-			CONSOLE_Print( "[GHOST] warning - failed to begin database transaction, iptocountry data not loaded" );
+		if( !m_DBLocal->Begin( ) )
+			CONSOLE_Print( "[GHOST] warning - failed to begin local database transaction, iptocountry data not loaded" );
 		else
 		{
 			unsigned char Percent = 0;
@@ -787,7 +813,7 @@ void CGHost :: LoadIPToCountryData( )
 				parser >> IP1;
 				parser >> IP2;
 				parser >> Country;
-				m_DB->FromAdd( UTIL_ToUInt32( IP1 ), UTIL_ToUInt32( IP2 ), Country );
+				m_DBLocal->FromAdd( UTIL_ToUInt32( IP1 ), UTIL_ToUInt32( IP2 ), Country );
 
 				// it's probably going to take awhile to load the iptocountry data (~10 seconds on my 3.2 GHz P4 when using SQLite3)
 				// so let's print a progress meter just to keep the user from getting worried
@@ -801,8 +827,8 @@ void CGHost :: LoadIPToCountryData( )
 				}
 			}
 
-			if( !m_DB->Commit( ) )
-				CONSOLE_Print( "[GHOST] warning - failed to commit database transaction, iptocountry data not loaded" );
+			if( !m_DBLocal->Commit( ) )
+				CONSOLE_Print( "[GHOST] warning - failed to commit local database transaction, iptocountry data not loaded" );
 			else
 				CONSOLE_Print( "[GHOST] finished loading [ip-to-country.csv]" );
 		}

@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib;..\zlib\include"
+				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib;..\zlib\include;..\mysql\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,9 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib zdll.lib StormLibRAS.lib"
+				AdditionalDependencies="ws2_32.lib zdll.lib StormLibRAS.lib libmysql.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\zlib\lib"
+				AdditionalLibraryDirectories="..\zlib\lib;..\mysql\lib\opt;..\boost\lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -118,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib;..\zlib\include"
+				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib;..\zlib\include;..\mysql\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -137,9 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib zdll.lib StormLibRAS.lib"
+				AdditionalDependencies="ws2_32.lib zdll.lib StormLibRAS.lib libmysql.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\zlib\lib"
+				AdditionalLibraryDirectories="..\zlib\lib;..\mysql\lib\opt;..\boost\lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -215,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game_base.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\gameplayer.cpp"
 				>
 			</File>
@@ -232,6 +236,10 @@
 			</File>
 			<File
 				RelativePath=".\ghostdb.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ghostdbmysql.cpp"
 				>
 			</File>
 			<File
@@ -317,6 +325,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game_base.h"
+				>
+			</File>
+			<File
 				RelativePath=".\gameplayer.h"
 				>
 			</File>
@@ -334,6 +346,10 @@
 			</File>
 			<File
 				RelativePath=".\ghostdb.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ghostdbmysql.h"
 				>
 			</File>
 			<File

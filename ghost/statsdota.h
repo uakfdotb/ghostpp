@@ -40,7 +40,7 @@ public:
 	virtual ~CStatsDOTA( );
 
 	virtual bool ProcessAction( CIncomingAction *Action );
-	virtual void Save( CGHostDB *DB, uint32_t GameID );
+	virtual void Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID );
 };
 
 #endif

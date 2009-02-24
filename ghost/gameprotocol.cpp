@@ -23,7 +23,7 @@
 #include "crc32.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
-#include "game.h"
+#include "game_base.h"
 
 //
 // CGameProtocol

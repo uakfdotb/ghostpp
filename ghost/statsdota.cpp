@@ -23,7 +23,7 @@
 #include "ghostdb.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
-#include "game.h"
+#include "game_base.h"
 #include "stats.h"
 #include "statsdota.h"
 
@@ -374,7 +374,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 	return m_Winner != 0;
 }
 
-void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
+void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 {
 	// since we only record the end game information it's possible we haven't recorded anything yet if the game didn't end with a tree/throne death
 	// this will happen if all the players leave before properly finishing the game
@@ -385,7 +385,7 @@ void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
 
 	// save the dotagame
 
-	DB->DotAGameAdd( GameID, m_Winner, m_Min, m_Sec );
+	GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, m_Winner, m_Min, m_Sec ) );
 
 	// check for invalid colours and duplicates
 	// this can only happen if DotA sends us garbage in the "id" value but we should check anyway
@@ -419,10 +419,10 @@ void CStatsDOTA :: Save( CGHostDB *DB, uint32_t GameID )
 	{
 		if( m_Players[i] )
 		{
-			DB->DotAPlayerAdd( GameID, m_Players[i]->GetColour( ), m_Players[i]->GetKills( ), m_Players[i]->GetDeaths( ), m_Players[i]->GetCreepKills( ), m_Players[i]->GetCreepDenies( ), m_Players[i]->GetAssists( ), m_Players[i]->GetGold( ), m_Players[i]->GetNeutralKills( ), m_Players[i]->GetItem( 0 ), m_Players[i]->GetItem( 1 ), m_Players[i]->GetItem( 2 ), m_Players[i]->GetItem( 3 ), m_Players[i]->GetItem( 4 ), m_Players[i]->GetItem( 5 ), m_Players[i]->GetHero( ), m_Players[i]->GetNewColour( ), m_Players[i]->GetTowerKills( ), m_Players[i]->GetRaxKills( ), m_Players[i]->GetCourierKills( ) );
+			GHost->m_Callables.push_back( DB->ThreadedDotAPlayerAdd( GameID, m_Players[i]->GetColour( ), m_Players[i]->GetKills( ), m_Players[i]->GetDeaths( ), m_Players[i]->GetCreepKills( ), m_Players[i]->GetCreepDenies( ), m_Players[i]->GetAssists( ), m_Players[i]->GetGold( ), m_Players[i]->GetNeutralKills( ), m_Players[i]->GetItem( 0 ), m_Players[i]->GetItem( 1 ), m_Players[i]->GetItem( 2 ), m_Players[i]->GetItem( 3 ), m_Players[i]->GetItem( 4 ), m_Players[i]->GetItem( 5 ), m_Players[i]->GetHero( ), m_Players[i]->GetNewColour( ), m_Players[i]->GetTowerKills( ), m_Players[i]->GetRaxKills( ), m_Players[i]->GetCourierKills( ) ) );
 			Players++;
 		}
 	}
 
-	CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] saved " + UTIL_ToString( Players ) + " players" );
+	CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] saving " + UTIL_ToString( Players ) + " players" );
 }

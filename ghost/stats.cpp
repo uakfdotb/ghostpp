@@ -40,7 +40,7 @@ bool CStats :: ProcessAction( CIncomingAction *Action )
 	return false;
 }
 
-void CStats :: Save( CGHostDB *DB, uint32_t GameID )
+void CStats :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 {
 
 }

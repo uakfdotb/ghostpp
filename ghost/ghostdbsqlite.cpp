@@ -620,6 +620,38 @@ bool CGHostDBSQLite :: AdminRemove( string server, string user )
 	return Success;
 }
 
+vector<string> CGHostDBSQLite :: AdminList( string server )
+{
+	vector<string> AdminList;
+	sqlite3_stmt *Statement;
+	m_DB->Prepare( "SELECT name FROM admins WHERE server=?", (void **)&Statement );
+
+	if( Statement )
+	{
+		sqlite3_bind_text( Statement, 1, server.c_str( ), -1, SQLITE_TRANSIENT );
+		int RC = m_DB->Step( Statement );
+
+		while( RC == SQLITE_ROW )
+		{
+			vector<string> *Row = m_DB->GetRow( );
+
+			if( Row->size( ) == 1 )
+				AdminList.push_back( (*Row)[0] );
+
+			RC = m_DB->Step( Statement );
+		}
+
+		if( RC == SQLITE_ERROR )
+			CONSOLE_Print( "[SQLITE3] error retrieving admin list [" + server + "] - " + m_DB->GetError( ) );
+
+		m_DB->Finalize( Statement );
+	}
+	else
+		CONSOLE_Print( "[SQLITE3] prepare error retrieving admin list [" + server + "] - " + m_DB->GetError( ) );
+
+	return AdminList;
+}
+
 uint32_t CGHostDBSQLite :: BanCount( string server )
 {
 	uint32_t Count = 0;
@@ -757,6 +789,38 @@ bool CGHostDBSQLite :: BanRemove( string user )
 		CONSOLE_Print( "[SQLITE3] prepare error removing ban [" + user + "] - " + m_DB->GetError( ) );
 
 	return Success;
+}
+
+vector<CDBBan *> CGHostDBSQLite :: BanList( string server )
+{
+	vector<CDBBan *> BanList;
+	sqlite3_stmt *Statement;
+	m_DB->Prepare( "SELECT name, ip, date, gamename, admin, reason FROM bans WHERE server=?", (void **)&Statement );
+
+	if( Statement )
+	{
+		sqlite3_bind_text( Statement, 1, server.c_str( ), -1, SQLITE_TRANSIENT );
+		int RC = m_DB->Step( Statement );
+
+		while( RC == SQLITE_ROW )
+		{
+			vector<string> *Row = m_DB->GetRow( );
+
+			if( Row->size( ) == 6 )
+				BanList.push_back( new CDBBan( server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5] ) );
+
+			RC = m_DB->Step( Statement );
+		}
+
+		if( RC == SQLITE_ERROR )
+			CONSOLE_Print( "[SQLITE3] error retrieving ban list [" + server + "] - " + m_DB->GetError( ) );
+
+		m_DB->Finalize( Statement );
+	}
+	else
+		CONSOLE_Print( "[SQLITE3] prepare error retrieving ban list [" + server + "] - " + m_DB->GetError( ) );
+
+	return BanList;
 }
 
 uint32_t CGHostDBSQLite :: GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
@@ -1192,4 +1256,130 @@ bool CGHostDBSQLite :: DownloadAdd( string map, uint32_t mapsize, string name, s
 		CONSOLE_Print( "[SQLITE3] prepare error adding download [" + map + " : " + UTIL_ToString( mapsize ) + " : " + name + " : " + ip + " : " + UTIL_ToString( spoofed ) + " : " + spoofedrealm + " : " + UTIL_ToString( downloadtime ) + "] - " + m_DB->GetError( ) );
 
 	return Success;
+}
+
+CCallableAdminCount *CGHostDBSQLite :: ThreadedAdminCount( string server )
+{
+	CCallableAdminCount *Callable = new CCallableAdminCount( server );
+	Callable->SetResult( AdminCount( server ) );
+	return Callable;
+}
+
+CCallableAdminCheck *CGHostDBSQLite :: ThreadedAdminCheck( string server, string user )
+{
+	CCallableAdminCheck *Callable = new CCallableAdminCheck( server, user );
+	Callable->SetResult( AdminCheck( server, user ) );
+	return Callable;
+}
+
+CCallableAdminAdd *CGHostDBSQLite :: ThreadedAdminAdd( string server, string user )
+{
+	CCallableAdminAdd *Callable = new CCallableAdminAdd( server, user );
+	Callable->SetResult( AdminAdd( server, user ) );
+	return Callable;
+}
+
+CCallableAdminRemove *CGHostDBSQLite :: ThreadedAdminRemove( string server, string user )
+{
+	CCallableAdminRemove *Callable = new CCallableAdminRemove( server, user );
+	Callable->SetResult( AdminRemove( server, user ) );
+	return Callable;
+}
+
+CCallableAdminList *CGHostDBSQLite :: ThreadedAdminList( string server )
+{
+	CCallableAdminList *Callable = new CCallableAdminList( server );
+	Callable->SetResult( AdminList( server ) );
+	return Callable;
+}
+
+CCallableBanCount *CGHostDBSQLite :: ThreadedBanCount( string server )
+{
+	CCallableBanCount *Callable = new CCallableBanCount( server );
+	Callable->SetResult( BanCount( server ) );
+	return Callable;
+}
+
+CCallableBanCheck *CGHostDBSQLite :: ThreadedBanCheck( string server, string user )
+{
+	CCallableBanCheck *Callable = new CCallableBanCheck( server, user );
+	Callable->SetResult( BanCheck( server, user ) );
+	return Callable;
+}
+
+CCallableBanAdd *CGHostDBSQLite :: ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason )
+{
+	CCallableBanAdd *Callable = new CCallableBanAdd( server, user, ip, gamename, admin, reason );
+	Callable->SetResult( BanAdd( server, user, ip, gamename, admin, reason ) );
+	return Callable;
+}
+
+CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string server, string user )
+{
+	CCallableBanRemove *Callable = new CCallableBanRemove( server, user );
+	Callable->SetResult( BanRemove( server, user ) );
+	return Callable;
+}
+
+CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string user )
+{
+	CCallableBanRemove *Callable = new CCallableBanRemove( string( ), user );
+	Callable->SetResult( BanRemove( user ) );
+	return Callable;
+}
+
+CCallableBanList *CGHostDBSQLite :: ThreadedBanList( string server )
+{
+	CCallableBanList *Callable = new CCallableBanList( server );
+	Callable->SetResult( BanList( server ) );
+	return Callable;
+}
+
+CCallableGameAdd *CGHostDBSQLite :: ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+{
+	CCallableGameAdd *Callable = new CCallableGameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver );
+	Callable->SetResult( GameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver ) );
+	return Callable;
+}
+
+CCallableGamePlayerAdd *CGHostDBSQLite :: ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+{
+	CCallableGamePlayerAdd *Callable = new CCallableGamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour );
+	Callable->SetResult( GamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour ) );
+	return Callable;
+}
+
+CCallableGamePlayerSummaryCheck *CGHostDBSQLite :: ThreadedGamePlayerSummaryCheck( string name )
+{
+	CCallableGamePlayerSummaryCheck *Callable = new CCallableGamePlayerSummaryCheck( name );
+	Callable->SetResult( GamePlayerSummaryCheck( name ) );
+	return Callable;
+}
+
+CCallableDotAGameAdd *CGHostDBSQLite :: ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec )
+{
+	CCallableDotAGameAdd *Callable = new CCallableDotAGameAdd( gameid, winner, min, sec );
+	Callable->SetResult( DotAGameAdd( gameid, winner, min, sec ) );
+	return Callable;
+}
+
+CCallableDotAPlayerAdd *CGHostDBSQLite :: ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
+{
+	CCallableDotAPlayerAdd *Callable = new CCallableDotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills );
+	Callable->SetResult( DotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) );
+	return Callable;
+}
+
+CCallableDotAPlayerSummaryCheck *CGHostDBSQLite :: ThreadedDotAPlayerSummaryCheck( string name )
+{
+	CCallableDotAPlayerSummaryCheck *Callable = new CCallableDotAPlayerSummaryCheck( name );
+	Callable->SetResult( DotAPlayerSummaryCheck( name ) );
+	return Callable;
+}
+
+CCallableDownloadAdd *CGHostDBSQLite :: ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime )
+{
+	CCallableDownloadAdd *Callable = new CCallableDownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime );
+	Callable->SetResult( DownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime ) );
+	return Callable;
 }
