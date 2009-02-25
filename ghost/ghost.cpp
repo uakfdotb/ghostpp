@@ -90,7 +90,7 @@ CGHost *gGHost = NULL;
 
 uint32_t GetTime( )
 {
-	return (uint32_t)( time( NULL ) - gStartTime );
+	return (uint32_t)( ( GetTicks( ) / 1000 ) - gStartTime );
 }
 
 uint32_t GetTicks( )
@@ -99,10 +99,10 @@ uint32_t GetTicks( )
 	return GetTickCount( );
 #else
 	uint32_t ticks;
-	struct timeval now;
-	gettimeofday( &now, NULL );
-	ticks = now.tv_sec * 1000;
-	ticks += now.tv_usec / 1000;
+	struct timespec t;
+	clock_gettime( CLOCK_MONOTONIC, &t );
+	ticks = t.tv_sec * 1000;
+	ticks += t.tv_nsec / 1000000;
 	return ticks;
 #endif
 }
@@ -159,7 +159,8 @@ int main( int argc, char **argv )
 
 	// initialize the start time
 
-	gStartTime = time( NULL );
+	gStartTime = 0;
+	gStartTime = GetTime( );
 
 #ifdef WIN32
 	// initialize winsock

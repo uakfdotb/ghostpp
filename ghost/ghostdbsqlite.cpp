@@ -1262,6 +1262,7 @@ CCallableAdminCount *CGHostDBSQLite :: ThreadedAdminCount( string server )
 {
 	CCallableAdminCount *Callable = new CCallableAdminCount( server );
 	Callable->SetResult( AdminCount( server ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1269,6 +1270,7 @@ CCallableAdminCheck *CGHostDBSQLite :: ThreadedAdminCheck( string server, string
 {
 	CCallableAdminCheck *Callable = new CCallableAdminCheck( server, user );
 	Callable->SetResult( AdminCheck( server, user ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1276,6 +1278,7 @@ CCallableAdminAdd *CGHostDBSQLite :: ThreadedAdminAdd( string server, string use
 {
 	CCallableAdminAdd *Callable = new CCallableAdminAdd( server, user );
 	Callable->SetResult( AdminAdd( server, user ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1283,6 +1286,7 @@ CCallableAdminRemove *CGHostDBSQLite :: ThreadedAdminRemove( string server, stri
 {
 	CCallableAdminRemove *Callable = new CCallableAdminRemove( server, user );
 	Callable->SetResult( AdminRemove( server, user ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1290,6 +1294,7 @@ CCallableAdminList *CGHostDBSQLite :: ThreadedAdminList( string server )
 {
 	CCallableAdminList *Callable = new CCallableAdminList( server );
 	Callable->SetResult( AdminList( server ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1297,6 +1302,7 @@ CCallableBanCount *CGHostDBSQLite :: ThreadedBanCount( string server )
 {
 	CCallableBanCount *Callable = new CCallableBanCount( server );
 	Callable->SetResult( BanCount( server ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1304,6 +1310,7 @@ CCallableBanCheck *CGHostDBSQLite :: ThreadedBanCheck( string server, string use
 {
 	CCallableBanCheck *Callable = new CCallableBanCheck( server, user );
 	Callable->SetResult( BanCheck( server, user ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1311,6 +1318,7 @@ CCallableBanAdd *CGHostDBSQLite :: ThreadedBanAdd( string server, string user, s
 {
 	CCallableBanAdd *Callable = new CCallableBanAdd( server, user, ip, gamename, admin, reason );
 	Callable->SetResult( BanAdd( server, user, ip, gamename, admin, reason ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1318,6 +1326,7 @@ CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string server, string u
 {
 	CCallableBanRemove *Callable = new CCallableBanRemove( server, user );
 	Callable->SetResult( BanRemove( server, user ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1325,6 +1334,7 @@ CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string user )
 {
 	CCallableBanRemove *Callable = new CCallableBanRemove( string( ), user );
 	Callable->SetResult( BanRemove( user ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1332,6 +1342,7 @@ CCallableBanList *CGHostDBSQLite :: ThreadedBanList( string server )
 {
 	CCallableBanList *Callable = new CCallableBanList( server );
 	Callable->SetResult( BanList( server ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1339,6 +1350,7 @@ CCallableGameAdd *CGHostDBSQLite :: ThreadedGameAdd( string server, string map, 
 {
 	CCallableGameAdd *Callable = new CCallableGameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver );
 	Callable->SetResult( GameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1346,6 +1358,7 @@ CCallableGamePlayerAdd *CGHostDBSQLite :: ThreadedGamePlayerAdd( uint32_t gameid
 {
 	CCallableGamePlayerAdd *Callable = new CCallableGamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour );
 	Callable->SetResult( GamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1353,6 +1366,7 @@ CCallableGamePlayerSummaryCheck *CGHostDBSQLite :: ThreadedGamePlayerSummaryChec
 {
 	CCallableGamePlayerSummaryCheck *Callable = new CCallableGamePlayerSummaryCheck( name );
 	Callable->SetResult( GamePlayerSummaryCheck( name ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1360,6 +1374,7 @@ CCallableDotAGameAdd *CGHostDBSQLite :: ThreadedDotAGameAdd( uint32_t gameid, ui
 {
 	CCallableDotAGameAdd *Callable = new CCallableDotAGameAdd( gameid, winner, min, sec );
 	Callable->SetResult( DotAGameAdd( gameid, winner, min, sec ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1367,6 +1382,7 @@ CCallableDotAPlayerAdd *CGHostDBSQLite :: ThreadedDotAPlayerAdd( uint32_t gameid
 {
 	CCallableDotAPlayerAdd *Callable = new CCallableDotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills );
 	Callable->SetResult( DotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1374,6 +1390,7 @@ CCallableDotAPlayerSummaryCheck *CGHostDBSQLite :: ThreadedDotAPlayerSummaryChec
 {
 	CCallableDotAPlayerSummaryCheck *Callable = new CCallableDotAPlayerSummaryCheck( name );
 	Callable->SetResult( DotAPlayerSummaryCheck( name ) );
+	Callable->SetReady( true );
 	return Callable;
 }
 
@@ -1381,5 +1398,6 @@ CCallableDownloadAdd *CGHostDBSQLite :: ThreadedDownloadAdd( string map, uint32_
 {
 	CCallableDownloadAdd *Callable = new CCallableDownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime );
 	Callable->SetResult( DownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime ) );
+	Callable->SetReady( true );
 	return Callable;
 }
