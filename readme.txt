@@ -601,6 +601,7 @@ Version 12.0
  - added precompiled boost libraries for Visual C++
  - added precompiled mysql libraries for Visual C++
  - added mysql headers for Visual C++
+ - added new command !dbstatus in battle.net
  - refresh messages are no longer permanently disabled and can be configured on or off once again
  - games are now refreshed every 3 seconds instead of 2 seconds (to reduce the risk of flooding out)
  - when a game refresh fails the bot will stop trying to refresh the game until it is rehosted (to reduce the risk of flooding out)
