@@ -59,6 +59,7 @@ private:
 	BYTEARRAY m_MapSize;						// config value: map size (4 bytes)
 	BYTEARRAY m_MapInfo;						// config value: map info (4 bytes)
 	BYTEARRAY m_MapCRC;							// config value: map crc (4 bytes)
+	BYTEARRAY m_MapSHA1;						// config value: map sha1 (20 bytes)
 	unsigned char m_MapSpeed;
 	unsigned char m_MapVisibility;
 	unsigned char m_MapObservers;
@@ -84,6 +85,7 @@ public:
 	BYTEARRAY GetMapSize( )				{ return m_MapSize; }
 	BYTEARRAY GetMapInfo( )				{ return m_MapInfo; }
 	BYTEARRAY GetMapCRC( )				{ return m_MapCRC; }
+	BYTEARRAY GetMapSHA1( )				{ return m_MapSHA1; }
 	unsigned char GetMapSpeed( )		{ return m_MapSpeed; }
 	unsigned char GetMapVisibility( )	{ return m_MapVisibility; }
 	unsigned char GetMapObservers( )	{ return m_MapObservers; }

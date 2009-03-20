@@ -21,6 +21,7 @@
 #include "ghost.h"
 #include "util.h"
 #include "crc32.h"
+#include "sha1.h"
 #include "csvparser.h"
 #include "config.h"
 #include "language.h"
@@ -47,6 +48,7 @@
 #include "ghost.h"
 #include "util.h"
 #include "crc32.h"
+#include "sha1.h"
 #include "csvparser.h"
 #include "config.h"
 #include "language.h"
@@ -253,6 +255,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_UDPSocket = new CUDPSocket( );
 	m_CRC = new CCRC32( );
 	m_CRC->Initialize( );
+	m_SHA = new CSHA1( );
 	m_CurrentGame = NULL;
 	string DBType = CFG->GetString( "db_type", "sqlite3" );
 
@@ -353,7 +356,7 @@ CGHost :: CGHost( CConfig *CFG )
 
 		bool HoldFriends = CFG->GetInt( Prefix + "holdfriends", 1 ) == 0 ? false : true;
 		bool HoldClan = CFG->GetInt( Prefix + "holdclan", 1 ) == 0 ? false : true;
-		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 22 );
+		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 23 );
 		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversion", string( ) ), 4 );
 		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
 		string PasswordHashType = CFG->GetString( Prefix + "custom_passwordhashtype", string( ) );
@@ -434,6 +437,7 @@ CGHost :: ~CGHost( )
 {
 	delete m_UDPSocket;
 	delete m_CRC;
+	delete m_SHA;
 
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		delete *i;
@@ -695,6 +699,8 @@ void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )
 
 		if( m_CurrentGame->GetNumPlayers( ) == 0 )
 			m_CurrentGame->SetExiting( true );
+
+		m_CurrentGame->SetRefreshError( true );
 	}
 }
 

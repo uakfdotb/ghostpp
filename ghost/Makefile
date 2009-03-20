@@ -23,7 +23,7 @@ endif
 
 CFLAGS += $(OFLAGS) $(DFLAGS) -I. -I../bncsutil/src/ -I../StormLib/
 
-OBJS = bncsutilinterface.o bnet.o bnetprotocol.o commandpacket.o config.o crc32.o csvparser.o game.o game_base.o gameplayer.o gameprotocol.o gameslot.o ghost.o ghostdb.o ghostdbmysql.o ghostdbsqlite.o language.o map.o packed.o replay.o savegame.o socket.o stats.o statsdota.o util.o
+OBJS = bncsutilinterface.o bnet.o bnetprotocol.o commandpacket.o config.o crc32.o csvparser.o game.o game_base.o gameplayer.o gameprotocol.o gameslot.o ghost.o ghostdb.o ghostdbmysql.o ghostdbsqlite.o language.o map.o packed.o replay.o savegame.o sha1.o socket.o stats.o statsdota.o util.o
 COBJS = sqlite3.o
 PROGS = ./ghost++
 
@@ -57,14 +57,16 @@ game_base.o: ghost.h util.h config.h language.h socket.h ghostdb.h bnet.h map.h 
 gameplayer.o: ghost.h util.h language.h socket.h commandpacket.h bnet.h map.h gameplayer.h gameprotocol.h game_base.h
 gameprotocol.o: ghost.h util.h crc32.h gameplayer.h gameprotocol.h game_base.h
 gameslot.o: ghost.h gameslot.h
-ghost.o: ghost.h util.h crc32.h csvparser.h config.h language.h socket.h ghostdb.h ghostdbsqlite.h ghostdbmysql.h bnet.h map.h packed.h savegame.h gameprotocol.h game_base.h game.h
+ghost.o: ghost.h util.h crc32.h sha1.h csvparser.h config.h language.h socket.h ghostdb.h ghostdbsqlite.h ghostdbmysql.h bnet.h map.h packed.h savegame.h gameprotocol.h game_base.h game.h
 ghostdb.o: ghost.h util.h config.h ghostdb.h
 ghostdbmysql.o: ghost.h util.h config.h ghostdb.h ghostdbmysql.h
 ghostdbsqlite.o: ghost.h util.h config.h ghostdb.h ghostdbsqlite.h
 language.o: ghost.h config.h language.h
+map.o: ghost.h util.h crc32.h sha1.h config.h map.h
 packed.o: ghost.h util.h crc32.h packed.h
 replay.o: ghost.h util.h packed.h replay.h gameprotocol.h
 savegame.o: ghost.h util.h packed.h savegame.h
+sha1.o: sha1.h
 socket.o: ghost.h util.h socket.h
 stats.o: ghost.h stats.h
 statsdota.o: ghost.h util.h ghostdb.h gameplayer.h gameprotocol.h game_base.h stats.h statsdota.h

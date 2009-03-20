@@ -300,8 +300,8 @@ void CPacked :: Compress( )
 	uint32_t HeaderSize = 68;
 	uint32_t HeaderCompressedSize = HeaderSize + CompressedSize + CompressedBlocks.size( ) * 8;
 	uint32_t HeaderVersion = 1;
-	uint32_t HeaderWar3Version = 22;
-	uint16_t HeaderBuildNumber = 6057;
+	uint32_t HeaderWar3Version = 23;
+	uint16_t HeaderBuildNumber = 6058;
 	uint16_t HeaderFlags = 32768;
 	BYTEARRAY Header;
 	UTIL_AppendByteArray( Header, "Warcraft III recorded game\x01A" );

@@ -267,6 +267,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sha1.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\socket.cpp"
 				>
 			</File>
@@ -378,6 +382,10 @@
 			</File>
 			<File
 				RelativePath=".\savegame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sha1.h"
 				>
 			</File>
 			<File

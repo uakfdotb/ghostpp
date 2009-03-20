@@ -90,6 +90,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_GameOverTime = 0;
 	m_Locked = false;
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
+	m_RefreshError = false;
 	m_MuteAll = false;
 	m_MuteLobby = false;
 	m_CountDownStarted = false;
@@ -343,14 +344,17 @@ bool CBaseGame :: Update( void *fd )
 		m_LastPingTime = GetTime( );
 	}
 
-	// refresh every 2 seconds
+	// refresh every 3 seconds
 
-	if( !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 2 )
+	if( !m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 3 )
 	{
 		// send a game refresh packet to each battle.net connection
 
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
+
+		if( m_RefreshMessages )
+			SendAllChat( m_GHost->m_Language->GameRefreshed( ) );
 
 		m_LastRefreshTime = GetTime( );
 	}
@@ -1263,7 +1267,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	// send a map check packet to the new player
 
-	Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_MAPCHECK( m_Map->GetMapPath( ), m_Map->GetMapSize( ), m_Map->GetMapInfo( ), m_Map->GetMapCRC( ) ) );
+	Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_MAPCHECK( m_Map->GetMapPath( ), m_Map->GetMapSize( ), m_Map->GetMapInfo( ), m_Map->GetMapCRC( ), m_Map->GetMapSHA1( ) ) );
 
 	// send slot info to everyone, so the new player gets this info twice but everyone else still needs to know the new slot layout
 

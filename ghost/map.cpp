@@ -21,6 +21,7 @@
 #include "ghost.h"
 #include "util.h"
 #include "crc32.h"
+#include "sha1.h"
 #include "config.h"
 #include "map.h"
 
@@ -42,6 +43,8 @@ CMap :: CMap( CGHost *nGHost )
 	m_MapSize = UTIL_ExtractNumbers( "174 221 4 0", 4 );
 	m_MapInfo = UTIL_ExtractNumbers( "251 57 68 98", 4 );
 	m_MapCRC = UTIL_ExtractNumbers( "112 185 65 97", 4 );
+	// todotodo: fix me
+	m_MapSHA1 = UTIL_ExtractNumbers( "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0", 20 );
 	m_MapSpeed = MAPSPEED_FAST;
 	m_MapVisibility = MAPVIS_DEFAULT;
 	m_MapObservers = MAPOBS_NONE;
@@ -182,32 +185,35 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	BYTEARRAY MapSize;
 	BYTEARRAY MapInfo;
 	BYTEARRAY MapCRC;
+	BYTEARRAY MapSHA1;
 
 	if( !m_MapData.empty( ) )
 	{
+		m_GHost->m_SHA->Reset( );
+
 		// calculate map_size
 
 		MapSize = UTIL_CreateByteArray( (uint32_t)m_MapData.size( ), false );
-		CONSOLE_Print( "[MAP] calculated map_size = " + UTIL_ToString( MapSize[0] ) + " " + UTIL_ToString( MapSize[1] ) + " " + UTIL_ToString( MapSize[2] ) + " " + UTIL_ToString( MapSize[3] ) );
+		CONSOLE_Print( "[MAP] calculated map_size = " + UTIL_ByteArrayToDecString( MapSize ) );
 
 		// calculate map_info (this is actually the CRC)
 
 		MapInfo = UTIL_CreateByteArray( (uint32_t)m_GHost->m_CRC->FullCRC( (unsigned char *)m_MapData.c_str( ), m_MapData.size( ) ), false );
-		CONSOLE_Print( "[MAP] calculated map_info = " + UTIL_ToString( MapInfo[0] ) + " " + UTIL_ToString( MapInfo[1] ) + " " + UTIL_ToString( MapInfo[2] ) + " " + UTIL_ToString( MapInfo[3] ) );
+		CONSOLE_Print( "[MAP] calculated map_info = " + UTIL_ByteArrayToDecString( MapInfo ) );
 
-		// calculate map_crc (this is not the CRC)
-		// a big thank you to Strilanc for figuring this out
+		// calculate map_crc (this is not the CRC) and map_sha1
+		// a big thank you to Strilanc for figuring the map_crc algorithm out
 
 		string CommonJ = UTIL_FileRead( m_GHost->m_MapCFGPath + "common.j" );
 
 		if( CommonJ.empty( ) )
-			CONSOLE_Print( "[MAP] unable to calculate map_crc - unable to read file [" + m_GHost->m_MapCFGPath + "common.j]" );
+			CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - unable to read file [" + m_GHost->m_MapCFGPath + "common.j]" );
 		else
 		{
 			string BlizzardJ = UTIL_FileRead( m_GHost->m_MapCFGPath + "blizzard.j" );
 
 			if( BlizzardJ.empty( ) )
-				CONSOLE_Print( "[MAP] unable to calculate map_crc - unable to read file [" + m_GHost->m_MapCFGPath + "blizzard.j]" );
+				CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - unable to read file [" + m_GHost->m_MapCFGPath + "blizzard.j]" );
 			else
 			{
 				uint32_t Val = 0;
@@ -235,9 +241,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
 							{
-								CONSOLE_Print( "[MAP] overriding default common.j with map copy while calculating map_crc" );
+								CONSOLE_Print( "[MAP] overriding default common.j with map copy while calculating map_crc/sha1" );
 								OverrodeCommonJ = true;
 								Val = Val ^ XORRotateLeft( (unsigned char *)SubFileData, BytesRead );
+								m_GHost->m_SHA->Update( (unsigned char *)SubFileData, BytesRead );
 							}
 
 							delete [] SubFileData;
@@ -248,7 +255,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 				}
 
 				if( !OverrodeCommonJ )
+				{
 					Val = Val ^ XORRotateLeft( (unsigned char *)CommonJ.c_str( ), CommonJ.size( ) );
+					m_GHost->m_SHA->Update( (unsigned char *)CommonJ.c_str( ), CommonJ.size( ) );
+				}
 
 				if( MapMPQReady )
 				{
@@ -267,9 +277,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
 							{
-								CONSOLE_Print( "[MAP] overriding default blizzard.j with map copy while calculating map_crc" );
+								CONSOLE_Print( "[MAP] overriding default blizzard.j with map copy while calculating map_crc/sha1" );
 								OverrodeBlizzardJ = true;
 								Val = Val ^ XORRotateLeft( (unsigned char *)SubFileData, BytesRead );
+								m_GHost->m_SHA->Update( (unsigned char *)SubFileData, BytesRead );
 							}
 
 							delete [] SubFileData;
@@ -280,7 +291,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 				}
 
 				if( !OverrodeBlizzardJ )
+				{
 					Val = Val ^ XORRotateLeft( (unsigned char *)BlizzardJ.c_str( ), BlizzardJ.size( ) );
+					m_GHost->m_SHA->Update( (unsigned char *)BlizzardJ.c_str( ), BlizzardJ.size( ) );
+				}
 
 				Val = ROTL( Val, 3 );
 				Val = ROTL( Val ^ 0x03F1379E, 3 );
@@ -324,6 +338,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 										FoundScript = true;
 
 									Val = ROTL( Val ^ XORRotateLeft( (unsigned char *)SubFileData, BytesRead ), 3 );
+									m_GHost->m_SHA->Update( (unsigned char *)SubFileData, BytesRead );
 									// DEBUG_Print( "*** found: " + *i );
 								}
 
@@ -339,18 +354,25 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 					}
 
 					if( !FoundScript )
-						CONSOLE_Print( "[MAP] couldn't find war3map.j or scripts\\war3map.j in MPQ file, calculated map_crc is probably wrong" );
+						CONSOLE_Print( "[MAP] couldn't find war3map.j or scripts\\war3map.j in MPQ file, calculated map_crc/sha1 is probably wrong" );
 
 					MapCRC = UTIL_CreateByteArray( Val, false );
-					CONSOLE_Print( "[MAP] calculated map_crc = " + UTIL_ToString( MapCRC[0] ) + " " + UTIL_ToString( MapCRC[1] ) + " " + UTIL_ToString( MapCRC[2] ) + " " + UTIL_ToString( MapCRC[3] ) );
+					CONSOLE_Print( "[MAP] calculated map_crc = " + UTIL_ByteArrayToDecString( MapCRC ) );
+
+					m_GHost->m_SHA->Final( );
+					unsigned char SHA1[20];
+					memset( SHA1, 0, sizeof( unsigned char ) * 20 );
+					m_GHost->m_SHA->GetHash( SHA1 );
+					MapSHA1 = UTIL_CreateByteArray( SHA1, 20 );
+					CONSOLE_Print( "[MAP] calculated *incorrect* map_sha1 = " + UTIL_ByteArrayToDecString( MapSHA1 ) );
 				}
 				else
-					CONSOLE_Print( "[MAP] unable to calculate map_crc - map MPQ file not loaded" );
+					CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - map MPQ file not loaded" );
 			}
 		}
 	}
 	else
-		CONSOLE_Print( "[MAP] no map data available, using config file for map_size, map_info, map_crc" );
+		CONSOLE_Print( "[MAP] no map data available, using config file for map_size, map_info, map_crc, map_sha1" );
 
 	// try to calculate map_width, map_height, map_slot<x>, map_numplayers, map_numteams
 
@@ -611,6 +633,16 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	}
 
 	m_MapCRC = MapCRC;
+
+	if( MapSHA1.empty( ) )
+		MapSHA1 = UTIL_ExtractNumbers( CFG->GetString( "map_sha1", string( ) ), 20 );
+	else if( CFG->Exists( "map_sha1" ) )
+	{
+		CONSOLE_Print( "[MAP] overriding calculated map_sha1 with config value map_sha1 = " + CFG->GetString( "map_sha1", string( ) ) );
+		MapSHA1 = UTIL_ExtractNumbers( CFG->GetString( "map_sha1", string( ) ), 20 );
+	}
+
+	m_MapSHA1 = MapSHA1;
 	m_MapSpeed = CFG->GetInt( "map_speed", MAPSPEED_FAST );
 	m_MapVisibility = CFG->GetInt( "map_visibility", MAPVIS_DEFAULT );
 	m_MapObservers = CFG->GetInt( "map_observers", MAPOBS_NONE );
@@ -739,6 +771,12 @@ void CMap :: CheckValid( )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_crc detected" );
+	}
+
+	if( m_MapSHA1.size( ) != 20 )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_sha1 detected" );
 	}
 
 	if( m_MapSpeed != MAPSPEED_SLOW && m_MapSpeed != MAPSPEED_NORMAL && m_MapSpeed != MAPSPEED_FAST )

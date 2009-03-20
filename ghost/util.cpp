@@ -95,6 +95,19 @@ uint32_t UTIL_ByteArrayToUInt32( BYTEARRAY b, bool reverse, unsigned int start )
 	return (uint32_t)( temp[3] << 24 | temp[2] << 16 | temp[1] << 8 | temp[0] );
 }
 
+string UTIL_ByteArrayToDecString( BYTEARRAY b )
+{
+	if( b.empty( ) )
+		return string( );
+
+	string result = UTIL_ToString( b[0] );
+
+	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); i++ )
+		result += " " + UTIL_ToString( *i );
+
+	return result;
+}
+
 void UTIL_AppendByteArray( BYTEARRAY &b, BYTEARRAY append )
 {
 	b.insert( b.end( ), append.begin( ), append.end( ) );

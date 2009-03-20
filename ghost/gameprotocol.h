@@ -131,7 +131,7 @@ public:
 	BYTEARRAY SEND_W3GS_CREATEGAME( );
 	BYTEARRAY SEND_W3GS_REFRESHGAME( uint32_t players, uint32_t playerSlots );
 	BYTEARRAY SEND_W3GS_DECREATEGAME( );
-	BYTEARRAY SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC );
+	BYTEARRAY SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 );
 	BYTEARRAY SEND_W3GS_STARTDOWNLOAD( unsigned char fromPID );
 	BYTEARRAY SEND_W3GS_MAPPART( unsigned char fromPID, unsigned char toPID, uint32_t start, string *mapData );
 	BYTEARRAY SEND_W3GS_INCOMING_ACTION2( queue<CIncomingAction *> actions );

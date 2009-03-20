@@ -73,6 +73,7 @@ void DEBUG_Print( BYTEARRAY b );
 
 class CUDPSocket;
 class CCRC32;
+class CSHA1;
 class CBNET;
 class CBaseGame;
 class CAdminGame;
@@ -88,6 +89,7 @@ class CGHost
 public:
 	CUDPSocket *m_UDPSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
 	CCRC32 *m_CRC;							// for calculating CRC's
+	CSHA1 *m_SHA;							// for calculating SHA1's
 	vector<CBNET *> m_BNETs;				// all our battle.net connections (there can be more than one)
 	CBaseGame *m_CurrentGame;				// this game is still in the lobby state
 	CAdminGame *m_AdminGame;				// this "fake game" allows an admin who knows the password to control the bot from the local network

@@ -95,6 +95,7 @@ protected:
 	uint32_t m_GameOverTime;						// GetTime when the game was over
 	bool m_Locked;									// if the game owner is the only one allowed to run game commands or not
 	bool m_RefreshMessages;							// if we should display "game refreshed..." messages or not
+	bool m_RefreshError;							// if there was an error refreshing the game
 	bool m_MuteAll;									// if we should stop forwarding ingame chat messages targeted for all players or not
 	bool m_MuteLobby;								// if we should stop forwarding lobby chat messages
 	bool m_CountDownStarted;						// if the game start countdown has started or not
@@ -127,6 +128,7 @@ public:
 
 	virtual void SetExiting( bool nExiting )						{ m_Exiting = nExiting; }
 	virtual void SetAutoStartPlayers( uint32_t nAutoStartPlayers )	{ m_AutoStartPlayers = nAutoStartPlayers; }
+	virtual void SetRefreshError( bool nRefreshError )				{ m_RefreshError = nRefreshError; }
 
 	virtual uint32_t GetSlotsOpen( );
 	virtual uint32_t GetNumPlayers( );

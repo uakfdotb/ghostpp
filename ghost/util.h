@@ -29,6 +29,7 @@ BYTEARRAY UTIL_CreateByteArray( uint16_t i, bool reverse );
 BYTEARRAY UTIL_CreateByteArray( uint32_t i, bool reverse );
 uint16_t UTIL_ByteArrayToUInt16( BYTEARRAY b, bool reverse, unsigned int start = 0 );
 uint32_t UTIL_ByteArrayToUInt32( BYTEARRAY b, bool reverse, unsigned int start = 0 );
+string UTIL_ByteArrayToDecString( BYTEARRAY b );
 void UTIL_AppendByteArray( BYTEARRAY &b, BYTEARRAY append );
 void UTIL_AppendByteArray( BYTEARRAY &b, unsigned char *a, int size );
 void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator = true );

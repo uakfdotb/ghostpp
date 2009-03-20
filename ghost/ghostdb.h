@@ -141,7 +141,7 @@ class CBaseCallable
 {
 protected:
 	string m_Error;
-	bool m_Ready;
+	volatile bool m_Ready;
 	uint32_t m_StartTicks;
 	uint32_t m_EndTicks;
 
