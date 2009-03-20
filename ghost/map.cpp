@@ -43,8 +43,7 @@ CMap :: CMap( CGHost *nGHost )
 	m_MapSize = UTIL_ExtractNumbers( "174 221 4 0", 4 );
 	m_MapInfo = UTIL_ExtractNumbers( "251 57 68 98", 4 );
 	m_MapCRC = UTIL_ExtractNumbers( "112 185 65 97", 4 );
-	// todotodo: fix me
-	m_MapSHA1 = UTIL_ExtractNumbers( "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0", 20 );
+	m_MapSHA1 = UTIL_ExtractNumbers( "187 28 143 4 97 223 210 52 218 28 95 52 217 203 121 202 24 120 59 213", 20 );
 	m_MapSpeed = MAPSPEED_FAST;
 	m_MapVisibility = MAPVIS_DEFAULT;
 	m_MapObservers = MAPOBS_NONE;
@@ -298,6 +297,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 				Val = ROTL( Val, 3 );
 				Val = ROTL( Val ^ 0x03F1379E, 3 );
+				m_GHost->m_SHA->Update( (unsigned char *)"\x9E\x37\xF1\x03", 4 );
 
 				if( MapMPQReady )
 				{
@@ -364,7 +364,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 					memset( SHA1, 0, sizeof( unsigned char ) * 20 );
 					m_GHost->m_SHA->GetHash( SHA1 );
 					MapSHA1 = UTIL_CreateByteArray( SHA1, 20 );
-					CONSOLE_Print( "[MAP] calculated *incorrect* map_sha1 = " + UTIL_ByteArrayToDecString( MapSHA1 ) );
+					CONSOLE_Print( "[MAP] calculated map_sha1 = " + UTIL_ByteArrayToDecString( MapSHA1 ) );
 				}
 				else
 					CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - map MPQ file not loaded" );
@@ -546,9 +546,9 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							}
 
 							MapWidth = UTIL_CreateByteArray( (uint16_t)RawMapWidth, false );
-							CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ToString( MapWidth[0] ) + " " + UTIL_ToString( MapWidth[1] ) );
+							CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ByteArrayToDecString( MapWidth ) );
 							MapHeight = UTIL_CreateByteArray( (uint16_t)RawMapHeight, false );
-							CONSOLE_Print( "[MAP] calculated map_height = " + UTIL_ToString( MapHeight[0] ) + " " + UTIL_ToString( MapHeight[1] ) );
+							CONSOLE_Print( "[MAP] calculated map_height = " + UTIL_ByteArrayToDecString( MapHeight ) );
 							MapNumPlayers = RawMapNumPlayers;
 							CONSOLE_Print( "[MAP] calculated map_numplayers = " + UTIL_ToString( MapNumPlayers ) );
 							MapNumTeams = RawMapNumTeams;
