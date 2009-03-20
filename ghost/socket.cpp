@@ -114,7 +114,7 @@ string CSocket :: GetErrorString( )
 	case EREMOTE: return "EREMOTE";
 	}
 
-	return "UNKNOWN ERROR";
+	return "UNKNOWN ERROR (" + UTIL_ToString( m_Error ) + ")";
 }
 
 void CSocket :: SetFD( fd_set *fd, int *nfds )

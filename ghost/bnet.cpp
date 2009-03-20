@@ -797,8 +797,13 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// this case covers whispers - we assume that anyone who sends a whisper to the bot with message "spoofcheck" should be considered spoof checked
 		// note that this means you can whisper "spoofcheck" even in a public game to manually spoofcheck if the /whois fails
 
-		if( Event == CBNETProtocol :: EID_WHISPER && Message == "spoofcheck" && m_GHost->m_CurrentGame )
-			m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, true );
+		if( Event == CBNETProtocol :: EID_WHISPER && m_GHost->m_CurrentGame )
+		{
+			if( Message == "spoofcheck" )
+				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, true );
+			else if( Message.find( "entered a Warcraft III The Frozen Throne game called" ) != string :: npos && Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
+				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
+		}
 
 		// handle bot commands
 
