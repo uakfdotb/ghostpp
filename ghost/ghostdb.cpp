@@ -252,6 +252,11 @@ CCallableDownloadAdd *CGHostDB :: ThreadedDownloadAdd( string map, uint32_t maps
 	return NULL;
 }
 
+CCallableScoreCheck *CGHostDB :: ThreadedScoreCheck( string category, string name, string server )
+{
+	return NULL;
+}
+
 //
 // Callables
 //
@@ -348,6 +353,11 @@ CCallableDotAPlayerSummaryCheck :: ~CCallableDotAPlayerSummaryCheck( )
 }
 
 CCallableDownloadAdd :: ~CCallableDownloadAdd( )
+{
+
+}
+
+CCallableScoreCheck :: ~CCallableScoreCheck( )
 {
 
 }

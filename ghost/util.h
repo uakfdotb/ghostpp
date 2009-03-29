@@ -51,6 +51,7 @@ string UTIL_ToString( float f, int digits );
 string UTIL_ToString( double d, int digits );
 uint16_t UTIL_ToUInt16( string &s );
 uint32_t UTIL_ToUInt32( string &s );
+double UTIL_ToDouble( string &s );
 
 // files
 

@@ -202,6 +202,9 @@ public:
 	string WasKickedByVote( );
 	string TypeYesToVote( string commandtrigger );
 	string PlayersNotYetPingedAutoStart( string notpinged );
+	string WasKickedForNotSpoofChecking( );
+	string WasKickedForHavingFurthestScore( string score, string average );
+	string PlayerHasScore( string player, string score );
 };
 
 #endif

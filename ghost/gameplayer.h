@@ -25,6 +25,7 @@ class CTCPSocket;
 class CCommandPacket;
 class CGameProtocol;
 class CGame;
+class CIncomingJoinPlayer;
 
 //
 // CPotentialPlayer
@@ -45,6 +46,7 @@ protected:
 	bool m_DeleteMe;
 	bool m_Error;
 	string m_ErrorString;
+	CIncomingJoinPlayer *m_IncomingJoinPlayer;
 
 public:
 	CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket );
@@ -57,6 +59,7 @@ public:
 	virtual bool GetDeleteMe( )						{ return m_DeleteMe; }
 	virtual bool GetError( )						{ return m_Error; }
 	virtual string GetErrorString( )				{ return m_ErrorString; }
+	virtual CIncomingJoinPlayer *GetJoinPlayer( )	{ return m_IncomingJoinPlayer; }
 
 	virtual void SetSocket( CTCPSocket *nSocket )	{ m_Socket = nSocket; }
 	virtual void SetDeleteMe( bool nDeleteMe )		{ m_DeleteMe = nDeleteMe; }
@@ -94,6 +97,7 @@ private:
 	uint32_t m_StartedLaggingTicks;				// GetTicks when the player started lagging
 	uint32_t m_StatsSentTime;					// GetTime when we sent this player's stats to the chat (to prevent players from spamming !stats)
 	uint32_t m_StatsDotASentTime;				// GetTime when we sent this player's dota stats to the chat (to prevent players from spamming !statsdota)
+	double m_Score;								// the player's generic "score" for the matchmaking algorithm
 	bool m_LoggedIn;							// if the player has logged in or not (used with CAdminGame only)
 	bool m_Spoofed;								// if the player has spoof checked or not
 	bool m_Reserved;							// if the player is reserved (VIP) or not
@@ -124,6 +128,7 @@ public:
 	uint32_t GetLeftCode( )					{ return m_LeftCode; }
 	uint32_t GetLoginAttempts( )			{ return m_LoginAttempts; }
 	uint32_t GetSyncCounter( )				{ return m_SyncCounter; }
+	uint32_t GetJoinTime( )					{ return m_JoinTime; }
 	uint32_t GetLastMapPartSent( )			{ return m_LastMapPartSent; }
 	uint32_t GetLastMapPartAcked( )			{ return m_LastMapPartAcked; }
 	uint32_t GetStartedDownloadingTicks( )	{ return m_StartedDownloadingTicks; }
@@ -132,6 +137,7 @@ public:
 	uint32_t GetStartedLaggingTicks( )		{ return m_StartedLaggingTicks; }
 	uint32_t GetStatsSentTime( )			{ return m_StatsSentTime; }
 	uint32_t GetStatsDotASentTime( )		{ return m_StatsDotASentTime; }
+	double GetScore( )						{ return m_Score; }
 	bool GetLoggedIn( )						{ return m_LoggedIn; }
 	bool GetSpoofed( )						{ return m_Spoofed; }
 	bool GetReserved( )						{ return m_Reserved; }
@@ -158,6 +164,7 @@ public:
 	void SetStartedLaggingTicks( uint32_t nStartedLaggingTicks )			{ m_StartedLaggingTicks = nStartedLaggingTicks; }
 	void SetStatsSentTime( uint32_t nStatsSentTime )						{ m_StatsSentTime = nStatsSentTime; }
 	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )				{ m_StatsDotASentTime = nStatsDotASentTime; }
+	void SetScore( double nScore )											{ m_Score = nScore; }
 	void SetLoggedIn( bool nLoggedIn )										{ m_LoggedIn = nLoggedIn; }
 	void SetSpoofed( bool nSpoofed )										{ m_Spoofed = nSpoofed; }
 	void SetReserved( bool nReserved )										{ m_Reserved = nReserved; }

@@ -179,7 +179,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	else
 		CONSOLE_Print( "[MAP] warning - unable to load MPQ file [" + MapMPQFileName + "]" );
 
-	// try to calculate map_size, map_info, map_crc
+	// try to calculate map_size, map_info, map_crc, map_sha1
 
 	BYTEARRAY MapSize;
 	BYTEARRAY MapInfo;
@@ -669,6 +669,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	m_MapHeight = MapHeight;
 	m_MapType = CFG->GetString( "map_type", string( ) );
+	m_MapScoreCategory = CFG->GetString( "map_scorecategory", string( ) );
 
 	if( MapNumPlayers == 0 )
 		MapNumPlayers = CFG->GetInt( "map_numplayers", 0 );

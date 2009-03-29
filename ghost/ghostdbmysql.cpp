@@ -101,12 +101,21 @@ void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 
 	if( MySQLCallable )
 	{
-		m_IdleConnections.push( MySQLCallable->GetConnection( ) );
+		if( m_IdleConnections.size( ) > 30 )
+		{
+			mysql_close( (MYSQL *)MySQLCallable->GetConnection( ) );
+			m_NumConnections--;
+		}
+		else
+			m_IdleConnections.push( MySQLCallable->GetConnection( ) );
 
 		if( m_OutstandingCallables == 0 )
 			CONSOLE_Print( "[MYSQL] recovered a mysql callable with zero outstanding" );
 		else
 			m_OutstandingCallables--;
+
+		if( !MySQLCallable->GetError( ).empty( ) )
+			CONSOLE_Print( "[MYSQL] error --- " + MySQLCallable->GetError( ) );
 	}
 	else
 		CONSOLE_Print( "[MYSQL] tried to recover a non-mysql callable" );
@@ -341,6 +350,19 @@ CCallableDownloadAdd *CGHostDBMySQL :: ThreadedDownloadAdd( string map, uint32_t
 		m_NumConnections++;
 
 	CCallableDownloadAdd *Callable = new CMySQLCallableDownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
+	boost :: thread Thread( boost :: ref( *Callable ) );
+	m_OutstandingCallables++;
+	return Callable;
+}
+
+CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, string name, string server )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+		m_NumConnections++;
+
+	CCallableScoreCheck *Callable = new CMySQLCallableScoreCheck( category, name, server, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
 	boost :: thread Thread( boost :: ref( *Callable ) );
 	m_OutstandingCallables++;
 	return Callable;
@@ -899,6 +921,39 @@ bool MySQLDownloadAdd( void *conn, string *error, string map, uint32_t mapsize, 
 	return Success;
 }
 
+double MySQLScoreCheck( void *conn, string *error, string category, string name, string server )
+{
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+	string EscCategory = MySQLEscapeString( conn, category );
+	string EscName = MySQLEscapeString( conn, name );
+	string EscServer = MySQLEscapeString( conn, server );
+	double Score = -100000.0;
+	string Query = "SELECT score FROM scores WHERE category='" + EscCategory + "' AND name='" + EscName + "' AND server='" + EscServer + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			if( Row.size( ) == 1 )
+				Score = UTIL_ToDouble( Row[0] );
+			/* else
+				*error = "error checking score [" + category + " : " + name + " : " + server + "] - row doesn't have 1 column"; */
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	return Score;
+}
+
 //
 // MySQL Callables
 //
@@ -1102,6 +1157,16 @@ void CMySQLCallableDownloadAdd :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLDownloadAdd( m_Connection, &m_Error, m_Map, m_MapSize, m_Name, m_IP, m_Spoofed, m_SpoofedRealm, m_DownloadTime );
+
+	Close( );
+}
+
+void CMySQLCallableScoreCheck :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLScoreCheck( m_Connection, &m_Error, m_Category, m_Name, m_Server );
 
 	Close( );
 }

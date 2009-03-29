@@ -43,6 +43,7 @@ class CCallableDotAGameAdd;
 class CCallableDotAPlayerAdd;
 class CCallableDotAPlayerSummaryCheck;
 class CCallableDownloadAdd;
+class CCallableScoreCheck;
 class CDBBan;
 class CDBGame;
 class CDBGamePlayer;
@@ -112,6 +113,7 @@ public:
 	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
 	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
+	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
 };
 
 //
@@ -469,6 +471,23 @@ public:
 
 	virtual bool GetResult( )				{ return m_Result; }
 	virtual void SetResult( bool nResult )	{ m_Result = nResult; }
+};
+
+class CCallableScoreCheck : virtual public CBaseCallable
+{
+protected:
+	string m_Category;
+	string m_Name;
+	string m_Server;
+	double m_Result;
+
+public:
+	CCallableScoreCheck( string nCategory, string nName, string nServer ) : CBaseCallable( ), m_Category( nCategory ), m_Name( nName ), m_Server( nServer ), m_Result( 0.0 ) { }
+	virtual ~CCallableScoreCheck( );
+
+	virtual string GetName( )					{ return m_Name; }
+	virtual double GetResult( )					{ return m_Result; }
+	virtual void SetResult( double nResult )	{ m_Result = nResult; }
 };
 
 //

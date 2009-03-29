@@ -1,6 +1,6 @@
-====================
-GHost++ Version 12.0
-====================
+==========================
+GHost++ Version 12.1 Alpha
+==========================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
 The original GHost project can be found here: http://ghost.pwner.org/
@@ -59,7 +59,7 @@ Each game has an owner defined as the user who ran the !priv or !pub command or 
 Game owners have access to every command in the lobby and ingame but NO commands in battle.net.
 You can think of the game owner as a temporary admin for one game only - it doesn't have to be a root admin or a regular admin.
 The game owner is also the only user who can use commands inside a game which is locked (see the !lock and !unlock commands for more information).
-The game owner for a particular can be changed after the game is created with the !owner command.
+The game owner for a particular game can be changed after the game is created with the !owner command.
 
 3.) Admins.
 
@@ -155,23 +155,23 @@ Here's how:
 
 1.) When GHost++ starts up it reads up to 9 sets of battle.net connection information from ghost.cfg.
 2.) A set of battle.net connection information contains the following keys:
- a.) *_server (required)
- b.) *_cdkeyroc (required)
- c.) *_cdkeytft (required)
- d.) *_username (required)
- e.) *_password (required)
- f.) *_firstchannel
- g.) *_rootadmin
- h.) *_commandtrigger
- i.) *_custom_war3version
- j.) *_custom_exeversion
- k.) *_custom_exeversionhash
- l.) *_custom_passwordhashtype
- m.) *_custom_countryabbrev
- n.) *_custom_country
+ a.) *server (required)
+ b.) *cdkeyroc (required)
+ c.) *cdkeytft (required)
+ d.) *username (required)
+ e.) *password (required)
+ f.) *firstchannel
+ g.) *rootadmin
+ h.) *commandtrigger
+ i.) *custom_war3version
+ j.) *custom_exeversion
+ k.) *custom_exeversionhash
+ l.) *custom_passwordhashtype
+ m.) *custom_countryabbrev
+ n.) *custom_country
 3.) GHost++ will search for battle.net connection information by replacing the "*" in each key above with "bnet_" then "bnet2_" then "bnet3_" and so on until "bnet9_".
  a.) Note that GHost++ doesn't search for "bnet1_" for backwards compatibility reasons.
-4.) If GHost++ doesn't find a *_server key it stops searching for any further battle.net connection information.
+4.) If GHost++ doesn't find a *server key it stops searching for any further battle.net connection information.
 5.) If any of the required keys are missing GHost++ will skip that set of battle.net connection information and start searching for the next one.
 
 ============
@@ -187,7 +187,7 @@ Here's how:
 
 The autohost command takes three arguments: !autohost <m> <p> <n>
 
-1.) <m> is the maximum number of games to auto host.
+1.) <m> is the maximum number of games to auto host at the same time.
  a.) This can be less than bot_maxgames, especially if you want to leave some games open for your own use.
  b.) The bot will not auto host any new games while the number of running games is <m> or greater. The running games do not have to be auto hosted games.
 2.) <p> is the number of players required to auto start the game.
@@ -337,7 +337,7 @@ Note that some map files are "protected" in such a way that StormLib is unable t
 Using MySQL
 ===========
 
-Since Version 12.0 GHost++ supports MySQL databases for storing admins/ban/stats/etc...
+Since Version 12.0 GHost++ supports MySQL databases for storing admins/bans/stats/etc...
 To configure GHost++ to connect to a MySQL database you just need to specify the following config values in ghost.cfg:
 
 db_type = mysql
@@ -348,9 +348,39 @@ db_mysql_password = YOUR_PASSWORD
 db_mysql_port = 0
 
 You can use a remote MySQL server if you wish, just specify the server and port above (the default MySQL port is 3306).
-Create a new database on your MySQL server then run the "mysql_create_tables.sql" file on it.
+Create a new database on your MySQL server then run the most recent "mysql_create_tables.sql" file on it.
 GHost++ won't create or modify your MySQL database schema like it does with SQLite so you are responsible for making sure your database schema is accurate.
 Note that with MySQL you can configure multiple bots to use the same database although support for this is not 100% complete or configurable.
+
+=====================
+Automatic Matchmaking
+=====================
+
+Since Version 12.1 GHost++ supports automatic matchmaking.
+This is an advanced feature and is not recommended unless you have considerable experience with GHost++ and MySQL databases.
+Automatic matchmaking attempts to match players of similar skill together for a more enjoyable gaming experience.
+To use automatic matchmaking there are several requirements:
+
+1.) You can only use automatic matchmaking with a MySQL database. SQLite databases are not supported.
+2.) You can only use automatic matchmaking with custom (e.g. non-melee) maps.
+3.) You can only use automatic matchmaking with a single battle.net connection. You cannot use GHost++'s multirealm feature with automatic matchmaking.
+4.) You must specify the "map_scorecategory" value in your map config file.
+
+In almost all cases you will use automatic matchmaking with GHost++'s auto hosting feature.
+Here's how it works:
+
+1.) When a player joins the game, GHost++ checks the MySQL database's "scores" table for the player's score.
+ a.) GHost++ will NEVER write to the scores table. GHost++ does NOT contain a scoring algorithm. It is YOUR responsibility to generate the scores table.
+ b.) Scores can be any number, positive or negative, but they should always be greater than -99999 as GHost++ assumes any value less than this represents "no score".
+2.) When the player's score is retrieved GHost++ computes the average score of all players currently in the game plus the new player.
+3.) If the game is full the player with the "furthest" score from the average (computed by absolute value) is kicked from the game.
+ a.) The kicked player can be the new player if they have the furthest score.
+ b.) A player without a score is considered to have the furthest score and will always be kicked in favour of a player with a score.
+ c.) If the game is being auto hosted the teams will be automatically rebalanced.
+
+Note that GHost++ does not contain a scoring algorithm.
+This means that automatic matchmaking DOES NOT work "out of the box".
+You will need to write your own scoring algorithm and generate the scores table yourself, e.g. via crontab or some other scheduled process.
 
 ========
 Commands
@@ -563,7 +593,7 @@ You'll need the MySQL development libraries to build GHost++. You can probably u
 
 6. yum install mysql-devel
 
-You'll need Boost version 1.38.0 (or potentially any newer versions). If your package manager has this version avilable please use it instead of installing it manually.
+You'll need Boost version 1.38.0 (or potentially any newer versions). If your package manager has this version available please use it instead of installing it manually.
 To install Boost manually:
 
 7. Download and extract Boost 1.38.0 from http://www.boost.org/

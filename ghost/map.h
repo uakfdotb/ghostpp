@@ -68,6 +68,7 @@ private:
 	BYTEARRAY m_MapWidth;						// config value: map width (2 bytes)
 	BYTEARRAY m_MapHeight;						// config value: map height (2 bytes)
 	string m_MapType;							// config value: map type (for stats class)
+	string m_MapScoreCategory;					// config value: map score category (for matchmaking)
 	string m_MapLocalPath;						// config value: map local path
 	string m_MapData;							// the map data itself, for sending the map to players
 	uint32_t m_MapNumPlayers;
@@ -95,6 +96,7 @@ public:
 	BYTEARRAY GetMapWidth( )			{ return m_MapWidth; }
 	BYTEARRAY GetMapHeight( )			{ return m_MapHeight; }
 	string GetMapType( )				{ return m_MapType; }
+	string GetMapScoreCategory( )		{ return m_MapScoreCategory; }
 	string GetMapLocalPath( )			{ return m_MapLocalPath; }
 	string *GetMapData( )				{ return &m_MapData; }
 	uint32_t GetMapNumPlayers( )		{ return m_MapNumPlayers; }

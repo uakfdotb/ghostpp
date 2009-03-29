@@ -40,6 +40,7 @@ CPotentialPlayer :: CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame
 	m_Socket = nSocket;
 	m_DeleteMe = false;
 	m_Error = false;
+	m_IncomingJoinPlayer = NULL;
 }
 
 CPotentialPlayer :: ~CPotentialPlayer( )
@@ -52,6 +53,8 @@ CPotentialPlayer :: ~CPotentialPlayer( )
 		delete m_Packets.front( );
 		m_Packets.pop( );
 	}
+
+	delete m_IncomingJoinPlayer;
 }
 
 BYTEARRAY CPotentialPlayer :: GetExternalIP( )
@@ -135,8 +138,6 @@ void CPotentialPlayer :: ProcessPackets( )
 	if( !m_Socket )
 		return;
 
-	CIncomingJoinPlayer *JoinPlayer = NULL;
-
 	// process all the received packets in the m_Packets queue
 
 	while( !m_Packets.empty( ) )
@@ -151,13 +152,11 @@ void CPotentialPlayer :: ProcessPackets( )
 			switch( Packet->GetID( ) )
 			{
 			case CGameProtocol :: W3GS_REQJOIN:
-				JoinPlayer = m_Protocol->RECEIVE_W3GS_REQJOIN( Packet->GetData( ) );
+				delete m_IncomingJoinPlayer;
+				m_IncomingJoinPlayer = m_Protocol->RECEIVE_W3GS_REQJOIN( Packet->GetData( ) );
 
-				if( JoinPlayer )
-					m_Game->EventPlayerJoined( this, JoinPlayer );
-
-				delete JoinPlayer;
-				JoinPlayer = NULL;
+				if( m_IncomingJoinPlayer )
+					m_Game->EventPlayerJoined( this, m_IncomingJoinPlayer );
 
 				// don't continue looping because there may be more packets waiting and this parent class doesn't handle them
 				// EventPlayerJoined creates the new player, NULLs the socket, and sets the delete flag on this object so it'll be deleted shortly
@@ -193,6 +192,7 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_StartedLaggingTicks = 0;
 	m_StatsSentTime = 0;
 	m_StatsDotASentTime = 0;
+	m_Score = -100000.0;
 	m_LoggedIn = false;
 	m_Spoofed = false;
 	m_Reserved = nReserved;
@@ -226,6 +226,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_StartedLaggingTicks = 0;
 	m_StatsSentTime = 0;
 	m_StatsDotASentTime = 0;
+	m_Score = -100000.0;
 	m_LoggedIn = false;
 	m_Spoofed = false;
 	m_Reserved = nReserved;

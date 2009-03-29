@@ -1205,3 +1205,24 @@ string CLanguage :: PlayersNotYetPingedAutoStart( string notpinged )
 	Replace( Out, "$NOTPINGED$", notpinged );
 	return Out;
 }
+
+string CLanguage :: WasKickedForNotSpoofChecking( )
+{
+	return m_CFG->GetString( "lang_0167", "lang_0167" );
+}
+
+string CLanguage :: WasKickedForHavingFurthestScore( string score, string average )
+{
+	string Out = m_CFG->GetString( "lang_0168", "lang_0168" );
+	Replace( Out, "$SCORE$", score );
+	Replace( Out, "$AVERAGE$", average );
+	return Out;
+}
+
+string CLanguage :: PlayerHasScore( string player, string score )
+{
+	string Out = m_CFG->GetString( "lang_0169", "lang_0169" );
+	Replace( Out, "$PLAYER$", player );
+	Replace( Out, "$SCORE$", score );
+	return Out;
+}

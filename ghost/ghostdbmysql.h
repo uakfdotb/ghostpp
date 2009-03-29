@@ -123,6 +123,14 @@ CREATE TABLE downloads (
 	downloadtime INT NOT NULL
 )
 
+CREATE TABLE scores (
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	category VARCHAR(25) NOT NULL,
+	name VARCHAR(15) NOT NULL,
+	server VARCHAR(100) NOT NULL,
+	score REAL NOT NULL
+)
+
  **************
  *** SCHEMA ***
  **************/
@@ -171,6 +179,7 @@ public:
 	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
 	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
+	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
 
 	// other database functions
 
@@ -199,6 +208,7 @@ uint32_t MySQLDotAGameAdd( void *conn, string *error, uint32_t gameid, uint32_t 
 uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
 CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, string name );
 bool MySQLDownloadAdd( void *conn, string *error, string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
+double MySQLScoreCheck( void *conn, string *error, string category, string name, string server );
 
 //
 // MySQL Callables
@@ -405,6 +415,17 @@ class CMySQLCallableDownloadAdd : public CCallableDownloadAdd, public CMySQLCall
 public:
 	CMySQLCallableDownloadAdd( string nMap, uint32_t nMapSize, string nName, string nIP, uint32_t nSpoofed, string nSpoofedRealm, uint32_t nDownloadTime, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableDownloadAdd( nMap, nMapSize, nName, nIP, nSpoofed, nSpoofedRealm, nDownloadTime ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableDownloadAdd( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableScoreCheck : public CCallableScoreCheck, public CMySQLCallable
+{
+public:
+	CMySQLCallableScoreCheck( string nCategory, string nName, string nServer, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableScoreCheck( nCategory, nName, nServer ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	virtual ~CMySQLCallableScoreCheck( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }

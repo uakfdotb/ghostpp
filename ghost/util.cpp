@@ -277,7 +277,7 @@ string UTIL_ToString( double d, int digits )
 	return result;
 }
 
-// todotodo: these UTIL_ToXXX functions don't fail gracefully, they just return garbage (usually -1 casted to an unsigned type it looks like)
+// todotodo: these UTIL_ToXXX functions don't fail gracefully, they just return garbage (in the uint case usually just -1 casted to an unsigned type it looks like)
 
 uint16_t UTIL_ToUInt16( string &s )
 {
@@ -291,6 +291,15 @@ uint16_t UTIL_ToUInt16( string &s )
 uint32_t UTIL_ToUInt32( string &s )
 {
 	uint32_t result;
+	stringstream SS;
+	SS << s;
+	SS >> result;
+	return result;
+}
+
+double UTIL_ToDouble( string &s )
+{
+	double result;
 	stringstream SS;
 	SS << s;
 	SS >> result;

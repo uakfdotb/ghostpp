@@ -38,6 +38,7 @@ class CIncomingJoinPlayer;
 class CIncomingAction;
 class CIncomingChatPlayer;
 class CIncomingMapSize;
+class CCallableScoreCheck;
 
 class CBaseGame
 {
@@ -50,6 +51,7 @@ protected:
 	vector<CGameSlot> m_Slots;						// vector of slots
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
 	vector<CGamePlayer *> m_Players;				// vector of players
+	vector<CCallableScoreCheck *> m_ScoreChecks;
 	queue<CIncomingAction *> m_Actions;				// queue of actions to be sent
 	vector<string> m_Reserved;						// vector of player names with reserved slots (from the !hold command)
 	CMap *m_Map;									// map data (this is a pointer to global data)
@@ -173,6 +175,7 @@ public:
 	virtual void EventPlayerDisconnectSocketError( CGamePlayer *player );
 	virtual void EventPlayerDisconnectConnectionClosed( CGamePlayer *player );
 	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
+	virtual void EventPlayerJoined2( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score );
 	virtual void EventPlayerLeft( CGamePlayer *player );
 	virtual void EventPlayerLoaded( CGamePlayer *player );
 	virtual void EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
@@ -215,6 +218,7 @@ public:
 	virtual void OpenAllSlots( );
 	virtual void CloseAllSlots( );
 	virtual void ShuffleSlots( );
+	virtual void BalanceSlots( );
 	virtual void AddToSpoofed( string server, string name, bool sendMessage );
 	virtual void AddToReserved( string name );
 	virtual bool IsOwner( string name );
@@ -223,7 +227,7 @@ public:
 	virtual bool IsGameDataSaved( );
 	virtual void SaveGameData( );
 	virtual void StartCountDown( bool force );
-	virtual void StartCountDownAuto( );
+	virtual void StartCountDownAuto( bool requireSpoofChecks );
 	virtual void StopPlayers( string reason );
 	virtual void StopLaggers( string reason );
 	virtual void CreateVirtualHost( );
