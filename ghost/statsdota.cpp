@@ -28,7 +28,7 @@
 #include "statsdota.h"
 
 //
-// CStats
+// CStatsDOTA
 //
 
 CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame )

@@ -18,6 +18,8 @@
 
 */
 
+#ifdef GHOST_MYSQL
+
 #include "ghost.h"
 #include "util.h"
 #include "config.h"
@@ -363,6 +365,19 @@ CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, strin
 		m_NumConnections++;
 
 	CCallableScoreCheck *Callable = new CMySQLCallableScoreCheck( category, name, server, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
+	boost :: thread Thread( boost :: ref( *Callable ) );
+	m_OutstandingCallables++;
+	return Callable;
+}
+
+CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+		m_NumConnections++;
+
+	CCallableW3MMDPlayerAdd *Callable = new CMySQLCallableW3MMDPlayerAdd( gameid, pid, name, flag, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
 	boost :: thread Thread( boost :: ref( *Callable ) );
 	m_OutstandingCallables++;
 	return Callable;
@@ -954,6 +969,27 @@ double MySQLScoreCheck( void *conn, string *error, string category, string name,
 	return Score;
 }
 
+uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string name, string flag )
+{
+	/*
+
+	uint32_t RowID = 0;
+	string EscName = MySQLEscapeString( conn, name );
+	string EscFlag = MySQLEscapeString( conn, flag );
+	string Query = "INSERT INTO w3mmdplayers ( botid, gameid, pid, name, flag ) VALUES ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", " + EscName + ", " + EscFlag + " )";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+		RowID = mysql_insert_id( (MYSQL *)conn );
+
+	return RowID;
+
+	*/
+
+	return 0;
+}
+
 //
 // MySQL Callables
 //
@@ -1170,3 +1206,15 @@ void CMySQLCallableScoreCheck :: operator( )( )
 
 	Close( );
 }
+
+void CMySQLCallableW3MMDPlayerAdd :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLW3MMDPlayerAdd( m_Connection, &m_Error, m_GameID, m_PID, m_Name, m_Flag );
+
+	Close( );
+}
+
+#endif

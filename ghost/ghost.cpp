@@ -260,7 +260,14 @@ CGHost :: CGHost( CConfig *CFG )
 	string DBType = CFG->GetString( "db_type", "sqlite3" );
 
 	if( DBType == "mysql" )
+	{
+#ifdef GHOST_MYSQL
 		m_DB = new CGHostDBMySQL( CFG );
+#else
+		CONSOLE_Print( "[GHOST] warning - this binary was not compiled with MySQL database support, using SQLite database instead" );
+		m_DB = new CGHostDBSQLite( CFG );
+#endif
+	}
 	else
 		m_DB = new CGHostDBSQLite( CFG );
 
@@ -430,7 +437,11 @@ CGHost :: CGHost( CConfig *CFG )
 	if( m_BNETs.empty( ) && !m_AdminGame )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
-	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version );
+#ifdef GHOST_MYSQL
+	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (with MySQL support)" );
+#else
+	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (without MySQL support)" );
+#endif
 }
 
 CGHost :: ~CGHost( )

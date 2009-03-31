@@ -162,6 +162,11 @@ bool CGHostDB :: DownloadAdd( string map, uint32_t mapsize, string name, string 
 	return false;
 }
 
+uint32_t CGHostDB :: W3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag )
+{
+	return 0;
+}
+
 CCallableAdminCount *CGHostDB :: ThreadedAdminCount( string server )
 {
 	return NULL;
@@ -253,6 +258,11 @@ CCallableDownloadAdd *CGHostDB :: ThreadedDownloadAdd( string map, uint32_t maps
 }
 
 CCallableScoreCheck *CGHostDB :: ThreadedScoreCheck( string category, string name, string server )
+{
+	return NULL;
+}
+
+CCallableW3MMDPlayerAdd *CGHostDB :: ThreadedW3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag )
 {
 	return NULL;
 }
@@ -358,6 +368,11 @@ CCallableDownloadAdd :: ~CCallableDownloadAdd( )
 }
 
 CCallableScoreCheck :: ~CCallableScoreCheck( )
+{
+
+}
+
+CCallableW3MMDPlayerAdd :: ~CCallableW3MMDPlayerAdd( )
 {
 
 }
