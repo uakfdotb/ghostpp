@@ -205,6 +205,7 @@ public:
 	string WasKickedForNotSpoofChecking( );
 	string WasKickedForHavingFurthestScore( string score, string average );
 	string PlayerHasScore( string player, string score );
+	string RatedPlayersSpread( string rated, string total, string spread );
 };
 
 #endif

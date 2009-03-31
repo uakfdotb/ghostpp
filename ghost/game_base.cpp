@@ -470,7 +470,37 @@ bool CBaseGame :: Update( void *fd )
 		// require spoof checks when using matchmaking
 
 		if( !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+		{
+			uint32_t PlayersScored = 0;
+			uint32_t PlayersNotScored = 0;
+			double AverageScore = 0.0;
+			double MinScore = 0.0;
+			double MaxScore = 0.0;
+			bool Found = false;
+
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+			{
+				if( (*i)->GetScore( ) < -99999.0 )
+					PlayersNotScored++;
+				else
+				{
+					PlayersScored++;
+					AverageScore += (*i)->GetScore( );
+
+					if( !Found || (*i)->GetScore( ) < MinScore )
+						MinScore = (*i)->GetScore( );
+
+					if( !Found || (*i)->GetScore( ) > MaxScore )
+						MaxScore = (*i)->GetScore( );
+
+					Found = true;
+				}
+			}
+
+			double Spread = MaxScore - MinScore;
+			SendAllChat( m_GHost->m_Language->RatedPlayersSpread( UTIL_ToString( PlayersScored ), UTIL_ToString( PlayersScored + PlayersNotScored ), UTIL_ToString( (uint32_t)Spread ) ) );
 			StartCountDownAuto( true );
+		}
 		else
 			StartCountDownAuto( false );
 
@@ -1517,6 +1547,7 @@ void CBaseGame :: EventPlayerJoined2( CPotentialPlayer *potential, CIncomingJoin
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] joined the game" );
 	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), false );
+	Player->SetScore( score );
 	m_Players.push_back( Player );
 	potential->SetSocket( NULL );
 	potential->SetDeleteMe( true );

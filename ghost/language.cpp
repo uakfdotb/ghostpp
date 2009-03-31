@@ -1226,3 +1226,12 @@ string CLanguage :: PlayerHasScore( string player, string score )
 	Replace( Out, "$SCORE$", score );
 	return Out;
 }
+
+string CLanguage :: RatedPlayersSpread( string rated, string total, string spread )
+{
+	string Out = m_CFG->GetString( "lang_0170", "lang_0170" );
+	Replace( Out, "$RATED$", rated );
+	Replace( Out, "$TOTAL$", total );
+	Replace( Out, "$SPREAD$", spread );
+	return Out;
+}
