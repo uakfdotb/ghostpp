@@ -28,7 +28,12 @@
 
 using namespace std;
 
-#include "ms_stdint.h"
+#ifdef WIN32
+ #include "ms_stdint.h"
+#else
+ #include <stdint.h>
+#endif
+
 #include "config.h"
 #include "elo.h"
 
