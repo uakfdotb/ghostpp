@@ -370,14 +370,14 @@ CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, strin
 	return Callable;
 }
 
-CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag )
+CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
 		m_NumConnections++;
 
-	CCallableW3MMDPlayerAdd *Callable = new CMySQLCallableW3MMDPlayerAdd( gameid, pid, name, flag, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableW3MMDPlayerAdd *Callable = new CMySQLCallableW3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
 	boost :: thread Thread( boost :: ref( *Callable ) );
 	m_OutstandingCallables++;
 	return Callable;
@@ -969,14 +969,13 @@ double MySQLScoreCheck( void *conn, string *error, string category, string name,
 	return Score;
 }
 
-uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string name, string flag )
+uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
 {
-	/*
-
 	uint32_t RowID = 0;
+	string EscCategory = MySQLEscapeString( conn, category );
 	string EscName = MySQLEscapeString( conn, name );
 	string EscFlag = MySQLEscapeString( conn, flag );
-	string Query = "INSERT INTO w3mmdplayers ( botid, gameid, pid, name, flag ) VALUES ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", " + EscName + ", " + EscFlag + " )";
+	string Query = "INSERT INTO w3mmdplayers ( botid, category, gameid, pid, name, flag, leaver, practicing ) VALUES ( 0, " + EscCategory + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", " + EscName + ", " + EscFlag + ", " + UTIL_ToString( leaver ) + ", " + UTIL_ToString( practicing ) + " )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -984,10 +983,6 @@ uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t gameid, uint32
 		RowID = mysql_insert_id( (MYSQL *)conn );
 
 	return RowID;
-
-	*/
-
-	return 0;
 }
 
 //
@@ -1212,7 +1207,7 @@ void CMySQLCallableW3MMDPlayerAdd :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLW3MMDPlayerAdd( m_Connection, &m_Error, m_GameID, m_PID, m_Name, m_Flag );
+		m_Result = MySQLW3MMDPlayerAdd( m_Connection, &m_Error, m_Category, m_GameID, m_PID, m_Name, m_Flag, m_Leaver, m_Practicing );
 
 	Close( );
 }

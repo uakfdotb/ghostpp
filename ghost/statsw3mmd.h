@@ -30,6 +30,8 @@ class CStatsW3MMD : public CStats
 private:
 	map<uint32_t,string> m_PIDToName;
 	map<uint32_t,string> m_Flags;
+	map<uint32_t,bool> m_FlagsLeaver;
+	map<uint32_t,bool> m_FlagsPracticing;
 
 public:
 	CStatsW3MMD( CBaseGame *nGame );

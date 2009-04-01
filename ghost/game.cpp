@@ -34,6 +34,7 @@
 #include "game.h"
 #include "stats.h"
 #include "statsdota.h"
+#include "statsw3mmd.h"
 
 #include <cmath>
 #include <string.h>
@@ -70,7 +71,9 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	m_DBBanLast = NULL;
 	m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
 
-	if( m_Map->GetMapType( ) == "dota" )
+	if( m_Map->GetMapType( ) == "w3mmd" )
+		m_Stats = new CStatsW3MMD( this );
+	else if( m_Map->GetMapType( ) == "dota" )
 		m_Stats = new CStatsDOTA( this );
 	else
 		m_Stats = NULL;

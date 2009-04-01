@@ -93,7 +93,7 @@ public:
 	virtual string FromCheck( uint32_t ip );
 	virtual bool FromAdd( uint32_t ip1, uint32_t ip2, string country );
 	virtual bool DownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
-	virtual uint32_t W3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag );
+	virtual uint32_t W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
 
 	// threaded database functions
 
@@ -116,7 +116,7 @@ public:
 	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
-	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag );
+	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
 };
 
 //
@@ -496,14 +496,17 @@ public:
 class CCallableW3MMDPlayerAdd : virtual public CBaseCallable
 {
 protected:
+	string m_Category;
 	uint32_t m_GameID;
 	uint32_t m_PID;
 	string m_Name;
 	string m_Flag;
+	uint32_t m_Leaver;
+	uint32_t m_Practicing;
 	uint32_t m_Result;
 
 public:
-	CCallableW3MMDPlayerAdd( uint32_t nGameID, uint32_t nPID, string nName, string nFlag ) : CBaseCallable( ), m_GameID( nGameID ), m_PID( nPID ), m_Name( nName ), m_Flag( nFlag ), m_Result( 0 ) { }
+	CCallableW3MMDPlayerAdd( string nCategory, uint32_t nGameID, uint32_t nPID, string nName, string nFlag, uint32_t nLeaver, uint32_t nPracticing ) : CBaseCallable( ), m_Category( nCategory ), m_GameID( nGameID ), m_PID( nPID ), m_Name( nName ), m_Flag( nFlag ), m_Leaver( nLeaver ), m_Practicing( nPracticing ), m_Result( 0 ) { }
 	virtual ~CCallableW3MMDPlayerAdd( );
 
 	virtual uint32_t GetResult( )				{ return m_Result; }

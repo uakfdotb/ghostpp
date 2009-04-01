@@ -133,19 +133,16 @@ CREATE TABLE scores (
 	score REAL NOT NULL
 )
 
-todotodo: not finalized
-
 CREATE TABLE w3mmdplayers (
 	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	botid INT NOT NULL,
+	category VARCHAR(25) NOT NULL,
 	gameid INT NOT NULL,
 	pid INT NOT NULL,
 	name VARCHAR(15) NOT NULL,
-	flag VARCHAR(32) NOT NULL
-)
-
-CREATE TABLE w3mmdevents (
-
+	flag VARCHAR(32) NOT NULL,
+	leaver INT NOT NULL,
+	practicing INT NOT NULL
 )
 
  **************
@@ -197,7 +194,7 @@ public:
 	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
-	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag );
+	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
 
 	// other database functions
 
@@ -227,7 +224,7 @@ uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t gameid, uint32_
 CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, string name );
 bool MySQLDownloadAdd( void *conn, string *error, string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 double MySQLScoreCheck( void *conn, string *error, string category, string name, string server );
-uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string name, string flag );
+uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
 
 //
 // MySQL Callables
@@ -454,7 +451,7 @@ public:
 class CMySQLCallableW3MMDPlayerAdd : public CCallableW3MMDPlayerAdd, public CMySQLCallable
 {
 public:
-	CMySQLCallableW3MMDPlayerAdd( uint32_t nGameID, uint32_t nPID, string nName, string nFlag, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableW3MMDPlayerAdd( nGameID, nPID, nName, nFlag ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	CMySQLCallableW3MMDPlayerAdd( string nCategory, uint32_t nGameID, uint32_t nPID, string nName, string nFlag, uint32_t nLeaver, uint32_t nPracticing, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableW3MMDPlayerAdd( nCategory, nGameID, nPID, nName, nFlag, nLeaver, nPracticing ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableW3MMDPlayerAdd( ) { }
 
 	virtual void operator( )( );

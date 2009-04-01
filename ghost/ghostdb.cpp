@@ -162,7 +162,7 @@ bool CGHostDB :: DownloadAdd( string map, uint32_t mapsize, string name, string 
 	return false;
 }
 
-uint32_t CGHostDB :: W3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag )
+uint32_t CGHostDB :: W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
 {
 	return 0;
 }
@@ -262,7 +262,7 @@ CCallableScoreCheck *CGHostDB :: ThreadedScoreCheck( string category, string nam
 	return NULL;
 }
 
-CCallableW3MMDPlayerAdd *CGHostDB :: ThreadedW3MMDPlayerAdd( uint32_t gameid, uint32_t pid, string name, string flag )
+CCallableW3MMDPlayerAdd *CGHostDB :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
 {
 	return NULL;
 }

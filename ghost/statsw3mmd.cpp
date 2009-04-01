@@ -47,14 +47,27 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 	BYTEARRAY Key;
 	BYTEARRAY Value;
 
-	// **Message Format**
-	// The sub-packets carrying messages in the game data have the format byte 0x6B, string filename, string mission_key, string key, dword value.
-	// The strings are all null-terminated, and dwords are little-endian.
-	// Messages can be identified by the surrounding pattern kMap.Dat[null]id:[decimal-number][null][message contents][null]meta
-	// Message ids should start at 0 and increase by 1 for each message. They exist in case of out-of-order arrival (which is possible if the sending client changes).
-	// Messages are composed of a sequence of arguments separated by non-escaped spaces.
-	// Escape sequences are '\ ' for ' ' (space), '\\' for '\' (backslash).
-	// An example of data containing a message: kMap.Dat[null]id:0[null]init version 0[null]meta
+	/*
+
+	**Message Format**
+	- The sub-packets carrying messages in the game data have the format byte 0x6B, string filename, string mission_key, string key, dword value.
+	- The strings are all null-terminated, and dwords are little-endian.
+	- Messages can be identified by the surrounding pattern: kMMD.Dat[null]val:[decimal-number][null][message contents][null][dword]"
+	- Checksum messages can be identified by the surrounding pattern: kMMD.Dat[null]chk:[decimal-number][null][decimal-number][null][dword]"
+	- Message ids start at 0 and increase by 1 for each message. IDs become very important in cases where cheaters try to fake messages.
+	- Messages are composed of a sequence of arguments separated by non-escaped spaces.
+	- Escape sequences are '\ ' for ' ' (space), '\\' for '\' (backslash).
+	- The dword value in the message is a weak checksum for the message. The parser does not need to understand this checksum, as it is only used by client to detects forgeries.
+	- A message must be followed by a checksum message with the message contents replaced by the msg id.
+	- The purpose of the checksum message is to allow friendly clients to detect tampering, and ultimately is only required because of the limitations of wc3 JASS.
+	- An example of data containing a message with checksum:
+			...
+			kMMD.Dat[null]val:0[null]init version 0 0[null][0xFFFFFFFF]
+			...
+			kMMD.Dat[null]chk:0[null]0[null][0xFFFFFFFF]
+			...
+
+	*/
 
 	while( ActionData.size( ) >= i + 9 )
 	{
@@ -86,85 +99,99 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 						CONSOLE_Print( "[STATSW3MMD] DEBUG: mkey [" + MissionKeyString + "], key [" + KeyString + "], value [" + UTIL_ToString( ValueInt ) + "]" );
 
 						// todotodo: verify message order using MissionKey
+						// todotodo: cheat detection
 
-						/*
-
-						vector<string> Tokens = TokenizeKey( KeyString );
-
-						if( !Tokens.empty( ) )
+						if( MissionKeyString.size( ) >= 3 && MissionKeyString.substr( 0, 3 ) == "val" )
 						{
-							if( Tokens[0] == "init" && Tokens.size( ) >= 2 )
+							vector<string> Tokens = TokenizeKey( KeyString );
+
+							if( !Tokens.empty( ) )
 							{
-								if( Tokens[1] == "version" && Tokens.size( ) == 3 )
+								if( Tokens[0] == "init" && Tokens.size( ) >= 2 )
 								{
-									// Tokens[2] = version
+									if( Tokens[1] == "version" && Tokens.size( ) == 4 )
+									{
+										// Tokens[2] = minimum
+										// Tokens[3] = current
 
-									CONSOLE_Print( "[STATSW3MMD] map is using Warcraft 3 Map Meta Data library version [" + Tokens[2] + "]" );
+										CONSOLE_Print( "[STATSW3MMD] map is using Warcraft 3 Map Meta Data library version [" + Tokens[3] + "]" );
 
-									if( Tokens[2] != "0" )
-										CONSOLE_Print( "[STATSW3MMD] warning - parser version 0 and library version [" + Tokens[2] + "] differ" );
+										if( UTIL_ToUInt32( Tokens[2] ) > 0 )
+											CONSOLE_Print( "[STATSW3MMD] warning - parser version 0 is not compatible with this map, minimum version [" + Tokens[2] + "]" );
+										else
+											CONSOLE_Print( "[STATSW3MMD] parser version 0 is compatible with this map, minimum version [" + Tokens[2] + "]" );
+									}
+									else if( Tokens[1] == "pid" && Tokens.size( ) == 4 )
+									{
+										// Tokens[2] = pid
+										// Tokens[3] = name
+
+										uint32_t PID = UTIL_ToUInt32( Tokens[2] );
+
+										if( m_PIDToName.find( PID ) != m_PIDToName.end( ) )
+											CONSOLE_Print( "[STATSW3MMD] overwriting previous name [" + m_PIDToName[PID] + "] with new name [" + Tokens[3] + "] for PID [" + Tokens[2] + "]" );
+
+										m_PIDToName[PID] = Tokens[3];
+									}
 								}
-								else if( Tokens[1] == "pid" && Tokens.size( ) == 4 )
+								else if( Tokens[0] == "DefVarP" && Tokens.size( ) == 5 )
 								{
-									// Tokens[2] = pid
-									// Tokens[3] = name
-
-									uint32_t PID = UTIL_ToUInt32( Tokens[2] );
-
-									if( m_PIDToName.find( PID ) != m_PIDToName.end( ) )
-										CONSOLE_Print( "[STATSW3MMD] overwriting previous name [" + m_PIDToName[PID] + "] with new name [" + Tokens[3] + "] for PID [" + Tokens[2] + "]" );
-
-									m_PIDToName[PID] = Tokens[3];
+									// Tokens[1] = name
+									// Tokens[2] = value type
+									// Tokens[3] = goal type
+									// Tokens[4] = priority
 								}
-							}
-							else if( Tokens[0] == "DefVarP" && Tokens.size( ) == 5 )
-							{
-								// Tokens[1] = name
-								// Tokens[2] = value type
-								// Tokens[3] = goal type
-								// Tokens[4] = priority
-							}
-							else if( Tokens[0] == "VarP" && Tokens.size( ) == 5 )
-							{
-								// Tokens[1] = pid
-								// Tokens[2] = name
-								// Tokens[3] = operation
-								// Tokens[4] = value
-							}
-							else if( Tokens[0] == "FlagP" && Tokens.size( ) == 3 )
-							{
-								// Tokens[1] = pid
-								// Tokens[2] = flag
-
-								if( Tokens[2] == "win_on_leave" || Tokens[2] == "draw_on_leave" || Tokens[2] == "lose_on_leave" )
+								else if( Tokens[0] == "VarP" && Tokens.size( ) == 5 )
 								{
-									uint32_t PID = UTIL_ToUInt32( Tokens[1] );
+									// Tokens[1] = pid
+									// Tokens[2] = name
+									// Tokens[3] = operation
+									// Tokens[4] = value
+								}
+								else if( Tokens[0] == "FlagP" && Tokens.size( ) == 3 )
+								{
+									// Tokens[1] = pid
+									// Tokens[2] = flag
 
-									if( m_Flags.find( PID ) != m_Flags.end( ) )
-										CONSOLE_Print( "[STATSW3MMD] overwriting previous flag [" + m_Flags[PID] + "] with new flag [" + Tokens[2] + "] for PID [" + Tokens[1] + "]" );
+									if( Tokens[2] == "winner" || Tokens[2] == "loser" || Tokens[2] == "drawer" || Tokens[2] == "leaver" || Tokens[2] == "practicing" )
+									{
+										uint32_t PID = UTIL_ToUInt32( Tokens[1] );
 
-									m_Flags[PID] = Tokens[2];
+										if( Tokens[2] == "leaver" )
+											m_FlagsLeaver[PID] = true;
+										else if( Tokens[2] == "practicing" )
+											m_FlagsPracticing[PID] = true;
+										else
+										{
+											if( m_Flags.find( PID ) != m_Flags.end( ) )
+												CONSOLE_Print( "[STATSW3MMD] overwriting previous flag [" + m_Flags[PID] + "] with new flag [" + Tokens[2] + "] for PID [" + Tokens[1] + "]" );
+
+											m_Flags[PID] = Tokens[2];
+										}
+									}
+									else
+										CONSOLE_Print( "[STATSW3MMD] unknown flag [" + Tokens[2] + "] found, ignoring" );
+								}
+								else if( Tokens[0] == "DefEvent" )
+								{
+
+								}
+								else if( Tokens[0] == "Event" )
+								{
+
+								}
+								else if( Tokens[0] == "Custom" )
+								{
+
 								}
 								else
-									CONSOLE_Print( "[STATSW3MMD] unknown flag [" + Tokens[2] + "] found, ignoring" );
+									CONSOLE_Print( "[STATSW3MMD] unknown message type [" + Tokens[0] + "] found, ignoring" );
 							}
-							else if( Tokens[0] == "DefEvent" )
-							{
-
-							}
-							else if( Tokens[0] == "Event" )
-							{
-
-							}
-							else if( Tokens[0] == "Custom" )
-							{
-
-							}
-							else
-								CONSOLE_Print( "[STATSW3MMD] unknown message type [" + Tokens[0] + "] found, ignoring" );
 						}
+						else if( MissionKeyString.size( ) >= 3 && MissionKeyString.substr( 0, 3 ) == "chk" )
+						{
 
-						*/
+						}
 
 						i += 15 + MissionKey.size( ) + Key.size( );
 					}
@@ -195,7 +222,16 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		else
 			CONSOLE_Print( "[STATSW3MMD] DEBUG: recorded flag [" + i->second + "]" );
 
-		GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( GameID, i->first, i->second, m_Flags[i->first] ) );
+		uint32_t Leaver = 0;
+		uint32_t Practicing = 0;
+
+		if( m_FlagsLeaver.find( i->first ) != m_FlagsLeaver.end( ) && m_FlagsLeaver[i->first] )
+			Leaver = 1;
+
+		if( m_FlagsPracticing.find( i->first ) != m_FlagsLeaver.end( ) && m_FlagsPracticing[i->first] )
+			Practicing = 1;
+
+		GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( "test", GameID, i->first, i->second, m_Flags[i->first], Leaver, Practicing ) );
 	}
 }
 
