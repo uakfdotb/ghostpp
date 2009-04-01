@@ -275,8 +275,6 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 			else
 				Token += *i;
 		}
-
-		i++;
 	}
 
 	if( Token.empty( ) )

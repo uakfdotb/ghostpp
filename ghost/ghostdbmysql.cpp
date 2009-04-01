@@ -975,7 +975,7 @@ uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, string category, uint32
 	string EscCategory = MySQLEscapeString( conn, category );
 	string EscName = MySQLEscapeString( conn, name );
 	string EscFlag = MySQLEscapeString( conn, flag );
-	string Query = "INSERT INTO w3mmdplayers ( botid, category, gameid, pid, name, flag, leaver, practicing ) VALUES ( 0, " + EscCategory + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", " + EscName + ", " + EscFlag + ", " + UTIL_ToString( leaver ) + ", " + UTIL_ToString( practicing ) + " )";
+	string Query = "INSERT INTO w3mmdplayers ( botid, category, gameid, pid, name, flag, leaver, practicing ) VALUES ( 0, '" + EscCategory + "', " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", " + EscName + ", " + EscFlag + ", " + UTIL_ToString( leaver ) + ", " + UTIL_ToString( practicing ) + " )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
