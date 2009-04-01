@@ -334,6 +334,20 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY 
 	return packet;
 }
 
+BYTEARRAY CGameProtocol :: SEND_W3GS_REJECTJOIN( uint32_t reason )
+{
+	BYTEARRAY packet;
+	packet.push_back( W3GS_HEADER_CONSTANT );				// W3GS header constant
+	packet.push_back( W3GS_REJECTJOIN );					// W3GS_REJECTJOIN
+	packet.push_back( 0 );									// packet length will be assigned later
+	packet.push_back( 0 );									// packet length will be assigned later
+	UTIL_AppendByteArray( packet, reason, false );			// reason
+	AssignLength( packet );
+	// DEBUG_Print( "SENT W3GS_REJECTJOIN" );
+	// DEBUG_Print( packet );
+	return packet;
+}
+
 BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP )
 {
 	unsigned char PlayerJoinCounter[]	= { 2, 0, 0, 0 };

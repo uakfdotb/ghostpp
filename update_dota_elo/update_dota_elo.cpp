@@ -37,6 +37,8 @@ using namespace std;
 #include "config.h"
 #include "elo.h"
 
+#include <string.h>
+
 #ifdef WIN32
  #include <winsock.h>
 #endif
@@ -338,8 +340,8 @@ int main( int argc, char **argv )
 					{
 						cout << "gameid " << UTIL_ToString( GameID ) << " is calculating" << endl;
 
-						float old_player_ratings[12];
-						memcpy( old_player_ratings, player_ratings, sizeof( float ) * 12 );
+						float old_player_ratings[10];
+						memcpy( old_player_ratings, player_ratings, sizeof( float ) * 10 );
 						team_ratings[0] /= team_numplayers[0];
 						team_ratings[1] /= team_numplayers[1];
 						elo_recalculate_ratings( num_players, player_ratings, player_teams, num_teams, team_ratings, team_winners );

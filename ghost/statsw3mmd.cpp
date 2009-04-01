@@ -60,8 +60,8 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 	{
 		if( ActionData[i] == 'k' &&
 			ActionData[i + 1] == 'M' &&
-			ActionData[i + 2] == 'a' &&
-			ActionData[i + 3] == 'p' &&
+			ActionData[i + 2] == 'M' &&
+			ActionData[i + 3] == 'D' &&
 			ActionData[i + 4] == '.' &&
 			ActionData[i + 5] == 'D' &&
 			ActionData[i + 6] == 'a' &&

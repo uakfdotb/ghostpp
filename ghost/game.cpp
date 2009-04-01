@@ -1737,8 +1737,8 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 			if( (*i).first == potential->GetExternalIPString( ) )
 			{
 				// tempbanned, goodbye
-				// this is just going to close the socket which displays a "game not found" message to the player
 
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 				potential->SetDeleteMe( true );
 				CONSOLE_Print( "[ADMINGAME] player [" + joinPlayer->GetName( ) + "] at ip [" + (*i).first + "] is trying to join the game but is tempbanned" );
 				return;

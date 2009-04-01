@@ -43,6 +43,8 @@
 #define PLAYERLEAVE_OBSERVER		11
 #define PLAYERLEAVE_LOBBY			13
 
+#define REJECTJOIN_FULL				9
+
 #include "gameslot.h"
 
 class CGamePlayer;
@@ -116,6 +118,7 @@ public:
 
 	BYTEARRAY SEND_W3GS_PING_FROM_HOST( );
 	BYTEARRAY SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots );
+	BYTEARRAY SEND_W3GS_REJECTJOIN( uint32_t reason );
 	BYTEARRAY SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP );
 	BYTEARRAY SEND_W3GS_PLAYERLEAVE_OTHERS( unsigned char PID, uint32_t leftCode );
 	BYTEARRAY SEND_W3GS_GAMELOADED_OTHERS( unsigned char PID );
