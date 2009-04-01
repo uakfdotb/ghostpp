@@ -298,6 +298,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_ReplayPath = CFG->GetString( "bot_replaypath", string( ) );
 	m_VirtualHostName = CFG->GetString( "bot_virtualhostname", "|cFF4080C0GHost" );
 	m_HideIPAddresses = CFG->GetInt( "bot_hideipaddresses", 0 ) == 0 ? false : true;
+	m_CheckMultipleIPUsage = CFG->GetInt( "bot_checkmultipleipusage", 1 ) == 0 ? false : true;
 
 	if( m_VirtualHostName.size( ) > 15 )
 	{

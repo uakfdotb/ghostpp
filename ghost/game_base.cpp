@@ -498,7 +498,9 @@ bool CBaseGame :: Update( void *fd )
 			}
 
 			double Spread = MaxScore - MinScore;
-			SendAllChat( m_GHost->m_Language->RatedPlayersSpread( UTIL_ToString( PlayersScored ), UTIL_ToString( PlayersScored + PlayersNotScored ), UTIL_ToString( (uint32_t)Spread ) ) );
+
+			// todotodo: don't start the countdown if the spread is too large
+
 			StartCountDownAuto( true );
 		}
 		else
@@ -1379,21 +1381,24 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	// check for multiple IP usage
 
-	string Others;
-
-	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	if( m_GHost->m_CheckMultipleIPUsage )
 	{
-		if( Player != *i && Player->GetExternalIPString( ) == (*i)->GetExternalIPString( ) )
-		{
-			if( Others.empty( ) )
-				Others = (*i)->GetName( );
-			else
-				Others += ", " + (*i)->GetName( );
-		}
-	}
+		string Others;
 
-	if( !Others.empty( ) )
-		SendAllChat( m_GHost->m_Language->MultipleIPAddressUsageDetected( joinPlayer->GetName( ), Others ) );
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( Player != *i && Player->GetExternalIPString( ) == (*i)->GetExternalIPString( ) )
+			{
+				if( Others.empty( ) )
+					Others = (*i)->GetName( );
+				else
+					Others += ", " + (*i)->GetName( );
+			}
+		}
+
+		if( !Others.empty( ) )
+			SendAllChat( m_GHost->m_Language->MultipleIPAddressUsageDetected( joinPlayer->GetName( ), Others ) );
+	}
 
 	// abort the countdown if there was one in progress
 
@@ -1497,9 +1502,9 @@ void CBaseGame :: EventPlayerJoined2( CPotentialPlayer *potential, CIncomingJoin
 		if( score < -99999.0 || abs( score - AverageScore ) > abs( FurthestPlayer->GetScore( ) - AverageScore ) )
 		{
 			if( score < -99999.0 )
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but has the furthest score [N/A] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but has the furthest rating [N/A] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
 			else
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but has the furthest score [" + UTIL_ToString( score, 2 ) + "] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but has the furthest rating [" + UTIL_ToString( score, 2 ) + "] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
 
 			potential->SetDeleteMe( true );
 			return;
@@ -1524,9 +1529,9 @@ void CBaseGame :: EventPlayerJoined2( CPotentialPlayer *potential, CIncomingJoin
 		FurthestPlayer->SetLeftMessageSent( true );
 
 		if( FurthestPlayer->GetScore( ) < -99999.0 )
-			SendAllChat( "Player [" + FurthestPlayer->GetName( ) + "] was kicked for having the furthest score [N/A] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+			SendAllChat( "Player [" + FurthestPlayer->GetName( ) + "] was kicked for having the furthest rating [N/A] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
 		else
-			SendAllChat( "Player [" + FurthestPlayer->GetName( ) + "] was kicked for having the furthest score [" + UTIL_ToString( FurthestPlayer->GetScore( ), 2 ) + "] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+			SendAllChat( "Player [" + FurthestPlayer->GetName( ) + "] was kicked for having the furthest rating [" + UTIL_ToString( FurthestPlayer->GetScore( ), 2 ) + "] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
 	}
 
 	if( SID >= m_Slots.size( ) )
@@ -1608,23 +1613,55 @@ void CBaseGame :: EventPlayerJoined2( CPotentialPlayer *potential, CIncomingJoin
 	else
 		SendAllChat( m_GHost->m_Language->PlayerHasScore( joinPlayer->GetName( ), UTIL_ToString( score, 2 ) ) );
 
-	// check for multiple IP usage
-
-	string Others;
+	uint32_t PlayersScored = 0;
+	uint32_t PlayersNotScored = 0;
+	double AverageScore = 0.0;
+	double MinScore = 0.0;
+	double MaxScore = 0.0;
+	bool Found = false;
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( Player != *i && Player->GetExternalIPString( ) == (*i)->GetExternalIPString( ) )
+		if( (*i)->GetScore( ) < -99999.0 )
+			PlayersNotScored++;
+		else
 		{
-			if( Others.empty( ) )
-				Others = (*i)->GetName( );
-			else
-				Others += ", " + (*i)->GetName( );
+			PlayersScored++;
+			AverageScore += (*i)->GetScore( );
+
+			if( !Found || (*i)->GetScore( ) < MinScore )
+				MinScore = (*i)->GetScore( );
+
+			if( !Found || (*i)->GetScore( ) > MaxScore )
+				MaxScore = (*i)->GetScore( );
+
+			Found = true;
 		}
 	}
 
-	if( !Others.empty( ) )
-		SendAllChat( m_GHost->m_Language->MultipleIPAddressUsageDetected( joinPlayer->GetName( ), Others ) );
+	double Spread = MaxScore - MinScore;
+	SendAllChat( m_GHost->m_Language->RatedPlayersSpread( UTIL_ToString( PlayersScored ), UTIL_ToString( PlayersScored + PlayersNotScored ), UTIL_ToString( (uint32_t)Spread ) ) );
+
+	// check for multiple IP usage
+
+	if( m_GHost->m_CheckMultipleIPUsage )
+	{
+		string Others;
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( Player != *i && Player->GetExternalIPString( ) == (*i)->GetExternalIPString( ) )
+			{
+				if( Others.empty( ) )
+					Others = (*i)->GetName( );
+				else
+					Others += ", " + (*i)->GetName( );
+			}
+		}
+
+		if( !Others.empty( ) )
+			SendAllChat( m_GHost->m_Language->MultipleIPAddressUsageDetected( joinPlayer->GetName( ), Others ) );
+	}
 
 	// abort the countdown if there was one in progress
 
@@ -3012,6 +3049,8 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 				{
 					SendAllChat( m_GHost->m_Language->PlayersNotYetSpoofChecked( NotSpoofChecked ) );
 
+					/*
+
 					if( m_GHost->m_BNETs.size( ) == 1 )
 					{
 						BYTEARRAY UniqueName = m_GHost->m_BNETs[0]->GetUniqueName( );
@@ -3021,6 +3060,8 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 						else if( m_GameState == GAME_PRIVATE )
 							SendAllChat( m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
 					}
+
+					*/
 
 					// todotodo: figure something out with multiple realms here
 				}
