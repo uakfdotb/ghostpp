@@ -44,6 +44,8 @@
 #define PLAYERLEAVE_LOBBY			13
 
 #define REJECTJOIN_FULL				9
+#define REJECTJOIN_STARTED			10
+#define REJECTJOIN_WRONGPASSWORD	27
 
 #include "gameslot.h"
 

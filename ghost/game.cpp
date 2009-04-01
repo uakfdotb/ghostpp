@@ -1738,7 +1738,7 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 			{
 				// tempbanned, goodbye
 
-				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_WRONGPASSWORD ) );
 				potential->SetDeleteMe( true );
 				CONSOLE_Print( "[ADMINGAME] player [" + joinPlayer->GetName( ) + "] at ip [" + (*i).first + "] is trying to join the game but is tempbanned" );
 				return;
