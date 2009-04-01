@@ -312,6 +312,11 @@ bool CBaseGame :: Update( void *fd )
 	{
 		if( (*i)->Update( fd ) )
 		{
+			// flush the socket (e.g. in case a rejection message is queued)
+
+			if( (*i)->GetSocket( ) )
+				(*i)->GetSocket( )->DoSend( );
+
 			delete *i;
 			i = m_Potentials.erase( i );
 		}
