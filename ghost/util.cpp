@@ -297,6 +297,24 @@ uint32_t UTIL_ToUInt32( string &s )
 	return result;
 }
 
+int16_t UTIL_ToInt16( string &s )
+{
+	int16_t result;
+	stringstream SS;
+	SS << s;
+	SS >> result;
+	return result;
+}
+
+int32_t UTIL_ToInt32( string &s )
+{
+	int32_t result;
+	stringstream SS;
+	SS << s;
+	SS >> result;
+	return result;
+}
+
 double UTIL_ToDouble( string &s )
 {
 	double result;

@@ -175,6 +175,7 @@ public:
 
 	// threaded database functions
 
+	virtual void CreateThread( CBaseCallable *callable );
 	virtual CCallableAdminCount *ThreadedAdminCount( string server );
 	virtual CCallableAdminCheck *ThreadedAdminCheck( string server, string user );
 	virtual CCallableAdminAdd *ThreadedAdminAdd( string server, string user );

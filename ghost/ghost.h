@@ -47,8 +47,8 @@ typedef vector<unsigned char> BYTEARRAY;
 
 // time
 
-uint32_t GetTime( );		// seconds since January 1, 1970 usually
-uint32_t GetTicks( );		// milliseconds since computer startup usually, overflows after ~50 days
+uint32_t GetTime( );		// seconds
+uint32_t GetTicks( );		// milliseconds
 
 #ifdef WIN32
  #define MILLISLEEP( x ) Sleep( x )

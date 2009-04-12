@@ -125,6 +125,29 @@ void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 		CONSOLE_Print( "[MYSQL] tried to recover a non-mysql callable" );
 }
 
+void CGHostDBMySQL :: CreateThread( CBaseCallable *callable )
+{
+	try
+	{
+		boost :: thread Thread( boost :: ref( *callable ) );
+	}
+	catch( boost :: thread_resource_error tre )
+	{
+		CONSOLE_Print( "[MYSQL] error spawning thread on attempt #1 [" + string( tre.what( ) ) + "], pausing execution and trying again in 50ms" );
+		MILLISLEEP( 50 );
+
+		try
+		{
+			boost :: thread Thread( boost :: ref( *callable ) );
+		}
+		catch( boost :: thread_resource_error tre2 )
+		{
+			CONSOLE_Print( "[MYSQL] error spawning thread on attempt #2 [" + string( tre2.what( ) ) + "], giving up" );
+			callable->SetReady( true );
+		}
+	}
+}
+
 CCallableAdminCount *CGHostDBMySQL :: ThreadedAdminCount( string server )
 {
 	void *Connection = GetIdleConnection( );
@@ -133,7 +156,7 @@ CCallableAdminCount *CGHostDBMySQL :: ThreadedAdminCount( string server )
 		m_NumConnections++;
 
 	CCallableAdminCount *Callable = new CMySQLCallableAdminCount( server, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -146,7 +169,7 @@ CCallableAdminCheck *CGHostDBMySQL :: ThreadedAdminCheck( string server, string 
 		m_NumConnections++;
 
 	CCallableAdminCheck *Callable = new CMySQLCallableAdminCheck( server, user, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -159,7 +182,7 @@ CCallableAdminAdd *CGHostDBMySQL :: ThreadedAdminAdd( string server, string user
 		m_NumConnections++;
 
 	CCallableAdminAdd *Callable = new CMySQLCallableAdminAdd( server, user, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -172,7 +195,7 @@ CCallableAdminRemove *CGHostDBMySQL :: ThreadedAdminRemove( string server, strin
 		m_NumConnections++;
 
 	CCallableAdminRemove *Callable = new CMySQLCallableAdminRemove( server, user, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -185,7 +208,7 @@ CCallableAdminList *CGHostDBMySQL :: ThreadedAdminList( string server )
 		m_NumConnections++;
 
 	CCallableAdminList *Callable = new CMySQLCallableAdminList( server, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -198,7 +221,7 @@ CCallableBanCount *CGHostDBMySQL :: ThreadedBanCount( string server )
 		m_NumConnections++;
 
 	CCallableBanCount *Callable = new CMySQLCallableBanCount( server, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -211,7 +234,7 @@ CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( string server, string user
 		m_NumConnections++;
 
 	CCallableBanCheck *Callable = new CMySQLCallableBanCheck( server, user, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -224,7 +247,7 @@ CCallableBanAdd *CGHostDBMySQL :: ThreadedBanAdd( string server, string user, st
 		m_NumConnections++;
 
 	CCallableBanAdd *Callable = new CMySQLCallableBanAdd( server, user, ip, gamename, admin, reason, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -237,7 +260,7 @@ CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string server, string us
 		m_NumConnections++;
 
 	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( server, user, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -250,7 +273,7 @@ CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string user )
 		m_NumConnections++;
 
 	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( string( ), user, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -263,7 +286,7 @@ CCallableBanList *CGHostDBMySQL :: ThreadedBanList( string server )
 		m_NumConnections++;
 
 	CCallableBanList *Callable = new CMySQLCallableBanList( server, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -276,7 +299,7 @@ CCallableGameAdd *CGHostDBMySQL :: ThreadedGameAdd( string server, string map, s
 		m_NumConnections++;
 
 	CCallableGameAdd *Callable = new CMySQLCallableGameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -289,7 +312,7 @@ CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid,
 		m_NumConnections++;
 
 	CCallableGamePlayerAdd *Callable = new CMySQLCallableGamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -302,7 +325,7 @@ CCallableGamePlayerSummaryCheck *CGHostDBMySQL :: ThreadedGamePlayerSummaryCheck
 		m_NumConnections++;
 
 	CCallableGamePlayerSummaryCheck *Callable = new CMySQLCallableGamePlayerSummaryCheck( name, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -315,7 +338,7 @@ CCallableDotAGameAdd *CGHostDBMySQL :: ThreadedDotAGameAdd( uint32_t gameid, uin
 		m_NumConnections++;
 
 	CCallableDotAGameAdd *Callable = new CMySQLCallableDotAGameAdd( gameid, winner, min, sec, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -328,7 +351,7 @@ CCallableDotAPlayerAdd *CGHostDBMySQL :: ThreadedDotAPlayerAdd( uint32_t gameid,
 		m_NumConnections++;
 
 	CCallableDotAPlayerAdd *Callable = new CMySQLCallableDotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -341,7 +364,7 @@ CCallableDotAPlayerSummaryCheck *CGHostDBMySQL :: ThreadedDotAPlayerSummaryCheck
 		m_NumConnections++;
 
 	CCallableDotAPlayerSummaryCheck *Callable = new CMySQLCallableDotAPlayerSummaryCheck( name, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -354,7 +377,7 @@ CCallableDownloadAdd *CGHostDBMySQL :: ThreadedDownloadAdd( string map, uint32_t
 		m_NumConnections++;
 
 	CCallableDownloadAdd *Callable = new CMySQLCallableDownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -367,7 +390,7 @@ CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, strin
 		m_NumConnections++;
 
 	CCallableScoreCheck *Callable = new CMySQLCallableScoreCheck( category, name, server, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -380,7 +403,7 @@ CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string categor
 		m_NumConnections++;
 
 	CCallableW3MMDPlayerAdd *Callable = new CMySQLCallableW3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
-	boost :: thread Thread( boost :: ref( *Callable ) );
+	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
@@ -996,7 +1019,8 @@ void CMySQLCallable :: Init( )
 	CBaseCallable :: Init( );
 
 #ifndef WIN32
-	// disable SIGPIPE since this is (or should be) a new thread and the MySQL client library could end up with a broken pipe
+	// disable SIGPIPE since this is (or should be) a new thread and it doesn't inherit the spawning thread's signal handlers
+	// MySQL should automatically disable SIGPIPE when we initialize it but we do so anyway here
 
 	signal( SIGPIPE, SIG_IGN );
 #endif

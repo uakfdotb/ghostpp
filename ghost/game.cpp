@@ -72,7 +72,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
 
 	if( m_Map->GetMapType( ) == "w3mmd" )
-		m_Stats = new CStatsW3MMD( this );
+		m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ) );
 	else if( m_Map->GetMapType( ) == "dota" )
 		m_Stats = new CStatsDOTA( this );
 	else
@@ -87,7 +87,7 @@ CGame :: ~CGame( )
 	{
 		if( m_CallableGameAdd->GetResult( ) > 0 )
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] saving game data to database (step 2)" );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] saving player/stats data to database" );
 
 			// store the CDBGamePlayers in the database
 
@@ -99,6 +99,8 @@ CGame :: ~CGame( )
 			if( m_Stats )
 				m_Stats->Save( m_GHost, m_GHost->m_DB, m_CallableGameAdd->GetResult( ) );
 		}
+		else
+			CONSOLE_Print( "[GAME: " + m_GameName + "] unable to save player/stats data to database" );
 
 		m_GHost->m_DB->RecoverCallable( m_CallableGameAdd );
 		delete m_CallableGameAdd;
@@ -1685,7 +1687,7 @@ bool CGame :: IsGameDataSaved( )
 
 void CGame :: SaveGameData( )
 {
-	CONSOLE_Print( "[GAME: " + m_GameName + "] saving game data to database (step 1)" );
+	CONSOLE_Print( "[GAME: " + m_GameName + "] saving game data to database" );
 	m_CallableGameAdd = m_GHost->m_DB->ThreadedGameAdd( m_GHost->m_BNETs.size( ) == 1 ? m_GHost->m_BNETs[0]->GetServer( ) : string( ), m_DBGame->GetMap( ), m_GameName, m_OwnerName, GetTime( ) - m_StartedLoadingTime, m_GameState, m_CreatorName, m_CreatorServer );
 }
 

@@ -445,7 +445,7 @@ bool CBaseGame :: Update( void *fd )
 
 	// kick players who don't spoof check within 20 seconds when matchmaking is enabled
 
-	if( !m_CountDownStarted && m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+	if( !m_CountDownStarted && m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
 	{
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
@@ -465,7 +465,7 @@ bool CBaseGame :: Update( void *fd )
 	{
 		// require spoof checks when using matchmaking
 
-		if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+		if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
 		{
 			uint32_t PlayersScored = 0;
 			uint32_t PlayersNotScored = 0;
@@ -1185,13 +1185,13 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		}
 	}
 
-	if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+	if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
 	{
 		// matchmaking is enabled
 		// start a database query to determine the player's score
 		// when the query is complete we will call EventPlayerJoined2
 
-		m_ScoreChecks.push_back( m_GHost->m_DB->ThreadedScoreCheck( m_Map->GetMapScoreCategory( ), joinPlayer->GetName( ), m_GHost->m_BNETs[0]->GetServer( ) ) );
+		m_ScoreChecks.push_back( m_GHost->m_DB->ThreadedScoreCheck( m_Map->GetMapMatchMakingCategory( ), joinPlayer->GetName( ), m_GHost->m_BNETs[0]->GetServer( ) ) );
 		return;
 	}
 

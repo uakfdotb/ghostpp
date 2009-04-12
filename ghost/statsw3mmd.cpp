@@ -29,9 +29,11 @@
 // CStatsW3MMD
 //
 
-CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame ) : CStats( nGame )
+CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame, string nCategory ) : CStats( nGame )
 {
 	CONSOLE_Print( "[STATSW3MMD] using Warcraft 3 Map Meta Data stats parser version 0" );
+	CONSOLE_Print( "[STATSW3MMD] using map_statsw3mmdcategory [" + nCategory + "]" );
+	m_Category = nCategory;
 }
 
 CStatsW3MMD :: ~CStatsW3MMD( )
@@ -96,7 +98,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 						string KeyString = string( Key.begin( ), Key.end( ) );
 						uint32_t ValueInt = UTIL_ByteArrayToUInt32( Value, false );
 
-						CONSOLE_Print( "[STATSW3MMD] DEBUG: mkey [" + MissionKeyString + "], key [" + KeyString + "], value [" + UTIL_ToString( ValueInt ) + "]" );
+						// CONSOLE_Print( "[STATSW3MMD] DEBUG: mkey [" + MissionKeyString + "], key [" + KeyString + "], value [" + UTIL_ToString( ValueInt ) + "]" );
 
 						// todotodo: verify message order using MissionKey
 						// todotodo: cheat detection
@@ -138,8 +140,19 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 								{
 									// Tokens[1] = name
 									// Tokens[2] = value type
-									// Tokens[3] = goal type
-									// Tokens[4] = priority
+									// Tokens[3] = goal type (ignored here)
+									// Tokens[4] = suggestion (ignored here)
+
+									if( m_DefVarPs.find( Tokens[1] ) != m_DefVarPs.end( ) )
+										CONSOLE_Print( "[STATSW3MMD] duplicate DefVarP [" + KeyString + "] found, ignoring" );
+									else
+									{
+										if( Tokens[2] == "int" || Tokens[2] == "real" || Tokens[2] == "string" )
+											m_DefVarPs[Tokens[1]] = Tokens[2];
+										else
+											CONSOLE_Print( "[STATSW3MMD] unknown DefVarP [" + KeyString + "] found, ignoring" );
+									}
+
 								}
 								else if( Tokens[0] == "VarP" && Tokens.size( ) == 5 )
 								{
@@ -147,6 +160,69 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 									// Tokens[2] = name
 									// Tokens[3] = operation
 									// Tokens[4] = value
+
+									if( m_DefVarPs.find( Tokens[2] ) != m_DefVarPs.end( ) )
+										CONSOLE_Print( "[STATSW3MMD] VarP [" + KeyString + "] found without a corresponding DefVarP, ignoring" );
+									else
+									{
+										string ValueType = m_DefVarPs[Tokens[2]];
+
+										if( ValueType == "int" )
+										{
+											VarP VP = VarP( UTIL_ToUInt32( Tokens[1] ), Tokens[2] );
+
+											if( Tokens[3] == "=" )
+												m_VarPInts[VP] = UTIL_ToInt32( Tokens[4] );
+											else if( Tokens[3] == "+=" )
+											{
+												if( m_VarPInts.find( VP ) != m_VarPInts.end( ) )
+													m_VarPInts[VP] += UTIL_ToInt32( Tokens[4] );
+												else
+													CONSOLE_Print( "[STATSW3MMD] int VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
+											}
+											else if( Tokens[3] == "-=" )
+											{
+												if( m_VarPInts.find( VP ) != m_VarPInts.end( ) )
+													m_VarPInts[VP] -= UTIL_ToInt32( Tokens[4] );
+												else
+													CONSOLE_Print( "[STATSW3MMD] int VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
+											}
+											else
+												CONSOLE_Print( "[STATSW3MMD] unknown int VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
+										}
+										else if( ValueType == "real" )
+										{
+											VarP VP = VarP( UTIL_ToUInt32( Tokens[1] ), Tokens[2] );
+
+											if( Tokens[3] == "=" )
+												m_VarPReals[VP] = UTIL_ToDouble( Tokens[4] );
+											else if( Tokens[3] == "+=" )
+											{
+												if( m_VarPReals.find( VP ) != m_VarPReals.end( ) )
+													m_VarPReals[VP] += UTIL_ToDouble( Tokens[4] );
+												else
+													CONSOLE_Print( "[STATSW3MMD] real VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
+											}
+											else if( Tokens[3] == "-=" )
+											{
+												if( m_VarPReals.find( VP ) != m_VarPReals.end( ) )
+													m_VarPReals[VP] -= UTIL_ToDouble( Tokens[4] );
+												else
+													CONSOLE_Print( "[STATSW3MMD] real VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
+											}
+											else
+												CONSOLE_Print( "[STATSW3MMD] unknown real VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
+										}
+										else
+										{
+											VarP VP = VarP( UTIL_ToUInt32( Tokens[1] ), Tokens[2] );
+
+											if( Tokens[3] == "=" )
+												m_VarPStrings[VP] = Tokens[4];
+											else
+												CONSOLE_Print( "[STATSW3MMD] unknown string VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
+										}
+									}
 								}
 								else if( Tokens[0] == "FlagP" && Tokens.size( ) == 3 )
 								{
@@ -227,10 +303,10 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		if( m_FlagsPracticing.find( i->first ) != m_FlagsLeaver.end( ) && m_FlagsPracticing[i->first] )
 			Practicing = 1;
 
-		// todotodo: category
-
-		GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( "test", GameID, i->first, i->second, m_Flags[i->first], Leaver, Practicing ) );
+		GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( m_Category, GameID, i->first, i->second, m_Flags[i->first], Leaver, Practicing ) );
 	}
+
+	// todotodo: save VarP's
 }
 
 vector<string> CStatsW3MMD :: TokenizeKey( string key )

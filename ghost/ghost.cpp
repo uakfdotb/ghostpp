@@ -646,15 +646,15 @@ bool CGHost :: Update( long usecBlock )
 
 					if( m_AutoHostMatchMaking )
 					{
-						if( !m_Map->GetMapScoreCategory( ).empty( ) )
+						if( !m_Map->GetMapMatchMakingCategory( ).empty( ) )
 						{
 							if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
-								CONSOLE_Print( "[GHOST] autohostmm - map score category [" + m_Map->GetMapScoreCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
+								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
 							else if( m_BNETs.size( ) != 1 )
-								CONSOLE_Print( "[GHOST] autohostmm - map score category [" + m_Map->GetMapScoreCategory( ) + "] found but matchmaking can only be used with one battle.net connection, matchmaking disabled" );
+								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with one battle.net connection, matchmaking disabled" );
 							else
 							{
-								CONSOLE_Print( "[GHOST] autohostmm - map score category [" + m_Map->GetMapScoreCategory( ) + "] found, matchmaking enabled" );
+								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found, matchmaking enabled" );
 
 								m_CurrentGame->SetMatchMaking( true );
 								m_CurrentGame->SetMinimumScore( m_AutoHostMinimumScore );
@@ -662,7 +662,7 @@ bool CGHost :: Update( long usecBlock )
 							}
 						}
 						else
-							CONSOLE_Print( "[GHOST] autohostmm - map score category not found, matchmaking disabled" );
+							CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory not found, matchmaking disabled" );
 					}
 				}
 			}

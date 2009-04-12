@@ -167,6 +167,11 @@ uint32_t CGHostDB :: W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t 
 	return 0;
 }
 
+void CGHostDB :: CreateThread( CBaseCallable *callable )
+{
+	callable->SetReady( true );
+}
+
 CCallableAdminCount *CGHostDB :: ThreadedAdminCount( string server )
 {
 	return NULL;
