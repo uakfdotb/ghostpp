@@ -25,6 +25,10 @@
 // CStatsW3MMD
 //
 
+typedef pair<string,int32_t> VarPInt;
+typedef pair<string,double> VarPReal;
+typedef pair<string,string> VarPString;
+
 class CStatsW3MMD : public CStats
 {
 private:
@@ -32,6 +36,9 @@ private:
 	map<uint32_t,string> m_Flags;
 	map<uint32_t,bool> m_FlagsLeaver;
 	map<uint32_t,bool> m_FlagsPracticing;
+	map<uint32_t,VarPInt> m_VarPInts;
+	map<uint32_t,VarPReal> m_VarPReals;
+	map<uint32_t,VarPString> m_VarPStrings;
 
 public:
 	CStatsW3MMD( CBaseGame *nGame );

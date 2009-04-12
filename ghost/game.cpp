@@ -1827,6 +1827,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				m_GHost->m_AutoHostMaximumGames = 0;
 				m_GHost->m_AutoHostAutoStartPlayers = 0;
 				m_GHost->m_LastAutoHostTime = GetTime( );
+				m_GHost->m_AutoHostMatchMaking = false;
+				m_GHost->m_AutoHostMinimumScore = 0.0;
+				m_GHost->m_AutoHostMaximumScore = 0.0;
 			}
 			else
 			{
@@ -1868,6 +1871,94 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							m_GHost->m_AutoHostMaximumGames = MaximumGames;
 							m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 							m_GHost->m_LastAutoHostTime = GetTime( );
+							m_GHost->m_AutoHostMatchMaking = false;
+							m_GHost->m_AutoHostMinimumScore = 0.0;
+							m_GHost->m_AutoHostMaximumScore = 0.0;
+						}
+					}
+				}
+			}
+		}
+
+		//
+		// !AUTOHOSTMM
+		//
+
+		if( Command == "autohostmm" )
+		{
+			if( Payload.empty( ) || Payload == "off" )
+			{
+				SendChat( player, m_GHost->m_Language->AutoHostDisabled( ) );
+				m_GHost->m_AutoHostGameName.clear( );
+				m_GHost->m_AutoHostMapCFG.clear( );
+				m_GHost->m_AutoHostOwner.clear( );
+				m_GHost->m_AutoHostServer.clear( );
+				m_GHost->m_AutoHostMaximumGames = 0;
+				m_GHost->m_AutoHostAutoStartPlayers = 0;
+				m_GHost->m_LastAutoHostTime = GetTime( );
+				m_GHost->m_AutoHostMatchMaking = false;
+				m_GHost->m_AutoHostMinimumScore = 0.0;
+				m_GHost->m_AutoHostMaximumScore = 0.0;
+			}
+			else
+			{
+				// extract the maximum games, auto start players, and the game name
+				// e.g. "5 10 800 1200 BattleShips Pro" -> maximum games: "5", auto start players: "10", minimum score: "800", maximum score: "1200", game name: "BattleShips Pro"
+
+				uint32_t MaximumGames;
+				uint32_t AutoStartPlayers;
+				double MinimumScore;
+				double MaximumScore;
+				string GameName;
+				stringstream SS;
+				SS << Payload;
+				SS >> MaximumGames;
+
+				if( SS.fail( ) || MaximumGames == 0 )
+					CONSOLE_Print( "[ADMINGAME] bad input #1 to autohostmm command" );
+				else
+				{
+					SS >> AutoStartPlayers;
+
+					if( SS.fail( ) || AutoStartPlayers == 0 )
+						CONSOLE_Print( "[ADMINGAME] bad input #2 to autohostmm command" );
+					else
+					{
+						SS >> MinimumScore;
+
+						if( SS.fail( ) )
+							CONSOLE_Print( "[ADMINGAME] bad input #3 to autohostmm command" );
+						else
+						{
+							SS >> MaximumScore;
+
+							if( SS.fail( ) )
+								CONSOLE_Print( "[ADMINGAME] bad input #4 to autohostmm command" );
+							else
+							{
+								if( SS.eof( ) )
+									CONSOLE_Print( "[ADMINGAME] missing input #5 to autohostmm command" );
+								else
+								{
+									getline( SS, GameName );
+									string :: size_type Start = GameName.find_first_not_of( " " );
+
+									if( Start != string :: npos )
+										GameName = GameName.substr( Start );
+
+									SendChat( player, m_GHost->m_Language->AutoHostEnabled( ) );
+									m_GHost->m_AutoHostGameName = GameName;
+									m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
+									m_GHost->m_AutoHostOwner = User;
+									m_GHost->m_AutoHostServer.clear( );
+									m_GHost->m_AutoHostMaximumGames = MaximumGames;
+									m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+									m_GHost->m_LastAutoHostTime = GetTime( );
+									m_GHost->m_AutoHostMatchMaking = true;
+									m_GHost->m_AutoHostMinimumScore = MinimumScore;
+									m_GHost->m_AutoHostMaximumScore = MaximumScore;
+								}
+							}
 						}
 					}
 				}

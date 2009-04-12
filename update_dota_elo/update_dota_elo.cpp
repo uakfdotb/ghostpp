@@ -298,7 +298,7 @@ int main( int argc, char **argv )
 					{
 						cout << "new player [" << Row[1] << "] found" << endl;
 						exists[num_players] = false;
-						player_ratings[num_players] = 1000;
+						player_ratings[num_players] = 1000.0;
 					}
 
 					uint32_t Colour = UTIL_ToUInt32( Row[3] );

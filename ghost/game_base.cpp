@@ -89,6 +89,8 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_LastReservedSeen = GetTime( );
 	m_StartedKickVoteTime = 0;
 	m_GameOverTime = 0;
+	m_MinimumScore = 0.0;
+	m_MaximumScore = 0.0;
 	m_Locked = false;
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
 	m_RefreshError = false;
@@ -100,6 +102,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Desynced = false;
 	m_Lagging = false;
 	m_AutoSave = m_GHost->m_AutoSave;
+	m_MatchMaking = false;
 
 	if( m_SaveGame )
 	{
@@ -136,18 +139,6 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 		CONSOLE_Print( "[GAME: " + m_GameName + "] error listening on port " + UTIL_ToString( m_HostPort ) );
 		m_Exiting = true;
 	}
-
-	if( !m_Map->GetMapScoreCategory( ).empty( ) )
-	{
-		if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
-			CONSOLE_Print( "[GAME: " + m_GameName + "] map score category [" + m_Map->GetMapScoreCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
-		else if( m_GHost->m_BNETs.size( ) != 1 )
-			CONSOLE_Print( "[GAME: " + m_GameName + "] map score category [" + m_Map->GetMapScoreCategory( ) + "] found but matchmaking can only be used with one battle.net connection, matchmaking disabled" );
-		else
-			CONSOLE_Print( "[GAME: " + m_GameName + "] map score category [" + m_Map->GetMapScoreCategory( ) + "] found, matchmaking enabled" );
-	}
-	else
-		CONSOLE_Print( "[GAME: " + m_GameName + "] map score category not found, matchmaking disabled" );
 }
 
 CBaseGame :: ~CBaseGame( )
@@ -452,9 +443,9 @@ bool CBaseGame :: Update( void *fd )
 		m_LastAnnounceTime = GetTime( );
 	}
 
-	// kick players who don't spoof check within 20 seconds when autohosting and matchmaking is enabled
+	// kick players who don't spoof check within 20 seconds when matchmaking is enabled
 
-	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+	if( !m_CountDownStarted && m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
 	{
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
@@ -474,7 +465,7 @@ bool CBaseGame :: Update( void *fd )
 	{
 		// require spoof checks when using matchmaking
 
-		if( !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+		if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
 		{
 			uint32_t PlayersScored = 0;
 			uint32_t PlayersNotScored = 0;
@@ -1194,7 +1185,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		}
 	}
 
-	if( !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+	if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapScoreCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
 	{
 		// matchmaking is enabled
 		// start a database query to determine the player's score
@@ -1450,6 +1441,16 @@ void CBaseGame :: EventPlayerJoined2( CPotentialPlayer *potential, CIncomingJoin
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but that name is already taken" );
 		// SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButTaken( joinPlayer->GetName( ) ) );
+		potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+		potential->SetDeleteMe( true );
+		return;
+	}
+
+	// check if the new player's score is within the limits
+
+	if( score > -99999.0 && ( score < m_MinimumScore || score > m_MaximumScore ) )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but has a rating [" + UTIL_ToString( score, 2 ) + "] outside the limits [" + UTIL_ToString( m_MinimumScore, 2 ) + "] to [" + UTIL_ToString( m_MaximumScore, 2 ) + "]" );
 		potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
 		return;

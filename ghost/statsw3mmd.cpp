@@ -215,12 +215,8 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 {
 	for( map<uint32_t,string> :: iterator i = m_PIDToName.begin( ); i != m_PIDToName.end( ); i++ )
 	{
-		CONSOLE_Print( "[STATSW3MMD] DEBUG: recorded PID [" + UTIL_ToString( i->first ) + "], name [" + i->second + "]" );
-
 		if( m_Flags.find( i->first ) == m_Flags.end( ) )
 			CONSOLE_Print( "[STATSW3MMD] no flag recorded for PID [" + UTIL_ToString( i->first ) + "]" );
-		else
-			CONSOLE_Print( "[STATSW3MMD] DEBUG: recorded flag [" + i->second + "]" );
 
 		uint32_t Leaver = 0;
 		uint32_t Practicing = 0;
@@ -230,6 +226,8 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 
 		if( m_FlagsPracticing.find( i->first ) != m_FlagsLeaver.end( ) && m_FlagsPracticing[i->first] )
 			Practicing = 1;
+
+		// todotodo: category
 
 		GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( "test", GameID, i->first, i->second, m_Flags[i->first], Leaver, Practicing ) );
 	}

@@ -26,6 +26,8 @@
 #include "ghostdb.h"
 #include "ghostdbmysql.h"
 
+#include <signal.h>
+
 #ifdef WIN32
  #include <winsock.h>
 #endif
@@ -992,6 +994,12 @@ uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, string category, uint32
 void CMySQLCallable :: Init( )
 {
 	CBaseCallable :: Init( );
+
+#ifndef WIN32
+	// disable SIGPIPE since this is (or should be) a new thread and the MySQL client library could end up with a broken pipe
+
+	signal( SIGPIPE, SIG_IGN );
+#endif
 
 	mysql_thread_init( );
 

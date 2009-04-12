@@ -943,6 +943,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_GHost->m_AutoHostMaximumGames = 0;
 							m_GHost->m_AutoHostAutoStartPlayers = 0;
 							m_GHost->m_LastAutoHostTime = GetTime( );
+							m_GHost->m_AutoHostMatchMaking = false;
+							m_GHost->m_AutoHostMinimumScore = 0.0;
+							m_GHost->m_AutoHostMaximumScore = 0.0;
 						}
 						else
 						{
@@ -984,6 +987,99 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										m_GHost->m_AutoHostMaximumGames = MaximumGames;
 										m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 										m_GHost->m_LastAutoHostTime = GetTime( );
+										m_GHost->m_AutoHostMatchMaking = false;
+										m_GHost->m_AutoHostMinimumScore = 0.0;
+										m_GHost->m_AutoHostMaximumScore = 0.0;
+									}
+								}
+							}
+						}
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
+				// !AUTOHOSTMM
+				//
+
+				if( Command == "autohostmm" )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						if( Payload.empty( ) || Payload == "off" )
+						{
+							QueueChatCommand( m_GHost->m_Language->AutoHostDisabled( ), User, Whisper );
+							m_GHost->m_AutoHostGameName.clear( );
+							m_GHost->m_AutoHostMapCFG.clear( );
+							m_GHost->m_AutoHostOwner.clear( );
+							m_GHost->m_AutoHostServer.clear( );
+							m_GHost->m_AutoHostMaximumGames = 0;
+							m_GHost->m_AutoHostAutoStartPlayers = 0;
+							m_GHost->m_LastAutoHostTime = GetTime( );
+							m_GHost->m_AutoHostMatchMaking = false;
+							m_GHost->m_AutoHostMinimumScore = 0.0;
+							m_GHost->m_AutoHostMaximumScore = 0.0;
+						}
+						else
+						{
+							// extract the maximum games, auto start players, minimum score, maximum score, and the game name
+							// e.g. "5 10 800 1200 BattleShips Pro" -> maximum games: "5", auto start players: "10", minimum score: "800", maximum score: "1200", game name: "BattleShips Pro"
+
+							uint32_t MaximumGames;
+							uint32_t AutoStartPlayers;
+							double MinimumScore;
+							double MaximumScore;
+							string GameName;
+							stringstream SS;
+							SS << Payload;
+							SS >> MaximumGames;
+
+							if( SS.fail( ) || MaximumGames == 0 )
+								CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to autohostmm command" );
+							else
+							{
+								SS >> AutoStartPlayers;
+
+								if( SS.fail( ) || AutoStartPlayers == 0 )
+									CONSOLE_Print( "[BNET: " + m_Server + "] bad input #2 to autohostmm command" );
+								else
+								{
+									SS >> MinimumScore;
+
+									if( SS.fail( ) )
+										CONSOLE_Print( "[BNET: " + m_Server + "] bad input #3 to autohostmm command" );
+									else
+									{
+										SS >> MaximumScore;
+
+										if( SS.fail( ) )
+											CONSOLE_Print( "[BNET: " + m_Server + "] bad input #4 to autohostmm command" );
+										else
+										{
+											if( SS.eof( ) )
+												CONSOLE_Print( "[BNET: " + m_Server + "] missing input #5 to autohostmm command" );
+											else
+											{
+												getline( SS, GameName );
+												string :: size_type Start = GameName.find_first_not_of( " " );
+
+												if( Start != string :: npos )
+													GameName = GameName.substr( Start );
+
+												QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
+												m_GHost->m_AutoHostGameName = GameName;
+												m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
+												m_GHost->m_AutoHostOwner = User;
+												m_GHost->m_AutoHostServer = m_Server;
+												m_GHost->m_AutoHostMaximumGames = MaximumGames;
+												m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+												m_GHost->m_LastAutoHostTime = GetTime( );
+												m_GHost->m_AutoHostMatchMaking = true;
+												m_GHost->m_AutoHostMinimumScore = MinimumScore;
+												m_GHost->m_AutoHostMaximumScore = MaximumScore;
+											}
+										}
 									}
 								}
 							}
@@ -1807,41 +1903,50 @@ void CBNET :: SendGameUncreate( )
 
 void CBNET :: SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter )
 {
-	if( hostName.empty( ) )
+	// try to avoid flooding out by not refreshing if a chat command was sent recently
+	// this doesn't properly queue chat commands and refreshes, instead making refreshes secondary to chat commands
+	// while not ideal this behaviour should be acceptable as long as it doesn't get suppressed too often
+
+	if( upTime == 0 || GetTicks( ) >= m_LastChatCommandTicks + 2500 )
 	{
-		BYTEARRAY UniqueName = m_Protocol->GetUniqueName( );
-		hostName = string( UniqueName.begin( ), UniqueName.end( ) );
-	}
-
-	if( m_LoggedIn && map )
-	{
-		BYTEARRAY MapGameType;
-
-		// construct the correct SID_STARTADVEX3 packet
-
-		if( saveGame )
+		if( hostName.empty( ) )
 		{
-			MapGameType.push_back( 0 );
-			MapGameType.push_back( 10 );
-			MapGameType.push_back( 0 );
-			MapGameType.push_back( 0 );
-			BYTEARRAY MapWidth;
-			MapWidth.push_back( 0 );
-			MapWidth.push_back( 0 );
-			BYTEARRAY MapHeight;
-			MapHeight.push_back( 0 );
-			MapHeight.push_back( 0 );
-			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), hostCounter ) );
+			BYTEARRAY UniqueName = m_Protocol->GetUniqueName( );
+			hostName = string( UniqueName.begin( ), UniqueName.end( ) );
 		}
-		else
+
+		if( m_LoggedIn && map )
 		{
-			MapGameType.push_back( map->GetMapGameType( ) );
-			MapGameType.push_back( 32 );
-			MapGameType.push_back( 73 );
-			MapGameType.push_back( 0 );
-			m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
+			BYTEARRAY MapGameType;
+
+			// construct the correct SID_STARTADVEX3 packet
+
+			if( saveGame )
+			{
+				MapGameType.push_back( 0 );
+				MapGameType.push_back( 10 );
+				MapGameType.push_back( 0 );
+				MapGameType.push_back( 0 );
+				BYTEARRAY MapWidth;
+				MapWidth.push_back( 0 );
+				MapWidth.push_back( 0 );
+				BYTEARRAY MapHeight;
+				MapHeight.push_back( 0 );
+				MapHeight.push_back( 0 );
+				m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), hostCounter ) );
+			}
+			else
+			{
+				MapGameType.push_back( map->GetMapGameType( ) );
+				MapGameType.push_back( 32 );
+				MapGameType.push_back( 73 );
+				MapGameType.push_back( 0 );
+				m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
+			}
 		}
 	}
+	else
+		CONSOLE_Print( "[BNET: " + m_Server + "] game refresh suppressed for flood protection (last chat command was " + UTIL_ToString( GetTicks( ) - m_LastChatCommandTicks ) + "ms ago)" );
 }
 
 void CBNET :: SendGameJoin( string gameName )

@@ -114,7 +114,7 @@ void SignalCatcher( int signal )
 	// signal( SIGABRT, SignalCatcher );
 	// signal( SIGINT, SignalCatcher );
 
-	CONSOLE_Print( "[!!!] caught signal, shutting down" );
+	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( signal ) + ", shutting down" );
 
 	if( gGHost )
 	{
@@ -150,7 +150,7 @@ int main( int argc, char **argv )
 
 	// catch SIGABRT and SIGINT
 
-	signal( SIGABRT, SignalCatcher );
+	// signal( SIGABRT, SignalCatcher );
 	signal( SIGINT, SignalCatcher );
 
 #ifndef WIN32
@@ -279,6 +279,9 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMaximumGames = 0;
 	m_AutoHostAutoStartPlayers = 0;
 	m_LastAutoHostTime = 0;
+	m_AutoHostMatchMaking = false;
+	m_AutoHostMinimumScore = 0.0;
+	m_AutoHostMaximumScore = 0.0;
 	m_LanguageFile = CFG->GetString( "bot_language", "language.cfg" );
 	m_Language = new CLanguage( m_LanguageFile );
 	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
@@ -638,7 +641,30 @@ bool CGHost :: Update( long usecBlock )
 				CreateGame( GAME_PUBLIC, false, GameName, string( ), m_AutoHostOwner, m_AutoHostServer, false );
 
 				if( m_CurrentGame )
+				{
 					m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );
+
+					if( m_AutoHostMatchMaking )
+					{
+						if( !m_Map->GetMapScoreCategory( ).empty( ) )
+						{
+							if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
+								CONSOLE_Print( "[GHOST] autohostmm - map score category [" + m_Map->GetMapScoreCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
+							else if( m_BNETs.size( ) != 1 )
+								CONSOLE_Print( "[GHOST] autohostmm - map score category [" + m_Map->GetMapScoreCategory( ) + "] found but matchmaking can only be used with one battle.net connection, matchmaking disabled" );
+							else
+							{
+								CONSOLE_Print( "[GHOST] autohostmm - map score category [" + m_Map->GetMapScoreCategory( ) + "] found, matchmaking enabled" );
+
+								m_CurrentGame->SetMatchMaking( true );
+								m_CurrentGame->SetMinimumScore( m_AutoHostMinimumScore );
+								m_CurrentGame->SetMaximumScore( m_AutoHostMaximumScore );
+							}
+						}
+						else
+							CONSOLE_Print( "[GHOST] autohostmm - map score category not found, matchmaking disabled" );
+					}
+				}
 			}
 			else
 			{
@@ -649,6 +675,9 @@ bool CGHost :: Update( long usecBlock )
 				m_AutoHostServer.clear( );
 				m_AutoHostMaximumGames = 0;
 				m_AutoHostAutoStartPlayers = 0;
+				m_AutoHostMatchMaking = false;
+				m_AutoHostMinimumScore = 0.0;
+				m_AutoHostMaximumScore = 0.0;
 			}
 		}
 

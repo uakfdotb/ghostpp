@@ -95,6 +95,8 @@ protected:
 	uint32_t m_LastReservedSeen;					// GetTime when the last reserved player was seen in the lobby
 	uint32_t m_StartedKickVoteTime;					// GetTime when the kick vote was started
 	uint32_t m_GameOverTime;						// GetTime when the game was over
+	double m_MinimumScore;							// the minimum allowed score for matchmaking mode
+	double m_MaximumScore;							// the maximum allowed score for matchmaking mode
 	bool m_Locked;									// if the game owner is the only one allowed to run game commands or not
 	bool m_RefreshMessages;							// if we should display "game refreshed..." messages or not
 	bool m_RefreshError;							// if there was an error refreshing the game
@@ -106,6 +108,7 @@ protected:
 	bool m_Desynced;								// if the game has desynced or not
 	bool m_Lagging;									// if the lag screen is active or not
 	bool m_AutoSave;								// if we should auto save the game before someone disconnects
+	bool m_MatchMaking;								// if matchmaking mode is enabled
 
 public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
@@ -130,7 +133,10 @@ public:
 
 	virtual void SetExiting( bool nExiting )						{ m_Exiting = nExiting; }
 	virtual void SetAutoStartPlayers( uint32_t nAutoStartPlayers )	{ m_AutoStartPlayers = nAutoStartPlayers; }
+	virtual void SetMinimumScore( double nMinimumScore )			{ m_MinimumScore = nMinimumScore; }
+	virtual void SetMaximumScore( double nMaximumScore )			{ m_MaximumScore = nMaximumScore; }
 	virtual void SetRefreshError( bool nRefreshError )				{ m_RefreshError = nRefreshError; }
+	virtual void SetMatchMaking( bool nMatchMaking )				{ m_MatchMaking = nMatchMaking; }
 
 	virtual uint32_t GetSlotsOpen( );
 	virtual uint32_t GetNumPlayers( );
