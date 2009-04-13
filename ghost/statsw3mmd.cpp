@@ -166,7 +166,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 										// Tokens[3] = operation
 										// Tokens[4] = value
 
-										if( m_DefVarPs.find( Tokens[2] ) != m_DefVarPs.end( ) )
+										if( m_DefVarPs.find( Tokens[2] ) == m_DefVarPs.end( ) )
 											CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] VarP [" + KeyString + "] found without a corresponding DefVarP, ignoring" );
 										else
 										{
@@ -183,14 +183,20 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 													if( m_VarPInts.find( VP ) != m_VarPInts.end( ) )
 														m_VarPInts[VP] += UTIL_ToInt32( Tokens[4] );
 													else
-														CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] int VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
+													{
+														// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] int VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
+														m_VarPInts[VP] = UTIL_ToInt32( Tokens[4] );
+													}
 												}
 												else if( Tokens[3] == "-=" )
 												{
 													if( m_VarPInts.find( VP ) != m_VarPInts.end( ) )
 														m_VarPInts[VP] -= UTIL_ToInt32( Tokens[4] );
 													else
-														CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] int VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
+													{
+														// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] int VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
+														m_VarPInts[VP] = -UTIL_ToInt32( Tokens[4] );
+													}
 												}
 												else
 													CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown int VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
@@ -206,14 +212,20 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 													if( m_VarPReals.find( VP ) != m_VarPReals.end( ) )
 														m_VarPReals[VP] += UTIL_ToDouble( Tokens[4] );
 													else
-														CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] real VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
+													{
+														// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] real VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
+														m_VarPReals[VP] = UTIL_ToDouble( Tokens[4] );
+													}
 												}
 												else if( Tokens[3] == "-=" )
 												{
 													if( m_VarPReals.find( VP ) != m_VarPReals.end( ) )
 														m_VarPReals[VP] -= UTIL_ToDouble( Tokens[4] );
 													else
-														CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] real VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
+													{
+														// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] real VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
+														m_VarPReals[VP] = -UTIL_ToDouble( Tokens[4] );
+													}
 												}
 												else
 													CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown real VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
