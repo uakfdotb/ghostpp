@@ -418,10 +418,10 @@ bool CBNET :: Update( void *fd )
 		ProcessPackets( );
 
 		// check if at least one chat command is waiting to be sent and if we've waited long enough to prevent flooding
-		// the original VB source used a formula based on the message length but 2.5 seconds seems to work fine
-		// note: updated this from 2 seconds to 2.5 seconds because 2 seconds is NOT enough
+		// the original VB source used a formula based on the message length but 2.9 seconds seems to work fine
+		// note: updated this from 2 seconds to 2.5 then to 2.9 seconds because less is NOT enough
 
-		if( !m_ChatCommands.empty( ) && GetTicks( ) >= m_LastChatCommandTicks + 2500 )
+		if( !m_ChatCommands.empty( ) && GetTicks( ) >= m_LastChatCommandTicks + 2900 )
 		{
 			string ChatCommand = m_ChatCommands.front( );
 			m_ChatCommands.pop( );
@@ -1242,7 +1242,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 
 				if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
-					m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( m_Server, Payload ) ) );
+					m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
 
 				//
 				// !DISABLE
@@ -1907,7 +1907,7 @@ void CBNET :: SendGameRefresh( unsigned char state, string gameName, string host
 	// this doesn't properly queue chat commands and refreshes, instead making refreshes secondary to chat commands
 	// while not ideal this behaviour should be acceptable as long as it doesn't get suppressed too often
 
-	if( upTime == 0 || GetTicks( ) >= m_LastChatCommandTicks + 2500 )
+	if( upTime == 0 || GetTicks( ) >= m_LastChatCommandTicks + 2900 )
 	{
 		if( hostName.empty( ) )
 		{
@@ -1943,6 +1943,10 @@ void CBNET :: SendGameRefresh( unsigned char state, string gameName, string host
 				MapGameType.push_back( 0 );
 				m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
 			}
+
+			// todotodo: this is a dirty hack to help with flood protection
+
+			m_LastChatCommandTicks = GetTicks( ) - 1900;
 		}
 	}
 	else
@@ -1993,7 +1997,7 @@ void CBNET :: ImmediateChatCommand( string chatCommand )
 	if( chatCommand.empty( ) )
 		return;
 
-	if( GetTicks( ) >= m_LastChatCommandTicks + 2500 )
+	if( GetTicks( ) >= m_LastChatCommandTicks + 2900 )
 	{
 		CONSOLE_Print( "[LOCAL: " + m_Server + "] " + chatCommand );
 		SendChatCommand( chatCommand );

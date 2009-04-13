@@ -145,6 +145,17 @@ CREATE TABLE w3mmdplayers (
 	practicing INT NOT NULL
 )
 
+CREATE TABLE w3mmdvars (
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	botid INT NOT NULL,
+	gameid INT NOT NULL,
+	pid INT NOT NULL,
+	varname VARCHAR(25) NOT NULL,
+	value_int INT DEFAULT NULL,
+	value_real REAL DEFAULT NULL,
+	value_string VARCHAR(100) DEFAULT NULL
+)
+
  **************
  *** SCHEMA ***
  **************/
@@ -196,6 +207,9 @@ public:
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string );
 
 	// other database functions
 
@@ -226,6 +240,9 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, st
 bool MySQLDownloadAdd( void *conn, string *error, string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 double MySQLScoreCheck( void *conn, string *error, string category, string name, string server );
 uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
+uint32_t MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string varname, int32_t value_int );
+uint32_t MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string varname, double value_real );
+uint32_t MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string varname, string value_string );
 
 //
 // MySQL Callables
@@ -454,6 +471,19 @@ class CMySQLCallableW3MMDPlayerAdd : public CCallableW3MMDPlayerAdd, public CMyS
 public:
 	CMySQLCallableW3MMDPlayerAdd( string nCategory, uint32_t nGameID, uint32_t nPID, string nName, string nFlag, uint32_t nLeaver, uint32_t nPracticing, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableW3MMDPlayerAdd( nCategory, nGameID, nPID, nName, nFlag, nLeaver, nPracticing ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableW3MMDPlayerAdd( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableW3MMDVarAdd : public CCallableW3MMDVarAdd, public CMySQLCallable
+{
+public:
+	CMySQLCallableW3MMDVarAdd( uint32_t nGameID, uint32_t nPID, string nVarName, int32_t nValueInt, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableW3MMDVarAdd( nGameID, nPID, nVarName, nValueInt ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	CMySQLCallableW3MMDVarAdd( uint32_t nGameID, uint32_t nPID, string nVarName, double nValueReal, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableW3MMDVarAdd( nGameID, nPID, nVarName, nValueReal ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	CMySQLCallableW3MMDVarAdd( uint32_t nGameID, uint32_t nPID, string nVarName, string nValueString, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableW3MMDVarAdd( nGameID, nPID, nVarName, nValueString ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	virtual ~CMySQLCallableW3MMDVarAdd( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }

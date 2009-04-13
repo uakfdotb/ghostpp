@@ -31,14 +31,14 @@ class CStatsW3MMD : public CStats
 {
 private:
 	string m_Category;
-	map<uint32_t,string> m_PIDToName;			// pid -> name (e.g. 0 -> "Varlock") --- note: will not be automatically converted to lower case
+	map<uint32_t,string> m_PIDToName;			// pid -> player name (e.g. 0 -> "Varlock") --- note: will not be automatically converted to lower case
 	map<uint32_t,string> m_Flags;				// pid -> flag (e.g. 0 -> "winner")
 	map<uint32_t,bool> m_FlagsLeaver;			// pid -> leaver flag (e.g. 0 -> true) --- note: will only be present if true
 	map<uint32_t,bool> m_FlagsPracticing;		// pid -> practice flag (e.g. 0 -> true) --- note: will only be present if true
-	map<string,string> m_DefVarPs;				// name -> value type (e.g. "kills" -> "int")
-	map<VarP,int32_t> m_VarPInts;				// pid,name -> value (e.g. 0,"kills" -> 5)
-	map<VarP,double> m_VarPReals;				// pid,name -> value (e.g. 0,"x" -> 0.8)
-	map<VarP,string> m_VarPStrings;				// pid,name -> value (e.g. 0,"hero" -> "heroname")
+	map<string,string> m_DefVarPs;				// varname -> value type (e.g. "kills" -> "int")
+	map<VarP,int32_t> m_VarPInts;				// pid,varname -> value (e.g. 0,"kills" -> 5)
+	map<VarP,double> m_VarPReals;				// pid,varname -> value (e.g. 0,"x" -> 0.8)
+	map<VarP,string> m_VarPStrings;				// pid,varname -> value (e.g. 0,"hero" -> "heroname")
 
 public:
 	CStatsW3MMD( CBaseGame *nGame, string nCategory );

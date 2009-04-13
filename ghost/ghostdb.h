@@ -45,6 +45,7 @@ class CCallableDotAPlayerSummaryCheck;
 class CCallableDownloadAdd;
 class CCallableScoreCheck;
 class CCallableW3MMDPlayerAdd;
+class CCallableW3MMDVarAdd;
 class CDBBan;
 class CDBGame;
 class CDBGamePlayer;
@@ -118,6 +119,9 @@ public:
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string );
 };
 
 //
@@ -509,6 +513,35 @@ protected:
 public:
 	CCallableW3MMDPlayerAdd( string nCategory, uint32_t nGameID, uint32_t nPID, string nName, string nFlag, uint32_t nLeaver, uint32_t nPracticing ) : CBaseCallable( ), m_Category( nCategory ), m_GameID( nGameID ), m_PID( nPID ), m_Name( nName ), m_Flag( nFlag ), m_Leaver( nLeaver ), m_Practicing( nPracticing ), m_Result( 0 ) { }
 	virtual ~CCallableW3MMDPlayerAdd( );
+
+	virtual uint32_t GetResult( )				{ return m_Result; }
+	virtual void SetResult( uint32_t nResult )	{ m_Result = nResult; }
+};
+
+class CCallableW3MMDVarAdd : virtual public CBaseCallable
+{
+protected:
+	uint32_t m_GameID;
+	uint32_t m_PID;
+	string m_VarName;
+	int32_t m_ValueInt;
+	double m_ValueReal;
+	string m_ValueString;
+
+	enum ValueType {
+		VALUETYPE_INT = 1,
+		VALUETYPE_REAL = 2,
+		VALUETYPE_STRING = 3
+	};
+
+	ValueType m_ValueType;
+	uint32_t m_Result;
+
+public:
+	CCallableW3MMDVarAdd( uint32_t nGameID, uint32_t nPID, string nVarName, int32_t nValueInt ) : CBaseCallable( ), m_GameID( nGameID ), m_PID( nPID ), m_VarName( nVarName ), m_ValueInt( nValueInt ), m_ValueReal( 0.0 ), m_ValueType( VALUETYPE_INT ), m_Result( 0 ) { }
+	CCallableW3MMDVarAdd( uint32_t nGameID, uint32_t nPID, string nVarName, double nValueReal ) : CBaseCallable( ), m_GameID( nGameID ), m_PID( nPID ), m_VarName( nVarName ), m_ValueInt( 0 ), m_ValueReal( nValueReal ), m_ValueType( VALUETYPE_REAL ), m_Result( 0 ) { }
+	CCallableW3MMDVarAdd( uint32_t nGameID, uint32_t nPID, string nVarName, string nValueString ) : CBaseCallable( ), m_GameID( nGameID ), m_PID( nPID ), m_VarName( nVarName ), m_ValueInt( 0 ), m_ValueReal( 0.0 ), m_ValueString( nValueString ), m_ValueType( VALUETYPE_STRING ), m_Result( 0 ) { }
+	virtual ~CCallableW3MMDVarAdd( );
 
 	virtual uint32_t GetResult( )				{ return m_Result; }
 	virtual void SetResult( uint32_t nResult )	{ m_Result = nResult; }

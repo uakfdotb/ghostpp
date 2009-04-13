@@ -698,8 +698,22 @@ bool CBaseGame :: Update( void *fd )
 
 	if( m_GameOverTime != 0 && GetTime( ) >= m_GameOverTime + 60 )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] is over (gameover timer finished)" );
-		StopPlayers( "was disconnected (gameover timer finished)" );
+		bool AlreadyStopped = true;
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( !(*i)->GetDeleteMe( ) )
+			{
+				AlreadyStopped = false;
+				break;
+			}
+		}
+
+		if( !AlreadyStopped )
+		{
+			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (gameover timer finished)" );
+			StopPlayers( "was disconnected (gameover timer finished)" );
+		}
 	}
 
 	// end the game if there aren't any players left

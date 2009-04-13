@@ -272,6 +272,21 @@ CCallableW3MMDPlayerAdd *CGHostDB :: ThreadedW3MMDPlayerAdd( string category, ui
 	return NULL;
 }
 
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int )
+{
+	return NULL;
+}
+
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real )
+{
+	return NULL;
+}
+
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string )
+{
+	return NULL;
+}
+
 //
 // Callables
 //
@@ -378,6 +393,11 @@ CCallableScoreCheck :: ~CCallableScoreCheck( )
 }
 
 CCallableW3MMDPlayerAdd :: ~CCallableW3MMDPlayerAdd( )
+{
+
+}
+
+CCallableW3MMDVarAdd :: ~CCallableW3MMDVarAdd( )
 {
 
 }
