@@ -376,53 +376,63 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 {
-	// since we only record the end game information it's possible we haven't recorded anything yet if the game didn't end with a tree/throne death
-	// this will happen if all the players leave before properly finishing the game
-	// the dotagame stats are always saved (with winner = 0 if the game didn't properly finish)
-	// the dotaplayer stats are only saved if the game is properly finished
-
-	unsigned int Players = 0;
-
-	// save the dotagame
-
-	GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, m_Winner, m_Min, m_Sec ) );
-
-	// check for invalid colours and duplicates
-	// this can only happen if DotA sends us garbage in the "id" value but we should check anyway
-
-	for( unsigned int i = 0; i < 12; i++ )
+	if( DB->Begin( ) )
 	{
-		if( m_Players[i] )
+		// since we only record the end game information it's possible we haven't recorded anything yet if the game didn't end with a tree/throne death
+		// this will happen if all the players leave before properly finishing the game
+		// the dotagame stats are always saved (with winner = 0 if the game didn't properly finish)
+		// the dotaplayer stats are only saved if the game is properly finished
+
+		unsigned int Players = 0;
+
+		// save the dotagame
+
+		GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, m_Winner, m_Min, m_Sec ) );
+
+		// check for invalid colours and duplicates
+		// this can only happen if DotA sends us garbage in the "id" value but we should check anyway
+
+		for( unsigned int i = 0; i < 12; i++ )
 		{
-			uint32_t Colour = m_Players[i]->GetNewColour( );
-
-			if( !( ( Colour >= 1 && Colour <= 5 ) || ( Colour >= 7 && Colour <= 11 ) ) )
+			if( m_Players[i] )
 			{
-				CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, invalid colour found" );
-				return;
-			}
+				uint32_t Colour = m_Players[i]->GetNewColour( );
 
-			for( unsigned int j = i + 1; j < 12; j++ )
-			{
-				if( m_Players[j] && Colour == m_Players[j]->GetNewColour( ) )
+				if( !( ( Colour >= 1 && Colour <= 5 ) || ( Colour >= 7 && Colour <= 11 ) ) )
 				{
-					CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, duplicate colour found" );
+					CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, invalid colour found" );
+					DB->Commit( );
 					return;
+				}
+
+				for( unsigned int j = i + 1; j < 12; j++ )
+				{
+					if( m_Players[j] && Colour == m_Players[j]->GetNewColour( ) )
+					{
+						CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, duplicate colour found" );
+						DB->Commit( );
+						return;
+					}
 				}
 			}
 		}
-	}
 
-	// save the dotaplayers
+		// save the dotaplayers
 
-	for( unsigned int i = 0; i < 12; i++ )
-	{
-		if( m_Players[i] )
+		for( unsigned int i = 0; i < 12; i++ )
 		{
-			GHost->m_Callables.push_back( DB->ThreadedDotAPlayerAdd( GameID, m_Players[i]->GetColour( ), m_Players[i]->GetKills( ), m_Players[i]->GetDeaths( ), m_Players[i]->GetCreepKills( ), m_Players[i]->GetCreepDenies( ), m_Players[i]->GetAssists( ), m_Players[i]->GetGold( ), m_Players[i]->GetNeutralKills( ), m_Players[i]->GetItem( 0 ), m_Players[i]->GetItem( 1 ), m_Players[i]->GetItem( 2 ), m_Players[i]->GetItem( 3 ), m_Players[i]->GetItem( 4 ), m_Players[i]->GetItem( 5 ), m_Players[i]->GetHero( ), m_Players[i]->GetNewColour( ), m_Players[i]->GetTowerKills( ), m_Players[i]->GetRaxKills( ), m_Players[i]->GetCourierKills( ) ) );
-			Players++;
+			if( m_Players[i] )
+			{
+				GHost->m_Callables.push_back( DB->ThreadedDotAPlayerAdd( GameID, m_Players[i]->GetColour( ), m_Players[i]->GetKills( ), m_Players[i]->GetDeaths( ), m_Players[i]->GetCreepKills( ), m_Players[i]->GetCreepDenies( ), m_Players[i]->GetAssists( ), m_Players[i]->GetGold( ), m_Players[i]->GetNeutralKills( ), m_Players[i]->GetItem( 0 ), m_Players[i]->GetItem( 1 ), m_Players[i]->GetItem( 2 ), m_Players[i]->GetItem( 3 ), m_Players[i]->GetItem( 4 ), m_Players[i]->GetItem( 5 ), m_Players[i]->GetHero( ), m_Players[i]->GetNewColour( ), m_Players[i]->GetTowerKills( ), m_Players[i]->GetRaxKills( ), m_Players[i]->GetCourierKills( ) ) );
+				Players++;
+			}
 		}
-	}
 
-	CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] saving " + UTIL_ToString( Players ) + " players" );
+		if( DB->Commit( ) )
+			CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] saving " + UTIL_ToString( Players ) + " players" );
+		else
+			CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] unable to commit database transaction, data not saved" );
+	}
+	else
+		CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] unable to begin database transaction, data not saved" );
 }

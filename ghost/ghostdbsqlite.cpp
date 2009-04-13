@@ -106,6 +106,7 @@ uint32_t CSQLITE3 :: LastRowID( )
 CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 {
 	m_File = CFG->GetString( "db_sqlite3_file", "ghost.dbs" );
+	CONSOLE_Print( "[SQLITE3] version " + string( SQLITE_VERSION ) );
 	CONSOLE_Print( "[SQLITE3] opening database [" + m_File + "]" );
 	m_DB = new CSQLITE3( m_File );
 
@@ -187,7 +188,7 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 			// note to self: update the SchemaNumber and the database structure when making a new schema
 
 			CONSOLE_Print( "[SQLITE3] couldn't find admins table, assuming database is empty" );
-			SchemaNumber = "7";
+			SchemaNumber = "8";
 
 			if( m_DB->Exec( "CREATE TABLE admins ( id INTEGER PRIMARY KEY, name TEXT NOT NULL, server TEXT NOT NULL DEFAULT \"\" )" ) != SQLITE_OK )
 				CONSOLE_Print( "[SQLITE3] error creating admins table - " + m_DB->GetError( ) );
@@ -227,6 +228,12 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 
 			if( m_DB->Exec( "CREATE TABLE downloads ( id INTEGER PRIMARY KEY, map TEXT NOT NULL, mapsize INTEGER NOT NULL, datetime TEXT NOT NULL, name TEXT NOT NULL, ip TEXT NOT NULL, spoofed INTEGER NOT NULL, spoofedrealm TEXT NOT NULL, downloadtime INTEGER NOT NULL )" ) != SQLITE_OK )
 				CONSOLE_Print( "[SQLITE3] error creating downloads table - " + m_DB->GetError( ) );
+
+			if( m_DB->Exec( "CREATE TABLE w3mmdplayers ( id INTEGER PRIMARY KEY, category TEXT NOT NULL, gameid INTEGER NOT NULL, pid INTEGER NOT NULL, name TEXT NOT NULL, flag TEXT NOT NULL, leaver INTEGER NOT NULL, practicing INTEGER NOT NULL )" ) != SQLITE_OK )
+				CONSOLE_Print( "[SQLITE3] error creating w3mmdplayers table - " + m_DB->GetError( ) );
+
+			if( m_DB->Exec( "CREATE TABLE w3mmdvars ( id INTEGER PRIMARY KEY, gameid INTEGER NOT NULL, pid INTEGER NOT NULL, varname TEXT NOT NULL, value_int INTEGER DEFAULT NULL, value_real REAL DEFAULT NULL, value_string TEXT DEFAULT NULL )" ) != SQLITE_OK )
+				CONSOLE_Print( "[SQLITE3] error creating w3mmdvars table - " + m_DB->GetError( ) );
 
 			if( m_DB->Exec( "CREATE INDEX idx_gameid ON gameplayers ( gameid )" ) != SQLITE_OK )
 				CONSOLE_Print( "[SQLITE3] error creating idx_gameid index on gameplayers table - " + m_DB->GetError( ) );
@@ -272,6 +279,12 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 	{
 		Upgrade6_7( );
 		SchemaNumber = "7";
+	}
+
+	if( SchemaNumber == "7" )
+	{
+		Upgrade7_8( );
+		SchemaNumber = "8";
 	}
 
 	if( m_DB->Exec( "CREATE TEMPORARY TABLE iptocountry ( ip1 INTEGER NOT NULL, ip2 INTEGER NOT NULL, country TEXT NOT NULL, PRIMARY KEY ( ip1, ip2 ) )" ) != SQLITE_OK )
@@ -504,6 +517,25 @@ void CGHostDBSQLite :: Upgrade6_7( )
 		CONSOLE_Print( "[SQLITE3] updated schema number [7]" );
 
 	CONSOLE_Print( "[SQLITE3] schema upgrade v6 to v7 finished" );
+}
+
+void CGHostDBSQLite :: Upgrade7_8( )
+{
+	CONSOLE_Print( "[SQLITE3] schema upgrade v7 to v8 started" );
+
+	// create new tables
+
+	if( m_DB->Exec( "CREATE TABLE w3mmdplayers ( id INTEGER PRIMARY KEY, category TEXT NOT NULL, gameid INTEGER NOT NULL, pid INTEGER NOT NULL, name TEXT NOT NULL, flag TEXT NOT NULL, leaver INTEGER NOT NULL, practicing INTEGER NOT NULL )" ) != SQLITE_OK )
+		CONSOLE_Print( "[SQLITE3] error creating w3mmdplayers table - " + m_DB->GetError( ) );
+	else
+		CONSOLE_Print( "[SQLITE3] created w3mmdplayers table" );
+
+	if( m_DB->Exec( "CREATE TABLE w3mmdvars ( id INTEGER PRIMARY KEY, gameid INTEGER NOT NULL, pid INTEGER NOT NULL, varname TEXT NOT NULL, value_int INTEGER DEFAULT NULL, value_real REAL DEFAULT NULL, value_string TEXT DEFAULT NULL )" ) != SQLITE_OK )
+		CONSOLE_Print( "[SQLITE3] error creating w3mmdvars table - " + m_DB->GetError( ) );
+	else
+		CONSOLE_Print( "[SQLITE3] created w3mmdvars table" );
+
+	CONSOLE_Print( "[SQLITE3] schema upgrade v7 to v8 finished" );
 }
 
 bool CGHostDBSQLite :: Begin( )
@@ -1258,6 +1290,121 @@ bool CGHostDBSQLite :: DownloadAdd( string map, uint32_t mapsize, string name, s
 	return Success;
 }
 
+uint32_t CGHostDBSQLite :: W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+{
+	uint32_t RowID = 0;
+	sqlite3_stmt *Statement;
+	m_DB->Prepare( "INSERT INTO w3mmdplayers ( category, gameid, pid, name, flag, leaver, practicing ) VALUES ( ?, ?, ?, ?, ?, ?, ? )", (void **)&Statement );
+
+	if( Statement )
+	{
+		sqlite3_bind_text( Statement, 1, category.c_str( ), -1, SQLITE_TRANSIENT );
+		sqlite3_bind_int( Statement, 2, gameid );
+		sqlite3_bind_int( Statement, 3, pid );
+		sqlite3_bind_text( Statement, 4, name.c_str( ), -1, SQLITE_TRANSIENT );
+		sqlite3_bind_text( Statement, 5, flag.c_str( ), -1, SQLITE_TRANSIENT );
+		sqlite3_bind_int( Statement, 6, leaver );
+		sqlite3_bind_int( Statement, 7, practicing );
+
+		int RC = m_DB->Step( Statement );
+
+		if( RC == SQLITE_DONE )
+			RowID = m_DB->LastRowID( );
+		else if( RC == SQLITE_ERROR )
+			CONSOLE_Print( "[SQLITE3] error adding w3mmdplayer [" + category + " : " + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + name + " : " + flag + " : " + UTIL_ToString( leaver ) + " : " + UTIL_ToString( practicing ) + "] - " + m_DB->GetError( ) );
+
+		m_DB->Finalize( Statement );
+	}
+	else
+		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdplayer [" + category + " : " + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + name + " : " + flag + " : " + UTIL_ToString( leaver ) + " : " + UTIL_ToString( practicing ) + "] - " + m_DB->GetError( ) );
+
+	return RowID;
+}
+
+uint32_t CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int )
+{
+	uint32_t RowID = 0;
+	sqlite3_stmt *Statement;
+	m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_int ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
+
+	if( Statement )
+	{
+		sqlite3_bind_int( Statement, 1, gameid );
+		sqlite3_bind_int( Statement, 2, pid );
+		sqlite3_bind_text( Statement, 3, varname.c_str( ), -1, SQLITE_TRANSIENT );
+		sqlite3_bind_int( Statement, 4, value_int );
+
+		int RC = m_DB->Step( Statement );
+
+		if( RC == SQLITE_DONE )
+			RowID = m_DB->LastRowID( );
+		else if( RC == SQLITE_ERROR )
+			CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-int [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + varname + " : " + UTIL_ToString( value_int ) + "] - " + m_DB->GetError( ) );
+
+		m_DB->Finalize( Statement );
+	}
+	else
+		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-int [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + varname + " : " + UTIL_ToString( value_int ) + "] - " + m_DB->GetError( ) );
+
+	return RowID;
+}
+
+uint32_t CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real )
+{
+	uint32_t RowID = 0;
+	sqlite3_stmt *Statement;
+	m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_real ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
+
+	if( Statement )
+	{
+		sqlite3_bind_int( Statement, 1, gameid );
+		sqlite3_bind_int( Statement, 2, pid );
+		sqlite3_bind_text( Statement, 3, varname.c_str( ), -1, SQLITE_TRANSIENT );
+		sqlite3_bind_double( Statement, 4, value_real );
+
+		int RC = m_DB->Step( Statement );
+
+		if( RC == SQLITE_DONE )
+			RowID = m_DB->LastRowID( );
+		else if( RC == SQLITE_ERROR )
+			CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-real [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + varname + " : " + UTIL_ToString( value_real, 10 ) + "] - " + m_DB->GetError( ) );
+
+		m_DB->Finalize( Statement );
+	}
+	else
+		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-real [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + varname + " : " + UTIL_ToString( value_real, 10 ) + "] - " + m_DB->GetError( ) );
+
+	return RowID;
+}
+
+uint32_t CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string )
+{
+	uint32_t RowID = 0;
+	sqlite3_stmt *Statement;
+	m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_string ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
+
+	if( Statement )
+	{
+		sqlite3_bind_int( Statement, 1, gameid );
+		sqlite3_bind_int( Statement, 2, pid );
+		sqlite3_bind_text( Statement, 3, varname.c_str( ), -1, SQLITE_TRANSIENT );
+		sqlite3_bind_text( Statement, 4, value_string.c_str( ), -1, SQLITE_TRANSIENT );
+
+		int RC = m_DB->Step( Statement );
+
+		if( RC == SQLITE_DONE )
+			RowID = m_DB->LastRowID( );
+		else if( RC == SQLITE_ERROR )
+			CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + varname + " : " + value_string + "] - " + m_DB->GetError( ) );
+
+		m_DB->Finalize( Statement );
+	}
+	else
+		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + varname + " : " + value_string + "] - " + m_DB->GetError( ) );
+
+	return RowID;
+}
+
 CCallableAdminCount *CGHostDBSQLite :: ThreadedAdminCount( string server )
 {
 	CCallableAdminCount *Callable = new CCallableAdminCount( server );
@@ -1398,6 +1545,38 @@ CCallableDownloadAdd *CGHostDBSQLite :: ThreadedDownloadAdd( string map, uint32_
 {
 	CCallableDownloadAdd *Callable = new CCallableDownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime );
 	Callable->SetResult( DownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime ) );
+	Callable->SetReady( true );
+	return Callable;
+}
+
+CCallableW3MMDPlayerAdd *CGHostDBSQLite :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+{
+	CCallableW3MMDPlayerAdd *Callable = new CCallableW3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing );
+	Callable->SetResult( W3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing ) );
+	Callable->SetReady( true );
+	return Callable;
+}
+
+CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int )
+{
+	CCallableW3MMDVarAdd *Callable = new CCallableW3MMDVarAdd( gameid, pid, varname, value_int );
+	Callable->SetResult( W3MMDVarAdd( gameid, pid, varname, value_int ) );
+	Callable->SetReady( true );
+	return Callable;
+}
+
+CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real )
+{
+	CCallableW3MMDVarAdd *Callable = new CCallableW3MMDVarAdd( gameid, pid, varname, value_real );
+	Callable->SetResult( W3MMDVarAdd( gameid, pid, varname, value_real ) );
+	Callable->SetReady( true );
+	return Callable;
+}
+
+CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string )
+{
+	CCallableW3MMDVarAdd *Callable = new CCallableW3MMDVarAdd( gameid, pid, varname, value_string );
+	Callable->SetResult( W3MMDVarAdd( gameid, pid, varname, value_string ) );
 	Callable->SetReady( true );
 	return Callable;
 }

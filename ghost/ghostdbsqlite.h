@@ -119,6 +119,27 @@ CREATE TABLE downloads (
 	downloadtime INTEGER NOT NULL
 )
 
+CREATE TABLE w3mmdplayers (
+	id INTEGER PRIMARY KEY,
+	category TEXT NOT NULL,
+	gameid INTEGER NOT NULL,
+	pid INTEGER NOT NULL,
+	name TEXT NOT NULL,
+	flag TEXT NOT NULL,
+	leaver INTEGER NOT NULL,
+	practicing INTEGER NOT NULL
+)
+
+CREATE TABLE w3mmdvars (
+	id INTEGER PRIMARY KEY,
+	gameid INTEGER NOT NULL,
+	pid INTEGER NOT NULL,
+	varname TEXT NOT NULL,
+	value_int INTEGER DEFAULT NULL,
+	value_real REAL DEFAULT NULL,
+	value_string TEXT DEFAULT NULL
+)
+
 CREATE TEMPORARY TABLE iptocountry (
 	ip1 INTEGER NOT NULL,
 	ip2 INTEGER NOT NULL,
@@ -187,6 +208,7 @@ public:
 	virtual void Upgrade4_5( );
 	virtual void Upgrade5_6( );
 	virtual void Upgrade6_7( );
+	virtual void Upgrade7_8( );
 
 	virtual bool Begin( );
 	virtual bool Commit( );
@@ -212,6 +234,10 @@ public:
 	virtual string FromCheck( uint32_t ip );
 	virtual bool FromAdd( uint32_t ip1, uint32_t ip2, string country );
 	virtual bool DownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
+	virtual uint32_t W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
+	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int );
+	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real );
+	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string );
 
 	// threaded database functions
 	// note: these are not actually implemented with threads at the moment, they WILL block until the query is complete
@@ -235,6 +261,10 @@ public:
 	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
 	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
+	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string );
 };
 
 #endif

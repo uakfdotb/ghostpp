@@ -44,12 +44,12 @@ void CGHostDB :: RecoverCallable( CBaseCallable *callable )
 
 bool CGHostDB :: Begin( )
 {
-	return false;
+	return true;
 }
 
 bool CGHostDB :: Commit( )
 {
-	return false;
+	return true;
 }
 
 uint32_t CGHostDB :: AdminCount( string server )
@@ -163,6 +163,21 @@ bool CGHostDB :: DownloadAdd( string map, uint32_t mapsize, string name, string 
 }
 
 uint32_t CGHostDB :: W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+{
+	return 0;
+}
+
+uint32_t CGHostDB :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int )
+{
+	return 0;
+}
+
+uint32_t CGHostDB :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real )
+{
+	return 0;
+}
+
+uint32_t CGHostDB :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string )
 {
 	return 0;
 }

@@ -95,6 +95,9 @@ public:
 	virtual bool FromAdd( uint32_t ip1, uint32_t ip2, string country );
 	virtual bool DownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual uint32_t W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
+	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int );
+	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real );
+	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string );
 
 	// threaded database functions
 

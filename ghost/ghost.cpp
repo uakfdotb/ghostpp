@@ -258,6 +258,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_SHA = new CSHA1( );
 	m_CurrentGame = NULL;
 	string DBType = CFG->GetString( "db_type", "sqlite3" );
+	CONSOLE_Print( "[GHOST] opening primary database" );
 
 	if( DBType == "mysql" )
 	{
@@ -271,6 +272,7 @@ CGHost :: CGHost( CConfig *CFG )
 	else
 		m_DB = new CGHostDBSQLite( CFG );
 
+	CONSOLE_Print( "[GHOST] opening secondary (local) database" );
 	m_DBLocal = new CGHostDBSQLite( CFG );
 	m_Exiting = false;
 	m_Enabled = true;
