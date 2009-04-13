@@ -365,10 +365,30 @@ void CTCPClient :: Disconnect( )
 	m_Connecting = false;
 }
 
-void CTCPClient :: Connect( string address, uint16_t port )
+void CTCPClient :: Connect( string localaddress, string address, uint16_t port )
 {
 	if( m_Socket == INVALID_SOCKET || m_HasError || m_Connecting || m_Connected )
 		return;
+
+	if( !localaddress.empty( ) )
+	{
+		struct sockaddr_in LocalSIN;
+		memset( &LocalSIN, 0, sizeof( LocalSIN ) );
+		LocalSIN.sin_family = AF_INET;
+
+		if( ( LocalSIN.sin_addr.s_addr = inet_addr( localaddress.c_str( ) ) ) == INADDR_NONE )
+			LocalSIN.sin_addr.s_addr = INADDR_ANY;
+
+		LocalSIN.sin_port = htons( 0 );
+
+		if( bind( m_Socket, (struct sockaddr *)&LocalSIN, sizeof( LocalSIN ) ) == SOCKET_ERROR )
+		{
+			m_HasError = true;
+			m_Error = GetLastError( );
+			CONSOLE_Print( "[TCPCLIENT] error (bind) - " + GetErrorString( ) );
+			return;
+		}
+	}
 
 	// get IP address
 

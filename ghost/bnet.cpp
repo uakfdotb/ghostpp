@@ -483,7 +483,11 @@ bool CBNET :: Update( void *fd )
 
 		CONSOLE_Print( "[BNET: " + m_Server + "] connecting to server [" + m_Server + "] on port 6112" );
 		m_GHost->EventBNETConnecting( this );
-		m_Socket->Connect( m_Server, 6112 );
+
+		if( !m_GHost->m_BindAddress.empty( ) )
+			CONSOLE_Print( "[BNET: " + m_Server + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]" );
+
+		m_Socket->Connect( m_GHost->m_BindAddress, m_Server, 6112 );
 		m_WaitingToConnect = false;
 		return m_Exiting;
 	}
