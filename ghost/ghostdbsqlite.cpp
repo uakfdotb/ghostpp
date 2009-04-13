@@ -535,6 +535,13 @@ void CGHostDBSQLite :: Upgrade7_8( )
 	else
 		CONSOLE_Print( "[SQLITE3] created w3mmdvars table" );
 
+	// update schema number
+
+	if( m_DB->Exec( "UPDATE config SET value=\"8\" where name=\"schema_number\"" ) != SQLITE_OK )
+		CONSOLE_Print( "[SQLITE3] error updating schema number [8] - " + m_DB->GetError( ) );
+	else
+		CONSOLE_Print( "[SQLITE3] updated schema number [8]" );
+
 	CONSOLE_Print( "[SQLITE3] schema upgrade v7 to v8 finished" );
 }
 
