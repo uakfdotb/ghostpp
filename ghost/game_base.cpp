@@ -274,7 +274,7 @@ bool CBaseGame :: Update( void *fd )
 			for( vector<CPotentialPlayer *> :: iterator j = m_Potentials.begin( ); j != m_Potentials.end( ); j++ )
 			{
 				if( (*j)->GetJoinPlayer( ) && (*j)->GetJoinPlayer( )->GetName( ) == (*i)->GetName( ) )
-					EventPlayerJoined2( *j, (*j)->GetJoinPlayer( ), Score );
+					EventPlayerJoinedWithScore( *j, (*j)->GetJoinPlayer( ), Score );
 			}
 
 			m_GHost->m_DB->RecoverCallable( *i );
@@ -1203,7 +1203,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	{
 		// matchmaking is enabled
 		// start a database query to determine the player's score
-		// when the query is complete we will call EventPlayerJoined2
+		// when the query is complete we will call EventPlayerJoinedWithScore
 
 		m_ScoreChecks.push_back( m_GHost->m_DB->ThreadedScoreCheck( m_Map->GetMapMatchMakingCategory( ), joinPlayer->GetName( ), m_GHost->m_BNETs[0]->GetServer( ) ) );
 		return;
@@ -1432,12 +1432,12 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	}
 }
 
-void CBaseGame :: EventPlayerJoined2( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score )
+void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score )
 {
 	// this function is only called when matchmaking is enabled
 	// EventPlayerJoined will be called first in all cases
 	// if matchmaking is enabled EventPlayerJoined will start a database query to retrieve the player's score and keep the connection open while we wait
-	// when the database query is complete EventPlayerJoined2 will be called
+	// when the database query is complete EventPlayerJoinedWithScore will be called
 
 	// check if the new player's name is the same as the virtual host name
 
