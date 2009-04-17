@@ -263,8 +263,7 @@ void CWardenSHA1 :: warden_sha1_transform( int *data, int *state )
 // CWarden
 //
 
-// #define SWAP(a,b) (((a) == (b)) ? ((a)=(a)) : ((char)(a) ^= (char)(b) ^= (char)(a) ^= (char)(b)))
-#define SWAP(a,b) {(a)^=(b);(b)^=(a);(a)^=(b);}
+#define SWAP(a,b) {if((a)!=(b)){(a)^=(b);(b)^=(a);(a)^=(b);}}
 
 CWarden :: CWarden( CGHost *nGHost, uint32_t nSeed )
 {
@@ -276,8 +275,6 @@ CWarden :: CWarden( CGHost *nGHost, uint32_t nSeed )
 	unsigned char KeyInGenerator[16];
 	random_data_get_bytes( (char *)KeyOutGenerator, 16 );
 	random_data_get_bytes( (char *)KeyInGenerator, 16 );
-	memset( m_KeyOut, 0, sizeof( unsigned char ) * 258 );
-	memset( m_KeyIn, 0, sizeof( unsigned char ) * 258 );
 	generate_key( m_KeyOut, KeyOutGenerator, 16 );
 	generate_key( m_KeyIn, KeyInGenerator, 16 );
 
@@ -389,10 +386,6 @@ void CWarden :: HandleWarden( BYTEARRAY packet )
 	unsigned char *data = new unsigned char[packet.size( )];
 	memcpy( data, string( packet.begin( ), packet.end( ) ).c_str( ), packet.size( ) );
 	do_crypt( m_KeyIn, data, packet.size( ) );
-
-	DEBUG_Print( "decrypted warden packet:" );
-	BYTEARRAY b = UTIL_CreateByteArray( data, packet.size( ) );
-	DEBUG_Print( b );
 
 	if( data[0] == 0x00 )
 		HandleWarden0x00( data + 1, packet.size( ) - 1 );
@@ -514,6 +507,39 @@ HW0x02Err:
 
 	*/
 }
+
+/*
+
+Private Function Get0x02Data(ByRef S As String, ByRef P As Long, ByRef sTable() As String, ByVal sCount As Byte) As String
+    Dim R           As String
+    Dim bTest       As Boolean
+    Dim A           As Long
+    Dim L           As Byte
+    If ((P + 6) >= Len(S)) Then Exit Function
+    bTest = (Asc(Mid(S, P + 1, 1)) <= sCount)
+    bTest = bTest And (Asc(Mid(S, P + 6, 1)) < &H40)
+    If bTest Then
+        Call CopyMemory(A, ByVal Mid$(S, P + 2, 4), 4)
+        L = Asc(Mid$(S, P + 6, 1))
+        R = GetINI("MEMORY", CStr(sTable(Asc(Mid(S, P + 1, 1))) & "&H" & Hex(A) & "_" & L), m_WardenIniPath, vbNullString)
+        If Len(R) Then
+            P = P + 7
+            Get0x02Data = vbNullChar & HexToStr(R)
+            Exit Function
+        End If
+    End If
+    If ((P + 29) >= Len(S)) Then Exit Function
+    bTest = (Asc(Mid$(S, P + 29, 1)) < &H80)
+    bTest = bTest And (Asc(Mid$(S, P + 28, 1)) = 0)
+    bTest = bTest And (Asc(Mid$(S, P + 27, 1)) < &H40)
+    If (bTest = False) Then Exit Function
+    Call CopyMemory(A, ByVal Mid$(S, P + 26, 4), 4)
+    If Len(GetINI("PAGEA", CStr("&H" & Hex(A)), m_WardenIniPath, vbNullString)) = 0 Then Exit Function
+    P = P + 30
+    Get0x02Data = vbNullChar
+End Function
+
+*/
 
 void CWarden :: HandleWarden0x03( unsigned char *data, uint32_t length )
 {
@@ -899,34 +925,7 @@ Private Function WardenChecksum(ByRef S As String) As Long
     Call CopyMemory(lngData(0), ByVal BSHA1(S, True, True), 20)
     WardenChecksum = lngData(0) Xor lngData(1) Xor lngData(2) Xor lngData(3) Xor lngData(4)
 End Function
-Private Function Get0x02Data(ByRef S As String, ByRef P As Long, ByRef sTable() As String, ByVal sCount As Byte) As String
-    Dim R           As String
-    Dim bTest       As Boolean
-    Dim A           As Long
-    Dim L           As Byte
-    If ((P + 6) >= Len(S)) Then Exit Function
-    bTest = (Asc(Mid(S, P + 1, 1)) <= sCount)
-    bTest = bTest And (Asc(Mid(S, P + 6, 1)) < &H40)
-    If bTest Then
-        Call CopyMemory(A, ByVal Mid$(S, P + 2, 4), 4)
-        L = Asc(Mid$(S, P + 6, 1))
-        R = GetINI("MEMORY", CStr(sTable(Asc(Mid(S, P + 1, 1))) & "&H" & Hex(A) & "_" & L), m_WardenIniPath, vbNullString)
-        If Len(R) Then
-            P = P + 7
-            Get0x02Data = vbNullChar & HexToStr(R)
-            Exit Function
-        End If
-    End If
-    If ((P + 29) >= Len(S)) Then Exit Function
-    bTest = (Asc(Mid$(S, P + 29, 1)) < &H80)
-    bTest = bTest And (Asc(Mid$(S, P + 28, 1)) = 0)
-    bTest = bTest And (Asc(Mid$(S, P + 27, 1)) < &H40)
-    If (bTest = False) Then Exit Function
-    Call CopyMemory(A, ByVal Mid$(S, P + 26, 4), 4)
-    If Len(GetINI("PAGEA", CStr("&H" & Hex(A)), m_WardenIniPath, vbNullString)) = 0 Then Exit Function
-    P = P + 30
-    Get0x02Data = vbNullChar
-End Function
+
 
 
 
