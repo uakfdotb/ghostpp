@@ -26,6 +26,7 @@
 #include "commandpacket.h"
 #include "ghostdb.h"
 #include "bncsutilinterface.h"
+#include "warden.h"
 #include "bnetprotocol.h"
 #include "bnet.h"
 #include "map.h"
@@ -45,6 +46,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyT
 	m_GHost = nGHost;
 	m_Socket = new CTCPClient( );
 	m_Protocol = new CBNETProtocol( );
+	m_Warden = NULL;
 	m_BNCSUtil = new CBNCSUtilInterface( nUserName, nUserPassword );
 	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
 	m_CallableBanList = m_GHost->m_DB->ThreadedBanList( nServer );
@@ -83,6 +85,7 @@ CBNET :: ~CBNET( )
 {
 	delete m_Socket;
 	delete m_Protocol;
+	delete m_Warden;
 
 	while( !m_Packets.empty( ) )
 	{
@@ -536,6 +539,7 @@ void CBNET :: ProcessPackets( )
 {
 	CIncomingGameHost *GameHost = NULL;
 	CIncomingChatEvent *ChatEvent = NULL;
+	BYTEARRAY WardenData;
 	vector<CIncomingFriendList *> Friends;
 	vector<CIncomingClanList *> Clans;
 
@@ -632,6 +636,12 @@ void CBNET :: ProcessPackets( )
 						}
 
 						m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_CHECK( m_Protocol->GetClientToken( ), m_BNCSUtil->GetEXEVersion( ), m_BNCSUtil->GetEXEVersionHash( ), m_BNCSUtil->GetKeyInfoROC( ), m_BNCSUtil->GetKeyInfoTFT( ), m_BNCSUtil->GetEXEInfo( ), "GHost" ) );
+
+						// the Warden seed is the first 4 bytes of the ROC key hash
+						// initialize the Warden handler
+
+						delete m_Warden;
+						m_Warden = new CWarden( m_GHost, UTIL_ByteArrayToUInt32( m_BNCSUtil->GetKeyInfoROC( ), false, 16 ) );
 					}
 					else
 					{
@@ -746,6 +756,16 @@ void CBNET :: ProcessPackets( )
 					delete Packet;
 					return;
 				}
+
+				break;
+
+			case CBNETProtocol :: SID_WARDEN:
+				WardenData = m_Protocol->RECEIVE_SID_WARDEN( Packet->GetData( ) );
+
+				if( m_Warden )
+					m_Warden->HandleWarden( WardenData );
+				else
+					CONSOLE_Print( "[BNET: " + m_Server + "] warning - received warden packet but no warden handler is ready, ignoring" );
 
 				break;
 

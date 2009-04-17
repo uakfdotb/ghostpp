@@ -321,6 +321,21 @@ bool CBNETProtocol :: RECEIVE_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY data )
 	return false;
 }
 
+BYTEARRAY CBNETProtocol :: RECEIVE_SID_WARDEN( BYTEARRAY data )
+{
+	// DEBUG_Print( "RECEIVED SID_WARDEN" );
+	// DEBUG_PRINT( data );
+
+	// 2 bytes					-> Header
+	// 2 bytes					-> Length
+	// n bytes					-> Data
+
+	if( ValidateLength( data ) && data.size( ) >= 4 )
+		return BYTEARRAY( data.begin( ) + 4, data.end( ) );
+
+	return BYTEARRAY( );
+}
+
 vector<CIncomingFriendList *> CBNETProtocol :: RECEIVE_SID_FRIENDSLIST( BYTEARRAY data )
 {
 	// DEBUG_Print( "RECEIVED SID_FRIENDSLIST" );

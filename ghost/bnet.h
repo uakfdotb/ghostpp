@@ -29,6 +29,7 @@ class CTCPClient;
 class CCommandPacket;
 class CBNCSUtilInterface;
 class CBNETProtocol;
+class CWarden;
 class CIncomingFriendList;
 class CIncomingClanList;
 class CIncomingChatEvent;
@@ -61,6 +62,7 @@ public:
 private:
 	CTCPClient *m_Socket;							// the connection to battle.net
 	CBNETProtocol *m_Protocol;						// battle.net protocol
+	CWarden *m_Warden;								// warden handler
 	queue<CCommandPacket *> m_Packets;				// queue of incoming packets
 	CBNCSUtilInterface *m_BNCSUtil;					// the interface to the bncsutil library (used for logging into battle.net)
 	queue<string> m_ChatCommands;					// queue of chat commands waiting to be sent (to prevent getting kicked for flooding)
