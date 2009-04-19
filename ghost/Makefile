@@ -23,7 +23,7 @@ endif
 
 CFLAGS += $(OFLAGS) $(DFLAGS) -I. -I../bncsutil/src/ -I../StormLib/
 
-OBJS = bncsutilinterface.o bnet.o bnetprotocol.o commandpacket.o config.o crc32.o csvparser.o game.o game_base.o gameplayer.o gameprotocol.o gameslot.o ghost.o ghostdb.o ghostdbmysql.o ghostdbsqlite.o language.o map.o packed.o replay.o savegame.o sha1.o socket.o stats.o statsdota.o statsw3mmd.o util.o warden.o
+OBJS = bncsutilinterface.o bnet.o bnetprotocol.o bnlsclient.o bnlsprotocol.o commandpacket.o config.o crc32.o csvparser.o game.o game_base.o gameplayer.o gameprotocol.o gameslot.o ghost.o ghostdb.o ghostdbmysql.o ghostdbsqlite.o language.o map.o packed.o replay.o savegame.o sha1.o socket.o stats.o statsdota.o statsw3mmd.o util.o warden.o
 COBJS = sqlite3.o
 PROGS = ./ghost++
 
@@ -46,8 +46,10 @@ $(COBJS): %.o: %.c
 all: $(PROGS)
 
 bncsutilinterface.o: ghost.h util.h bncsutilinterface.h
-bnet.o: ghost.h util.h config.h language.h socket.h commandpacket.h ghostdb.h bncsutilinterface.h warden.h bnetprotocol.h bnet.h map.h packed.h savegame.h gameprotocol.h game.h
+bnet.o: ghost.h util.h config.h language.h socket.h commandpacket.h ghostdb.h bncsutilinterface.h warden.h bnlsclient.h bnetprotocol.h bnet.h map.h packed.h savegame.h gameprotocol.h game.h
 bnetprotocol.o: ghost.h util.h bnetprotocol.h
+bnlsclient.o: ghost.h util.h socket.h commandpacket.h bnlsprotocol.h bnlsclient.h
+bnlsprotocol.o: ghost.h util.h bnlsprotocol.h
 commandpacket.o: ghost.h commandpacket.h
 config.o: ghost.h config.h
 crc32.o: ghost.h crc32.h

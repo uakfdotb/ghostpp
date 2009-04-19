@@ -29,6 +29,7 @@ class CTCPClient;
 class CCommandPacket;
 class CBNCSUtilInterface;
 class CBNETProtocol;
+class CBNLSClient;
 class CWarden;
 class CIncomingFriendList;
 class CIncomingClanList;
@@ -62,6 +63,7 @@ public:
 private:
 	CTCPClient *m_Socket;							// the connection to battle.net
 	CBNETProtocol *m_Protocol;						// battle.net protocol
+	CBNLSClient *m_BNLSClient;						// the BNLS client (for external warden handling)
 	CWarden *m_Warden;								// warden handler
 	queue<CCommandPacket *> m_Packets;				// queue of incoming packets
 	CBNCSUtilInterface *m_BNCSUtil;					// the interface to the bncsutil library (used for logging into battle.net)
@@ -82,6 +84,9 @@ private:
 	vector<CDBBan *> m_Bans;						// vector of cached bans
 	bool m_Exiting;									// set to true and this class will be deleted next update
 	string m_Server;								// battle.net server to connect to
+	string m_BNLSServer;							// BNLS server to connect to (for warden handling)
+	uint16_t m_BNLSPort;							// BNLS port
+	uint32_t m_BNLSWardenCookie;					// BNLS warden cookie
 	string m_CDKeyROC;								// ROC CD key
 	string m_CDKeyTFT;								// TFT CD key
 	string m_CountryAbbrev;							// country abbreviation
@@ -109,7 +114,7 @@ private:
 	bool m_HoldClan;								// whether to auto hold clan members when creating a game or not
 
 public:
-	CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength );
+	CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength );
 	~CBNET( );
 
 	bool GetExiting( )					{ return m_Exiting; }

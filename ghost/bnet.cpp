@@ -27,6 +27,7 @@
 #include "ghostdb.h"
 #include "bncsutilinterface.h"
 #include "warden.h"
+#include "bnlsclient.h"
 #include "bnetprotocol.h"
 #include "bnet.h"
 #include "map.h"
@@ -39,19 +40,23 @@
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
 	m_GHost = nGHost;
 	m_Socket = new CTCPClient( );
 	m_Protocol = new CBNETProtocol( );
+	m_BNLSClient = NULL;
 	m_Warden = NULL;
 	m_BNCSUtil = new CBNCSUtilInterface( nUserName, nUserPassword );
 	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
 	m_CallableBanList = m_GHost->m_DB->ThreadedBanList( nServer );
 	m_Exiting = false;
 	m_Server = nServer;
+	m_BNLSServer = nBNLSServer;
+	m_BNLSPort = nBNLSPort;
+	m_BNLSWardenCookie = nBNLSWardenCookie;
 	m_CDKeyROC = nCDKeyROC;
 	m_CDKeyTFT = nCDKeyTFT;
 	transform( m_CDKeyROC.begin( ), m_CDKeyROC.end( ), m_CDKeyROC.begin( ), (int(*)(int))toupper );
@@ -85,6 +90,7 @@ CBNET :: ~CBNET( )
 {
 	delete m_Socket;
 	delete m_Protocol;
+	delete m_BNLSClient;
 	delete m_Warden;
 
 	while( !m_Packets.empty( ) )
@@ -142,13 +148,18 @@ BYTEARRAY CBNET :: GetUniqueName( )
 
 unsigned int CBNET :: SetFD( void *fd, int *nfds )
 {
+	unsigned int NumFDs = 0;
+
 	if( !m_Socket->HasError( ) && m_Socket->GetConnected( ) )
 	{
 		m_Socket->SetFD( (fd_set *)fd, nfds );
-		return 1;
+		NumFDs++;
+
+		if( m_BNLSClient )
+			NumFDs += m_BNLSClient->SetFD( fd, nfds );
 	}
 
-	return 0;
+	return NumFDs;
 }
 
 bool CBNET :: Update( void *fd )
@@ -349,7 +360,7 @@ bool CBNET :: Update( void *fd )
 
 	if( m_CallableAdminList && m_CallableAdminList->GetReady( ) )
 	{
-		CONSOLE_Print( "[BNET: " + m_Server + "] refreshed admin list (" + UTIL_ToString( m_Admins.size( ) ) + " -> " + UTIL_ToString( m_CallableAdminList->GetResult( ).size( ) ) + " admins)" );
+		// CONSOLE_Print( "[BNET: " + m_Server + "] refreshed admin list (" + UTIL_ToString( m_Admins.size( ) ) + " -> " + UTIL_ToString( m_CallableAdminList->GetResult( ).size( ) ) + " admins)" );
 		m_Admins = m_CallableAdminList->GetResult( );
 		m_GHost->m_DB->RecoverCallable( m_CallableAdminList );
 		delete m_CallableAdminList;
@@ -364,7 +375,7 @@ bool CBNET :: Update( void *fd )
 
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
 	{
-		CONSOLE_Print( "[BNET: " + m_Server + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
+		// CONSOLE_Print( "[BNET: " + m_Server + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
 
 		for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
 			delete *i;
@@ -387,6 +398,8 @@ bool CBNET :: Update( void *fd )
 		CONSOLE_Print( "[BNET: " + m_Server + "] disconnected from battle.net due to socket error" );
 		CONSOLE_Print( "[BNET: " + m_Server + "] waiting 30 seconds to reconnect" );
 		m_GHost->EventBNETDisconnected( this );
+		delete m_BNLSClient;
+		m_BNLSClient = NULL;
 		m_BNCSUtil->Reset( m_UserName, m_UserPassword );
 		m_Socket->Reset( );
 		m_NextConnectTime = GetTime( ) + 30;
@@ -403,6 +416,8 @@ bool CBNET :: Update( void *fd )
 		CONSOLE_Print( "[BNET: " + m_Server + "] disconnected from battle.net due to socket not connected" );
 		CONSOLE_Print( "[BNET: " + m_Server + "] waiting 30 seconds to reconnect" );
 		m_GHost->EventBNETDisconnected( this );
+		delete m_BNLSClient;
+		m_BNLSClient = NULL;
 		m_BNCSUtil->Reset( m_UserName, m_UserPassword );
 		m_Socket->Reset( );
 		m_NextConnectTime = GetTime( ) + 30;
@@ -439,6 +454,25 @@ bool CBNET :: Update( void *fd )
 		{
 			m_Socket->PutBytes( m_Protocol->SEND_SID_NULL( ) );
 			m_LastNullTime = GetTime( );
+		}
+
+		// update the BNLS client
+
+		if( m_BNLSClient )
+		{
+			if( m_BNLSClient->Update( fd ) )
+			{
+				CONSOLE_Print( "[BNET: " + m_Server + "] deleting BNLS client" );
+				delete m_BNLSClient;
+				m_BNLSClient = NULL;
+			}
+			else
+			{
+				BYTEARRAY WardenResponse = m_BNLSClient->GetWardenResponse( );
+
+				if( !WardenResponse.empty( ) )
+					m_Socket->PutBytes( m_Protocol->SEND_SID_WARDEN( WardenResponse ) );
+			}
 		}
 
 		m_Socket->DoSend( );
@@ -517,18 +551,27 @@ void CBNET :: ExtractPackets( )
 
 			uint16_t Length = UTIL_ByteArrayToUInt16( Bytes, false, 2 );
 
-			if( Bytes.size( ) >= Length )
+			if( Length >= 4 )
 			{
-				m_Packets.push( new CCommandPacket( BNET_HEADER_CONSTANT, Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
-				*RecvBuffer = RecvBuffer->substr( Length );
-				Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
+				if( Bytes.size( ) >= Length )
+				{
+					m_Packets.push( new CCommandPacket( BNET_HEADER_CONSTANT, Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
+					*RecvBuffer = RecvBuffer->substr( Length );
+					Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
+				}
+				else
+					return;
 			}
 			else
+			{
+				CONSOLE_Print( "[BNET: " + m_Server + "] error - received invalid packet from battle.net (bad length), disconnecting" );
+				m_Socket->Disconnect( );
 				return;
+			}
 		}
 		else
 		{
-			CONSOLE_Print( "[BNET: " + m_Server + "] error - received invalid packet from battle.net, disconnecting" );
+			CONSOLE_Print( "[BNET: " + m_Server + "] error - received invalid packet from battle.net (bad header constant), disconnecting" );
 			m_Socket->Disconnect( );
 			return;
 		}
@@ -640,8 +683,20 @@ void CBNET :: ProcessPackets( )
 						// the Warden seed is the first 4 bytes of the ROC key hash
 						// initialize the Warden handler
 
+						/*
+
 						delete m_Warden;
 						m_Warden = new CWarden( m_GHost, UTIL_ByteArrayToUInt32( m_BNCSUtil->GetKeyInfoROC( ), false, 16 ) );
+
+						*/
+
+						if( !m_BNLSServer.empty( ) )
+						{
+							CONSOLE_Print( "[BNET: " + m_Server + "] creating BNLS client" );
+							delete m_BNLSClient;
+							m_BNLSClient = new CBNLSClient( m_BNLSServer, m_BNLSPort, m_BNLSWardenCookie );
+							m_BNLSClient->QueueWardenSeed( UTIL_ByteArrayToUInt32( m_BNCSUtil->GetKeyInfoROC( ), false, 16 ) );
+						}
 					}
 					else
 					{
@@ -762,10 +817,19 @@ void CBNET :: ProcessPackets( )
 			case CBNETProtocol :: SID_WARDEN:
 				WardenData = m_Protocol->RECEIVE_SID_WARDEN( Packet->GetData( ) );
 
+				/*
+
 				if( m_Warden )
 					m_Warden->HandleWarden( WardenData );
 				else
 					CONSOLE_Print( "[BNET: " + m_Server + "] warning - received warden packet but no warden handler is ready, ignoring" );
+
+				*/
+
+				if( m_BNLSClient )
+					m_BNLSClient->QueueWardenRaw( WardenData );
+				else
+					CONSOLE_Print( "[BNET: " + m_Server + "] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon" );
 
 				break;
 
@@ -1751,6 +1815,18 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					}
 					else
 						QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameNoGameInLobby( ), User, Whisper );
+				}
+
+				//
+				// !WARDENSTATUS
+				//
+
+				if( Command == "wardenstatus" )
+				{
+					if( m_BNLSClient )
+						QueueChatCommand( "WARDEN STATUS --- " + UTIL_ToString( m_BNLSClient->GetTotalWardenIn( ) ) + " requests received, " + UTIL_ToString( m_BNLSClient->GetTotalWardenOut( ) ) + " responses sent.", User, Whisper );
+					else
+						QueueChatCommand( "WARDEN STATUS --- Not connected to BNLS server.", User, Whisper );
 				}
 			}
 			else

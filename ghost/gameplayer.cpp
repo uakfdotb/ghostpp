@@ -115,19 +115,28 @@ void CPotentialPlayer :: ExtractPackets( )
 
 			uint16_t Length = UTIL_ByteArrayToUInt16( Bytes, false, 2 );
 
-			if( Bytes.size( ) >= Length )
+			if( Length >= 4 )
 			{
-				m_Packets.push( new CCommandPacket( W3GS_HEADER_CONSTANT, Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
-				*RecvBuffer = RecvBuffer->substr( Length );
-				Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
+				if( Bytes.size( ) >= Length )
+				{
+					m_Packets.push( new CCommandPacket( W3GS_HEADER_CONSTANT, Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
+					*RecvBuffer = RecvBuffer->substr( Length );
+					Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
+				}
+				else
+					return;
 			}
 			else
+			{
+				m_Error = true;
+				m_ErrorString = "received invalid packet from player (bad length)";
 				return;
+			}
 		}
 		else
 		{
 			m_Error = true;
-			m_ErrorString = "received invalid packet from player";
+			m_ErrorString = "received invalid packet from player (bad header constant)";
 			return;
 		}
 	}

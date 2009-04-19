@@ -874,6 +874,20 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY clientPass
 	return packet;
 }
 
+BYTEARRAY CBNETProtocol :: SEND_SID_WARDEN( BYTEARRAY wardenResponse )
+{
+	BYTEARRAY packet;
+	packet.push_back( BNET_HEADER_CONSTANT );		// BNET header constant
+	packet.push_back( SID_WARDEN );					// SID_WARDEN
+	packet.push_back( 0 );							// packet length will be assigned later
+	packet.push_back( 0 );							// packet length will be assigned later
+	UTIL_AppendByteArray( packet, wardenResponse );	// warden response
+	AssignLength( packet );
+	// DEBUG_Print( "SENT SID_WARDEN" );
+	// DEBUG_Print( packet );
+	return packet;
+}
+
 BYTEARRAY CBNETProtocol :: SEND_SID_FRIENDSLIST( )
 {
 	BYTEARRAY packet;

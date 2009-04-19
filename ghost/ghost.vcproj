@@ -348,6 +348,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\bnlsclient.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\bnlsprotocol.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\commandpacket.cpp"
 				>
 			</File>
@@ -467,6 +475,14 @@
 			</File>
 			<File
 				RelativePath=".\bnetprotocol.h"
+				>
+			</File>
+			<File
+				RelativePath=".\bnlsclient.h"
+				>
+			</File>
+			<File
+				RelativePath=".\bnlsprotocol.h"
 				>
 			</File>
 			<File

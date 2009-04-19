@@ -58,6 +58,9 @@
 #include "ghostdbsqlite.h"
 #include "ghostdbmysql.h"
 #include "bncsutilinterface.h"
+#include "warden.h"
+#include "bnlsprotocol.h"
+#include "bnlsclient.h"
 #include "bnetprotocol.h"
 #include "bnet.h"
 #include "map.h"
@@ -131,6 +134,8 @@ void SignalCatcher( int signal )
 // main
 //
 
+#include "bnlsclient.h"
+
 int main( int argc, char **argv )
 {
 	string CFGFile = "ghost.cfg";
@@ -176,6 +181,46 @@ int main( int argc, char **argv )
 		return 1;
 	}
 #endif
+
+	/*
+
+	CBNLSClient *b = new CBNLSClient( "212.139.114.127", 9368, 50 );
+	b->QueueWardenSeed( 1224867564 );
+	b->QueueWardenRaw( UTIL_ExtractHexNumbers( "4e 17 b7 e6 d4 0b 94 a8 4b a9 78 c3 0e c6 3b 91 11 72 1c c4 1d 0b 50 45 8c 21 46 0c 56 5a 84 0d 1a 90 e8 cf 2a" ) );
+	b->QueueWardenRaw( UTIL_ExtractHexNumbers( "22 eb 76 24 ea e3 d9 57 9b c7 f3 55 7f 15 64 ab 84" ) );
+	b->QueueWardenRaw( UTIL_ExtractHexNumbers( "61 a8 93 62 fc 29 09 18 5d fd 82 b0 7f 59 ea 61 ed bf b5 a6 6d 94 a1 7a f1 de 38 7e 9c 67 a3 93 5c 99 99 e8 66 2a 37 95 8f c4 a1 52 b6 ff e5 7b eb dc 3a 5a e9 9b df d3 08 f2 2a f9 9f 12 72 4a 44 9c 7f 2b 80 1a e5 20 66 f7 b3 2c c6 db c7 b4 f5 f3 df cd 58 07 d9 9c 6c 99 d2 bb eb f0 e6 00 9a 04 93 48 58 68 61 59 c2 98 f3 9d a3 b6 cc d1 24 14 7d d8 83 42 bc fc d5 1e 34 a0 50 43 dd 63 03 9a a2 1b 52 fb 12 73 6b 6b 9f 45 e3 69 4e ce 0a 47 fa b4 db e9 f8 62 fd 67 72 42 c6 56 47 5b 35 8a bf 37 16 c6 6b 79 9c 16 26 00 53 1d 9d 8c a5 92 f3 8e 2c" ) );
+
+	while( 1 )
+	{
+		unsigned int NumFDs = 0;
+		int nfds = 0;
+		fd_set fd;
+		FD_ZERO( &fd );
+		NumFDs += b->SetFD( &fd, &nfds );
+		struct timeval tv;
+		tv.tv_sec = 0;
+		tv.tv_usec = 50000;
+
+	#ifdef WIN32
+		select( 1, &fd, NULL, NULL, &tv );
+	#else
+		select( nfds + 1, &fd, NULL, NULL, &tv );
+	#endif
+
+		if( NumFDs == 0 )
+			MILLISLEEP( 50 );
+
+		b->Update( &fd );
+
+		BYTEARRAY resp = b->GetWardenResponse( );
+
+		if( !resp.empty( ) )
+			DEBUG_Print( resp );
+	}
+
+	return 1;
+
+	*/
 
 	// initialize ghost
 
@@ -276,7 +321,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_DBLocal = new CGHostDBSQLite( CFG );
 	m_Exiting = false;
 	m_Enabled = true;
-	m_Version = "12.0";
+	m_Version = "13.0";
 	m_HostCounter = 1;
 	m_AutoHostMaximumGames = 0;
 	m_AutoHostAutoStartPlayers = 0;
@@ -369,6 +414,9 @@ CGHost :: CGHost( CConfig *CFG )
 
 		bool HoldFriends = CFG->GetInt( Prefix + "holdfriends", 1 ) == 0 ? false : true;
 		bool HoldClan = CFG->GetInt( Prefix + "holdclan", 1 ) == 0 ? false : true;
+		string BNLSServer = CFG->GetString( Prefix + "bnlsserver", string( ) );
+		int BNLSPort = CFG->GetInt( Prefix + "bnlsport", 9367 );
+		int BNLSWardenCookie = CFG->GetInt( Prefix + "bnlswardencookie", 0 );
 		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 23 );
 		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversion", string( ) ), 4 );
 		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
@@ -403,7 +451,7 @@ CGHost :: CGHost( CConfig *CFG )
 		}
 
 		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
-		m_BNETs.push_back( new CBNET( this, Server, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, MaxMessageLength ) );
+		m_BNETs.push_back( new CBNET( this, Server, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, MaxMessageLength ) );
 	}
 
 	if( m_BNETs.empty( ) )
