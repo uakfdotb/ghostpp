@@ -577,10 +577,7 @@ bool CGHost :: Update( long usecBlock )
 			m_CurrentGame = NULL;
 
 			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-			{
-				(*i)->SendGameUncreate( );
-				(*i)->SendEnterChat( );
-			}
+				(*i)->QueueEnterChat( );
 		}
 		else if( m_CurrentGame )
 			m_CurrentGame->UpdatePost( );
@@ -1037,20 +1034,18 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 		}
 		else
 		{
-			// try to send an immediate chat command if it's not a whisper
-			// this is because if we queue the chat command it will get sent after the game creation message and battle.net will discard it
-			// note that we send this on all bnet servers
+			// note that we send this chat message on all other bnet servers
 
 			if( gameState == GAME_PRIVATE )
-				(*i)->ImmediateChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ) );
+				(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ) );
 			else if( gameState == GAME_PUBLIC )
-				(*i)->ImmediateChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ) );
+				(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ) );
 		}
 
 		if( saveGame )
-			(*i)->SendGameCreate( gameState, gameName, string( ), m_Map, m_SaveGame, m_CurrentGame->GetHostCounter( ) );
+			(*i)->QueueGameCreate( gameState, gameName, string( ), m_Map, m_SaveGame, m_CurrentGame->GetHostCounter( ) );
 		else
-			(*i)->SendGameCreate( gameState, gameName, string( ), m_Map, NULL, m_CurrentGame->GetHostCounter( ) );
+			(*i)->QueueGameCreate( gameState, gameName, string( ), m_Map, NULL, m_CurrentGame->GetHostCounter( ) );
 	}
 
 	if( m_AdminGame )
@@ -1070,7 +1065,7 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		{
 			if( (*i)->GetPasswordHashType( ) != "pvpgn" )
-				(*i)->SendEnterChat( );
+				(*i)->QueueEnterChat( );
 		}
 	}
 

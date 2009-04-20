@@ -1243,15 +1243,14 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
-					(*i)->SendGameUncreate( );
-					(*i)->SendEnterChat( );
+					(*i)->QueueEnterChat( );
 
 					// we need to send the game creation message now because private games are not refreshed
 
-					(*i)->SendGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL, m_HostCounter );
+					(*i)->QueueGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL, m_HostCounter );
 
 					if( (*i)->GetPasswordHashType( ) != "pvpgn" )
-						(*i)->SendEnterChat( );
+						(*i)->QueueEnterChat( );
 				}
 
 				m_CreationTime = GetTime( );
@@ -1272,8 +1271,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
-					(*i)->SendGameUncreate( );
-					(*i)->SendEnterChat( );
+					(*i)->QueueEnterChat( );
 
 					// the game creation message will be sent on the next refresh
 				}

@@ -369,7 +369,7 @@ To use automatic matchmaking there are several requirements:
 1.) You can only use automatic matchmaking with a MySQL database. SQLite databases are not supported.
 2.) You can only use automatic matchmaking with custom (e.g. non-melee) maps.
 3.) You can only use automatic matchmaking with a single battle.net connection. You cannot use GHost++'s multirealm feature with automatic matchmaking.
-4.) You must specify the "map_scorecategory" value in your map config file.
+4.) You must specify the "map_matchmakingcategory" value in your map config file.
 
 Here's how it works:
 

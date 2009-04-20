@@ -26,7 +26,6 @@
 #include "commandpacket.h"
 #include "ghostdb.h"
 #include "bncsutilinterface.h"
-#include "warden.h"
 #include "bnlsclient.h"
 #include "bnetprotocol.h"
 #include "bnet.h"
@@ -48,7 +47,6 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBN
 	m_Socket = new CTCPClient( );
 	m_Protocol = new CBNETProtocol( );
 	m_BNLSClient = NULL;
-	m_Warden = NULL;
 	m_BNCSUtil = new CBNCSUtilInterface( nUserName, nUserPassword );
 	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
 	m_CallableBanList = m_GHost->m_DB->ThreadedBanList( nServer );
@@ -76,7 +74,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBN
 	m_MaxMessageLength = nMaxMessageLength;
 	m_NextConnectTime = GetTime( );
 	m_LastNullTime = 0;
-	m_LastChatCommandTicks = 0;
+	m_LastOutPacketTicks = 0;
 	m_LastAdminRefreshTime = GetTime( );
 	m_LastBanRefreshTime = GetTime( );
 	m_WaitingToConnect = true;
@@ -91,7 +89,6 @@ CBNET :: ~CBNET( )
 	delete m_Socket;
 	delete m_Protocol;
 	delete m_BNLSClient;
-	delete m_Warden;
 
 	while( !m_Packets.empty( ) )
 	{
@@ -435,27 +432,6 @@ bool CBNET :: Update( void *fd )
 		ExtractPackets( );
 		ProcessPackets( );
 
-		// check if at least one chat command is waiting to be sent and if we've waited long enough to prevent flooding
-		// the original VB source used a formula based on the message length but 2.9 seconds seems to work fine
-		// note: updated this from 2 seconds to 2.5 then to 2.9 seconds because less is NOT enough
-
-		if( !m_ChatCommands.empty( ) && GetTicks( ) >= m_LastChatCommandTicks + 2900 )
-		{
-			string ChatCommand = m_ChatCommands.front( );
-			m_ChatCommands.pop( );
-			CONSOLE_Print( "[LOCAL: " + m_Server + "] " + ChatCommand );
-			SendChatCommand( ChatCommand );
-			m_LastChatCommandTicks = GetTicks( );
-		}
-
-		// send a null packet every 60 seconds to detect disconnects
-
-		if( GetTime( ) >= m_LastNullTime + 60 )
-		{
-			m_Socket->PutBytes( m_Protocol->SEND_SID_NULL( ) );
-			m_LastNullTime = GetTime( );
-		}
-
 		// update the BNLS client
 
 		if( m_BNLSClient )
@@ -471,8 +447,27 @@ bool CBNET :: Update( void *fd )
 				BYTEARRAY WardenResponse = m_BNLSClient->GetWardenResponse( );
 
 				if( !WardenResponse.empty( ) )
-					m_Socket->PutBytes( m_Protocol->SEND_SID_WARDEN( WardenResponse ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_WARDEN( WardenResponse ) );
 			}
+		}
+
+		// check if at least one chat command is waiting to be sent and if we've waited long enough to prevent flooding
+		// the original VB source used a formula based on the message length but 2.9 seconds seems to work fine
+		// note: updated this from 2 seconds to 2.5 then to 2.9 seconds because less is NOT enough
+
+		if( !m_OutPackets.empty( ) && GetTicks( ) >= m_LastOutPacketTicks + 2900 )
+		{
+			m_Socket->PutBytes( m_OutPackets.front( ) );
+			m_OutPackets.pop( );
+			m_LastOutPacketTicks = GetTicks( );
+		}
+
+		// send a null packet every 60 seconds to detect disconnects
+
+		if( GetTime( ) >= m_LastNullTime + 60 )
+		{
+			m_Socket->PutBytes( m_Protocol->SEND_SID_NULL( ) );
+			m_LastNullTime = GetTime( );
 		}
 
 		m_Socket->DoSend( );
@@ -493,10 +488,10 @@ bool CBNET :: Update( void *fd )
 			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version, m_CountryAbbrev, m_Country ) );
 			m_Socket->DoSend( );
 			m_LastNullTime = GetTime( );
-			m_LastChatCommandTicks = GetTicks( );
+			m_LastOutPacketTicks = GetTicks( );
 
-			while( !m_ChatCommands.empty( ) )
-				m_ChatCommands.pop( );
+			while( !m_OutPackets.empty( ) )
+				m_OutPackets.pop( );
 
 			return m_Exiting;
 		}
@@ -683,13 +678,6 @@ void CBNET :: ProcessPackets( )
 						// the Warden seed is the first 4 bytes of the ROC key hash
 						// initialize the Warden handler
 
-						/*
-
-						delete m_Warden;
-						m_Warden = new CWarden( m_GHost, UTIL_ByteArrayToUInt32( m_BNCSUtil->GetKeyInfoROC( ), false, 16 ) );
-
-						*/
-
 						if( !m_BNLSServer.empty( ) )
 						{
 							CONSOLE_Print( "[BNET: " + m_Server + "] creating BNLS client" );
@@ -816,15 +804,6 @@ void CBNET :: ProcessPackets( )
 
 			case CBNETProtocol :: SID_WARDEN:
 				WardenData = m_Protocol->RECEIVE_SID_WARDEN( Packet->GetData( ) );
-
-				/*
-
-				if( m_Warden )
-					m_Warden->HandleWarden( WardenData );
-				else
-					CONSOLE_Print( "[BNET: " + m_Server + "] warning - received warden packet but no warden handler is ready, ignoring" );
-
-				*/
 
 				if( m_BNLSClient )
 					m_BNLSClient->QueueWardenRaw( WardenData );
@@ -1841,7 +1820,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			// in some cases the queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
 			// e.g. when several users join a game at the same time and cause multiple /whois messages to be queued at once
 
-			if( IsAdmin( User ) || IsRootAdmin( User ) || m_ChatCommands.size( ) <= 3 )
+			if( IsAdmin( User ) || IsRootAdmin( User ) || m_OutPackets.size( ) <= 3 )
 			{
 				//
 				// !STATS
@@ -1952,111 +1931,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		CONSOLE_Print( "[ERROR: " + m_Server + "] " + Message );
 }
 
-void CBNET :: SendEnterChat( )
-{
-	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_ENTERCHAT( ) );
-}
-
 void CBNET :: SendJoinChannel( string channel )
 {
 	if( m_LoggedIn && m_InChat )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_JOINCHANNEL( channel ) );
-}
-
-void CBNET :: SendChatCommand( string chatCommand )
-{
-	// don't call this function directly, use QueueChatCommand instead to prevent getting kicked for flooding
-
-	if( m_LoggedIn )
-	{
-		if( m_PasswordHashType == "pvpgn" && chatCommand.size( ) > m_MaxMessageLength )
-			chatCommand = chatCommand.substr( 0, m_MaxMessageLength );
-
-		if( chatCommand.size( ) > 255 )
-			chatCommand = chatCommand.substr( 0, 255 );
-
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
-	}
-}
-
-void CBNET :: SendGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *savegame, uint32_t hostCounter )
-{
-	if( m_LoggedIn && map )
-	{
-		if( !m_CurrentChannel.empty( ) )
-			m_FirstChannel = m_CurrentChannel;
-
-		m_InChat = false;
-
-		// a game creation message is just a game refresh message with upTime = 0
-
-		SendGameRefresh( state, gameName, hostName, map, savegame, 0, hostCounter );
-	}
-}
-
-void CBNET :: SendGameUncreate( )
-{
-	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_STOPADV( ) );
-}
-
-void CBNET :: SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter )
-{
-	// try to avoid flooding out by not refreshing if a chat command was sent recently
-	// this doesn't properly queue chat commands and refreshes, instead making refreshes secondary to chat commands
-	// while not ideal this behaviour should be acceptable as long as it doesn't get suppressed too often
-
-	if( upTime == 0 || GetTicks( ) >= m_LastChatCommandTicks + 2900 )
-	{
-		if( hostName.empty( ) )
-		{
-			BYTEARRAY UniqueName = m_Protocol->GetUniqueName( );
-			hostName = string( UniqueName.begin( ), UniqueName.end( ) );
-		}
-
-		if( m_LoggedIn && map )
-		{
-			BYTEARRAY MapGameType;
-
-			// construct the correct SID_STARTADVEX3 packet
-
-			if( saveGame )
-			{
-				MapGameType.push_back( 0 );
-				MapGameType.push_back( 10 );
-				MapGameType.push_back( 0 );
-				MapGameType.push_back( 0 );
-				BYTEARRAY MapWidth;
-				MapWidth.push_back( 0 );
-				MapWidth.push_back( 0 );
-				BYTEARRAY MapHeight;
-				MapHeight.push_back( 0 );
-				MapHeight.push_back( 0 );
-				m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), hostCounter ) );
-			}
-			else
-			{
-				MapGameType.push_back( map->GetMapGameType( ) );
-				MapGameType.push_back( 32 );
-				MapGameType.push_back( 73 );
-				MapGameType.push_back( 0 );
-				m_Socket->PutBytes( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
-			}
-
-			// todotodo: this is a dirty hack to help with flood protection
-
-			m_LastChatCommandTicks = GetTicks( ) - 1900;
-		}
-	}
-	else
-		CONSOLE_Print( "[BNET: " + m_Server + "] game refresh suppressed for flood protection (last chat command was " + UTIL_ToString( GetTicks( ) - m_LastChatCommandTicks ) + "ms ago)" );
-}
-
-void CBNET :: SendGameJoin( string gameName )
-{
-	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_GETADVLISTEX( gameName ) );
 }
 
 void CBNET :: SendGetFriendsList( )
@@ -2071,12 +1949,28 @@ void CBNET :: SendGetClanList( )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 }
 
+void CBNET :: QueueEnterChat( )
+{
+	if( m_LoggedIn )
+		m_OutPackets.push( m_Protocol->SEND_SID_ENTERCHAT( ) );
+}
+
 void CBNET :: QueueChatCommand( string chatCommand )
 {
 	if( chatCommand.empty( ) )
 		return;
 
-	m_ChatCommands.push( chatCommand );
+	if( m_LoggedIn )
+	{
+		if( m_PasswordHashType == "pvpgn" && chatCommand.size( ) > m_MaxMessageLength )
+			chatCommand = chatCommand.substr( 0, m_MaxMessageLength );
+
+		if( chatCommand.size( ) > 255 )
+			chatCommand = chatCommand.substr( 0, 255 );
+
+		CONSOLE_Print( "[QUEUED: " + m_Server + "] " + chatCommand );
+		m_OutPackets.push( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
+	}
 }
 
 void CBNET :: QueueChatCommand( string chatCommand, string user, bool whisper )
@@ -2092,28 +1986,58 @@ void CBNET :: QueueChatCommand( string chatCommand, string user, bool whisper )
 		QueueChatCommand( chatCommand );
 }
 
-void CBNET :: ImmediateChatCommand( string chatCommand )
+void CBNET :: QueueGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *savegame, uint32_t hostCounter )
 {
-	if( chatCommand.empty( ) )
-		return;
-
-	if( GetTicks( ) >= m_LastChatCommandTicks + 2900 )
+	if( m_LoggedIn && map )
 	{
-		CONSOLE_Print( "[LOCAL: " + m_Server + "] " + chatCommand );
-		SendChatCommand( chatCommand );
-		m_LastChatCommandTicks = GetTicks( );
+		if( !m_CurrentChannel.empty( ) )
+			m_FirstChannel = m_CurrentChannel;
+
+		m_InChat = false;
+
+		// a game creation message is just a game refresh message with upTime = 0
+
+		QueueGameRefresh( state, gameName, hostName, map, savegame, 0, hostCounter );
 	}
 }
 
-void CBNET :: ImmediateChatCommand( string chatCommand, string user, bool whisper )
+void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter )
 {
-	if( chatCommand.empty( ) )
-		return;
+	if( hostName.empty( ) )
+	{
+		BYTEARRAY UniqueName = m_Protocol->GetUniqueName( );
+		hostName = string( UniqueName.begin( ), UniqueName.end( ) );
+	}
 
-	if( whisper )
-		ImmediateChatCommand( "/w " + user + " " + chatCommand );
-	else
-		ImmediateChatCommand( chatCommand );
+	if( m_LoggedIn && map )
+	{
+		BYTEARRAY MapGameType;
+
+		// construct the correct SID_STARTADVEX3 packet
+
+		if( saveGame )
+		{
+			MapGameType.push_back( 0 );
+			MapGameType.push_back( 10 );
+			MapGameType.push_back( 0 );
+			MapGameType.push_back( 0 );
+			BYTEARRAY MapWidth;
+			MapWidth.push_back( 0 );
+			MapWidth.push_back( 0 );
+			BYTEARRAY MapHeight;
+			MapHeight.push_back( 0 );
+			MapHeight.push_back( 0 );
+			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), hostCounter ) );
+		}
+		else
+		{
+			MapGameType.push_back( map->GetMapGameType( ) );
+			MapGameType.push_back( 32 );
+			MapGameType.push_back( 73 );
+			MapGameType.push_back( 0 );
+			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
+		}
+	}
 }
 
 bool CBNET :: IsAdmin( string name )

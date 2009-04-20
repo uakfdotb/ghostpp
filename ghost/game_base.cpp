@@ -384,10 +384,22 @@ bool CBaseGame :: Update( void *fd )
 	{
 		// send a game refresh packet to each battle.net connection
 
-		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-			(*i)->SendGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
+		bool Refreshed = false;
 
-		if( m_RefreshMessages )
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			// don't queue a game refresh message if the queue contains more than 1 packet because they're very low priority
+
+			if( (*i)->GetOutPacketsQueued( ) <= 1 )
+			{
+				(*i)->QueueGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
+				Refreshed = true;
+			}
+		}
+
+		// only print the "game refreshed" message if we actually refreshed on at least one battle.net server
+
+		if( m_RefreshMessages && Refreshed )
 			SendAllChat( m_GHost->m_Language->GameRefreshed( ) );
 
 		m_LastRefreshTime = GetTime( );
@@ -2211,10 +2223,7 @@ void CBaseGame :: EventGameStarted( )
 	// and finally reenter battle.net chat
 
 	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-	{
-		(*i)->SendGameUncreate( );
-		(*i)->SendEnterChat( );
-	}
+		(*i)->QueueEnterChat( );
 }
 
 void CBaseGame :: EventGameLoaded( )

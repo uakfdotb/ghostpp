@@ -30,7 +30,6 @@ class CCommandPacket;
 class CBNCSUtilInterface;
 class CBNETProtocol;
 class CBNLSClient;
-class CWarden;
 class CIncomingFriendList;
 class CIncomingClanList;
 class CIncomingChatEvent;
@@ -64,10 +63,9 @@ private:
 	CTCPClient *m_Socket;							// the connection to battle.net
 	CBNETProtocol *m_Protocol;						// battle.net protocol
 	CBNLSClient *m_BNLSClient;						// the BNLS client (for external warden handling)
-	CWarden *m_Warden;								// warden handler
 	queue<CCommandPacket *> m_Packets;				// queue of incoming packets
 	CBNCSUtilInterface *m_BNCSUtil;					// the interface to the bncsutil library (used for logging into battle.net)
-	queue<string> m_ChatCommands;					// queue of chat commands waiting to be sent (to prevent getting kicked for flooding)
+	queue<BYTEARRAY> m_OutPackets;					// queue of outgoing packets to be sent (to prevent getting kicked for flooding)
 	vector<CIncomingFriendList *> m_Friends;		// vector of friends
 	vector<CIncomingClanList *> m_Clans;			// vector of clan members
 	vector<PairedAdminCount> m_PairedAdminCounts;	// vector of paired threaded database admin counts in progress
@@ -104,7 +102,7 @@ private:
 	uint32_t m_MaxMessageLength;					// maximum message length for PvPGN users
 	uint32_t m_NextConnectTime;						// GetTime when we should try connecting to battle.net next (after we get disconnected)
 	uint32_t m_LastNullTime;						// GetTime when the last null packet was sent for detecting disconnects
-	uint32_t m_LastChatCommandTicks;				// GetTicks when the last chat command was sent for the m_ChatCommands queue
+	uint32_t m_LastOutPacketTicks;					// GetTicks when the last packet was sent for the m_OutPackets queue
 	uint32_t m_LastAdminRefreshTime;				// GetTime when the admin list was last refreshed from the database
 	uint32_t m_LastBanRefreshTime;					// GetTime when the ban list was last refreshed from the database
 	bool m_WaitingToConnect;						// if we're waiting to reconnect to battle.net after being disconnected
@@ -134,6 +132,7 @@ public:
 	bool GetInChat( )					{ return m_InChat; }
 	bool GetHoldFriends( )				{ return m_HoldFriends; }
 	bool GetHoldClan( )					{ return m_HoldClan; }
+	uint32_t GetOutPacketsQueued( )		{ return m_OutPackets.size( ); }
 	BYTEARRAY GetUniqueName( );
 
 	// processing functions
@@ -146,22 +145,17 @@ public:
 
 	// functions to send packets to battle.net
 
-	void SendEnterChat( );
 	void SendJoinChannel( string channel );
-	void SendChatCommand( string chatCommand );
-	void SendGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t hostCounter );
-	void SendGameUncreate( );
-	void SendGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter );
-	void SendGameJoin( string gameName );
 	void SendGetFriendsList( );
 	void SendGetClanList( );
+	void QueueEnterChat( );
+	void QueueChatCommand( string chatCommand );
+	void QueueChatCommand( string chatCommand, string user, bool whisper );
+	void QueueGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t hostCounter );
+	void QueueGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter );
 
 	// other functions
 
-	void QueueChatCommand( string chatCommand );
-	void QueueChatCommand( string chatCommand, string user, bool whisper );
-	void ImmediateChatCommand( string chatCommand );
-	void ImmediateChatCommand( string chatCommand, string user, bool whisper );
 	bool IsAdmin( string name );
 	bool IsRootAdmin( string name );
 	CDBBan *IsBanned( string name );

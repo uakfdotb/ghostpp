@@ -22,6 +22,8 @@
 #include "util.h"
 #include "warden.h"
 
+#include <string.h>
+
 //
 // CWardenSHA1
 //
