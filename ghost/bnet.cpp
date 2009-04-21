@@ -451,7 +451,7 @@ bool CBNET :: Update( void *fd )
 			}
 		}
 
-		// check if at least one chat command is waiting to be sent and if we've waited long enough to prevent flooding
+		// check if at least one packet is waiting to be sent and if we've waited long enough to prevent flooding
 		// the original VB source used a formula based on the message length but 2.9 seconds seems to work fine
 		// note: updated this from 2 seconds to 2.5 then to 2.9 seconds because less is NOT enough
 
@@ -464,7 +464,7 @@ bool CBNET :: Update( void *fd )
 
 		// send a null packet every 60 seconds to detect disconnects
 
-		if( GetTime( ) >= m_LastNullTime + 60 )
+		if( GetTime( ) >= m_LastNullTime + 60 && GetTicks( ) >= m_LastOutPacketTicks + 60000 )
 		{
 			m_Socket->PutBytes( m_Protocol->SEND_SID_NULL( ) );
 			m_LastNullTime = GetTime( );

@@ -972,6 +972,18 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !FAKEPLAYER
+			//
+
+			if( Command == "fakeplayer" && !m_CountDownStarted )
+			{
+				if( m_FakePlayerPID == 255 )
+					CreateFakePlayer( );
+				else
+					DeleteFakePlayer( );
+			}
+
+			//
 			// !FROM
 			//
 

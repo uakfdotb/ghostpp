@@ -62,6 +62,7 @@ protected:
 	uint16_t m_HostPort;							// the port to host games on
 	unsigned char m_GameState;						// game state, public or private
 	unsigned char m_VirtualHostPID;					// virtual host's PID
+	unsigned char m_FakePlayerPID;					// the fake player's PID (if present)
 	string m_GameName;								// game name
 	string m_VirtualHostName;						// virtual host's name
 	string m_OwnerName;								// name of the player who owns this game (should be considered an admin)
@@ -167,6 +168,7 @@ public:
 	virtual void SendAllChat( string message );
 	virtual void SendAllSlotInfo( );
 	virtual void SendVirtualHostPlayerInfo( CGamePlayer *player );
+	virtual void SendFakePlayerInfo( CGamePlayer *player );
 	virtual void SendAllActions( );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void SendEndMessage( );
@@ -238,6 +240,8 @@ public:
 	virtual void StopLaggers( string reason );
 	virtual void CreateVirtualHost( );
 	virtual void DeleteVirtualHost( );
+	virtual void CreateFakePlayer( );
+	virtual void DeleteFakePlayer( );
 };
 
 #endif

@@ -59,6 +59,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_HostPort = nHostPort;
 	m_GameState = nGameState;
 	m_VirtualHostPID = 255;
+	m_FakePlayerPID = 255;
 	m_GameName = nGameName;
 	m_VirtualHostName = m_GHost->m_VirtualHostName;
 	m_OwnerName = nOwnerName;
@@ -700,7 +701,7 @@ bool CBaseGame :: Update( void *fd )
 
 	// start the gameover timer if there's only one player left
 
-	if( m_Players.size( ) == 1 && m_GameOverTime == 0 && ( m_GameLoading || m_GameLoaded ) )
+	if( m_Players.size( ) == 1 && m_FakePlayerPID == 255 && m_GameOverTime == 0 && ( m_GameLoading || m_GameLoaded ) )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (one player left)" );
 		m_GameOverTime = GetTime( );
@@ -903,6 +904,19 @@ void CBaseGame :: SendVirtualHostPlayerInfo( CGamePlayer *player )
 	IP.push_back( 0 );
 	IP.push_back( 0 );
 	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP ) );
+}
+
+void CBaseGame :: SendFakePlayerInfo( CGamePlayer *player )
+{
+	if( m_FakePlayerPID == 255 )
+		return;
+
+	BYTEARRAY IP;
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_FakePlayerPID, "FakePlayer", IP, IP ) );
 }
 
 void CBaseGame :: SendAllActions( )
@@ -1361,9 +1375,10 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player->GetPID( ), Player->GetSocket( )->GetPort( ), Player->GetExternalIP( ), m_Slots, m_RandomSeed, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
 
-	// send virtual host info to the new player
+	// send virtual host info and fake player info (if present) to the new player
 
 	SendVirtualHostPlayerInfo( Player );
+	SendFakePlayerInfo( Player );
 
 	BYTEARRAY BlankIP;
 	BlankIP.push_back( 0 );
@@ -1605,9 +1620,10 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 
 	Player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player->GetPID( ), Player->GetSocket( )->GetPort( ), Player->GetExternalIP( ), m_Slots, m_RandomSeed, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
 
-	// send virtual host info to the new player
+	// send virtual host info and fake player info (if present) to the new player
 
 	SendVirtualHostPlayerInfo( Player );
+	SendFakePlayerInfo( Player );
 
 	BYTEARRAY BlankIP;
 	BlankIP.push_back( 0 );
@@ -2163,6 +2179,11 @@ void CBaseGame :: EventGameStarted( )
 
 	SendAll( m_Protocol->SEND_W3GS_COUNTDOWN_END( ) );
 
+	// send a game loaded packet for the fake player (if present)
+
+	if( m_FakePlayerPID != 255 )
+		SendAll( m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( m_FakePlayerPID ) );
+
 	// record the starting number of players
 
 	m_StartPlayers = GetNumPlayers( );
@@ -2382,7 +2403,7 @@ unsigned char CBaseGame :: GetNewPID( )
 
 	for( unsigned char TestPID = 1; TestPID < 255; TestPID++ )
 	{
-		if( TestPID == m_VirtualHostPID )
+		if( TestPID == m_VirtualHostPID || TestPID == m_FakePlayerPID )
 			continue;
 
 		bool InUse = false;
@@ -3188,4 +3209,41 @@ void CBaseGame :: DeleteVirtualHost( )
 
 	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( m_VirtualHostPID, PLAYERLEAVE_LOBBY ) );
 	m_VirtualHostPID = 255;
+}
+
+void CBaseGame :: CreateFakePlayer( )
+{
+	if( m_FakePlayerPID != 255 )
+		return;
+
+	unsigned char SID = GetEmptySlot( false );
+
+	if( SID < m_Slots.size( ) )
+	{
+		m_FakePlayerPID = GetNewPID( );
+		BYTEARRAY IP;
+		IP.push_back( 0 );
+		IP.push_back( 0 );
+		IP.push_back( 0 );
+		IP.push_back( 0 );
+		SendAll( m_Protocol->SEND_W3GS_PLAYERINFO( m_FakePlayerPID, "FakePlayer", IP, IP ) );
+		m_Slots[SID] = CGameSlot( m_FakePlayerPID, 100, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam( ), m_Slots[SID].GetColour( ), m_Slots[SID].GetRace( ) );
+		SendAllSlotInfo( );
+	}
+}
+
+void CBaseGame :: DeleteFakePlayer( )
+{
+	if( m_FakePlayerPID == 255 )
+		return;
+
+	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+	{
+		if( m_Slots[i].GetPID( ) == m_FakePlayerPID )
+			m_Slots[i] = CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, m_Slots[i].GetTeam( ), m_Slots[i].GetColour( ), m_Slots[i].GetRace( ) ); 
+	}
+
+	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( m_FakePlayerPID, PLAYERLEAVE_LOBBY ) );
+	SendAllSlotInfo( );
+	m_FakePlayerPID = 255;
 }
