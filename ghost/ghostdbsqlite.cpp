@@ -1333,43 +1333,42 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints 
 	if( var_ints.empty( ) )
 		return false;
 
-	bool Success = false;
-	sqlite3_stmt *Statement;
-	string Query;
+	bool Success = true;
+	sqlite3_stmt *Statement = NULL;
 
 	for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); i++ )
 	{
-		if( Query.empty( ) )
-			Query = "INSERT INTO w3mmdvars ( gameid, pid, varname, value_int ) VALUES ( ?, ?, ?, ? )";
-		else
-			Query += ", ( ?, ?, ?, ? )";
-	}
+		if( !Statement )
+			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_int ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
 
-	m_DB->Prepare( Query, (void **)&Statement );
+		if( Statement )
+		{
+			sqlite3_bind_int( Statement, 1, gameid );
+			sqlite3_bind_int( Statement, 2, i->first.first );
+			sqlite3_bind_text( Statement, 3, i->first.second.c_str( ), -1, SQLITE_TRANSIENT );
+			sqlite3_bind_int( Statement, 4, i->second );
+
+			int RC = m_DB->Step( Statement );
+
+			if( RC == SQLITE_ERROR )
+			{
+				Success = false;
+				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-int [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + UTIL_ToString( i->second ) + "] - " + m_DB->GetError( ) );
+				break;
+			}
+
+			m_DB->Reset( Statement );
+		}
+		else
+		{
+			Success = false;
+			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-int [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + UTIL_ToString( i->second ) + "] - " + m_DB->GetError( ) );
+			break;
+		}
+	}
 
 	if( Statement )
-	{
-		int Argument = 1;
-
-		for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); i++ )
-		{
-			sqlite3_bind_int( Statement, Argument++, gameid );
-			sqlite3_bind_int( Statement, Argument++, i->first.first );
-			sqlite3_bind_text( Statement, Argument++, i->first.second.c_str( ), -1, SQLITE_TRANSIENT );
-			sqlite3_bind_int( Statement, Argument++, i->second );
-		}
-
-		int RC = m_DB->Step( Statement );
-
-		if( RC == SQLITE_DONE )
-			Success = true;
-		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-ints [" + UTIL_ToString( gameid ) + " : " + Query + "] - " + m_DB->GetError( ) );
-
 		m_DB->Finalize( Statement );
-	}
-	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-ints [" + UTIL_ToString( gameid ) + " : " + Query + "] - " + m_DB->GetError( ) );
 
 	return Success;
 }
@@ -1379,43 +1378,42 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals 
 	if( var_reals.empty( ) )
 		return false;
 
-	bool Success = false;
-	sqlite3_stmt *Statement;
-	string Query;
+	bool Success = true;
+	sqlite3_stmt *Statement = NULL;
 
 	for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); i++ )
 	{
-		if( Query.empty( ) )
-			Query = "INSERT INTO w3mmdvars ( gameid, pid, varname, value_real ) VALUES ( ?, ?, ?, ? )";
-		else
-			Query += ", ( ?, ?, ?, ? )";
-	}
+		if( !Statement )
+			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_real ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
 
-	m_DB->Prepare( Query, (void **)&Statement );
+		if( Statement )
+		{
+			sqlite3_bind_int( Statement, 1, gameid );
+			sqlite3_bind_int( Statement, 2, i->first.first );
+			sqlite3_bind_text( Statement, 3, i->first.second.c_str( ), -1, SQLITE_TRANSIENT );
+			sqlite3_bind_double( Statement, 4, i->second );
+
+			int RC = m_DB->Step( Statement );
+
+			if( RC == SQLITE_ERROR )
+			{
+				Success = false;
+				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-real [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + UTIL_ToString( i->second, 10 ) + "] - " + m_DB->GetError( ) );
+				break;
+			}
+
+			m_DB->Reset( Statement );
+		}
+		else
+		{
+			Success = false;
+			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-real [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + UTIL_ToString( i->second, 10 ) + "] - " + m_DB->GetError( ) );
+			break;
+		}
+	}
 
 	if( Statement )
-	{
-		int Argument = 1;
-
-		for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); i++ )
-		{
-			sqlite3_bind_int( Statement, Argument++, gameid );
-			sqlite3_bind_int( Statement, Argument++, i->first.first );
-			sqlite3_bind_text( Statement, Argument++, i->first.second.c_str( ), -1, SQLITE_TRANSIENT );
-			sqlite3_bind_double( Statement, Argument++, i->second );
-		}
-
-		int RC = m_DB->Step( Statement );
-
-		if( RC == SQLITE_DONE )
-			Success = true;
-		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-reals [" + UTIL_ToString( gameid ) + " : " + Query + "] - " + m_DB->GetError( ) );
-
 		m_DB->Finalize( Statement );
-	}
-	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-reals [" + UTIL_ToString( gameid ) + " : " + Query + "] - " + m_DB->GetError( ) );
 
 	return Success;
 }
@@ -1425,43 +1423,42 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_string
 	if( var_strings.empty( ) )
 		return false;
 
-	bool Success = false;
-	sqlite3_stmt *Statement;
-	string Query;
+	bool Success = true;
+	sqlite3_stmt *Statement = NULL;
 
 	for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); i++ )
 	{
-		if( Query.empty( ) )
-			Query = "INSERT INTO w3mmdvars ( gameid, pid, varname, value_string ) VALUES ( ?, ?, ?, ? )";
-		else
-			Query += ", ( ?, ?, ?, ? )";
-	}
+		if( !Statement )
+			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_string ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
 
-	m_DB->Prepare( Query, (void **)&Statement );
+		if( Statement )
+		{
+			sqlite3_bind_int( Statement, 1, gameid );
+			sqlite3_bind_int( Statement, 2, i->first.first );
+			sqlite3_bind_text( Statement, 3, i->first.second.c_str( ), -1, SQLITE_TRANSIENT );
+			sqlite3_bind_text( Statement, 4, i->second.c_str( ), -1, SQLITE_TRANSIENT );
+
+			int RC = m_DB->Step( Statement );
+
+			if( RC == SQLITE_ERROR )
+			{
+				Success = false;
+				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + i->second + "] - " + m_DB->GetError( ) );
+				break;
+			}
+
+			m_DB->Reset( Statement );
+		}
+		else
+		{
+			Success = false;
+			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + i->second + "] - " + m_DB->GetError( ) );
+			break;
+		}
+	}
 
 	if( Statement )
-	{
-		int Argument = 1;
-
-		for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); i++ )
-		{
-			sqlite3_bind_int( Statement, Argument++, gameid );
-			sqlite3_bind_int( Statement, Argument++, i->first.first );
-			sqlite3_bind_text( Statement, Argument++, i->first.second.c_str( ), -1, SQLITE_TRANSIENT );
-			sqlite3_bind_text( Statement, Argument++, i->second.c_str( ), -1, SQLITE_TRANSIENT );
-		}
-
-		int RC = m_DB->Step( Statement );
-
-		if( RC == SQLITE_DONE )
-			Success = true;
-		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-strings [" + UTIL_ToString( gameid ) + " : " + Query + "] - " + m_DB->GetError( ) );
-
 		m_DB->Finalize( Statement );
-	}
-	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-strings [" + UTIL_ToString( gameid ) + " : " + Query + "] - " + m_DB->GetError( ) );
 
 	return Success;
 }
