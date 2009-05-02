@@ -53,7 +53,11 @@ bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( string war3Path, string keyROC, 
 	// set m_EXEVersion, m_EXEVersionHash, m_EXEInfo, m_InfoROC, m_InfoTFT
 
 	string FileWar3EXE = war3Path + "war3.exe";
-	string FileStormDLL = war3Path + "storm.dll";
+	string FileStormDLL = war3Path + "Storm.dll";
+
+	if( !UTIL_FileExists( FileStormDLL ) )
+		FileStormDLL = war3Path + "storm.dll";
+
 	string FileGameDLL = war3Path + "game.dll";
 	bool ExistsWar3EXE = UTIL_FileExists( FileWar3EXE );
 	bool ExistsStormDLL = UTIL_FileExists( FileStormDLL );
