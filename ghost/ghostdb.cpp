@@ -167,19 +167,19 @@ uint32_t CGHostDB :: W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t 
 	return 0;
 }
 
-uint32_t CGHostDB :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int )
+bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
 {
-	return 0;
+	return false;
 }
 
-uint32_t CGHostDB :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real )
+bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
 {
-	return 0;
+	return false;
 }
 
-uint32_t CGHostDB :: W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string )
+bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
 {
-	return 0;
+	return false;
 }
 
 void CGHostDB :: CreateThread( CBaseCallable *callable )
@@ -287,17 +287,17 @@ CCallableW3MMDPlayerAdd *CGHostDB :: ThreadedW3MMDPlayerAdd( string category, ui
 	return NULL;
 }
 
-CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int )
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
 {
 	return NULL;
 }
 
-CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real )
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
 {
 	return NULL;
 }
 
-CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string )
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
 {
 	return NULL;
 }

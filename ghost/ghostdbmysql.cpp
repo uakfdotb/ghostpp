@@ -408,40 +408,40 @@ CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string categor
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int )
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
 		m_NumConnections++;
 
-	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, pid, varname, value_int, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_ints, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real )
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
 		m_NumConnections++;
 
-	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, pid, varname, value_real, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_reals, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string )
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
 		m_NumConnections++;
 
-	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, pid, varname, value_string, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_strings, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
@@ -1049,47 +1049,83 @@ uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, string category, uint32
 	return RowID;
 }
 
-uint32_t MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string varname, int32_t value_int )
+bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, map<VarP,int32_t> var_ints )
 {
-	uint32_t RowID = 0;
-	string EscVarName = MySQLEscapeString( conn, varname );
-	string Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_int ) VALUES ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", '" + EscVarName + "', " + UTIL_ToString( value_int ) + " )";
+	if( var_ints.empty( ) )
+		return false;
+
+	bool Success = false;
+	string Query;
+
+	for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); i++ )
+	{
+		string EscVarName = MySQLEscapeString( conn, i->first.second );
+
+		if( Query.empty( ) )
+			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_int ) VALUES ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second ) + " )";
+		else
+			Query += ", ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second ) + " )";
+	}
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
 	else
-		RowID = mysql_insert_id( (MYSQL *)conn );
+		Success = true;
 
-	return RowID;
+	return Success;
 }
 
-uint32_t MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string varname, double value_real )
+bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, map<VarP,double> var_reals )
 {
-	uint32_t RowID = 0;
-	string EscVarName = MySQLEscapeString( conn, varname );
-	string Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_real ) VALUES ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", '" + EscVarName + "', " + UTIL_ToString( value_real, 10 ) + " )";
+	if( var_reals.empty( ) )
+		return false;
+
+	bool Success = false;
+	string Query;
+
+	for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); i++ )
+	{
+		string EscVarName = MySQLEscapeString( conn, i->first.second );
+
+		if( Query.empty( ) )
+			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_real ) VALUES ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second, 10 ) + " )";
+		else
+			Query += ", ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second, 10 ) + " )";
+	}
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
 	else
-		RowID = mysql_insert_id( (MYSQL *)conn );
+		Success = true;
 
-	return RowID;
+	return Success;
 }
 
-uint32_t MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, uint32_t pid, string varname, string value_string )
+bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t gameid, map<VarP,string> var_strings )
 {
-	uint32_t RowID = 0;
-	string EscVarName = MySQLEscapeString( conn, varname );
-	string EscValueString = MySQLEscapeString( conn, value_string );
-	string Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_string ) VALUES ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", '" + EscVarName + "', '" + EscValueString + "' )";
+	if( var_strings.empty( ) )
+		return false;
+
+	bool Success = false;
+	string Query;
+
+	for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); i++ )
+	{
+		string EscVarName = MySQLEscapeString( conn, i->first.second );
+		string EscValueString = MySQLEscapeString( conn, i->second );
+
+		if( Query.empty( ) )
+			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_string ) VALUES ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', '" + EscValueString + "' )";
+		else
+			Query += ", ( 0, " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', '" + EscValueString + "' )";
+	}
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
 	else
-		RowID = mysql_insert_id( (MYSQL *)conn );
+		Success = true;
 
-	return RowID;
+	return Success;
 }
 
 //
@@ -1333,11 +1369,11 @@ void CMySQLCallableW3MMDVarAdd :: operator( )( )
 	if( m_Error.empty( ) )
 	{
 		if( m_ValueType == VALUETYPE_INT )
-			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_GameID, m_PID, m_VarName, m_ValueInt );
+			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_GameID, m_VarInts );
 		else if( m_ValueType == VALUETYPE_REAL )
-			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_GameID, m_PID, m_VarName, m_ValueReal );
+			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_GameID, m_VarReals );
 		else
-			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_GameID, m_PID, m_VarName, m_ValueString );
+			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_GameID, m_VarStrings );
 	}
 
 	Close( );

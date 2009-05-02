@@ -235,9 +235,9 @@ public:
 	virtual bool FromAdd( uint32_t ip1, uint32_t ip2, string country );
 	virtual bool DownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual uint32_t W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
-	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int );
-	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real );
-	virtual uint32_t W3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string );
+	virtual bool W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints );
+	virtual bool W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals );
+	virtual bool W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings );
 
 	// threaded database functions
 	// note: these are not actually implemented with threads at the moment, they WILL block until the query is complete
@@ -262,9 +262,9 @@ public:
 	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
-	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, int32_t value_int );
-	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, double value_real );
-	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, uint32_t pid, string varname, string value_string );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings );
 };
 
 #endif

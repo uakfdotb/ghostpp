@@ -267,15 +267,17 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 									}
 									else if( Tokens[0] == "DefEvent" )
 									{
-
+										// todotodo: parse event definitions so event messages can be displayed in a readable format
 									}
 									else if( Tokens[0] == "Event" )
 									{
+										// todotodo: use event definitions to display event messages in a readable format
 
+										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] event [" + KeyString + "]" );
 									}
 									else if( Tokens[0] == "Custom" )
 									{
-
+										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] custom [" + KeyString + "]" );
 									}
 									else
 										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown message type [" + Tokens[0] + "] found, ignoring" );
@@ -327,6 +329,9 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 
 	if( DB->Begin( ) )
 	{
+		// todotodo: there's no reason to create a new callable for each entry in this map
+		// rewrite ThreadedW3MMDPlayerAdd to act more like ThreadedW3MMDVarAdd
+
 		for( map<uint32_t,string> :: iterator i = m_PIDToName.begin( ); i != m_PIDToName.end( ); i++ )
 		{
 			if( m_Flags.find( i->first ) == m_Flags.end( ) )
@@ -344,17 +349,14 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 			GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( m_Category, GameID, i->first, i->second, m_Flags[i->first], Leaver, Practicing ) );
 		}
 
-		// todotodo: it is not feasible to create hundreds of threads and connections to save this data to the database
-		// this will cause huge problems and will need to be rewritten
+		if( !m_VarPInts.empty( ) )
+			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPInts ) );
 
-		for( map<VarP,int32_t> :: iterator i = m_VarPInts.begin( ); i != m_VarPInts.end( ); i++ )
-			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, i->first.first, i->first.second, i->second ) );
+		if( !m_VarPReals.empty( ) )
+			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPReals ) );
 
-		for( map<VarP,double> :: iterator i = m_VarPReals.begin( ); i != m_VarPReals.end( ); i++ )
-			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, i->first.first, i->first.second, i->second ) );
-
-		for( map<VarP,string> :: iterator i = m_VarPStrings.begin( ); i != m_VarPStrings.end( ); i++ )
-			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, i->first.first, i->first.second, i->second ) );
+		if( !m_VarPStrings.empty( ) )
+			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPStrings ) );
 
 		if( DB->Commit( ) )
 			CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] saving data" );
