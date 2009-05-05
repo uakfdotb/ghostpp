@@ -129,15 +129,15 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	// start listening for connections
 
 	if( !m_GHost->m_BindAddress.empty( ) )
-		CONSOLE_Print( "[GAME: " + m_GameName + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]" );
+		CONSOLE_Print( "[GAME: %s] attempting to bind to address [%s]", m_GameName.c_str(), m_GHost->m_BindAddress.c_str() );
 	else
-		CONSOLE_Print( "[GAME: " + m_GameName + "] attempting to bind to all available addresses" );
+		CONSOLE_Print( "[GAME: %s] attempting to bind to all available addresses", m_GameName.c_str() );
 
 	if( m_Socket->Listen( m_GHost->m_BindAddress, m_HostPort ) )
-		CONSOLE_Print( "[GAME: " + m_GameName + "] listening on port " + UTIL_ToString( m_HostPort ) );
+		CONSOLE_Print( "[GAME: %s] listening on port %d", m_GameName.c_str(), m_HostPort);
 	else
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] error listening on port " + UTIL_ToString( m_HostPort ) );
+		CONSOLE_Print( "[GAME: %s] error listening on port %d", m_GameName.c_str(), m_HostPort );
 		m_Exiting = true;
 	}
 }
@@ -558,7 +558,7 @@ bool CBaseGame :: Update( void *fd )
 
 		if( GetTime( ) >= m_LastReservedSeen + m_GHost->m_LobbyTimeLimit * 60 )
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby time limit hit)" );
+			CONSOLE_Print( "[GAME: %s] is over (lobby time limit hit)", m_GameName.c_str() );
 			return true;
 		}
 	}
@@ -626,7 +626,7 @@ bool CBaseGame :: Update( void *fd )
 			{
 				// start the lag screen
 
-				CONSOLE_Print( "[GAME: " + m_GameName + "] started lagging on [" + LaggingString + "]" );
+				CONSOLE_Print( "[GAME: %s] started lagging on [%s]", m_GameName.c_str(), LaggingString.c_str() );
 				SendAll( m_Protocol->SEND_W3GS_START_LAG( m_Players ) );
 
 				// reset everyone's drop vote
@@ -653,7 +653,7 @@ bool CBaseGame :: Update( void *fd )
 				{
 					// stop the lag screen for this player
 
-					CONSOLE_Print( "[GAME: " + m_GameName + "] stopped lagging on [" + (*i)->GetName( ) + "]" );
+					CONSOLE_Print( "[GAME: %s] stopped lagging on [%s]", m_GameName.c_str(), (*i)->GetName( ).c_str() );
 					SendAll( m_Protocol->SEND_W3GS_STOP_LAG( *i ) );
 					(*i)->SetLagging( false );
 					(*i)->SetStartedLaggingTicks( 0 );
@@ -693,7 +693,7 @@ bool CBaseGame :: Update( void *fd )
 
 	if( !m_KickVotePlayer.empty( ) && GetTime( ) >= m_StartedKickVoteTime + 60 )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] expired" );
+		CONSOLE_Print( "[GAME: %s] votekick against player [%s] expired", m_GameName.c_str(), m_KickVotePlayer.c_str() );
 		SendAllChat( m_GHost->m_Language->VoteKickExpired( m_KickVotePlayer ) );
 		m_KickVotePlayer.clear( );
 		m_StartedKickVoteTime = 0;
@@ -703,7 +703,7 @@ bool CBaseGame :: Update( void *fd )
 
 	if( m_Players.size( ) == 1 && m_FakePlayerPID == 255 && m_GameOverTime == 0 && ( m_GameLoading || m_GameLoaded ) )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (one player left)" );
+		CONSOLE_Print( "[GAME: %s] gameover timer started (one player left)", m_GameName.c_str() );
 		m_GameOverTime = GetTime( );
 	}
 
@@ -724,7 +724,7 @@ bool CBaseGame :: Update( void *fd )
 
 		if( !AlreadyStopped )
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (gameover timer finished)" );
+			CONSOLE_Print( "[GAME: %s] is over (gameover timer finished)", m_GameName.c_str() );
 			StopPlayers( "was disconnected (gameover timer finished)" );
 		}
 	}
@@ -735,7 +735,7 @@ bool CBaseGame :: Update( void *fd )
 	{
 		if( !m_Saving )
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (no players left)" );
+			CONSOLE_Print( "[GAME: %s] is over (no players left)", m_GameName.c_str() );
 			SaveGameData( );
 			m_Saving = true;
 		}
@@ -851,7 +851,7 @@ void CBaseGame :: SendChat( unsigned char toPID, string message )
 	SendChat( GetHostPID( ), toPID, message );
 }
 
-void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
+void CBaseGame :: SendAllChat( unsigned char fromPID, string message, ... )
 {
 	// send a public message to all players - it'll be marked [All] in Warcraft 3
 
@@ -873,7 +873,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 
 			// this is an ingame ghost chat message, print it to the console
 
-			CONSOLE_Print( "[GAME: " + m_GameName + "] [Local]: " + message );
+			CONSOLE_Print( "[GAME: %s] [Local]: %s", m_GameName.c_str(), message.c_str() );
 			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 32, UTIL_CreateByteArray( (uint32_t)0, false ), message ) );
 
 			if( m_Replay )
@@ -882,7 +882,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 	}
 }
 
-void CBaseGame :: SendAllChat( string message )
+void CBaseGame :: SendAllChat( string message, ... )
 {
 	SendAllChat( GetHostPID( ), message );
 }
@@ -1065,7 +1065,7 @@ void CBaseGame :: SendEndMessage( )
 
 void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 {
-	CONSOLE_Print( "[GAME: " + m_GameName + "] deleting player [" + player->GetName( ) + "]: " + player->GetLeftReason( ) );
+	CONSOLE_Print( "[GAME: %s] deleting player [%s]: %s", m_GameName.c_str(), player->GetName( ).c_str(), player->GetLeftReason( ).c_str() );
 
 	// in some cases we're forced to send the left message early so don't send it again
 
@@ -1083,7 +1083,7 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 	if( m_AutoSave && m_GameLoaded && player->GetLeftCode( ) == PLAYERLEAVE_DISCONNECT )
 	{
 		string SaveGameName = UTIL_FileSafeName( "GHost++ AutoSave " + m_GameName + " (" + player->GetName( ) + ").w3z" );
-		CONSOLE_Print( "[GAME: " + m_GameName + "] auto saving [" + SaveGameName + "] before player drop, shortened send interval = " + UTIL_ToString( GetTicks( ) - m_LastActionSentTicks ) );
+		CONSOLE_Print( "[GAME: %s] auto saving [%s] before player drop, shortened send interval = %d", m_GameName.c_str(), SaveGameName.c_str(), (GetTicks()-m_LastActionSentTicks) );
 		BYTEARRAY CRC;
 		BYTEARRAY Action;
 		Action.push_back( 6 );
@@ -1182,7 +1182,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	if( joinPlayer->GetName( ).empty( ) || joinPlayer->GetName( ).size( ) > 15 )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game with an invalid name of length " + UTIL_ToString( joinPlayer->GetName( ).size( ) ) );
+		CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game with an invalid name of length %d", m_GameName.c_str(), joinPlayer->GetName( ).c_str(), joinPlayer->GetName( ).size( ) );
 		potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
 		return;
@@ -1192,7 +1192,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	if( joinPlayer->GetName( ) == m_VirtualHostName )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game with the virtual host name" );
+		CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game with the virtual host name", m_GameName.c_str(), joinPlayer->GetName( ).c_str() );
 		potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
 		return;
@@ -1202,7 +1202,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	if( GetPlayerFromName( joinPlayer->GetName( ), false ) )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but that name is already taken" );
+		CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game but that name is already taken", m_GameName.c_str(), joinPlayer->GetName( ).c_str() );
 		// SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButTaken( joinPlayer->GetName( ) ) );
 		potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
@@ -1217,7 +1217,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 		if( Ban )
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but is banned" );
+			CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game but is banned", m_GameName.c_str(), joinPlayer->GetName( ).c_str() );
 			SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBanned( joinPlayer->GetName( ) ) );
 			potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 			potential->SetDeleteMe( true );
@@ -1329,7 +1329,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// this problem is solved by setting the socket to NULL before deletion and handling the NULL case in the destructor
 	// we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
 
-	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] joined the game" );
+	CONSOLE_Print( "[GAME: %s] player [%s] joined the game", m_GameName.c_str(), joinPlayer->GetName( ).c_str() );
 	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
 
 	// consider the owner player to have already spoof checked
@@ -1470,7 +1470,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 
 	if( joinPlayer->GetName( ) == m_VirtualHostName )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game with the virtual host name" );
+		CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game with the virtual host name", m_GameName.c_str(), joinPlayer->GetName( ).c_str() );
 		potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
 		return;
@@ -1480,7 +1480,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 
 	if( GetPlayerFromName( joinPlayer->GetName( ), false ) )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but that name is already taken" );
+		CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game but that name is already taken", m_GameName.c_str(), joinPlayer->GetName( ).c_str() );
 		// SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButTaken( joinPlayer->GetName( ) ) );
 		potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
@@ -1491,7 +1491,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 
 	if( score > -99999.0 && ( score < m_MinimumScore || score > m_MaximumScore ) )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but has a rating [" + UTIL_ToString( score, 2 ) + "] outside the limits [" + UTIL_ToString( m_MinimumScore, 2 ) + "] to [" + UTIL_ToString( m_MaximumScore, 2 ) + "]" );
+		CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game but has a rating [%s] outside the limits [%s] to [%s]", m_GameName.c_str(), joinPlayer->GetName( ).c_str(), UTIL_ToString( score, 2 ).c_str(), UTIL_ToString( m_MinimumScore, 2 ).c_str(), UTIL_ToString( m_MaximumScore, 2 ).c_str() );
 		potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
 		return;
@@ -1546,7 +1546,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 		{
 			// this should be impossible
 
-			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but no furthest player was found (this should be impossible)" );
+			CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game but no furthest player was found (this should be impossible)", m_GameName.c_str(), joinPlayer->GetName( ).c_str() );
 			potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 			potential->SetDeleteMe( true );
 			return;
@@ -1557,9 +1557,9 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 		if( score < -99999.0 || abs( score - AverageScore ) > abs( FurthestPlayer->GetScore( ) - AverageScore ) )
 		{
 			if( score < -99999.0 )
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but has the furthest rating [N/A] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+				CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game but has the furthest rating [N/A] from the average [%s]", m_GameName.c_str(), joinPlayer->GetName( ).c_str(), UTIL_ToString( AverageScore, 2 ).c_str() );
 			else
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] is trying to join the game but has the furthest rating [" + UTIL_ToString( score, 2 ) + "] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+				CONSOLE_Print( "[GAME: %s] player [%s] is trying to join the game but has the furthest rating [%s] from the average [%s]", m_GameName.c_str(), joinPlayer->GetName( ).c_str(), UTIL_ToString( score, 2 ).c_str(), UTIL_ToString( AverageScore, 2 ).c_str() );
 
 			potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 			potential->SetDeleteMe( true );
@@ -1607,7 +1607,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	// this problem is solved by setting the socket to NULL before deletion and handling the NULL case in the destructor
 	// we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
 
-	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "] joined the game" );
+	CONSOLE_Print( "[GAME: %s] player [%s] joined the game", m_GameName.c_str(), joinPlayer->GetName( ).c_str() );
 	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), false );
 	Player->SetScore( score );
 	m_Players.push_back( Player );
@@ -1768,7 +1768,7 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 
 	if( !action->GetAction( ).empty( ) && action->GetAction( )[0] == 6 )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] is saving the game" );
+		CONSOLE_Print( "[GAME: %s] player [%s] is saving the game", m_GameName.c_str(), player->GetName( ).c_str() );
 		SendAllChat( m_GHost->m_Language->PlayerIsSavingTheGame( player->GetName( ) ) );
 	}
 }
@@ -1787,7 +1787,7 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 		if( !m_Desynced && (*i)->GetCheckSums( )->front( ) != FirstCheckSum )
 		{
 			m_Desynced = true;
-			CONSOLE_Print( "[GAME: " + m_GameName + "] desync detected" );
+			CONSOLE_Print( "[GAME: %s] desync detected", m_GameName.c_str() );
 			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
 			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
 			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
@@ -1833,7 +1833,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					{
 						// this is an ingame [All] message, print it to the console
 
-						CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+						CONSOLE_Print( "[GAME: %s] (%s:%s) [All] [%s]: %s", m_GameName.c_str(), MinString.c_str(), SecString.c_str(), player->GetName( ).c_str(), chatPlayer->GetMessage( ).c_str() );
 
 						// don't relay ingame messages targeted for all players if we're currently muting all
 						// note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
@@ -1855,7 +1855,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 				{
 					// this is a lobby message, print it to the console
 
-					CONSOLE_Print( "[GAME: " + m_GameName + "] [Lobby] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+					CONSOLE_Print( "[GAME: %s] [Lobby] [%s]: %s", m_GameName.c_str(), player->GetName( ).c_str(), chatPlayer->GetMessage( ).c_str() );
 
 					if( m_MuteLobby )
 						Relay = false;
@@ -2039,7 +2039,7 @@ void CBaseGame :: EventPlayerDropRequest( CGamePlayer *player )
 
 	if( m_Lagging )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] voted to drop laggers" );
+		CONSOLE_Print( "[GAME: %s] player [%s] voted to drop laggers", m_GameName.c_str(), player->GetName( ).c_str() );
 		SendAllChat( m_GHost->m_Language->PlayerVotedToDropLaggers( player->GetName( ) ) );
 
 		// check if at least half the players voted to drop
@@ -2082,7 +2082,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 					{
 						// inform the client that we are willing to send the map
 
-						CONSOLE_Print( "[GAME: " + m_GameName + "] map download started for player [" + player->GetName( ) + "]" );
+						CONSOLE_Print( "[GAME: %s] map download started for player [%s]", m_GameName.c_str(), player->GetName( ).c_str() );
 						Send( player, m_Protocol->SEND_W3GS_STARTDOWNLOAD( GetHostPID( ) ) );
 						player->SetDownloadStarted( true );
 						player->SetStartedDownloadingTicks( GetTicks( ) );
@@ -2115,7 +2115,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 
 			float Seconds = (float)( GetTicks( ) - player->GetStartedDownloadingTicks( ) ) / 1000;
 			float Rate = (float)MapSize / 1024 / Seconds;
-			CONSOLE_Print( "[GAME: " + m_GameName + "] map download finished for player [" + player->GetName( ) + "] in " + UTIL_ToString( Seconds, 1 ) + " seconds" );
+			CONSOLE_Print( "[GAME: %s] map download finished for player [%s] in %s seconds", m_GameName.c_str(), player->GetName( ).c_str(), UTIL_ToString( Seconds, 1 ).c_str() );
 			SendAllChat( m_GHost->m_Language->PlayerDownloadedTheMap( player->GetName( ), UTIL_ToString( Seconds, 1 ), UTIL_ToString( Rate, 1 ) ) );
 			player->SetDownloadFinished( true );
 			player->SetFinishedDownloadingTime( GetTime( ) );
@@ -2164,7 +2164,7 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 
 void CBaseGame :: EventGameStarted( )
 {
-	CONSOLE_Print( "[GAME: " + m_GameName + "] started loading with " + UTIL_ToString( GetNumPlayers( ) ) + " players" );
+	CONSOLE_Print( "[GAME: %s] started loading with %d players", m_GameName.c_str(), GetNumPlayers( ) );
 
 	// since we use a fake countdown to deal with leavers during countdown the COUNTDOWN_START and COUNTDOWN_END packets are sent in quick succession
 	// send a start countdown packet
@@ -2249,7 +2249,7 @@ void CBaseGame :: EventGameStarted( )
 
 void CBaseGame :: EventGameLoaded( )
 {
-	CONSOLE_Print( "[GAME: " + m_GameName + "] finished loading with " + UTIL_ToString( GetNumPlayers( ) ) + " players" );
+	CONSOLE_Print( "[GAME: %s] finished loading with %d players", m_GameName.c_str(), GetNumPlayers( ) );
 
 	// send shortest, longest, and personal load times to each player
 

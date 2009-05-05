@@ -41,6 +41,8 @@
 #include <string>
 #include <vector>
 
+#include <stdarg.h>
+
 using namespace std;
 
 typedef vector<unsigned char> BYTEARRAY;
@@ -63,7 +65,7 @@ uint32_t GetTicks( );		// milliseconds
 
 // output
 
-void CONSOLE_Print( string message );
+void CONSOLE_Print( const char * message, ... );
 void DEBUG_Print( string message );
 void DEBUG_Print( BYTEARRAY b );
 

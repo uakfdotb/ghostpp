@@ -81,7 +81,7 @@ CPacked :: ~CPacked( )
 void CPacked :: Load( string fileName, bool allBlocks )
 {
 	m_Valid = true;
-	CONSOLE_Print( "[PACKED] loading data from file [" + fileName + "]" );
+	CONSOLE_Print( "[PACKED] loading data from file [%s]", fileName.c_str() );
 	m_Compressed = UTIL_FileRead( fileName );
 	Decompress( allBlocks );
 }
@@ -92,7 +92,7 @@ bool CPacked :: Save( string fileName )
 
 	if( m_Valid )
 	{
-		CONSOLE_Print( "[PACKED] saving data to file [" + fileName + "]" );
+		CONSOLE_Print( "[PACKED] saving data to file [%s]", fileName.c_str() );
 		return UTIL_FileWrite( fileName, (unsigned char *)m_Compressed.c_str( ), m_Compressed.size( ) );
 	}
 	else
@@ -102,7 +102,7 @@ bool CPacked :: Save( string fileName )
 bool CPacked :: Extract( string inFileName, string outFileName )
 {
 	m_Valid = true;
-	CONSOLE_Print( "[PACKED] extracting data from file [" + inFileName + "] to file [" + outFileName + "]" );
+	CONSOLE_Print( "[PACKED] extracting data from file [%s] to file [%s]", inFileName.c_str(), outFileName.c_str() );
 	m_Compressed = UTIL_FileRead( inFileName );
 	Decompress( true );
 
@@ -166,9 +166,9 @@ void CPacked :: Decompress( bool allBlocks )
 	}
 
 	if( allBlocks )
-		CONSOLE_Print( "[PACKED] reading " + UTIL_ToString( NumBlocks ) + " blocks" );
+		CONSOLE_Print( "[PACKED] reading %d blocks", NumBlocks );
 	else
-		CONSOLE_Print( "[PACKED] reading 1/" + UTIL_ToString( NumBlocks ) + " blocks" );
+		CONSOLE_Print( "[PACKED] reading 1/%d blocks" );
 
 	// read blocks
 
@@ -213,7 +213,7 @@ void CPacked :: Decompress( bool allBlocks )
 
 		if( Result != Z_OK )
 		{
-			CONSOLE_Print( "[PACKED] tzuncompress error " + UTIL_ToString( Result ) );
+			CONSOLE_Print( "[PACKED] tzuncompress error %d", Result );
 			delete [] DecompressedData;
 			delete [] CompressedData;
 			m_Valid = false;
@@ -222,7 +222,7 @@ void CPacked :: Decompress( bool allBlocks )
 
 		if( BlockDecompressedLong != (uLongf)BlockDecompressed )
 		{
-			CONSOLE_Print( "[PACKED] block decompressed size mismatch, actual = " + UTIL_ToString( BlockDecompressedLong ) + ", expected = " + UTIL_ToString( BlockDecompressed ) );
+			CONSOLE_Print( "[PACKED] block decompressed size mismatch, actual = %d, expected = %d", BlockDecompressedLong, BlockDecompressed );
 			delete [] DecompressedData;
 			delete [] CompressedData;
 			m_Valid = false;
@@ -239,7 +239,7 @@ void CPacked :: Decompress( bool allBlocks )
 			break;
 	}
 
-	CONSOLE_Print( "[PACKED] decompressed " + UTIL_ToString( m_Decompressed.size( ) ) + " bytes" );
+	CONSOLE_Print( "[PACKED] decompressed %d bytes", m_Decompressed.size( ) );
 
 	if( allBlocks || NumBlocks == 1 )
 	{
@@ -252,7 +252,7 @@ void CPacked :: Decompress( bool allBlocks )
 
 		// the last block is padded with zeros, discard them
 
-		CONSOLE_Print( "[PACKED] discarding " + UTIL_ToString( m_Decompressed.size( ) - DecompressedSize ) + " bytes" );
+		CONSOLE_Print( "[PACKED] discarding %d bytes", (m_Decompressed.size()-DecompressedSize) );
 		m_Decompressed.erase( DecompressedSize );
 	}
 }
@@ -282,7 +282,7 @@ void CPacked :: Compress( )
 
 		if( Result != Z_OK )
 		{
-			CONSOLE_Print( "[PACKED] compress error " + UTIL_ToString( Result ) );
+			CONSOLE_Print( "[PACKED] compress error %d", Result );
 			delete [] CompressedData;
 			m_Valid = false;
 			return;

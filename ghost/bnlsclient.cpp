@@ -83,13 +83,13 @@ bool CBNLSClient :: Update( void *fd )
 {
 	if( m_Socket->HasError( ) )
 	{
-		CONSOLE_Print( "[BNLSC: " + m_Server + ":" + UTIL_ToString( m_Port ) + ":C" + UTIL_ToString( m_WardenCookie ) + "] disconnected from BNLS server due to socket error" );
+		CONSOLE_Print( "[BNLSC: %s:%d:C%d] disconnected from BNLS server due to socket error", m_Server.c_str(), m_Port, m_WardenCookie );
 		return true;
 	}
 
 	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && m_WasConnected )
 	{
-		CONSOLE_Print( "[BNLSC: " + m_Server + ":" + UTIL_ToString( m_Port ) + ":C" + UTIL_ToString( m_WardenCookie ) + "] disconnected from BNLS server due to socket not connected" );
+		CONSOLE_Print( "[BNLSC: %s:%d:C%d] disconnected from BNLS server due to socket not connected", m_Server.c_str(), m_Port, m_WardenCookie );
 		return true;
 	}
 
@@ -117,7 +117,8 @@ bool CBNLSClient :: Update( void *fd )
 
 	if( m_Socket->GetConnecting( ) && m_Socket->CheckConnect( ) )
 	{
-		CONSOLE_Print( "[BNLSC: " + m_Server + ":" + UTIL_ToString( m_Port ) + ":C" + UTIL_ToString( m_WardenCookie ) + "] connected" );
+		m_Port = 1;
+		CONSOLE_Print( "[BNLSC: %s:%d:C%d] connected", m_Server.c_str(), m_Port, m_WardenCookie );
 		m_WasConnected = true;
 		m_LastNullTime = GetTime( );
 		return false;
@@ -125,7 +126,7 @@ bool CBNLSClient :: Update( void *fd )
 
 	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && !m_WasConnected )
 	{
-		CONSOLE_Print( "[BNLSC: " + m_Server + ":" + UTIL_ToString( m_Port ) + ":C" + UTIL_ToString( m_WardenCookie ) + "] connecting to server [" + m_Server + "] on port " + UTIL_ToString( m_Port ) );
+		CONSOLE_Print( "[BNLSC: %s:%d:C%d] connecting to server [%s] on port %d", m_Server.c_str(), m_Port, m_WardenCookie, m_Server.c_str(), m_Port );
 		m_Socket->Connect( string( ), m_Server, m_Port );
 		return false;
 	}
@@ -155,7 +156,7 @@ void CBNLSClient :: ExtractPackets( )
 		}
 		else
 		{
-			CONSOLE_Print( "[BNLSC: " + m_Server + ":" + UTIL_ToString( m_Port ) + ":C" + UTIL_ToString( m_WardenCookie ) + "] error - received invalid packet from BNLS server (bad length), disconnecting" );
+			CONSOLE_Print( "[BNLSC: %s:%d:C%d] error - received invalid packet from BNLS server (bad length), disconnecting", m_Server.c_str(), m_Port, m_WardenCookie );
 			m_Socket->Disconnect( );
 			return;
 		}

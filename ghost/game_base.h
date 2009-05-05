@@ -164,8 +164,8 @@ public:
 	virtual void SendChat( unsigned char fromPID, unsigned char toPID, string message );
 	virtual void SendChat( CGamePlayer *player, string message );
 	virtual void SendChat( unsigned char toPID, string message );
-	virtual void SendAllChat( unsigned char fromPID, string message );
-	virtual void SendAllChat( string message );
+	virtual void SendAllChat( unsigned char fromPID, string message, ... );
+	virtual void SendAllChat( string message, ... );
 	virtual void SendAllSlotInfo( );
 	virtual void SendVirtualHostPlayerInfo( CGamePlayer *player );
 	virtual void SendFakePlayerInfo( CGamePlayer *player );

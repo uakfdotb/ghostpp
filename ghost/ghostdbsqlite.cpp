@@ -106,8 +106,8 @@ uint32_t CSQLITE3 :: LastRowID( )
 CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 {
 	m_File = CFG->GetString( "db_sqlite3_file", "ghost.dbs" );
-	CONSOLE_Print( "[SQLITE3] version " + string( SQLITE_VERSION ) );
-	CONSOLE_Print( "[SQLITE3] opening database [" + m_File + "]" );
+	CONSOLE_Print( "[SQLITE3] version %s", SQLITE_VERSION );
+	CONSOLE_Print( "[SQLITE3] opening database [%s]", m_File.c_str() );
 	m_DB = new CSQLITE3( m_File );
 
 	if( !m_DB->GetReady( ) )
@@ -115,7 +115,7 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 		// setting m_HasError to true indicates there's been a critical error and we want GHost to shutdown
 		// this is okay here because we're in the constructor so we're not dropping any games or players
 
-		CONSOLE_Print( string( "[SQLITE3] error opening database [" + m_File + "] - " ) + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error opening database [%s] - %s", m_File.c_str(), m_DB->GetError( ).c_str() );
 		m_HasError = true;
 		m_Error = "error opening database";
 		return;
@@ -141,12 +141,12 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 				CONSOLE_Print( "[SQLITE3] error getting schema number - row doesn't have 1 column" );
 		}
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error getting schema number - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error getting schema number - %s", m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error getting schema number - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error getting schema number - %s", m_DB->GetError( ).c_str() );
 
 	if( SchemaNumber.empty( ) )
 	{
@@ -168,12 +168,12 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 			if( RC == SQLITE_ROW )
 				AdminTable = true;
 			else if( RC == SQLITE_ERROR )
-				CONSOLE_Print( "[SQLITE3] error looking for admins table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error looking for admins table - %s", m_DB->GetError( ).c_str() );
 
 			m_DB->Finalize( Statement );
 		}
 		else
-			CONSOLE_Print( "[SQLITE3] prepare error looking for admins table - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] prepare error looking for admins table - %s", m_DB->GetError( ).c_str() );
 
 		if( AdminTable )
 		{
@@ -191,25 +191,25 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 			SchemaNumber = "8";
 
 			if( m_DB->Exec( "CREATE TABLE admins ( id INTEGER PRIMARY KEY, name TEXT NOT NULL, server TEXT NOT NULL DEFAULT \"\" )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating admins table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating admins table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE bans ( id INTEGER PRIMARY KEY, server TEXT NOT NULL, name TEXT NOT NULL, ip TEXT, date TEXT NOT NULL, gamename TEXT, admin TEXT NOT NULL, reason TEXT )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating bans table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating bans table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE games ( id INTEGER PRIMARY KEY, server TEXT NOT NULL, map TEXT NOT NULL, datetime TEXT NOT NULL, gamename TEXT NOT NULL, ownername TEXT NOT NULL, duration INTEGER NOT NULL, gamestate INTEGER NOT NULL DEFAULT 0, creatorname TEXT NOT NULL DEFAULT \"\", creatorserver TEXT NOT NULL DEFAULT \"\" )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating games table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating games table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE gameplayers ( id INTEGER PRIMARY KEY, gameid INTEGER NOT NULL, name TEXT NOT NULL, ip TEXT NOT NULL, spoofed INTEGER NOT NULL, reserved INTEGER NOT NULL, loadingtime INTEGER NOT NULL, left INTEGER NOT NULL, leftreason TEXT NOT NULL, team INTEGER NOT NULL, colour INTEGER NOT NULL, spoofedrealm TEXT NOT NULL DEFAULT \"\" )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating gameplayers table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating gameplayers table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE dotagames ( id INTEGER PRIMARY KEY, gameid INTEGER NOT NULL, winner INTEGER NOT NULL, min INTEGER NOT NULL DEFAULT 0, sec INTEGER NOT NULL DEFAULT 0 )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating dotagames table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating dotagames table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE dotaplayers ( id INTEGER PRIMARY KEY, gameid INTEGER NOT NULL, colour INTEGER NOT NULL, kills INTEGER NOT NULL, deaths INTEGER NOT NULL, creepkills INTEGER NOT NULL, creepdenies INTEGER NOT NULL, assists INTEGER NOT NULL, gold INTEGER NOT NULL, neutralkills INTEGER NOT NULL, item1 TEXT NOT NULL, item2 TEXT NOT NULL, item3 TEXT NOT NULL, item4 TEXT NOT NULL, item5 TEXT NOT NULL, item6 TEXT NOT NULL, hero TEXT NOT NULL DEFAULT \"\", newcolour NOT NULL DEFAULT 0, towerkills NOT NULL DEFAULT 0, raxkills NOT NULL DEFAULT 0, courierkills NOT NULL DEFAULT 0 )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating dotaplayers table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating dotaplayers table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE config ( name TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating config table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating config table - %s", m_DB->GetError( ).c_str() );
 
 			m_DB->Prepare( "INSERT INTO config VALUES ( \"schema_number\", ? )", (void **)&Statement );
 
@@ -219,31 +219,31 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 				int RC = m_DB->Step( Statement );
 
 				if( RC == SQLITE_ERROR )
-					CONSOLE_Print( "[SQLITE3] error inserting schema number [" + SchemaNumber + "] - " + m_DB->GetError( ) );
+					CONSOLE_Print( "[SQLITE3] error inserting schema number [%s] - %s", SchemaNumber.c_str(), m_DB->GetError( ).c_str() );
 
 				m_DB->Finalize( Statement );
 			}
 			else
-				CONSOLE_Print( "[SQLITE3] prepare error inserting schema number [" + SchemaNumber + "] - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] prepare error inserting schema number [%s] - %s", SchemaNumber.c_str(), m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE downloads ( id INTEGER PRIMARY KEY, map TEXT NOT NULL, mapsize INTEGER NOT NULL, datetime TEXT NOT NULL, name TEXT NOT NULL, ip TEXT NOT NULL, spoofed INTEGER NOT NULL, spoofedrealm TEXT NOT NULL, downloadtime INTEGER NOT NULL )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating downloads table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating downloads table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE w3mmdplayers ( id INTEGER PRIMARY KEY, category TEXT NOT NULL, gameid INTEGER NOT NULL, pid INTEGER NOT NULL, name TEXT NOT NULL, flag TEXT NOT NULL, leaver INTEGER NOT NULL, practicing INTEGER NOT NULL )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating w3mmdplayers table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating w3mmdplayers table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE TABLE w3mmdvars ( id INTEGER PRIMARY KEY, gameid INTEGER NOT NULL, pid INTEGER NOT NULL, varname TEXT NOT NULL, value_int INTEGER DEFAULT NULL, value_real REAL DEFAULT NULL, value_string TEXT DEFAULT NULL )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating w3mmdvars table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating w3mmdvars table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE INDEX idx_gameid ON gameplayers ( gameid )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating idx_gameid index on gameplayers table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating idx_gameid index on gameplayers table - %s", m_DB->GetError( ).c_str() );
 
 			if( m_DB->Exec( "CREATE INDEX idx_gameid_colour ON dotaplayers ( gameid, colour )" ) != SQLITE_OK )
-				CONSOLE_Print( "[SQLITE3] error creating idx_gameid_colour index on dotaplayers table - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error creating idx_gameid_colour index on dotaplayers table - %s", m_DB->GetError( ).c_str() );
 		}
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] found schema number [" + SchemaNumber + "]" );
+		CONSOLE_Print( "[SQLITE3] found schema number [%]", SchemaNumber.c_str() );
 
 	if( SchemaNumber == "1" )
 	{
@@ -288,7 +288,7 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 	}
 
 	if( m_DB->Exec( "CREATE TEMPORARY TABLE iptocountry ( ip1 INTEGER NOT NULL, ip2 INTEGER NOT NULL, country TEXT NOT NULL, PRIMARY KEY ( ip1, ip2 ) )" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error creating temporary iptocountry table - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error creating temporary iptocountry table - %s", m_DB->GetError( ).c_str() );
 
 	FromAddStmt = NULL;
 }
@@ -298,7 +298,7 @@ CGHostDBSQLite :: ~CGHostDBSQLite( )
 	if( FromAddStmt )
 		m_DB->Finalize( FromAddStmt );
 
-	CONSOLE_Print( "[SQLITE3] closing database [" + m_File + "]" );
+	CONSOLE_Print( "[SQLITE3] closing database [%s]", m_File.c_str() );
 	delete m_DB;
 }
 
@@ -310,7 +310,7 @@ void CGHostDBSQLite :: Upgrade1_2( )
 	//  + hero TEXT NOT NULL DEFAULT ""
 
 	if( m_DB->Exec( "ALTER TABLE dotaplayers ADD hero TEXT NOT NULL DEFAULT \"\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column hero to table dotaplayers - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column hero to table dotaplayers - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column hero to table dotaplayers" );
 
@@ -319,19 +319,19 @@ void CGHostDBSQLite :: Upgrade1_2( )
 	//  + sec INTEGER NOT NULL DEFAULT 0
 
 	if( m_DB->Exec( "ALTER TABLE dotagames ADD min INTEGER NOT NULL DEFAULT 0" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column min to table dotagames - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column min to table dotagames - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column min to table dotagames" );
 
 	if( m_DB->Exec( "ALTER TABLE dotagames ADD sec INTEGER NOT NULL DEFAULT 0" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column sec to table dotagames - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column sec to table dotagames - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column sec to table dotagames" );
 
 	// add new table config
 
 	if( m_DB->Exec( "CREATE TABLE config ( name TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL )" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error creating config table - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error creating config table - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] created config table" );
 
@@ -345,12 +345,12 @@ void CGHostDBSQLite :: Upgrade1_2( )
 		if( RC == SQLITE_DONE )
 			CONSOLE_Print( "[SQLITE3] inserted schema number [2]" );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error inserting schema number [2] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error inserting schema number [2] - %s", m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error inserting schema number [2] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error inserting schema number [2] - %s", m_DB->GetError( ).c_str() );
 
 	CONSOLE_Print( "[SQLITE3] schema upgrade v1 to v2 finished" );
 }
@@ -363,7 +363,7 @@ void CGHostDBSQLite :: Upgrade2_3( )
 	//  + server TEXT NOT NULL DEFAULT ""
 
 	if( m_DB->Exec( "ALTER TABLE admins ADD server TEXT NOT NULL DEFAULT \"\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column server to table admins - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column server to table admins - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column server to table admins" );
 
@@ -371,7 +371,7 @@ void CGHostDBSQLite :: Upgrade2_3( )
 	//  + gamestate INTEGER NOT NULL DEFAULT 0
 
 	if( m_DB->Exec( "ALTER TABLE games ADD gamestate INTEGER NOT NULL DEFAULT 0" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column gamestate to table games - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column gamestate to table games - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column gamestate to table games" );
 
@@ -379,14 +379,14 @@ void CGHostDBSQLite :: Upgrade2_3( )
 	//  + spoofedrealm TEXT NOT NULL DEFAULT ""
 
 	if( m_DB->Exec( "ALTER TABLE gameplayers ADD spoofedrealm TEXT NOT NULL DEFAULT \"\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column spoofedrealm to table gameplayers - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column spoofedrealm to table gameplayers - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column spoofedrealm to table gameplayers" );
 
 	// update schema number
 
 	if( m_DB->Exec( "UPDATE config SET value=\"3\" where name=\"schema_number\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error updating schema number [3] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error updating schema number [3] - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] updated schema number [3]" );
 
@@ -402,26 +402,26 @@ void CGHostDBSQLite :: Upgrade3_4( )
 	//  + creatorserver TEXT NOT NULL DEFAULT ""
 
 	if( m_DB->Exec( "ALTER TABLE games ADD creatorname TEXT NOT NULL DEFAULT \"\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column creatorname to table games - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column creatorname to table games - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column creatorname to table games" );
 
 	if( m_DB->Exec( "ALTER TABLE games ADD creatorserver TEXT NOT NULL DEFAULT \"\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column creatorserver to table games - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column creatorserver to table games - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column creatorserver to table games" );
 
 	// add new table downloads
 
 	if( m_DB->Exec( "CREATE TABLE downloads ( id INTEGER PRIMARY KEY, map TEXT NOT NULL, mapsize INTEGER NOT NULL, datetime TEXT NOT NULL, name TEXT NOT NULL, ip TEXT NOT NULL, spoofed INTEGER NOT NULL, spoofedrealm TEXT NOT NULL, downloadtime INTEGER NOT NULL )" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error creating downloads table - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error creating downloads table - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] created downloads table" );
 
 	// update schema number
 
 	if( m_DB->Exec( "UPDATE config SET value=\"4\" where name=\"schema_number\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error updating schema number [4] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error updating schema number [4] - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] updated schema number [4]" );
 
@@ -436,21 +436,21 @@ void CGHostDBSQLite :: Upgrade4_5( )
 	//  + newcolour NOT NULL DEFAULT 0
 
 	if( m_DB->Exec( "ALTER TABLE dotaplayers ADD newcolour NOT NULL DEFAULT 0" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column newcolour to table dotaplayers - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column newcolour to table dotaplayers - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column newcolour to table dotaplayers" );
 
 	// set newcolour = colour on all existing dotaplayers rows
 
 	if( m_DB->Exec( "UPDATE dotaplayers SET newcolour=colour WHERE newcolour=0" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error setting newcolour = colour on all existing dotaplayers rows - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error setting newcolour = colour on all existing dotaplayers rows - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] set newcolour = colour on all existing dotaplayers rows" );
 
 	// update schema number
 
 	if( m_DB->Exec( "UPDATE config SET value=\"5\" where name=\"schema_number\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error updating schema number [5] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error updating schema number [5] - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] updated schema number [5]" );
 
@@ -467,24 +467,24 @@ void CGHostDBSQLite :: Upgrade5_6( )
 	//  + courierkills NOT NULL DEFAULT 0
 
 	if( m_DB->Exec( "ALTER TABLE dotaplayers ADD towerkills NOT NULL DEFAULT 0" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column towerkills to table dotaplayers - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column towerkills to table dotaplayers - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column towerkills to table dotaplayers" );
 
 	if( m_DB->Exec( "ALTER TABLE dotaplayers ADD raxkills NOT NULL DEFAULT 0" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column raxkills to table dotaplayers - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column raxkills to table dotaplayers - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column raxkills to table dotaplayers" );
 
 	if( m_DB->Exec( "ALTER TABLE dotaplayers ADD courierkills NOT NULL DEFAULT 0" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error adding new column courierkills to table dotaplayers - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error adding new column courierkills to table dotaplayers - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new column courierkills to table dotaplayers" );
 
 	// update schema number
 
 	if( m_DB->Exec( "UPDATE config SET value=\"6\" where name=\"schema_number\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error updating schema number [6] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error updating schema number [6] - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] updated schema number [6]" );
 
@@ -498,21 +498,21 @@ void CGHostDBSQLite :: Upgrade6_7( )
 	// add new index to table gameplayers
 
 	if( m_DB->Exec( "CREATE INDEX idx_gameid ON gameplayers ( gameid )" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error creating idx_gameid index on gameplayers table - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error creating idx_gameid index on gameplayers table - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new index idx_gameid to table gameplayers" );
 
 	// add new index to table dotaplayers
 
 	if( m_DB->Exec( "CREATE INDEX idx_gameid_colour ON dotaplayers ( gameid, colour )" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error creating idx_gameid_colour index on dotaplayers table - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error creating idx_gameid_colour index on dotaplayers table - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] added new index idx_gameid_colour to table dotaplayers" );
 
 	// update schema number
 
 	if( m_DB->Exec( "UPDATE config SET value=\"7\" where name=\"schema_number\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error updating schema number [7] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error updating schema number [7] - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] updated schema number [7]" );
 
@@ -526,19 +526,19 @@ void CGHostDBSQLite :: Upgrade7_8( )
 	// create new tables
 
 	if( m_DB->Exec( "CREATE TABLE w3mmdplayers ( id INTEGER PRIMARY KEY, category TEXT NOT NULL, gameid INTEGER NOT NULL, pid INTEGER NOT NULL, name TEXT NOT NULL, flag TEXT NOT NULL, leaver INTEGER NOT NULL, practicing INTEGER NOT NULL )" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error creating w3mmdplayers table - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error creating w3mmdplayers table - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] created w3mmdplayers table" );
 
 	if( m_DB->Exec( "CREATE TABLE w3mmdvars ( id INTEGER PRIMARY KEY, gameid INTEGER NOT NULL, pid INTEGER NOT NULL, varname TEXT NOT NULL, value_int INTEGER DEFAULT NULL, value_real REAL DEFAULT NULL, value_string TEXT DEFAULT NULL )" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error creating w3mmdvars table - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error creating w3mmdvars table - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] created w3mmdvars table" );
 
 	// update schema number
 
 	if( m_DB->Exec( "UPDATE config SET value=\"8\" where name=\"schema_number\"" ) != SQLITE_OK )
-		CONSOLE_Print( "[SQLITE3] error updating schema number [8] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] error updating schema number [8] - %s", m_DB->GetError( ).c_str() );
 	else
 		CONSOLE_Print( "[SQLITE3] updated schema number [8]" );
 
@@ -569,12 +569,12 @@ uint32_t CGHostDBSQLite :: AdminCount( string server )
 		if( RC == SQLITE_ROW )
 			Count = sqlite3_column_int( Statement, 0 );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error counting admins [" + server + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error counting admins [%s] - %s", server.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error counting admins [" + server + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error counting admins [%s] - %s", server.c_str(), m_DB->GetError( ).c_str() );
 
 	return Count;
 }
@@ -597,12 +597,12 @@ bool CGHostDBSQLite :: AdminCheck( string server, string user )
 		if( RC == SQLITE_ROW )
 			IsAdmin = true;
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error checking admin [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error checking admin [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error checking admin [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error checking admin [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 	return IsAdmin;
 }
@@ -623,12 +623,12 @@ bool CGHostDBSQLite :: AdminAdd( string server, string user )
 		if( RC == SQLITE_DONE )
 			Success = true;
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding admin [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error adding admin [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding admin [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding admin [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 	return Success;
 }
@@ -649,12 +649,12 @@ bool CGHostDBSQLite :: AdminRemove( string server, string user )
 		if( RC == SQLITE_DONE )
 			Success = true;
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error removing admin [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error removing admin [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error removing admin [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error removing admin [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 	return Success;
 }
@@ -681,12 +681,12 @@ vector<string> CGHostDBSQLite :: AdminList( string server )
 		}
 
 		if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error retrieving admin list [" + server + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error retrieving admin list [%s] - %s", server.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error retrieving admin list [" + server + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error retrieving admin list [%s] - %s", server.c_str(), m_DB->GetError( ).c_str() );
 
 	return AdminList;
 }
@@ -705,12 +705,12 @@ uint32_t CGHostDBSQLite :: BanCount( string server )
 		if( RC == SQLITE_ROW )
 			Count = sqlite3_column_int( Statement, 0 );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error counting bans [" + server + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error counting bans [%s] - %s", server.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error counting bans [" + server + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error counting bans [%s] - %s", server.c_str(), m_DB->GetError( ).c_str() );
 
 	return Count;
 }
@@ -735,15 +735,15 @@ CDBBan *CGHostDBSQLite :: BanCheck( string server, string user )
 			if( Row->size( ) == 5 )
 				Ban = new CDBBan( server, user, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4] );
 			else
-				CONSOLE_Print( "[SQLITE3] error checking ban [" + server + " : " + user + "] - row doesn't have 5 columns" );
+				CONSOLE_Print( "[SQLITE3] error checking ban [%s : %s] - row doesn't have 5 columns", server.c_str(), user.c_str() );
 		}
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error checking ban [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error checking ban [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error checking ban [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error checking ban [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 	return Ban;
 }
@@ -769,12 +769,13 @@ bool CGHostDBSQLite :: BanAdd( string server, string user, string ip, string gam
 		if( RC == SQLITE_DONE )
 			Success = true;
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding ban [" + server + " : " + user + " : " + ip + " : " + gamename + " : " + admin + " : " + reason + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error adding ban [%s : %s : %s : %s : %s : %s] - %s", server.c_str(), user.c_str(), ip.c_str(), gamename.c_str(), admin.c_str(), reason.c_str(), m_DB->GetError( ).c_str() );
+		
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding ban [" + server + " : " + user + " : " + ip + " : " + gamename + " : " + admin + " : " + reason + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding ban [%s : %s : %s : %s : %s : %s] - %s", server.c_str(), user.c_str(), ip.c_str(), gamename.c_str(), admin.c_str(), reason.c_str(), m_DB->GetError( ).c_str() );
 
 	return Success;
 }
@@ -795,12 +796,12 @@ bool CGHostDBSQLite :: BanRemove( string server, string user )
 		if( RC == SQLITE_DONE )
 			Success = true;
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error removing ban [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error removing ban [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error removing ban [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error removing ban [%s : %s] - %s", server.c_str(), user.c_str(), m_DB->GetError( ).c_str() );
 
 	return Success;
 }
@@ -820,12 +821,12 @@ bool CGHostDBSQLite :: BanRemove( string user )
 		if( RC == SQLITE_DONE )
 			Success = true;
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error removing ban [" + user + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error removing ban [%s] - %s", user.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error removing ban [" + user + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error removing ban [%s] - %s", user.c_str(), m_DB->GetError( ).c_str() );
 
 	return Success;
 }
@@ -852,12 +853,12 @@ vector<CDBBan *> CGHostDBSQLite :: BanList( string server )
 		}
 
 		if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error retrieving ban list [" + server + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error retrieving ban list [%s] - %s", server.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error retrieving ban list [" + server + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error retrieving ban list [%s] - %s", server.c_str(), m_DB->GetError( ).c_str() );
 
 	return BanList;
 }
@@ -884,12 +885,12 @@ uint32_t CGHostDBSQLite :: GameAdd( string server, string map, string gamename, 
 		if( RC == SQLITE_DONE )
 			RowID = m_DB->LastRowID( );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding game [" + server + " : " + map + " : " + gamename + " : " + ownername + " : " + UTIL_ToString( duration ) + " : " + UTIL_ToString( gamestate ) + " : " + creatorname + " : " + creatorserver + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error adding game [%s : %s : %s : %s : %d : %d : %s : %s] - %s", server.c_str(), map.c_str(), gamename.c_str(), ownername.c_str(), duration, gamestate, creatorname.c_str(), creatorserver.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding game [" + server + " : " + map + " : " + gamename + " : " + ownername + " : " + UTIL_ToString( duration ) + " : " + UTIL_ToString( gamestate ) + " : " + creatorname + " : " + creatorserver + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding game [%s : %s : %s : %s : %d : %d : %s : %s] - %s", server.c_str(), map.c_str(), gamename.c_str(), ownername.c_str(), duration, gamestate, creatorname.c_str(), creatorserver.c_str(), m_DB->GetError( ).c_str() );
 
 	return RowID;
 }
@@ -920,12 +921,11 @@ uint32_t CGHostDBSQLite :: GamePlayerAdd( uint32_t gameid, string name, string i
 		if( RC == SQLITE_DONE )
 			RowID = m_DB->LastRowID( );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding gameplayer [" + UTIL_ToString( gameid ) + " : " + name + " : " + ip + " : " + UTIL_ToString( spoofed ) + " : " + spoofedrealm + " : " + UTIL_ToString( reserved ) + " : " + UTIL_ToString( loadingtime ) + " : " + UTIL_ToString( left ) + " : " + leftreason + " : " + UTIL_ToString( team ) + " : " + UTIL_ToString( colour ) + "] - " + m_DB->GetError( ) );
-
+			CONSOLE_Print( "[SQLITE3] error adding gameplayer [%d : %s : %s : %d : %s : %d : %d : %d : %s : %d : %d] - %s", gameid, name.c_str(), ip.c_str(), spoofed, spoofedrealm.c_str(), reserved, loadingtime, left, leftreason.c_str(), team, colour, m_DB->GetError( ).c_str() );
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding gameplayer [" + UTIL_ToString( gameid ) + " : " + name + " : " + ip + " : " + UTIL_ToString( spoofed ) + " : " + spoofedrealm + " : " + UTIL_ToString( reserved ) + " : " + UTIL_ToString( loadingtime ) + " : " + UTIL_ToString( left ) + " : " + leftreason + " : " + UTIL_ToString( team ) + " : " + UTIL_ToString( colour ) + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding gameplayer [%d : %s : %s : %d : %s : %d : %d : %d : %s : %d : %d] - %s", gameid, name.c_str(), ip.c_str(), spoofed, spoofedrealm.c_str(), reserved, loadingtime, left, leftreason.c_str(), team, colour, m_DB->GetError( ).c_str() );
 
 	return RowID;
 }
@@ -945,12 +945,12 @@ uint32_t CGHostDBSQLite :: GamePlayerCount( string name )
 		if( RC == SQLITE_ROW )
 			Count = sqlite3_column_int( Statement, 0 );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error counting gameplayers [" + name + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error counting gameplayers [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error counting gameplayers [" + name + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error counting gameplayers [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 	return Count;
 }
@@ -998,15 +998,15 @@ CDBGamePlayerSummary *CGHostDBSQLite :: GamePlayerSummaryCheck( string name )
 				GamePlayerSummary = new CDBGamePlayerSummary( string( ), name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
 			}
 			else
-				CONSOLE_Print( "[SQLITE3] error checking gameplayersummary [" + name + "] - row doesn't have 12 columns" );
+				CONSOLE_Print( "[SQLITE3] error checking gameplayersummary [%s] - row doesn't have 12 columns", name.c_str() );
 		}
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error checking gameplayersummary [" + name + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error checking gameplayersummary [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error checking gameplayersummary [" + name + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error checking gameplayersummary [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 	return GamePlayerSummary;
 }
@@ -1029,12 +1029,11 @@ uint32_t CGHostDBSQLite :: DotAGameAdd( uint32_t gameid, uint32_t winner, uint32
 		if( RC == SQLITE_DONE )
 			RowID = m_DB->LastRowID( );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding dotagame [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( winner ) + " : " + UTIL_ToString( min ) + " : " + UTIL_ToString( sec ) + "] - " + m_DB->GetError( ) );
-
+			CONSOLE_Print( "[SQLITE3] error adding dotagame [%d : %d : %d : %d] - %s", gameid, winner, min, sec, m_DB->GetError( ).c_str() );
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding dotagame [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( winner ) + " : " + UTIL_ToString( min ) + " : " + UTIL_ToString( sec ) + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding dotagame [%d : %d : %d : %d] - %s", gameid, winner, min, sec, m_DB->GetError( ).c_str() );
 
 	return RowID;
 }
@@ -1073,12 +1072,12 @@ uint32_t CGHostDBSQLite :: DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint
 		if( RC == SQLITE_DONE )
 			RowID = m_DB->LastRowID( );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding dotaplayer [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( colour ) + " : " + UTIL_ToString( kills ) + " : " + UTIL_ToString( deaths ) + " : " + UTIL_ToString( creepkills ) + " : " + UTIL_ToString( creepdenies ) + " : " + UTIL_ToString( assists ) + " : " + UTIL_ToString( gold ) + " : " + UTIL_ToString( neutralkills ) + " : " + item1 + " : " + item2 + " : " + item3 + " : " + item4 + " : " + item5 + " : " + item6 + " : " + hero + " : " + UTIL_ToString( newcolour ) + " : " + UTIL_ToString( towerkills ) + " : " + UTIL_ToString( raxkills ) + " : " + UTIL_ToString( courierkills ) + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error adding dotaplayer [%d : %d : %d : %d : %d : %d : %d : %d : %d : %s : %s : %s : %s : %s : %s : %s : %d : %d : %d : %d] - %s", gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1.c_str(), item2.c_str(), item3.c_str(), item4.c_str(), item5.c_str(), item6.c_str(), hero.c_str(), newcolour, towerkills, raxkills, courierkills, m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding dotaplayer [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( colour ) + " : " + UTIL_ToString( kills ) + " : " + UTIL_ToString( deaths ) + " : " + UTIL_ToString( creepkills ) + " : " + UTIL_ToString( creepdenies ) + " : " + UTIL_ToString( assists ) + " : " + UTIL_ToString( gold ) + " : " + UTIL_ToString( neutralkills ) + " : " + item1 + " : " + item2 + " : " + item3 + " : " + item4 + " : " + item5 + " : " + item6 + " : " + hero + " : " + UTIL_ToString( newcolour ) + " : " + UTIL_ToString( towerkills ) + " : " + UTIL_ToString( raxkills ) + " : " + UTIL_ToString( courierkills ) + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding dotaplayer [%d : %d : %d : %d : %d : %d : %d : %d : %d : %s : %s : %s : %s : %s : %s : %s : %d : %d : %d : %d] - %s", gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1.c_str(), item2.c_str(), item3.c_str(), item4.c_str(), item5.c_str(), item6.c_str(), hero.c_str(), newcolour, towerkills, raxkills, courierkills, m_DB->GetError( ).c_str() );
 
 	return RowID;
 }
@@ -1098,12 +1097,12 @@ uint32_t CGHostDBSQLite :: DotAPlayerCount( string name )
 		if( RC == SQLITE_ROW )
 			Count = sqlite3_column_int( Statement, 0 );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error counting dotaplayers [" + name + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error counting dotaplayers [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayers [" + name + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayers [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 	return Count;
 }
@@ -1153,12 +1152,12 @@ CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name )
 					if( RC2 == SQLITE_ROW )
 						TotalWins = sqlite3_column_int( Statement2, 0 );
 					else if( RC2 == SQLITE_ERROR )
-						CONSOLE_Print( "[SQLITE3] error counting dotaplayersummary wins [" + name + "] - " + m_DB->GetError( ) );
+						CONSOLE_Print( "[SQLITE3] error counting dotaplayersummary wins [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 					m_DB->Finalize( Statement2 );
 				}
 				else
-					CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayersummary wins [" + name + "] - " + m_DB->GetError( ) );
+					CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayersummary wins [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 				// calculate total losses
 
@@ -1173,27 +1172,27 @@ CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name )
 					if( RC3 == SQLITE_ROW )
 						TotalLosses = sqlite3_column_int( Statement3, 0 );
 					else if( RC3 == SQLITE_ERROR )
-						CONSOLE_Print( "[SQLITE3] error counting dotaplayersummary losses [" + name + "] - " + m_DB->GetError( ) );
+						CONSOLE_Print( "[SQLITE3] error counting dotaplayersummary losses [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 					m_DB->Finalize( Statement3 );
 				}
 				else
-					CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayersummary losses [" + name + "] - " + m_DB->GetError( ) );
+					CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayersummary losses [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 				// done
 
 				DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills );
 			}
 			else
-				CONSOLE_Print( "[SQLITE3] error checking dotaplayersummary [" + name + "] - row doesn't have 7 columns" );
+				CONSOLE_Print( "[SQLITE3] error checking dotaplayersummary [%s] - row doesn't have 7 columns", name.c_str() );
 		}
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error checking dotaplayersummary [" + name + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error checking dotaplayersummary [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error checking dotaplayersummary [" + name + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error checking dotaplayersummary [%s] - %s", name.c_str(), m_DB->GetError( ).c_str() );
 
 	return DotAPlayerSummary;
 }
@@ -1221,15 +1220,15 @@ string CGHostDBSQLite :: FromCheck( uint32_t ip )
 			if( Row->size( ) == 1 )
 				From = (*Row)[0];
 			else
-				CONSOLE_Print( "[SQLITE3] error checking iptocountry [" + UTIL_ToString( ip ) + "] - row doesn't have 1 column" );
+				CONSOLE_Print( "[SQLITE3] error checking iptocountry [%d] - row doesn't have 1 column", ip );
 		}
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error checking iptocountry [" + UTIL_ToString( ip ) + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error checking iptocountry [%d] - %s", ip, m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error checking iptocountry [" + UTIL_ToString( ip ) + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error checking iptocountry [%d] - %s", ip, m_DB->GetError( ).c_str() );
 
 	return From;
 }
@@ -1256,12 +1255,12 @@ bool CGHostDBSQLite :: FromAdd( uint32_t ip1, uint32_t ip2, string country )
 		if( RC == SQLITE_DONE )
 			Success = true;
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding iptocountry [" + UTIL_ToString( ip1 ) + " : " + UTIL_ToString( ip2 ) + " : " + country + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error adding iptocountry [%d : %d : %s] - %s", ip1, ip2, country.c_str(), m_DB->GetError( ).c_str() );
 
 		m_DB->Reset( FromAddStmt );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding iptocountry [" + UTIL_ToString( ip1 ) + " : " + UTIL_ToString( ip2 ) + " : " + country + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding iptocountry [%d : %d : %s] - %s", ip1, ip2, country.c_str(), m_DB->GetError( ).c_str() );
 
 	return Success;
 }
@@ -1287,12 +1286,12 @@ bool CGHostDBSQLite :: DownloadAdd( string map, uint32_t mapsize, string name, s
 		if( RC == SQLITE_DONE )
 			Success = true;
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding download [" + map + " : " + UTIL_ToString( mapsize ) + " : " + name + " : " + ip + " : " + UTIL_ToString( spoofed ) + " : " + spoofedrealm + " : " + UTIL_ToString( downloadtime ) + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error adding download [%s : %d : %s : %s : %d : %s : %d] - %s", map.c_str(), mapsize, name.c_str(), ip.c_str(), spoofed, spoofedrealm.c_str(), downloadtime, m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding download [" + map + " : " + UTIL_ToString( mapsize ) + " : " + name + " : " + ip + " : " + UTIL_ToString( spoofed ) + " : " + spoofedrealm + " : " + UTIL_ToString( downloadtime ) + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding download [%s : %d : %s : %s : %d : %s : %d] - %s", map.c_str(), mapsize, name.c_str(), ip.c_str(), spoofed, spoofedrealm.c_str(), downloadtime, m_DB->GetError( ).c_str() );
 
 	return Success;
 }
@@ -1318,12 +1317,12 @@ uint32_t CGHostDBSQLite :: W3MMDPlayerAdd( string category, uint32_t gameid, uin
 		if( RC == SQLITE_DONE )
 			RowID = m_DB->LastRowID( );
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error adding w3mmdplayer [" + category + " : " + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + name + " : " + flag + " : " + UTIL_ToString( leaver ) + " : " + UTIL_ToString( practicing ) + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error adding w3mmdplayer [%s : %d : %d : %s : %s : %d : %d] - %s", category.c_str(), gameid, pid, name.c_str(), flag.c_str(), leaver, practicing, m_DB->GetError( ).c_str() );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdplayer [" + category + " : " + UTIL_ToString( gameid ) + " : " + UTIL_ToString( pid ) + " : " + name + " : " + flag + " : " + UTIL_ToString( leaver ) + " : " + UTIL_ToString( practicing ) + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdplayer [%s : %d : %d : %s : %s : %d : %d] - %s", category.c_str(), gameid, pid, name.c_str(), flag.c_str(), leaver, practicing, m_DB->GetError( ).c_str() );
 
 	return RowID;
 }
@@ -1353,7 +1352,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints 
 			if( RC == SQLITE_ERROR )
 			{
 				Success = false;
-				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-int [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + UTIL_ToString( i->second ) + "] - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-int [%d : %d : %s : %d] - %s", gameid, i->first.first, i->first.second.c_str(), i->second, m_DB->GetError( ).c_str() );
 				break;
 			}
 
@@ -1362,7 +1361,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints 
 		else
 		{
 			Success = false;
-			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-int [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + UTIL_ToString( i->second ) + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-int [%d : %d : %s : %d] - %s", gameid, i->first.first, i->first.second.c_str(), i->second, m_DB->GetError( ).c_str()  );
 			break;
 		}
 	}
@@ -1398,7 +1397,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals 
 			if( RC == SQLITE_ERROR )
 			{
 				Success = false;
-				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-real [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + UTIL_ToString( i->second, 10 ) + "] - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-real [%d : %d : %s : %s] - %s", gameid, i->first.first, i->first.second.c_str(), UTIL_ToString( i->second, 10 ).c_str(), m_DB->GetError( ).c_str() );
 				break;
 			}
 
@@ -1407,7 +1406,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals 
 		else
 		{
 			Success = false;
-			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-real [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + UTIL_ToString( i->second, 10 ) + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-real [%d : %d : %s : %s] - %s", gameid, i->first.first, i->first.second.c_str(), UTIL_ToString( i->second, 10 ).c_str(), m_DB->GetError( ).c_str() );
 			break;
 		}
 	}
@@ -1443,7 +1442,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_string
 			if( RC == SQLITE_ERROR )
 			{
 				Success = false;
-				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + i->second + "] - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-string [%d : %d : %s : %s] - %s", gameid,  i->first.first, i->first.second.c_str(), i->second.c_str(), m_DB->GetError( ).c_str() );
 				break;
 			}
 
@@ -1452,7 +1451,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_string
 		else
 		{
 			Success = false;
-			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + i->second + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-string [%d : %d : %s : %s] - %s", gameid,  i->first.first, i->first.second.c_str(), i->second.c_str(), m_DB->GetError( ).c_str() );
 			break;
 		}
 	}

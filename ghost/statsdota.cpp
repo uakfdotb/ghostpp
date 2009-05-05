@@ -112,13 +112,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								CGamePlayer *Victim = m_Game->GetPlayerFromColour( VictimColour );
 
 								if( Killer && Victim )
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed player [" + Victim->GetName( ) + "]" );
+									CONSOLE_Print( "[STATSDOTA: %s] player [%] killed player [%s]", m_Game->GetGameName( ).c_str(), Killer->GetName( ).c_str(), Victim->GetName( ).c_str() );
 								else if( Victim )
 								{
 									if( ValueInt == 0 )
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel killed player [" + Victim->GetName( ) + "]" );
+										CONSOLE_Print( "[STATSDOTA: %s] the Sentinel killed player [%s]", m_Game->GetGameName( ).c_str(), Victim->GetName( ).c_str() );
 									else if( ValueInt == 6 )
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge killed player [" + Victim->GetName( ) + "]" );
+										CONSOLE_Print( "[STATSDOTA: %s] the Scourge killed player [%s]", m_Game->GetGameName( ).c_str(), Victim->GetName( ).c_str() );
 								}
 							}
 							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 7 ) == "Courier" )
@@ -139,13 +139,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								CGamePlayer *Victim = m_Game->GetPlayerFromColour( VictimColour );
 
 								if( Killer && Victim )
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed a courier owned by player [" + Victim->GetName( ) + "]" );
+									CONSOLE_Print( "[STATSDOTA: %s] player [%s] killed a courier owned by player [%s]", m_Game->GetGameName( ).c_str(), Killer->GetName( ).c_str(), Victim->GetName( ).c_str() );
 								else if( Victim )
 								{
 									if( ValueInt == 0 )
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel killed a courier owned by player [" + Victim->GetName( ) + "]" );
+										CONSOLE_Print( "[STATSDOTA: %s] the Sentinel killed a courier owned by player [%s]", m_Game->GetGameName( ).c_str(), Victim->GetName( ).c_str() );
 									else if( ValueInt == 6 )
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge killed a courier owned by player [" + Victim->GetName( ) + "]" );
+										CONSOLE_Print( "[STATSDOTA: %s] the Scourge killed a courier owned by player [%s]", m_Game->GetGameName( ).c_str(), Victim->GetName( ).c_str() );
 								}
 							}
 							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 5 ) == "Tower" )
@@ -184,13 +184,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									SideString = "unknown";
 
 								if( Killer )
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] destroyed a level [" + Level + "] " + AllianceString + " tower (" + SideString + ")" );
+									CONSOLE_Print( "[STATSDOTA: %s] player [%s] destroyed a level [%s] %s tower (%s)", m_Game->GetGameName( ).c_str(), Killer->GetName( ).c_str(), Level.c_str(), AllianceString.c_str(), SideString.c_str() );
 								else
 								{
 									if( ValueInt == 0 )
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel destroyed a level [" + Level + "] " + AllianceString + " tower (" + SideString + ")" );
+										CONSOLE_Print( "[STATSDOTA: %s] the Sentinel destroyed a level [%s] %s tower (%s)", m_Game->GetGameName( ).c_str(), Level.c_str(), AllianceString.c_str(), SideString.c_str() );
 									else if( ValueInt == 6 )
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge destroyed a level [" + Level + "] " + AllianceString + " tower (" + SideString + ")" );
+										CONSOLE_Print( "[STATSDOTA: %s] the Scourge destroyed a level [%s] %s tower (%s)", m_Game->GetGameName( ).c_str(), Level.c_str(), AllianceString.c_str(), SideString.c_str() );
 								}
 							}
 							else if( KeyString.size( ) >= 6 && KeyString.substr( 0, 3 ) == "Rax" )
@@ -237,26 +237,26 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									TypeString = "unknown";
 
 								if( Killer )
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] destroyed a " + TypeString + " " + AllianceString + " rax (" + SideString + ")" );
+									CONSOLE_Print( "[STATSDOTA: %s] player [%s] destroyed a %s %s rax (%s)", m_Game->GetGameName( ).c_str(), Killer->GetName( ).c_str(), TypeString.c_str(), AllianceString.c_str(), SideString.c_str() );
 								else
 								{
 									if( ValueInt == 0 )
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel destroyed a " + TypeString + " " + AllianceString + " rax (" + SideString + ")" );
+										CONSOLE_Print( "[STATSDOTA: %s] the Sentinel destroyed a %s %s rax (%s)", m_Game->GetGameName( ).c_str(), TypeString.c_str(), AllianceString.c_str(), SideString.c_str() );
 									else if( ValueInt == 6 )
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge destroyed a " + TypeString + " " + AllianceString + " rax (" + SideString + ")" );
+										CONSOLE_Print( "[STATSDOTA: %s] the Scourge destroyed a %s %s rax (%s)", m_Game->GetGameName( ).c_str(), TypeString.c_str(), AllianceString.c_str(), SideString.c_str() );
 								}
 							}
 							else if( KeyString.size( ) >= 6 && KeyString.substr( 0, 6 ) == "Throne" )
 							{
 								// the frozen throne got hurt
 
-								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Frozen Throne is now at " + UTIL_ToString( ValueInt ) + "% HP" );
+								CONSOLE_Print( "[STATSDOTA: %s] the Frozen Throne is now at %d%% HP", m_Game->GetGameName( ).c_str(), ValueInt );
 							}
 							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 4 ) == "Tree" )
 							{
 								// the world tree got hurt
 
-								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the World Tree is now at " + UTIL_ToString( ValueInt ) + "% HP" );
+								CONSOLE_Print( "[STATSDOTA: %s] the World Tree is now at %d%% HP", m_Game->GetGameName( ).c_str(), ValueInt );
 							}
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "CK" )
 							{
@@ -275,11 +275,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								m_Winner = ValueInt;
 
 								if( m_Winner == 1 )
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner: Sentinel" );
+									CONSOLE_Print( "[STATSDOTA: %s] detected winner: Sentinel", m_Game->GetGameName( ).c_str() );
 								else if( m_Winner == 2 )
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner: Scourge" );
+									CONSOLE_Print( "[STATSDOTA: %s] detected winner: Scourge", m_Game->GetGameName( ).c_str() );
 								else
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner: " + UTIL_ToString( ValueInt ) );
+									CONSOLE_Print( "[STATSDOTA: %s] detected winner: %d", m_Game->GetGameName( ).c_str(), ValueInt );
 							}
 							else if( KeyString == "m" )
 								m_Min = ValueInt;
@@ -400,7 +400,7 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 
 				if( !( ( Colour >= 1 && Colour <= 5 ) || ( Colour >= 7 && Colour <= 11 ) ) )
 				{
-					CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, invalid colour found" );
+					CONSOLE_Print( "[STATSDOTA: %s] discarding player data, invalid colour found", m_Game->GetGameName( ).c_str() );
 					DB->Commit( );
 					return;
 				}
@@ -409,7 +409,7 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 				{
 					if( m_Players[j] && Colour == m_Players[j]->GetNewColour( ) )
 					{
-						CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] discarding player data, duplicate colour found" );
+						CONSOLE_Print( "[STATSDOTA: %s] discarding player data, duplicate colour found", m_Game->GetGameName( ).c_str() );
 						DB->Commit( );
 						return;
 					}
@@ -429,10 +429,10 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		}
 
 		if( DB->Commit( ) )
-			CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] saving " + UTIL_ToString( Players ) + " players" );
+			CONSOLE_Print( "[STATSDOTA: %s] saving %d players", m_Game->GetGameName( ).c_str(), Players );
 		else
-			CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] unable to commit database transaction, data not saved" );
+			CONSOLE_Print( "[STATSDOTA: %s] unable to commit database transaction, data not saved", m_Game->GetGameName( ).c_str() );
 	}
 	else
-		CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] unable to begin database transaction, data not saved" );
+		CONSOLE_Print( "[STATSDOTA: %s] unable to begin database transaction, data not saved", m_Game->GetGameName( ).c_str() );
 }

@@ -402,7 +402,7 @@ void CWarden :: HandleWarden( BYTEARRAY packet )
 	else if( data[0] == 0x05 )
 		HandleWarden0x05( data + 1, packet.size( ) - 1 );
 	else
-		CONSOLE_Print( "[WARDEN] received unknown packet ID " + UTIL_ToString( data[0] ) );
+		CONSOLE_Print( "[WARDEN] received unknown packet ID %d", data[0] );
 
 	delete [] data;
 }

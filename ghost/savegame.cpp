@@ -78,7 +78,7 @@ void CSaveGame :: ParseSaveGame( )
 		return;
 	}
 
-	CONSOLE_Print( "[SAVEGAME] found " + UTIL_ToString( NumSlots ) + " slots" );
+	CONSOLE_Print( "[SAVEGAME] found %d slots", NumSlots );
 
 	for( unsigned char i = 0; i < NumSlots; i++ )
 	{
@@ -100,6 +100,6 @@ void CSaveGame :: ParseSaveGame( )
 	}
 
 	m_MagicNumber = UTIL_CreateByteArray( MagicNumber, false );
-	CONSOLE_Print( "[SAVEGAME] found map path [" + m_MapPath + "]" );
-	CONSOLE_Print( "[SAVEGAME] found magic number [" + UTIL_ToString( m_MagicNumber[0] ) + " " + UTIL_ToString( m_MagicNumber[1] ) + " " + UTIL_ToString( m_MagicNumber[2] ) + " " + UTIL_ToString( m_MagicNumber[3] ) + "]" );
+	CONSOLE_Print( "[SAVEGAME] found map path [%s]", m_MapPath.c_str() );
+	CONSOLE_Print( "[SAVEGAME] found magic number [%d %d %d %d]", m_MagicNumber[0], m_MagicNumber[1], m_MagicNumber[2], m_MagicNumber[3] );
 }

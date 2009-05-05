@@ -392,8 +392,8 @@ bool CBNET :: Update( void *fd )
 	{
 		// the socket has an error
 
-		CONSOLE_Print( "[BNET: " + m_Server + "] disconnected from battle.net due to socket error" );
-		CONSOLE_Print( "[BNET: " + m_Server + "] waiting 30 seconds to reconnect" );
+		CONSOLE_Print( "[BNET: %s] disconnected from battle.net due to socket error", m_Server.c_str() );
+		CONSOLE_Print( "[BNET: %s] waiting 30 seconds to reconnect", m_Server.c_str() );
 		m_GHost->EventBNETDisconnected( this );
 		delete m_BNLSClient;
 		m_BNLSClient = NULL;
@@ -410,8 +410,8 @@ bool CBNET :: Update( void *fd )
 	{
 		// the socket was disconnected
 
-		CONSOLE_Print( "[BNET: " + m_Server + "] disconnected from battle.net due to socket not connected" );
-		CONSOLE_Print( "[BNET: " + m_Server + "] waiting 30 seconds to reconnect" );
+		CONSOLE_Print( "[BNET: %s] disconnected from battle.net due to socket not connected", m_Server.c_str() );
+		CONSOLE_Print( "[BNET: %s] waiting 30 seconds to reconnect", m_Server.c_str() );
 		m_GHost->EventBNETDisconnected( this );
 		delete m_BNLSClient;
 		m_BNLSClient = NULL;
@@ -438,7 +438,7 @@ bool CBNET :: Update( void *fd )
 		{
 			if( m_BNLSClient->Update( fd ) )
 			{
-				CONSOLE_Print( "[BNET: " + m_Server + "] deleting BNLS client" );
+				CONSOLE_Print( "[BNET: %s] deleting BNLS client", m_Server.c_str() );
 				delete m_BNLSClient;
 				m_BNLSClient = NULL;
 			}
@@ -482,7 +482,7 @@ bool CBNET :: Update( void *fd )
 		{
 			// the connection attempt completed
 
-			CONSOLE_Print( "[BNET: " + m_Server + "] connected" );
+			CONSOLE_Print( "[BNET: %s] connected", m_Server.c_str() );
 			m_GHost->EventBNETConnected( this );
 			m_Socket->PutBytes( m_Protocol->SEND_PROTOCOL_INITIALIZE_SELECTOR( ) );
 			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version, m_CountryAbbrev, m_Country ) );
@@ -499,8 +499,8 @@ bool CBNET :: Update( void *fd )
 		{
 			// the connection attempt timed out (15 seconds)
 
-			CONSOLE_Print( "[BNET: " + m_Server + "] connect timed out" );
-			CONSOLE_Print( "[BNET: " + m_Server + "] waiting 30 seconds to reconnect" );
+			CONSOLE_Print( "[BNET: %s] connect timed out", m_Server.c_str() );
+			CONSOLE_Print( "[BNET: %s] waiting 30 seconds to reconnect", m_Server.c_str() );
 			m_GHost->EventBNETConnectTimedOut( this );
 			m_Socket->Reset( );
 			m_NextConnectTime = GetTime( ) + 30;
@@ -513,11 +513,11 @@ bool CBNET :: Update( void *fd )
 	{
 		// attempt to connect to battle.net
 
-		CONSOLE_Print( "[BNET: " + m_Server + "] connecting to server [" + m_Server + "] on port 6112" );
+		CONSOLE_Print( "[BNET: %s] connecting to server [%s] on port 6112", m_Server.c_str(), m_Server.c_str() );
 		m_GHost->EventBNETConnecting( this );
 
 		if( !m_GHost->m_BindAddress.empty( ) )
-			CONSOLE_Print( "[BNET: " + m_Server + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]" );
+			CONSOLE_Print( "[BNET: %s] attempting to bind to address [%s]", m_Server.c_str(), m_GHost->m_BindAddress.c_str() );
 
 		m_Socket->Connect( m_GHost->m_BindAddress, m_Server, 6112 );
 		m_WaitingToConnect = false;
@@ -559,14 +559,14 @@ void CBNET :: ExtractPackets( )
 			}
 			else
 			{
-				CONSOLE_Print( "[BNET: " + m_Server + "] error - received invalid packet from battle.net (bad length), disconnecting" );
+				CONSOLE_Print( "[BNET: %s] error - received invalid packet from battle.net (bad length), disconnecting", m_Server.c_str() );
 				m_Socket->Disconnect( );
 				return;
 			}
 		}
 		else
 		{
-			CONSOLE_Print( "[BNET: " + m_Server + "] error - received invalid packet from battle.net (bad header constant), disconnecting" );
+			CONSOLE_Print( "[BNET: %s] error - received invalid packet from battle.net (bad header constant), disconnecting", m_Server.c_str() );
 			m_Socket->Disconnect( );
 			return;
 		}
@@ -605,7 +605,7 @@ void CBNET :: ProcessPackets( )
 				GameHost = m_Protocol->RECEIVE_SID_GETADVLISTEX( Packet->GetData( ) );
 
 				if( GameHost )
-					CONSOLE_Print( "[BNET: " + m_Server + "] joining game [" + GameHost->GetGameName( ) + "]" );
+					CONSOLE_Print( "[BNET: %s] joining game [%s]", m_Server.c_str(), GameHost->GetGameName( ).c_str() );
 
 				delete GameHost;
 				GameHost = NULL;
@@ -614,7 +614,7 @@ void CBNET :: ProcessPackets( )
 			case CBNETProtocol :: SID_ENTERCHAT:
 				if( m_Protocol->RECEIVE_SID_ENTERCHAT( Packet->GetData( ) ) )
 				{
-					CONSOLE_Print( "[BNET: " + m_Server + "] joining channel [" + m_FirstChannel + "]" );
+					CONSOLE_Print( "[BNET: %s] joining channel [%s]", m_Server.c_str(), m_FirstChannel.c_str() );
 					m_InChat = true;
 					m_Socket->PutBytes( m_Protocol->SEND_SID_JOINCHANNEL( m_FirstChannel ) );
 				}
@@ -643,7 +643,7 @@ void CBNET :: ProcessPackets( )
 				}
 				else
 				{
-					CONSOLE_Print( "[BNET: " + m_Server + "] startadvex3 failed" );
+					CONSOLE_Print( "[BNET: %s] startadvex3 failed", m_Server.c_str() );
 					m_GHost->EventBNETGameRefreshFailed( this );
 				}
 
@@ -663,13 +663,13 @@ void CBNET :: ProcessPackets( )
 
 						if( m_EXEVersion.size( ) == 4 )
 						{
-							CONSOLE_Print( "[BNET: " + m_Server + "] using custom exe version bnet_custom_exeversion = " + UTIL_ToString( m_EXEVersion[0] ) + " " + UTIL_ToString( m_EXEVersion[1] ) + " " + UTIL_ToString( m_EXEVersion[2] ) + " " + UTIL_ToString( m_EXEVersion[3] ) );
+							CONSOLE_Print( "[BNET: %s] using custom exe version bnet_custom_exeversion = %d %d %d %d", m_Server.c_str(), m_EXEVersion[0], m_EXEVersion[1], m_EXEVersion[2], m_EXEVersion[3] );
 							m_BNCSUtil->SetEXEVersion( m_EXEVersion );
 						}
 
 						if( m_EXEVersionHash.size( ) == 4 )
 						{
-							CONSOLE_Print( "[BNET: " + m_Server + "] using custom exe version hash bnet_custom_exeversionhash = " + UTIL_ToString( m_EXEVersionHash[0] ) + " " + UTIL_ToString( m_EXEVersionHash[1] ) + " " + UTIL_ToString( m_EXEVersionHash[2] ) + " " + UTIL_ToString( m_EXEVersionHash[3] ) );
+							CONSOLE_Print( "[BNET: %s] using custom exe version hash bnet_custom_exeversionhash = %d %d %d %d", m_Server.c_str(), m_EXEVersionHash[0], m_EXEVersionHash[1], m_EXEVersionHash[2], m_EXEVersionHash[3] );
 							m_BNCSUtil->SetEXEVersionHash( m_EXEVersionHash );
 						}
 
@@ -680,7 +680,7 @@ void CBNET :: ProcessPackets( )
 
 						if( !m_BNLSServer.empty( ) )
 						{
-							CONSOLE_Print( "[BNET: " + m_Server + "] creating BNLS client" );
+							CONSOLE_Print( "[BNET: %s] creating BNLS client", m_Server.c_str() );
 							delete m_BNLSClient;
 							m_BNLSClient = new CBNLSClient( m_BNLSServer, m_BNLSPort, m_BNLSWardenCookie );
 							m_BNLSClient->QueueWardenSeed( UTIL_ByteArrayToUInt32( m_BNCSUtil->GetKeyInfoROC( ), false, 16 ) );
@@ -688,7 +688,7 @@ void CBNET :: ProcessPackets( )
 					}
 					else
 					{
-						CONSOLE_Print( "[BNET: " + m_Server + "] logon failed - bncsutil key hash failed (check your Warcraft 3 path and cd keys), disconnecting" );
+						CONSOLE_Print( "[BNET: %s] logon failed - bncsutil key hash failed (check your Warcraft 3 path and cd keys), disconnecting", m_Server.c_str() );
 						m_Socket->Disconnect( );
 						delete Packet;
 						return;
@@ -702,7 +702,7 @@ void CBNET :: ProcessPackets( )
 				{
 					// cd keys accepted
 
-					CONSOLE_Print( "[BNET: " + m_Server + "] cd keys accepted" );
+					CONSOLE_Print( "[BNET: %s] cd keys accepted", m_Server.c_str() );
 					m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGON( );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON( m_BNCSUtil->GetClientKey( ), m_UserName ) );
 				}
@@ -713,19 +713,19 @@ void CBNET :: ProcessPackets( )
 					switch( UTIL_ByteArrayToUInt32( m_Protocol->GetKeyState( ), false ) )
 					{
 					case CBNETProtocol :: KR_ROC_KEY_IN_USE:
-						CONSOLE_Print( "[BNET: " + m_Server + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
+						CONSOLE_Print( "[BNET: %s] logon failed - ROC CD key in use by user [%s], disconnecting", m_Server.c_str(), m_Protocol->GetKeyStateDescription( ).c_str() );
 						break;
 					case CBNETProtocol :: KR_TFT_KEY_IN_USE:
-						CONSOLE_Print( "[BNET: " + m_Server + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
+						CONSOLE_Print( "[BNET: %s] logon failed - TFT CD key in use by user [%s], disconnecting", m_Server.c_str(), m_Protocol->GetKeyStateDescription( ).c_str() );
 						break;
 					case CBNETProtocol :: KR_OLD_GAME_VERSION:
-						CONSOLE_Print( "[BNET: " + m_Server + "] logon failed - game version is too old, disconnecting" );
+						CONSOLE_Print( "[BNET: %s] logon failed - game version is too old, disconnecting", m_Server.c_str() );
 						break;
 					case CBNETProtocol :: KR_INVALID_VERSION:
-						CONSOLE_Print( "[BNET: " + m_Server + "] logon failed - game version is invalid, disconnecting" );
+						CONSOLE_Print( "[BNET: %s] logon failed - game version is invalid, disconnecting", m_Server.c_str() );
 						break;
 					default:
-						CONSOLE_Print( "[BNET: " + m_Server + "] logon failed - cd keys not accepted, disconnecting" );
+						CONSOLE_Print( "[BNET: %s] logon failed - cd keys not accepted, disconnecting", m_Server.c_str() );
 						break;
 					}
 
@@ -739,13 +739,13 @@ void CBNET :: ProcessPackets( )
 			case CBNETProtocol :: SID_AUTH_ACCOUNTLOGON:
 				if( m_Protocol->RECEIVE_SID_AUTH_ACCOUNTLOGON( Packet->GetData( ) ) )
 				{
-					CONSOLE_Print( "[BNET: " + m_Server + "] username [" + m_UserName + "] accepted" );
+					CONSOLE_Print( "[BNET %s] username [%s] accepted", m_Server.c_str(), m_UserName.c_str() );
 
 					if( m_PasswordHashType == "pvpgn" )
 					{
 						// pvpgn logon
 
-						CONSOLE_Print( "[BNET: " + m_Server + "] using pvpgn logon type (for pvpgn servers only)" );
+						CONSOLE_Print( "[BNET: %s] using pvpgn logon type (for pvpgn servers only)", m_Server.c_str() );
 						m_BNCSUtil->HELP_PvPGNPasswordHash( m_UserPassword );
 						m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_ACCOUNTLOGONPROOF( m_BNCSUtil->GetPvPGNPasswordHash( ) ) );
 					}
@@ -753,14 +753,14 @@ void CBNET :: ProcessPackets( )
 					{
 						// battle.net logon
 
-						CONSOLE_Print( "[BNET: " + m_Server + "] using battle.net logon type (for official battle.net servers only)" );
+						CONSOLE_Print( "[BNET: %s] using battle.net logon type (for official battle.net servers only)", m_Server.c_str() );
 						m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGONPROOF( m_Protocol->GetSalt( ), m_Protocol->GetServerPublicKey( ) );
 						m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_ACCOUNTLOGONPROOF( m_BNCSUtil->GetM1( ) ) );
 					}
 				}
 				else
 				{
-					CONSOLE_Print( "[BNET: " + m_Server + "] logon failed - invalid username, disconnecting" );
+					CONSOLE_Print( "[BNET: %s] logon failed - invalid username, disconnecting", m_Server.c_str() );
 					m_Socket->Disconnect( );
 					delete Packet;
 					return;
@@ -773,7 +773,7 @@ void CBNET :: ProcessPackets( )
 				{
 					// logon successful
 
-					CONSOLE_Print( "[BNET: " + m_Server + "] logon successful" );
+					CONSOLE_Print( "[BNET: %s] logon successful", m_Server.c_str() );
 					m_LoggedIn = true;
 					m_GHost->EventBNETLoggedIn( this );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_NETGAMEPORT( m_GHost->m_HostPort ) );
@@ -783,7 +783,7 @@ void CBNET :: ProcessPackets( )
 				}
 				else
 				{
-					CONSOLE_Print( "[BNET: " + m_Server + "] logon failed - invalid password, disconnecting" );
+					CONSOLE_Print( "[BNET: %s] logon failed - invalid password, disconnecting", m_Server.c_str() );
 
 					// try to figure out if the user might be using the wrong logon type since too many people are confused by this
 
@@ -791,9 +791,9 @@ void CBNET :: ProcessPackets( )
 					transform( Server.begin( ), Server.end( ), Server.begin( ), (int(*)(int))tolower );
 
 					if( m_PasswordHashType == "pvpgn" && ( Server == "useast.battle.net" || Server == "uswest.battle.net" || Server == "asia.battle.net" || Server == "europe.battle.net" ) )
-						CONSOLE_Print( "[BNET: " + m_Server + "] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's \"battle.net custom data\" section" );
+						CONSOLE_Print( "[BNET: %s] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's \"battle.net custom data\" section", m_Server.c_str() );
 					else if( m_PasswordHashType != "pvpgn" && ( Server != "useast.battle.net" && Server != "uswest.battle.net" && Server != "asia.battle.net" && Server != "europe.battle.net" ) )
-						CONSOLE_Print( "[BNET: " + m_Server + "] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's \"battle.net custom data\" section" );
+						CONSOLE_Print( "[BNET: %s] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's \"battle.net custom data\" section", m_Server.c_str() );
 
 					m_Socket->Disconnect( );
 					delete Packet;
@@ -808,7 +808,7 @@ void CBNET :: ProcessPackets( )
 				if( m_BNLSClient )
 					m_BNLSClient->QueueWardenRaw( WardenData );
 				else
-					CONSOLE_Print( "[BNET: " + m_Server + "] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon" );
+					CONSOLE_Print( "[BNET: %s] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon", m_Server.c_str() );
 
 				break;
 
@@ -856,9 +856,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 	if( Event == CBNETProtocol :: EID_WHISPER || Event == CBNETProtocol :: EID_TALK )
 	{
 		if( Event == CBNETProtocol :: EID_WHISPER )
-			CONSOLE_Print( "[WHISPER: " + m_Server + "] [" + User + "] " + Message );
+			CONSOLE_Print( "[WHISPER: %s] [%s] %s", m_Server.c_str(), User.c_str(), Message.c_str() );
 		else
-			CONSOLE_Print( "[LOCAL: " + m_Server + "] [" + User + "] " + Message );
+			CONSOLE_Print( "[LOCAL: %s] [%s] %s", m_Server.c_str(), User.c_str(), Message.c_str() );
 
 		// handle spoof checking for current game
 		// this case covers whispers - we assume that anyone who sends a whisper to the bot with message "spoofcheck" should be considered spoof checked
@@ -895,7 +895,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 			if( IsAdmin( User ) || IsRootAdmin( User ) )
 			{
-				CONSOLE_Print( "[BNET: " + m_Server + "] admin [" + User + "] sent command [" + Message + "]" );
+				CONSOLE_Print( "[BNET: %s] admin [%s] sent command [%s]", m_Server.c_str(), User.c_str(), Message.c_str() );
 
 				/*****************
 				* ADMIN COMMANDS *
@@ -970,13 +970,16 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						stringstream SS;
 						SS << Payload;
 						SS >> Interval;
-
+						int i=1;
+						
 						if( SS.fail( ) || Interval == 0 )
-							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to announce command" );
+							CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 						else
 						{
+							++i;
+							
 							if( SS.eof( ) )
-								CONSOLE_Print( "[BNET: " + m_Server + "] missing input #2 to announce command" );
+								CONSOLE_Print( "[BNET: %s] missing input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 							else
 							{
 								getline( SS, Message );
@@ -1025,19 +1028,23 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							stringstream SS;
 							SS << Payload;
 							SS >> MaximumGames;
+							int i = 1;
 
 							if( SS.fail( ) || MaximumGames == 0 )
-								CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to autohost command" );
+								CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 							else
 							{
 								SS >> AutoStartPlayers;
-
+								++i;
+								
 								if( SS.fail( ) || AutoStartPlayers == 0 )
-									CONSOLE_Print( "[BNET: " + m_Server + "] bad input #2 to autohost command" );
+									CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 								else
 								{
+									++i;
+									
 									if( SS.eof( ) )
-										CONSOLE_Print( "[BNET: " + m_Server + "] missing input #3 to autohost command" );
+										CONSOLE_Print( "[BNET: %s] missing input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 									else
 									{
 										getline( SS, GameName );
@@ -1101,31 +1108,38 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							stringstream SS;
 							SS << Payload;
 							SS >> MaximumGames;
-
+							int i=1;
+							
+							
 							if( SS.fail( ) || MaximumGames == 0 )
-								CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to autohostmm command" );
+								CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 							else
 							{
 								SS >> AutoStartPlayers;
-
+								++i;
+								
 								if( SS.fail( ) || AutoStartPlayers == 0 )
-									CONSOLE_Print( "[BNET: " + m_Server + "] bad input #2 to autohostmm command" );
+									CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 								else
 								{
 									SS >> MinimumScore;
-
+									++i;
+									
 									if( SS.fail( ) )
-										CONSOLE_Print( "[BNET: " + m_Server + "] bad input #3 to autohostmm command" );
+										CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 									else
 									{
 										SS >> MaximumScore;
-
+										++i;
+										
 										if( SS.fail( ) )
-											CONSOLE_Print( "[BNET: " + m_Server + "] bad input #4 to autohostmm command" );
+											CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 										else
 										{
+											++i;
+											
 											if( SS.eof( ) )
-												CONSOLE_Print( "[BNET: " + m_Server + "] missing input #5 to autohostmm command" );
+												CONSOLE_Print( "[BNET: %s] missing input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 											else
 											{
 												getline( SS, GameName );
@@ -1237,7 +1251,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 							if( SS.fail( ) )
 							{
-								CONSOLE_Print( "[BNET: " + m_Server + "] bad input to close command" );
+								CONSOLE_Print( "[BNET: %s] bad input to %s command", m_Server.c_str(), Command.c_str() );
 								break;
 							}
 							else
@@ -1354,7 +1368,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					if( GameNumber < m_GHost->m_Games.size( ) )
 					{
 						QueueChatCommand( m_GHost->m_Language->EndingGame( m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper );
-						CONSOLE_Print( "[GAME: " + m_GHost->m_Games[GameNumber]->GetGameName( ) + "] is over (admin ended game)" );
+						CONSOLE_Print( "[GAME: %s] is over (admin ended game)", m_GHost->m_Games[GameNumber]->GetGameName( ).c_str() );
 						m_GHost->m_Games[GameNumber]->StopPlayers( "was disconnected (admin ended game)" );
 					}
 					else
@@ -1448,7 +1462,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 						if( SS.fail( ) )
 						{
-							CONSOLE_Print( "[BNET: " + m_Server + "] bad input to hold command" );
+							CONSOLE_Print( "[BNET: %s] bad input to %s command", m_Server.c_str(), Command.c_str() );
 							break;
 						}
 						else
@@ -1560,7 +1574,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 							if( SS.fail( ) )
 							{
-								CONSOLE_Print( "[BNET: " + m_Server + "] bad input to open command" );
+								CONSOLE_Print( "[BNET: %s] bad input to %s command", m_Server.c_str(), Command.c_str() );
 								break;
 							}
 							else
@@ -1662,13 +1676,16 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						stringstream SS;
 						SS << Payload;
 						SS >> GameNumber;
-
+						int i=1;
+						
 						if( SS.fail( ) )
-							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to saygame command" );
+							CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 						else
 						{
+							++i;
+							
 							if( SS.eof( ) )
-								CONSOLE_Print( "[BNET: " + m_Server + "] missing input #2 to saygame command" );
+								CONSOLE_Print( "[BNET: %s] missing input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 							else
 							{
 								getline( SS, Message );
@@ -1754,19 +1771,22 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						stringstream SS;
 						SS << Payload;
 						SS >> SID1;
-
+						int i=1;
+						
 						if( SS.fail( ) )
-							CONSOLE_Print( "[BNET: " + m_Server + "] bad input #1 to swap command" );
+							CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 						else
 						{
+							++i;
+							
 							if( SS.eof( ) )
-								CONSOLE_Print( "[BNET: " + m_Server + "] missing input #2 to swap command" );
+								CONSOLE_Print( "[BNET: %s] missing input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 							else
 							{
 								SS >> SID2;
 
 								if( SS.fail( ) )
-									CONSOLE_Print( "[BNET: " + m_Server + "] bad input #2 to swap command" );
+									CONSOLE_Print( "[BNET: %s] bad input #%d to %s command", m_Server.c_str(), i, Command.c_str() );
 								else
 									m_GHost->m_CurrentGame->SwapSlots( (unsigned char)( SID1 - 1 ), (unsigned char)( SID2 - 1 ) );
 							}
@@ -1809,8 +1829,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 			}
 			else
-				CONSOLE_Print( "[BNET: " + m_Server + "] user [" + User + "] sent command [" + Message + "]" );
-
+				CONSOLE_Print( "[BNET: %s] user [%s] sent command [%s]", m_Server.c_str(), User.c_str(), Message.c_str() );
+			
 			/*********************
 			* NON ADMIN COMMANDS *
 			*********************/
@@ -1874,12 +1894,12 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 	{
 		// keep track of current channel so we can rejoin it after hosting a game
 
-		CONSOLE_Print( "[BNET: " + m_Server + "] joined channel [" + Message + "]" );
+		CONSOLE_Print( "[BNET: %s] joined channel [%s]", m_Server.c_str(), Message.c_str() );
 		m_CurrentChannel = Message;
 	}
 	else if( Event == CBNETProtocol :: EID_INFO )
 	{
-		CONSOLE_Print( "[INFO: " + m_Server + "] " + Message );
+		CONSOLE_Print( "[INFO: %s] %s", m_Server.c_str(), Message.c_str() );
 
 		// extract the first word which we hope is the username
 		// this is not necessarily true though since info messages also include channel MOTD's and such
@@ -1928,7 +1948,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		}
 	}
 	else if( Event == CBNETProtocol :: EID_ERROR )
-		CONSOLE_Print( "[ERROR: " + m_Server + "] " + Message );
+		CONSOLE_Print( "[ERROR: %s] %s", m_Server.c_str(), Message.c_str() );
 }
 
 void CBNET :: SendJoinChannel( string channel )
@@ -1968,7 +1988,7 @@ void CBNET :: QueueChatCommand( string chatCommand )
 		if( chatCommand.size( ) > 255 )
 			chatCommand = chatCommand.substr( 0, 255 );
 
-		CONSOLE_Print( "[QUEUED: " + m_Server + "] " + chatCommand );
+		CONSOLE_Print( "[QUEUED: %s] %s", m_Server.c_str(), chatCommand.c_str() );
 		m_OutPackets.push( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
 	}
 }
