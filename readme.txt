@@ -28,7 +28,7 @@ Required Files
 If you want to be able to connect to battle.net:
 
 -> "game.dll" in your bot_war3path
--> "storm.dll" in your bot_war3path (Linux users note that GHost++ searches for this file in all lowercase)
+-> "Storm.dll" in your bot_war3path
 -> "war3.exe" in your bot_war3path
 
 If you want GHost++ to automatically extract blizzard.j and common.j on startup (used when automatically calculating map values):
@@ -393,7 +393,7 @@ The W3MMD (Warcraft III Map Meta Data) Standard
 
 Since Version 13.0 GHost++ supports saving arbitrary statistics to the database from maps which support the W3MMD standard.
 The data that is saved depends on how the map is written.
-This will not work with every map, only with maps that specifically support the W3MMD standard.
+
 Here's how to use it:
 
 1.) Obtain a map that supports the W3MMD standard.
@@ -683,5 +683,4 @@ Running GHost++ on Linux
 
 You will need to copy ~/ghost/bncsutil/src/bncsutil/libbncutil.so to /usr/local/lib/ or otherwise set LD_LIBRARY_PATH so it can find the bncsutil library.
 You will need to copy ~/ghost/StormLib/stormlib/libStorm.so to /usr/local/lib/ or otherwise set LD_LIBRARY_PATH so it can file the StormLib library.
-You will also need to copy game.dll, storm.dll, and war3.exe from a valid Warcraft III installation to the location specified in your ghost.cfg
-GHost++ searches for "storm.dll" in all lowercase not "Storm.dll" so you may need to rename this file if yours is capitalized.
+You will also need to copy game.dll, Storm.dll, and war3.exe from a valid Warcraft III installation to the location specified in your ghost.cfg.
