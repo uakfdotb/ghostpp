@@ -216,7 +216,7 @@ void CONSOLE_Print( const char * message, ... )
 	char buffer[256];
 	va_list args;
 	va_start( args, message );
-	vsprintf( buffer,message, args );
+	vsnprintf( buffer, 256, message, args );
 	va_end ( args );
 	
 	cout << buffer << endl;
