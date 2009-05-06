@@ -117,7 +117,6 @@ bool CBNLSClient :: Update( void *fd )
 
 	if( m_Socket->GetConnecting( ) && m_Socket->CheckConnect( ) )
 	{
-		m_Port = 1;
 		CONSOLE_Print( "[BNLSC: %s:%d:C%d] connected", m_Server.c_str(), m_Port, m_WardenCookie );
 		m_WasConnected = true;
 		m_LastNullTime = GetTime( );
