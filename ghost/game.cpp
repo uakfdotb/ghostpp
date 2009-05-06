@@ -375,7 +375,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
 	{
-		CONSOLE_Print( "[GAME: %] admin [%s] sent command [%s] with payload [%s]", m_GameName.c_str(), User.c_str(), Command.c_str(), Payload.c_str() );
+		CONSOLE_Print( "[GAME: %s] admin [%s] sent command [%s] with payload [%s]", m_GameName.c_str(), User.c_str(), Command.c_str(), Payload.c_str() );
 
 		if( !m_Locked || RootAdminCheck || IsOwner( User ) )
 		{
@@ -516,7 +516,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					int i=1;
 
 					if( SS.fail( ) || Interval == 0 )
-						CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 					else
 					{
 						++i;
@@ -706,7 +706,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				int i=1;
 				
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 				else
 				{
 					if( !SS.eof( ) )
@@ -715,7 +715,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					++i;
 					
 					if( SS.fail( ) )
-						CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 					else
 						ComputerSlot( (unsigned char)( Slot - 1 ), (unsigned char)Skill, true );
 				}
@@ -738,19 +738,19 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				int i=1;
 				
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 				else
 				{
 					++i;
 					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 					else
 					{
 						SS >> Colour;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+							CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 						else
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
@@ -782,19 +782,19 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				int i=1;
 				
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 				else
 				{
 					++i;
 					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 					else
 					{
 						SS >> Handicap;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+							CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 						else
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
@@ -829,13 +829,13 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				int i=1;
 				
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 				else
 				{
 					++i;
 					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 					else
 					{
 						getline( SS, Race );
@@ -901,19 +901,19 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				int i=1;
 
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 				else
 				{
 					++i;
 					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 					else
 					{
 						SS >> Team;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+							CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 						else
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
@@ -1427,19 +1427,19 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				int i=1;
 
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 				else
 				{
 					++i;
 					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 					else
 					{
 						SS >> SID2;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: %s] bad input #d to %s command", m_GameName.c_str(), i, Command.c_str() );
+							CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
 						else
 							SwapSlots( (unsigned char)( SID1 - 1 ), (unsigned char)( SID2 - 1 ) );
 					}
@@ -1684,7 +1684,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				if( !m_GameLoading && !m_GameLoaded )
 					OpenSlot( GetSIDFromPID( Victim->GetPID( ) ), false );
 
-				CONSOLE_Print( "[GAME: %s] votekick against player [%s] passed with %s/%s votes", m_GameName.c_str(), m_KickVotePlayer.c_str(), Votes, GetNumPlayers( ) );
+				CONSOLE_Print( "[GAME: %s] votekick against player [%s] passed with %d/%s votes", m_GameName.c_str(), m_KickVotePlayer.c_str(), Votes, GetNumPlayers( ) );
 				SendAllChat( m_GHost->m_Language->VoteKickPassed( m_KickVotePlayer ) );
 			}
 			else
@@ -1776,7 +1776,7 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 
 				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_WRONGPASSWORD ) );
 				potential->SetDeleteMe( true );
-				CONSOLE_Print( "[ADMINGAME] player [%s] at ip [%d] is trying to join the game but is tempbanned", joinPlayer->GetName( ).c_str(), (*i).first.c_str() );
+				CONSOLE_Print( "[ADMINGAME] player [%s] at ip [%s] is trying to join the game but is tempbanned", joinPlayer->GetName( ).c_str(), (*i).first.c_str() );
 				return;
 			}
 
