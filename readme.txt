@@ -393,6 +393,7 @@ The W3MMD (Warcraft III Map Meta Data) Standard
 
 Since Version 13.0 GHost++ supports saving arbitrary statistics to the database from maps which support the W3MMD standard.
 The data that is saved depends on how the map is written.
+This will not work with every map, only with maps that specifically support the W3MMD standard.
 
 Here's how to use it:
 
