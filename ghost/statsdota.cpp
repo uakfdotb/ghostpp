@@ -112,7 +112,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								CGamePlayer *Victim = m_Game->GetPlayerFromColour( VictimColour );
 
 								if( Killer && Victim )
-									CONSOLE_Print( "[STATSDOTA: %s] player [%] killed player [%s]", m_Game->GetGameName( ).c_str(), Killer->GetName( ).c_str(), Victim->GetName( ).c_str() );
+									CONSOLE_Print( "[STATSDOTA: %s] player [%s] killed player [%s]", m_Game->GetGameName( ).c_str(), Killer->GetName( ).c_str(), Victim->GetName( ).c_str() );
 								else if( Victim )
 								{
 									if( ValueInt == 0 )

@@ -168,7 +168,7 @@ void CPacked :: Decompress( bool allBlocks )
 	if( allBlocks )
 		CONSOLE_Print( "[PACKED] reading %d blocks", NumBlocks );
 	else
-		CONSOLE_Print( "[PACKED] reading 1/%d blocks" );
+		CONSOLE_Print( "[PACKED] reading 1/%d blocks", NumBlocks );
 
 	// read blocks
 

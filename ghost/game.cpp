@@ -1684,7 +1684,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				if( !m_GameLoading && !m_GameLoaded )
 					OpenSlot( GetSIDFromPID( Victim->GetPID( ) ), false );
 
-				CONSOLE_Print( "[GAME: %s] votekick against player [%s] passed with %d/%s votes", m_GameName.c_str(), m_KickVotePlayer.c_str(), Votes, GetNumPlayers( ) );
+				CONSOLE_Print( "[GAME: %s] votekick against player [%s] passed with %d/%d votes", m_GameName.c_str(), m_KickVotePlayer.c_str(), Votes, GetNumPlayers( ) );
 				SendAllChat( m_GHost->m_Language->VoteKickPassed( m_KickVotePlayer ) );
 			}
 			else

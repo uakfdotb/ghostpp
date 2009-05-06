@@ -739,7 +739,7 @@ void CBNET :: ProcessPackets( )
 			case CBNETProtocol :: SID_AUTH_ACCOUNTLOGON:
 				if( m_Protocol->RECEIVE_SID_AUTH_ACCOUNTLOGON( Packet->GetData( ) ) )
 				{
-					CONSOLE_Print( "[BNET %s] username [%s] accepted", m_Server.c_str(), m_UserName.c_str() );
+					CONSOLE_Print( "[BNET: %s] username [%s] accepted", m_Server.c_str(), m_UserName.c_str() );
 
 					if( m_PasswordHashType == "pvpgn" )
 					{

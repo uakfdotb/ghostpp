@@ -243,7 +243,7 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 		}
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] found schema number [%]", SchemaNumber.c_str() );
+		CONSOLE_Print( "[SQLITE3] found schema number [%s]", SchemaNumber.c_str() );
 
 	if( SchemaNumber == "1" )
 	{
