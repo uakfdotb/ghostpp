@@ -193,7 +193,7 @@ public:
 	virtual CCallableAdminRemove *ThreadedAdminRemove( string server, string user );
 	virtual CCallableAdminList *ThreadedAdminList( string server );
 	virtual CCallableBanCount *ThreadedBanCount( string server );
-	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user );
+	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip );
 	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason );
 	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user );
 	virtual CCallableBanRemove *ThreadedBanRemove( string user );
@@ -226,7 +226,7 @@ bool MySQLAdminAdd( void *conn, string *error, string server, string user );
 bool MySQLAdminRemove( void *conn, string *error, string server, string user );
 vector<string> MySQLAdminList( void *conn, string *error, string server );
 uint32_t MySQLBanCount( void *conn, string *error, string server );
-CDBBan *MySQLBanCheck( void *conn, string *error, string server, string user );
+CDBBan *MySQLBanCheck( void *conn, string *error, string server, string user, string ip );
 bool MySQLBanAdd( void *conn, string *error, string server, string user, string ip, string gamename, string admin, string reason );
 bool MySQLBanRemove( void *conn, string *error, string server, string user );
 bool MySQLBanRemove( void *conn, string *error, string user );
@@ -337,7 +337,7 @@ public:
 class CMySQLCallableBanCheck : public CCallableBanCheck, public CMySQLCallable
 {
 public:
-	CMySQLCallableBanCheck( string nServer, string nUser, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableBanCheck( nServer, nUser ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	CMySQLCallableBanCheck( string nServer, string nUser, string nIP, void *nConnection, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableBanCheck( nServer, nUser, nIP ), CMySQLCallable( nConnection, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableBanCheck( ) { }
 
 	virtual void operator( )( );

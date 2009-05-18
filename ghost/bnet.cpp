@@ -943,7 +943,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							Reason = Reason.substr( Start );
 					}
 
-					if( IsBanned( Victim ) )
+					if( IsBannedName( Victim ) )
 						QueueChatCommand( m_GHost->m_Language->UserIsAlreadyBanned( m_Server, Victim ), User, Whisper );
 					else
 						m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason ) ) );
@@ -1209,7 +1209,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "checkban" && !Payload.empty( ) )
 				{
-					CDBBan *Ban = IsBanned( Payload );
+					CDBBan *Ban = IsBannedName( Payload );
 
 					if( Ban )
 						QueueChatCommand( m_GHost->m_Language->UserWasBannedOnByBecause( m_Server, Payload, Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ), User, Whisper );
@@ -2061,7 +2061,7 @@ bool CBNET :: IsRootAdmin( string name )
 	return name == m_RootAdmin;
 }
 
-CDBBan *CBNET :: IsBanned( string name )
+CDBBan *CBNET :: IsBannedName( string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
@@ -2070,6 +2070,19 @@ CDBBan *CBNET :: IsBanned( string name )
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
 	{
 		if( (*i)->GetName( ) == name )
+			return *i;
+	}
+
+	return NULL;
+}
+
+CDBBan *CBNET :: IsBannedIP( string ip )
+{
+	// todotodo: optimize this - maybe use a map?
+
+	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
+	{
+		if( (*i)->GetIP( ) == name )
 			return *i;
 	}
 

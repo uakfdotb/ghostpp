@@ -226,14 +226,14 @@ CCallableBanCount *CGHostDBMySQL :: ThreadedBanCount( string server )
 	return Callable;
 }
 
-CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( string server, string user )
+CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( string server, string user, string ip )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
 		m_NumConnections++;
 
-	CCallableBanCheck *Callable = new CMySQLCallableBanCheck( server, user, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableBanCheck *Callable = new CMySQLCallableBanCheck( server, user, ip, Connection, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
 	m_OutstandingCallables++;
 	return Callable;
@@ -653,13 +653,19 @@ uint32_t MySQLBanCount( void *conn, string *error, string server )
 	return Count;
 }
 
-CDBBan *MySQLBanCheck( void *conn, string *error, string server, string user )
+CDBBan *MySQLBanCheck( void *conn, string *error, string server, string user, string ip )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	string EscServer = MySQLEscapeString( conn, server );
 	string EscUser = MySQLEscapeString( conn, user );
+	string EscIP = MySQLEscapeString( conn, ip );
 	CDBBan *Ban = NULL;
-	string Query = "SELECT ip, DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+	string Query;
+
+	if( ip.empty( ) )
+		Query = "SELECT name, ip, DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+	else
+		Query = "SELECT name, ip, DATE(date), gamename, admin, reason FROM bans WHERE (server='" + EscServer + "' AND name='" + EscUser + "') OR ip='" + EscIP + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -671,10 +677,10 @@ CDBBan *MySQLBanCheck( void *conn, string *error, string server, string user )
 		{
 			vector<string> Row = MySQLFetchRow( Result );
 
-			if( Row.size( ) == 5 )
-				Ban = new CDBBan( server, user, Row[0], Row[1], Row[2], Row[3], Row[4] );
+			if( Row.size( ) == 6 )
+				Ban = new CDBBan( server, Row[0], Row[1], Row[2], Row[3], Row[4], Row[5] );
 			/* else
-				*error = "error checking ban [" + server + " : " + user + "] - row doesn't have 5 columns"; */
+				*error = "error checking ban [" + server + " : " + user + "] - row doesn't have 6 columns"; */
 
 			mysql_free_result( Result );
 		}
@@ -1232,7 +1238,7 @@ void CMySQLCallableBanCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLBanCheck( m_Connection, &m_Error, m_Server, m_User );
+		m_Result = MySQLBanCheck( m_Connection, &m_Error, m_Server, m_User, m_IP );
 
 	Close( );
 }

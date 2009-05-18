@@ -82,7 +82,7 @@ uint32_t CGHostDB :: BanCount( string server )
 	return 0;
 }
 
-CDBBan *CGHostDB :: BanCheck( string server, string user )
+CDBBan *CGHostDB :: BanCheck( string server, string user, string ip )
 {
 	return NULL;
 }
@@ -217,7 +217,7 @@ CCallableBanCount *CGHostDB :: ThreadedBanCount( string server )
 	return NULL;
 }
 
-CCallableBanCheck *CGHostDB :: ThreadedBanCheck( string server, string user )
+CCallableBanCheck *CGHostDB :: ThreadedBanCheck( string server, string user, string ip )
 {
 	return NULL;
 }

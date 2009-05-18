@@ -1255,15 +1255,38 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 	{
-		CDBBan *Ban = (*i)->IsBanned( joinPlayer->GetName( ) );
+		CDBBan *Ban = (*i)->IsBannedName( joinPlayer->GetName( ) );
 
 		if( Ban )
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned" );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by name" );
 			SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBanned( joinPlayer->GetName( ) ) );
-			potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
-			potential->SetDeleteMe( true );
-			return;
+
+			if( m_GHost->m_BanMethod == 1 || m_GHost->m_BanMethod == 3 )
+			{
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+				potential->SetDeleteMe( true );
+				return;
+			}
+
+			break;
+		}
+
+		Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ) );
+
+		if( Ban )
+		{
+			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by IP address" );
+			SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBanned( joinPlayer->GetName( ) ) );
+
+			if( m_GHost->m_BanMethod == 2 || m_GHost->m_BanMethod == 3 )
+			{
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+				potential->SetDeleteMe( true );
+				return;
+			}
+
+			break;
 		}
 	}
 

@@ -715,35 +715,43 @@ uint32_t CGHostDBSQLite :: BanCount( string server )
 	return Count;
 }
 
-CDBBan *CGHostDBSQLite :: BanCheck( string server, string user )
+CDBBan *CGHostDBSQLite :: BanCheck( string server, string user, string ip )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	CDBBan *Ban = NULL;
 	sqlite3_stmt *Statement;
-	m_DB->Prepare( "SELECT ip, date, gamename, admin, reason FROM bans WHERE server=? AND name=?", (void **)&Statement );
+
+	if( ip.empty( ) )
+		m_DB->Prepare( "SELECT name, ip, date, gamename, admin, reason FROM bans WHERE server=? AND name=?", (void **)&Statement );
+	else
+		m_DB->Prepare( "SELECT name, ip, date, gamename, admin, reason FROM bans WHERE (server=? AND name=?) OR ip=?", (void **)&Statement );
 
 	if( Statement )
 	{
 		sqlite3_bind_text( Statement, 1, server.c_str( ), -1, SQLITE_TRANSIENT );
 		sqlite3_bind_text( Statement, 2, user.c_str( ), -1, SQLITE_TRANSIENT );
+
+		if( !ip.empty( ) )
+			sqlite3_bind_text( Statement, 3, ip.c_str( ), -1, SQLITE_TRANSIENT );
+
 		int RC = m_DB->Step( Statement );
 
 		if( RC == SQLITE_ROW )
 		{
 			vector<string> *Row = m_DB->GetRow( );
 
-			if( Row->size( ) == 5 )
-				Ban = new CDBBan( server, user, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4] );
+			if( Row->size( ) == 6 )
+				Ban = new CDBBan( server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5] );
 			else
-				CONSOLE_Print( "[SQLITE3] error checking ban [" + server + " : " + user + "] - row doesn't have 5 columns" );
+				CONSOLE_Print( "[SQLITE3] error checking ban [" + server + " : " + user + " : " + ip + "] - row doesn't have 6 columns" );
 		}
 		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error checking ban [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] error checking ban [" + server + " : " + user + " : " + ip + "] - " + m_DB->GetError( ) );
 
 		m_DB->Finalize( Statement );
 	}
 	else
-		CONSOLE_Print( "[SQLITE3] prepare error checking ban [" + server + " : " + user + "] - " + m_DB->GetError( ) );
+		CONSOLE_Print( "[SQLITE3] prepare error checking ban [" + server + " : " + user + " : " + ip + "] - " + m_DB->GetError( ) );
 
 	return Ban;
 }
@@ -1511,10 +1519,10 @@ CCallableBanCount *CGHostDBSQLite :: ThreadedBanCount( string server )
 	return Callable;
 }
 
-CCallableBanCheck *CGHostDBSQLite :: ThreadedBanCheck( string server, string user )
+CCallableBanCheck *CGHostDBSQLite :: ThreadedBanCheck( string server, string user, string ip )
 {
-	CCallableBanCheck *Callable = new CCallableBanCheck( server, user );
-	Callable->SetResult( BanCheck( server, user ) );
+	CCallableBanCheck *Callable = new CCallableBanCheck( server, user, ip );
+	Callable->SetResult( BanCheck( server, user, ip ) );
 	Callable->SetReady( true );
 	return Callable;
 }

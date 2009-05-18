@@ -218,7 +218,7 @@ public:
 	virtual bool AdminRemove( string server, string user );
 	virtual vector<string> AdminList( string server );
 	virtual uint32_t BanCount( string server );
-	virtual CDBBan *BanCheck( string server, string user );
+	virtual CDBBan *BanCheck( string server, string user, string ip );
 	virtual bool BanAdd( string server, string user, string ip, string gamename, string admin, string reason );
 	virtual bool BanRemove( string server, string user );
 	virtual bool BanRemove( string user );
@@ -249,7 +249,7 @@ public:
 	virtual CCallableAdminRemove *ThreadedAdminRemove( string server, string user );
 	virtual CCallableAdminList *ThreadedAdminList( string server );
 	virtual CCallableBanCount *ThreadedBanCount( string server );
-	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user );
+	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip );
 	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason );
 	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user );
 	virtual CCallableBanRemove *ThreadedBanRemove( string user );

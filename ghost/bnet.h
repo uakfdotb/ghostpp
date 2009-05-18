@@ -158,7 +158,8 @@ public:
 
 	bool IsAdmin( string name );
 	bool IsRootAdmin( string name );
-	CDBBan *IsBanned( string name );
+	CDBBan *IsBannedName( string name );
+	CDBBan *IsBannedIP( string ip );
 	void AddAdmin( string name );
 	void AddBan( string name, string ip, string gamename, string admin, string reason );
 	void RemoveAdmin( string name );
