@@ -142,15 +142,21 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 			{
 				getline( in, Line );
 
-				// ignore blank lines and comments and lines that don't look like IP addresses
+				// ignore blank lines and comments
 
-				if( Line.empty( ) || Line[0] == '#' || Line.find_first_not_of( "1234567890." ) != string :: npos )
+				if( Line.empty( ) || Line[0] == '#' )
 					continue;
 
 				// remove newlines and partial newlines to help fix issues with Windows formatted files on Linux systems
 
+				Line.erase( remove( Line.begin( ), Line.end( ), ' ' ), Line.end( ) );
 				Line.erase( remove( Line.begin( ), Line.end( ), '\r' ), Line.end( ) );
 				Line.erase( remove( Line.begin( ), Line.end( ), '\n' ), Line.end( ) );
+
+				// ignore lines that don't look like IP addresses
+
+				if( Line.find_first_not_of( "1234567890." ) != string :: npos )
+					continue;
 
 				m_IPBlackList.insert( Line );
 			}
