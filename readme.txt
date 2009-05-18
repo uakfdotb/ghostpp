@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 13.0
+GHost++ Version 13.1
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -12,7 +12,7 @@ Since it is written in native code you do not need to install the .NET framework
 Configuration
 =============
 
-GHost++ is configured via the two configuration files ghost.cfg and language.cfg.
+GHost++ is configured via the plain text configuration file ghost.cfg.
 The program itself runs in console mode and does not take any console input (it outputs messages to the console for information purposes only).
 
 ***You need to edit ghost.cfg before running GHost++***
@@ -92,12 +92,22 @@ When you run the !delban or !unban commands all bans for that username will be d
 GHost++ considers a user to be banned if it finds a ban for that user on ANY of the defined realms.
 This is because GHost++ doesn't wait for the user to spoof check before kicking them, instead it immediately kicks thems and assumes they came from the banned realm.
 
+Update:
+
+Since Version 13.1 GHost++ supports banning of users by IP address as well as by name.
+This feature is controlled by the bot_banmethod configuration value.
+If bot_banmethod = 1, GHost++ will automatically reject players using a banned name.
+If bot_banmethod = 2, GHost++ will automatically reject players using a banned IP address.
+If bot_banmethod = 3, GHost++ will automatically reject players using a banned name or IP address.
+If bot_banmethod is anything else GHost++ will print a message when a banned player joins but will not automatically reject them.
+
 =======================
 How Reserved Slots Work
 =======================
 
 Each game has a list of reserved players.
 The list always starts out empty when starting a new game.
+Note: You can configure GHost++ to automatically add the bot's battle.net friends and/or clan members to the reserved list when configuring your battle.net connections.
 You can use the !hold command to add players to the list.
 When a player joins the game the bot considers them to be a reserved player if any one of the following is true:
 
@@ -410,9 +420,6 @@ GHost++ will now save map statistics to the database under the specified categor
 There is no way to display these stats from within GHost++.
 The intention is that you will display the stats externally, e.g. on a website, or you will use the update_w3mmd_elo project to generate scores for use with matchmaking.
 
-Note: At the time of this writing GHost++ does not support the entire W3MMD standard, only flags and variables. It does not display or save any events.
-Note: At the time of this writing you should NOT use this feature with MySQL databases as it will create a very large number of connections to the MySQL server when the game ends.
-
 ======
 Warden
 ======
@@ -522,6 +529,7 @@ In game lobby:
 !compteam <s> <t>       change a computer's team in slot <s> to <t> (t goes from 1 to # of teams)
 !dl <name>              alias to !download
 !download <name>        allow a user to start downloading the map (only used with conditional map downloads, it tries to do a partial match)
+!fakeplayer             create or delete a fake player to occupy a slot during the game (the player will not do anything except stay AFK)
 !from                   display the country each player is from
 !hold <name> ...        hold a slot for someone
 !kick <name>            kick a player (it tries to do a partial match)
@@ -674,8 +682,7 @@ Once it's built you can continue:
 
 Notes:
 
-I specifically link against the gcc-compiled versions of boost in the Makefile.
-If your system produces different libraries you may need to edit the Makefile and specify the correct libraries.
+If your system produces differently named boost libraries you may need to edit the Makefile and specify the correct libraries.
 The manual install of Boost also put the headers in a "boost_1_38/boost" directory in /usr/include so I was forced to move the boost subdirectory into /usr/include and delete the (now empty) boost_1_38 directory.
 
 ========================

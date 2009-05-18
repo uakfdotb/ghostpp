@@ -1968,8 +1968,13 @@ void CBNET :: QueueChatCommand( string chatCommand )
 		if( chatCommand.size( ) > 255 )
 			chatCommand = chatCommand.substr( 0, 255 );
 
-		CONSOLE_Print( "[QUEUED: " + m_Server + "] " + chatCommand );
-		m_OutPackets.push( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
+		if( m_OutPackets.size( ) > 10 )
+			CONSOLE_Print( "[BNET: " + m_Server + "] attempted to queue chat command [" + chatCommand + "] but there are too many (" + UTIL_ToString( m_OutPackets.size( ) ) + ") packets queued, discarding" );
+		else
+		{
+			CONSOLE_Print( "[QUEUED: " + m_Server + "] " + chatCommand );
+			m_OutPackets.push( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
+		}
 	}
 }
 

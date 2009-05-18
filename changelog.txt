@@ -2,6 +2,23 @@
 GHost++ Changelog
 =================
 
+Version 13.1
+ - implemented a stricter packet queueing system on battle.net to help fix the flooding problem
+  * as a result you may notice it sometimes takes the bot longer to respond to your battle.net commands
+ - stopped using a specific boost version in the Makefile
+ - the bot now searches for "Storm.dll" first and if not found it searches for "storm.dll"
+ - updated W3MMD parser version to 1
+ - optimized saving of W3MMD stats to the database
+ - added new config value bot_banmethod
+  * see the "How Bans Work" section of the readme for more information
+ - added new config value bot_ipblacklistfile
+ - added the ability to blacklist IP addresses via the IP blacklist file
+ - included a default ipblacklist.txt file which includes known TOR proxies
+ - added new command !fakeplayer
+ - fixed a very old bug where Windows formatted config files caused problems on Linux
+ - fixed a bug with the automatic slot calculation code
+ - fixed a crash bug with some non-Warcraft III clients connecting to the bot
+
 Version 13.0
  - added support for external Warden handling
   * see the "Warden" section of the readme for more information
