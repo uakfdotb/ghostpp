@@ -2082,7 +2082,7 @@ CDBBan *CBNET :: IsBannedIP( string ip )
 
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
 	{
-		if( (*i)->GetIP( ) == name )
+		if( (*i)->GetIP( ) == ip )
 			return *i;
 	}
 
