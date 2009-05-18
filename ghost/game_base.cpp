@@ -149,8 +149,8 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 
 				// remove newlines and partial newlines to help fix issues with Windows formatted files on Linux systems
 
-				remove( Line.begin( ), Line.end( ), '\r' );
-				remove( Line.begin( ), Line.end( ), '\n' );
+				Line.erase( remove( Line.begin( ), Line.end( ), '\r' ), Line.end( ) );
+				Line.erase( remove( Line.begin( ), Line.end( ), '\n' ), Line.end( ) );
 
 				m_IPBlackList.insert( Line );
 			}

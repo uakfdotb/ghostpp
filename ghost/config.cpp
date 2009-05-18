@@ -60,8 +60,8 @@ void CConfig :: Read( string file )
 
 			// remove newlines and partial newlines to help fix issues with Windows formatted config files on Linux systems
 
-			remove( Line.begin( ), Line.end( ), '\r' );
-			remove( Line.begin( ), Line.end( ), '\n' );
+			Line.erase( remove( Line.begin( ), Line.end( ), '\r' ), Line.end( ) );
+			Line.erase( remove( Line.begin( ), Line.end( ), '\n' ), Line.end( ) );
 
 			string :: size_type Split = Line.find( "=" );
 
