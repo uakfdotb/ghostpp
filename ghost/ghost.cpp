@@ -279,7 +279,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_DBLocal = new CGHostDBSQLite( CFG );
 	m_Exiting = false;
 	m_Enabled = true;
-	m_Version = "13.0";
+	m_Version = "13.1";
 	m_HostCounter = 1;
 	m_AutoHostMaximumGames = 0;
 	m_AutoHostAutoStartPlayers = 0;
