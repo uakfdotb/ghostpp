@@ -43,10 +43,10 @@ void CConfig :: Read( string file )
 	in.open( file.c_str( ) );
 
 	if( in.fail( ) )
-		CONSOLE_Print( "[CONFIG] warning - unable to read file [%s]", file.c_str() );
+		CONSOLE_Print( "[CONFIG] warning - unable to read file [" + file + "]" );
 	else
 	{
-		CONSOLE_Print( "[CONFIG] loading file [%s]", file.c_str() );
+		CONSOLE_Print( "[CONFIG] loading file [" + file + "]" );
 		string Line;
 
 		while( !in.eof( ) )
@@ -57,6 +57,11 @@ void CConfig :: Read( string file )
 
 			if( Line.empty( ) || Line[0] == '#' )
 				continue;
+
+			// remove newlines and partial newlines to help fix issues with Windows formatted config files on Linux systems
+
+			remove( Line.begin( ), Line.end( ), '\r' );
+			remove( Line.begin( ), Line.end( ), '\n' );
 
 			string :: size_type Split = Line.find( "=" );
 

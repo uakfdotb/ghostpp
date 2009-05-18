@@ -205,7 +205,7 @@ void CReplay :: BuildReplay( string gameName, string statString )
 	}
 
 	if( TimeSlotsDiscarded > 0 )
-		CONSOLE_Print( "[REPLAY] ran out of checksums, discarded %d timeslots", TimeSlotsDiscarded );
+		CONSOLE_Print( "[REPLAY] ran out of checksums, discarded " + UTIL_ToString( TimeSlotsDiscarded ) + " timeslots" );
 
 	// done
 

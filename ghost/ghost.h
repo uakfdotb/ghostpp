@@ -38,10 +38,9 @@
 #include <algorithm>
 #include <map>
 #include <queue>
+#include <set>
 #include <string>
 #include <vector>
-
-#include <stdarg.h>
 
 using namespace std;
 
@@ -65,7 +64,7 @@ uint32_t GetTicks( );		// milliseconds
 
 // output
 
-void CONSOLE_Print( const char * message, ... );
+void CONSOLE_Print( string message );
 void DEBUG_Print( string message );
 void DEBUG_Print( BYTEARRAY b );
 
@@ -141,6 +140,8 @@ public:
 	uint32_t m_MaxDownloadSpeed;			// config value: maximum total map download speed in KB/sec
 	bool m_LCPings;							// config value: use LC style pings (divide actual pings by two)
 	uint32_t m_AutoKickPing;				// config value: auto kick players with ping higher than this
+	uint32_t m_BanMethod;					// config value: ban method (ban by name/ip/both)
+	string m_IPBlackListFile;				// config value: IP blacklist file (ipblacklist.txt)
 	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players
 	uint32_t m_Latency;						// config value: the latency (by default)
 	uint32_t m_SyncLimit;					// config value: the maximum number of packets a player can fall out of sync before starting the lag screen (by default)

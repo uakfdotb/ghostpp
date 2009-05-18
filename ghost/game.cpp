@@ -87,7 +87,7 @@ CGame :: ~CGame( )
 	{
 		if( m_CallableGameAdd->GetResult( ) > 0 )
 		{
-			CONSOLE_Print( "[GAME: %s] saving player/stats data to database", m_GameName.c_str() );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] saving player/stats data to database" );
 
 			// store the CDBGamePlayers in the database
 
@@ -100,7 +100,7 @@ CGame :: ~CGame( )
 				m_Stats->Save( m_GHost, m_GHost->m_DB, m_CallableGameAdd->GetResult( ) );
 		}
 		else
-			CONSOLE_Print( "[GAME: %s] unable to save player/stats data to database", m_GameName.c_str() );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] unable to save player/stats data to database" );
 
 		m_GHost->m_DB->RecoverCallable( m_CallableGameAdd );
 		delete m_CallableGameAdd;
@@ -136,7 +136,7 @@ CGame :: ~CGame( )
 
 	if( m_CallableGameAdd )
 	{
-		CONSOLE_Print( "[GAME: %s] game is being deleted before all game data was saved, game data has been lost", m_GameName.c_str() );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] game is being deleted before all game data was saved, game data has been lost" );
 		m_GHost->m_Callables.push_back( m_CallableGameAdd );
 	}
 }
@@ -335,7 +335,7 @@ void CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 
 	if( m_Stats && m_Stats->ProcessAction( action ) && m_GameOverTime == 0 )
 	{
-		CONSOLE_Print( "[GAME: %s] gameover timer started (stats class reported game over)", m_GameName.c_str() );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (stats class reported game over)" );
 		SendEndMessage( );
 		m_GameOverTime = GetTime( );
 	}
@@ -375,7 +375,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
 	{
-		CONSOLE_Print( "[GAME: %s] admin [%s] sent command [%s] with payload [%s]", m_GameName.c_str(), User.c_str(), Command.c_str(), Payload.c_str() );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
 
 		if( !m_Locked || RootAdminCheck || IsOwner( User ) )
 		{
@@ -513,16 +513,13 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					stringstream SS;
 					SS << Payload;
 					SS >> Interval;
-					int i=1;
 
 					if( SS.fail( ) || Interval == 0 )
-						CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to announce command" );
 					else
 					{
-						++i;
-						
 						if( SS.eof( ) )
-							CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), Command.c_str() );
+							CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to announce command" );
 						else
 						{
 							getline( SS, Message );
@@ -674,7 +671,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 					if( SS.fail( ) )
 					{
-						CONSOLE_Print( "[GAME: %s] bad input to %s command", m_GameName.c_str(), Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] bad input to close command" );
 						break;
 					}
 					else
@@ -703,19 +700,16 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				stringstream SS;
 				SS << Payload;
 				SS >> Slot;
-				int i=1;
-				
+
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to comp command" );
 				else
 				{
 					if( !SS.eof( ) )
 						SS >> Skill;
-					
-					++i;
-					
+
 					if( SS.fail( ) )
-						CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #2 to comp command" );
 					else
 						ComputerSlot( (unsigned char)( Slot - 1 ), (unsigned char)Skill, true );
 				}
@@ -735,22 +729,19 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				stringstream SS;
 				SS << Payload;
 				SS >> Slot;
-				int i=1;
-				
+
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to compcolour command" );
 				else
 				{
-					++i;
-					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to compcolour command" );
 					else
 					{
 						SS >> Colour;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+							CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #2 to compcolour command" );
 						else
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
@@ -779,22 +770,19 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				stringstream SS;
 				SS << Payload;
 				SS >> Slot;
-				int i=1;
-				
+
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to comphandicap command" );
 				else
 				{
-					++i;
-					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to comphandicap command" );
 					else
 					{
 						SS >> Handicap;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+							CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #2 to comphandicap command" );
 						else
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
@@ -826,16 +814,13 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				stringstream SS;
 				SS << Payload;
 				SS >> Slot;
-				int i=1;
-				
+
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to comprace command" );
 				else
 				{
-					++i;
-					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to comprace command" );
 					else
 					{
 						getline( SS, Race );
@@ -877,7 +862,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 									SendAllSlotInfo( );
 								}
 								else
-									CONSOLE_Print( "[GAME: %s] unknown race [%s] sent to comprace command", m_GameName.c_str(), Race.c_str() );
+									CONSOLE_Print( "[GAME: " + m_GameName + "] unknown race [" + Race + "] sent to comprace command" );
 							}
 						}
 					}
@@ -898,22 +883,19 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				stringstream SS;
 				SS << Payload;
 				SS >> Slot;
-				int i=1;
 
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to compteam command" );
 				else
 				{
-					++i;
-					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to compteam command" );
 					else
 					{
 						SS >> Team;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+							CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #2 to compteam command" );
 						else
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
@@ -960,7 +942,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							// inform the client that we are willing to send the map
 
-							CONSOLE_Print( "[GAME: %s] map download started for player [%s]", m_GameName.c_str(), LastMatch->GetName( ).c_str() );
+							CONSOLE_Print( "[GAME: " + m_GameName + "] map download started for player [" + LastMatch->GetName( ) + "]" );
 							Send( LastMatch, m_Protocol->SEND_W3GS_STARTDOWNLOAD( GetHostPID( ) ) );
 							LastMatch->SetDownloadAllowed( true );
 							LastMatch->SetDownloadStarted( true );
@@ -985,7 +967,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			if( Command == "end" && m_GameLoaded )
 			{
-				CONSOLE_Print( "[GAME: %s] is over (admin ended game)", m_GameName.c_str() );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
 				StopPlayers( "was disconnected (admin ended game)" );
 			}
 
@@ -1043,7 +1025,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 					if( SS.fail( ) )
 					{
-						CONSOLE_Print( "[GAME: %s] bad input to %s command", m_GameName.c_str(), Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] bad input to hold command" );
 						break;
 					}
 					else
@@ -1167,7 +1149,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 					if( SS.fail( ) )
 					{
-						CONSOLE_Print( "[GAME: %s] bad input to %s command", m_GameName.c_str(), Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] bad input to open command" );
 						break;
 					}
 					else
@@ -1265,7 +1247,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			if( Command == "priv" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
-				CONSOLE_Print( "[GAME: %s] trying to rehost as private game [%s]", m_GameName.c_str(), Payload.c_str() );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as private game [" + Payload + "]" );
 				m_GameState = GAME_PRIVATE;
 				m_GameName = Payload;
 				m_HostCounter = m_GHost->m_HostCounter++;
@@ -1293,7 +1275,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			if( Command == "pub" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
-				CONSOLE_Print( "[GAME: %s] trying to rehost as public game [%s]", m_GameName.c_str(), Payload.c_str() );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]" );
 				m_GameState = GAME_PUBLIC;
 				m_GameName = Payload;
 				m_HostCounter = m_GHost->m_HostCounter++;
@@ -1347,7 +1329,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					SS >> Port;
 
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input to %s command", m_GameName.c_str(), Command.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] bad inputs to sendlan command" );
 				else
 				{
 					// we send 12 for SlotsTotal because this determines how many PID's Warcraft 3 allocates
@@ -1424,22 +1406,19 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				stringstream SS;
 				SS << Payload;
 				SS >> SID1;
-				int i=1;
 
 				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to swap command" );
 				else
 				{
-					++i;
-					
 					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to swap command" );
 					else
 					{
 						SS >> SID2;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+							CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #2 to swap command" );
 						else
 							SwapSlots( (unsigned char)( SID1 - 1 ), (unsigned char)( SID2 - 1 ) );
 					}
@@ -1543,12 +1522,12 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		}
 		else
 		{
-			CONSOLE_Print( "[GAME: %s] admin command ignored, the game is locked", m_GameName.c_str() );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] admin command ignored, the game is locked" );
 			SendChat( player, m_GHost->m_Language->TheGameIsLocked( ) );
 		}
 	}
 	else
-		CONSOLE_Print( "[GAME: %s] user [%s] sent command [%s] with payload [%s]", m_GameName.c_str(), User.c_str(), Command.c_str(), Payload.c_str() );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] user [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
 
 	/*********************
 	* NON ADMIN COMMANDS *
@@ -1641,7 +1620,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						(*i)->SetKickVote( false );
 
 					player->SetKickVote( true );
-					CONSOLE_Print( "[GAME: %s] votekick against player [%s] started by player [%s]", m_GameName.c_str(), m_KickVotePlayer.c_str(), User.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] started by player [" + User + "]" );
 					SendAllChat( m_GHost->m_Language->StartedVoteKick( LastMatch->GetName( ), User, UTIL_ToString( (uint32_t)ceil( ( GetNumPlayers( ) - 1 ) * (float)m_GHost->m_VoteKickPercentage / 100 ) - 1 ) ) );
 					SendAllChat( m_GHost->m_Language->TypeYesToVote( string( 1, m_GHost->m_CommandTrigger ) ) );
 				}
@@ -1684,7 +1663,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				if( !m_GameLoading && !m_GameLoaded )
 					OpenSlot( GetSIDFromPID( Victim->GetPID( ) ), false );
 
-				CONSOLE_Print( "[GAME: %s] votekick against player [%s] passed with %d/%d votes", m_GameName.c_str(), m_KickVotePlayer.c_str(), Votes, GetNumPlayers( ) );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] passed with " + UTIL_ToString( Votes ) + "/" + UTIL_ToString( GetNumPlayers( ) ) + " votes" );
 				SendAllChat( m_GHost->m_Language->VoteKickPassed( m_KickVotePlayer ) );
 			}
 			else
@@ -1718,7 +1697,7 @@ bool CGame :: IsGameDataSaved( )
 
 void CGame :: SaveGameData( )
 {
-	CONSOLE_Print( "[GAME: %s] saving game data to database", m_GameName.c_str() );
+	CONSOLE_Print( "[GAME: " + m_GameName + "] saving game data to database" );
 	m_CallableGameAdd = m_GHost->m_DB->ThreadedGameAdd( m_GHost->m_BNETs.size( ) == 1 ? m_GHost->m_BNETs[0]->GetServer( ) : string( ), m_DBGame->GetMap( ), m_GameName, m_OwnerName, GetTime( ) - m_StartedLoadingTime, m_GameState, m_CreatorName, m_CreatorServer );
 }
 
@@ -1776,7 +1755,7 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 
 				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_WRONGPASSWORD ) );
 				potential->SetDeleteMe( true );
-				CONSOLE_Print( "[ADMINGAME] player [%s] at ip [%s] is trying to join the game but is tempbanned", joinPlayer->GetName( ).c_str(), (*i).first.c_str() );
+				CONSOLE_Print( "[ADMINGAME] player [" + joinPlayer->GetName( ) + "] at ip [" + (*i).first + "] is trying to join the game but is tempbanned" );
 				return;
 			}
 
@@ -1799,7 +1778,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 	if( player->GetLoggedIn( ) )
 	{
-		CONSOLE_Print( "[ADMINGAME] admin [%s] sent command [%s] with payload [%s]", User.c_str(), Command.c_str(), Payload.c_str() );
+		CONSOLE_Print( "[ADMINGAME] admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
 
 		/*****************
 		* ADMIN COMMANDS *
@@ -1825,10 +1804,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				if( m_GHost->m_BNETs.size( ) == 1 )
 					Server = m_GHost->m_BNETs[0]->GetServer( );
 				else
-				{
-					int i=2;
-					CONSOLE_Print( "[ADMINGAME] missing input #%d to %s command", i, Command.c_str() );
-				}
+					CONSOLE_Print( "[ADMINGAME] missing input #2 to addadmin command" );
 			}
 			else
 				SS >> Server;
@@ -1878,23 +1854,19 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				stringstream SS;
 				SS << Payload;
 				SS >> MaximumGames;
-				int i=1;
 
 				if( SS.fail( ) || MaximumGames == 0 )
-					CONSOLE_Print( "[ADMINGAME] bad input #%d to %s command", i, Command.c_str() );
+					CONSOLE_Print( "[ADMINGAME] bad input #1 to autohost command" );
 				else
 				{
 					SS >> AutoStartPlayers;
-					++i;
 
 					if( SS.fail( ) || AutoStartPlayers == 0 )
-						CONSOLE_Print( "[ADMINGAME] bad input #%d to %s command", i, Command.c_str() );
+						CONSOLE_Print( "[ADMINGAME] bad input #2 to autohost command" );
 					else
 					{
-						++i;
-						
 						if( SS.eof( ) )
-							CONSOLE_Print( "[ADMINGAME] missing input #%d to %s command", i, Command.c_str() );
+							CONSOLE_Print( "[ADMINGAME] missing input #3 to autohost command" );
 						else
 						{
 							getline( SS, GameName );
@@ -1953,37 +1925,31 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				stringstream SS;
 				SS << Payload;
 				SS >> MaximumGames;
-				int i=1;
 
 				if( SS.fail( ) || MaximumGames == 0 )
-					CONSOLE_Print( "[ADMINGAME] bad input #%d to %s command", i, Command.c_str() );
+					CONSOLE_Print( "[ADMINGAME] bad input #1 to autohostmm command" );
 				else
 				{
 					SS >> AutoStartPlayers;
-					++i;
 
 					if( SS.fail( ) || AutoStartPlayers == 0 )
-						CONSOLE_Print( "[ADMINGAME] bad input #%d to %s command", i, Command.c_str() );
+						CONSOLE_Print( "[ADMINGAME] bad input #2 to autohostmm command" );
 					else
 					{
 						SS >> MinimumScore;
-						++i;
 
 						if( SS.fail( ) )
-							CONSOLE_Print( "[ADMINGAME] bad input #%d to %s command", i, Command.c_str() );
+							CONSOLE_Print( "[ADMINGAME] bad input #3 to autohostmm command" );
 						else
 						{
 							SS >> MaximumScore;
-							++i;
 
 							if( SS.fail( ) )
-								CONSOLE_Print( "[ADMINGAME] bad input #%d to %s command", i, Command.c_str() );
+								CONSOLE_Print( "[ADMINGAME] bad input #4 to autohostmm command" );
 							else
 							{
-								++i;
-								
 								if( SS.eof( ) )
-									CONSOLE_Print( "[ADMINGAME] missing input #%d to %s command", i, Command.c_str() );
+									CONSOLE_Print( "[ADMINGAME] missing input #5 to autohostmm command" );
 								else
 								{
 									getline( SS, GameName );
@@ -2031,10 +1997,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				if( m_GHost->m_BNETs.size( ) == 1 )
 					Server = m_GHost->m_BNETs[0]->GetServer( );
 				else
-				{
-					int i=2;
-					CONSOLE_Print( "[ADMINGAME] bad input #%d to %s command", i, Command.c_str() );
-				}
+					CONSOLE_Print( "[ADMINGAME] missing input #2 to checkadmin command" );
 			}
 			else
 				SS >> Server;
@@ -2092,10 +2055,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				if( m_GHost->m_BNETs.size( ) == 1 )
 					Server = m_GHost->m_BNETs[0]->GetServer( );
 				else
-				{
-					int i=2;
-					CONSOLE_Print( "[ADMINGAME] bad input #%d to %s command", i, Command.c_str() );
-				}
+					CONSOLE_Print( "[ADMINGAME] missing input #2 to deladmin command" );
 			}
 			else
 				SS >> Server;
@@ -2147,7 +2107,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			if( GameNumber < m_GHost->m_Games.size( ) )
 			{
 				SendChat( player, m_GHost->m_Language->EndingGame( m_GHost->m_Games[GameNumber]->GetDescription( ) ) );
-				CONSOLE_Print( "[GAME: %s] is over (admin ended game)", m_GHost->m_Games[GameNumber]->GetGameName( ).c_str() );
+				CONSOLE_Print( "[GAME: " + m_GHost->m_Games[GameNumber]->GetGameName( ) + "] is over (admin ended game)" );
 				m_GHost->m_Games[GameNumber]->StopPlayers( "was disconnected (admin ended game)" );
 			}
 			else
@@ -2345,16 +2305,13 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			stringstream SS;
 			SS << Payload;
 			SS >> GameNumber;
-			int i=1;
 
 			if( SS.fail( ) )
-				CONSOLE_Print( "[GAME: %s] bad input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to saygame command" );
 			else
 			{
-				++i;
-				
 				if( SS.eof( ) )
-					CONSOLE_Print( "[GAME: %s] missing input #%d to %s command", m_GameName.c_str(), i, Command.c_str() );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to saygame command" );
 				else
 				{
 					getline( SS, Message );
@@ -2405,7 +2362,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		}
 	}
 	else
-		CONSOLE_Print( "[ADMINGAME] user [%s] sent command [%s] with payload [%s]", User.c_str(), Command.c_str(), Payload.c_str() );
+		CONSOLE_Print( "[ADMINGAME] user [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
 
 	/*********************
 	* NON ADMIN COMMANDS *
@@ -2419,7 +2376,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 	{
 		if( !m_Password.empty( ) && Payload == m_Password )
 		{
-			CONSOLE_Print( "[ADMINGAME] user [%s] logged in", User.c_str() );
+			CONSOLE_Print( "[ADMINGAME] user [" + User + "] logged in" );
 			SendChat( player, m_GHost->m_Language->AdminLoggedIn( ) );
 			player->SetLoggedIn( true );
 		}
@@ -2427,7 +2384,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		{
 			uint32_t LoginAttempts = player->GetLoginAttempts( ) + 1;
 			player->SetLoginAttempts( LoginAttempts );
-			CONSOLE_Print( "[ADMINGAME] user [%s] login attempt failed", User.c_str() );
+			CONSOLE_Print( "[ADMINGAME] user [" + User + "] login attempt failed" );
 			SendChat( player, m_GHost->m_Language->AdminInvalidPassword( UTIL_ToString( LoginAttempts ) ) );
 
 			if( LoginAttempts >= 1 )

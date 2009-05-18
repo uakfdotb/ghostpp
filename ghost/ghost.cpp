@@ -89,8 +89,6 @@
  #include <sys/time.h>
 #endif
 
-#include <stdarg.h>
-
 time_t gStartTime;
 string gLogFile;
 CGHost *gGHost = NULL;
@@ -119,7 +117,7 @@ void SignalCatcher( int signal )
 	// signal( SIGABRT, SignalCatcher );
 	// signal( SIGINT, SignalCatcher );
 
-	CONSOLE_Print( "[!!!] caught signal %d, shutting down", signal );
+	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( signal ) + ", shutting down" );
 
 	if( gGHost )
 	{
@@ -211,38 +209,31 @@ int main( int argc, char **argv )
 	return 0;
 }
 
-void CONSOLE_Print( const char * message, ... )
+void CONSOLE_Print( string message )
 {
-	char buffer[256];
-	va_list args;
-	va_start( args, message );
-	vsnprintf( buffer, 256, message, args );
-	va_end ( args );
-	
-	cout << buffer << endl;
-	
+	cout << message << endl;
+
 	// logging
-	
+
 	if( !gLogFile.empty( ) )
 	{
 		ofstream Log;
 		Log.open( gLogFile.c_str( ), ios :: app );
-		
+
 		if( !Log.fail( ) )
 		{
 			time_t Now = time( NULL );
 			string Time = asctime( localtime( &Now ) );
-			
+
 			// erase the newline
 			
 			Time.erase( Time.size( ) - 1 );
-			Log << "[" << Time << "] " << buffer << endl;
+			Log << "[" << Time << "] " << message << endl;
 			Log.close( );
 		}
 	}
 }
 
-/*
 void DEBUG_Print( string message )
 {
 	cout << message << endl;
@@ -257,7 +248,6 @@ void DEBUG_Print( BYTEARRAY b )
 
 	cout << "}" << endl;
 }
-*/
 
 //
 // CGHost
@@ -334,6 +324,8 @@ CGHost :: CGHost( CConfig *CFG )
 	m_MaxDownloadSpeed = CFG->GetInt( "bot_maxdownloadspeed", 100 );
 	m_LCPings = CFG->GetInt( "bot_lcpings", 1 ) == 0 ? false : true;
 	m_AutoKickPing = CFG->GetInt( "bot_autokickping", 400 );
+	m_BanMethod = CFG->GetInt( "bot_banmethod", 1 );
+	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
 	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
 	m_Latency = CFG->GetInt( "bot_latency", 100 );
 	m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
@@ -396,29 +388,29 @@ CGHost :: CGHost( CConfig *CFG )
 
 		if( CDKeyROC.empty( ) )
 		{
-			CONSOLE_Print( "[GHOST] missing %scdkeyroc, skipping this battle.net connection", Prefix.c_str() );
+			CONSOLE_Print( "[GHOST] missing " + Prefix + "cdkeyroc, skipping this battle.net connection" );
 			continue;
 		}
 
 		if( CDKeyTFT.empty( ) )
 		{
-			CONSOLE_Print( "[GHOST] missing %scdkeytft, skipping this battle.net connection", Prefix.c_str() );
+			CONSOLE_Print( "[GHOST] missing " + Prefix + "cdkeytft, skipping this battle.net connection" );
 			continue;
 		}
 
 		if( UserName.empty( ) )
 		{
-			CONSOLE_Print( "[GHOST] missing %susername, skipping this battle.net connection", Prefix.c_str() );
+			CONSOLE_Print( "[GHOST] missing " + Prefix + "username, skipping this battle.net connection" );
 			continue;
 		}
 
 		if( UserPassword.empty( ) )
 		{
-			CONSOLE_Print( "[GHOST] missing %spassword, skipping this battle.net connection", Prefix.c_str() );
+			CONSOLE_Print( "[GHOST] missing " + Prefix + "password, skipping this battle.net connection" );
 			continue;
 		}
 
-		CONSOLE_Print( "[GHOST] found battle.net connection #%d for server [%s]", i, Server.c_str() );
+		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
 		m_BNETs.push_back( new CBNET( this, Server, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, MaxMessageLength ) );
 	}
 
@@ -460,9 +452,9 @@ CGHost :: CGHost( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
 #ifdef GHOST_MYSQL
-	CONSOLE_Print( "[GHOST] GHost++ Version %s (with MySQL support)", m_Version.c_str() );
+	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (with MySQL support)" );
 #else
-	CONSOLE_Print( "[GHOST] GHost++ Version %s (without MySQL support)", m_Version.c_str() );
+	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (without MySQL support)" );
 #endif
 }
 
@@ -489,7 +481,7 @@ CGHost :: ~CGHost( )
 	// but if you try to recreate the CGHost object within a single session you will probably leak resources!
 
 	if( !m_Callables.empty( ) )
-		CONSOLE_Print( "[GHOST] warning - %d orphaned callables were leaked (this is not an error)", m_Callables.size( ) );
+		CONSOLE_Print( "[GHOST] warning - " + UTIL_ToString( m_Callables.size( ) ) + " orphaned callables were leaked (this is not an error)" );
 
 	delete m_Language;
 	delete m_Map;
@@ -503,13 +495,13 @@ bool CGHost :: Update( long usecBlock )
 
 	if( m_DB->HasError( ) )
 	{
-		CONSOLE_Print( "[GHOST] database error - %s", m_DB->GetError( ).c_str() );
+		CONSOLE_Print( "[GHOST] database error - " + m_DB->GetError( ) );
 		return true;
 	}
 
 	if( m_DBLocal->HasError( ) )
 	{
-		CONSOLE_Print( "[GHOST] local database error - %s", m_DBLocal->GetError( ).c_str() );
+		CONSOLE_Print( "[GHOST] local database error - " + m_DBLocal->GetError( ) );
 		return true;
 	}
 
@@ -582,7 +574,7 @@ bool CGHost :: Update( long usecBlock )
 	{
 		if( m_CurrentGame->Update( &fd ) )
 		{
-			CONSOLE_Print( "[GHOST] deleting current game [%s]", m_CurrentGame->GetGameName( ).c_str() );
+			CONSOLE_Print( "[GHOST] deleting current game [" + m_CurrentGame->GetGameName( ) + "]" );
 			delete m_CurrentGame;
 			m_CurrentGame = NULL;
 
@@ -614,7 +606,7 @@ bool CGHost :: Update( long usecBlock )
 	{
 		if( (*i)->Update( &fd ) )
 		{
-			CONSOLE_Print( "[GHOST] deleting game [%s]", (*i)->GetGameName( ).c_str() );
+			CONSOLE_Print( "[GHOST] deleting game [" + (*i)->GetGameName( ) + "]" );
 			EventGameDeleted( *i );
 			delete *i;
 			i = m_Games.erase( i );
@@ -664,12 +656,12 @@ bool CGHost :: Update( long usecBlock )
 						if( !m_Map->GetMapMatchMakingCategory( ).empty( ) )
 						{
 							if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
-								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [%s] found but matchmaking can only be used with custom maps, matchmaking disabled", m_Map->GetMapMatchMakingCategory( ).c_str() );
+								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
 							else if( m_BNETs.size( ) != 1 )
-								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [%s] found but matchmaking can only be used with one battle.net connection, matchmaking disabled", m_Map->GetMapMatchMakingCategory( ).c_str() );
+								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with one battle.net connection, matchmaking disabled" );
 							else
 							{
-								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [%s] found, matchmaking enabled", m_Map->GetMapMatchMakingCategory( ).c_str() );
+								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found, matchmaking enabled" );
 
 								m_CurrentGame->SetMatchMaking( true );
 								m_CurrentGame->SetMinimumScore( m_AutoHostMinimumScore );
@@ -683,7 +675,7 @@ bool CGHost :: Update( long usecBlock )
 			}
 			else
 			{
-				CONSOLE_Print( "[GHOST] stopped auto hosting, map config file [%s] is invalid", m_AutoHostMapCFG.c_str() );
+				CONSOLE_Print( "[GHOST] stopped auto hosting, map config file [" + m_AutoHostMapCFG + "] is invalid" );
 				m_AutoHostGameName.clear( );
 				m_AutoHostMapCFG.clear( );
 				m_AutoHostOwner.clear( );
@@ -784,7 +776,7 @@ void CGHost :: ExtractScripts( )
 
 	if( SFileOpenArchive( PatchMPQFileName.c_str( ), 0, 0, &PatchMPQ ) )
 	{
-		CONSOLE_Print( "[GHOST] loading MPQ file [%s]", PatchMPQFileName.c_str() );
+		CONSOLE_Print( "[GHOST] loading MPQ file [" + PatchMPQFileName + "]" );
 		HANDLE SubFile;
 
 		// common.j
@@ -800,7 +792,7 @@ void CGHost :: ExtractScripts( )
 
 				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
 				{
-					CONSOLE_Print( "[GHOST] extracting Scripts\\common.j from MPQ file to [%scommon.j]", m_MapCFGPath.c_str() );
+					CONSOLE_Print( "[GHOST] extracting Scripts\\common.j from MPQ file to [" + m_MapCFGPath + "common.j]" );
 					UTIL_FileWrite( m_MapCFGPath + "common.j", (unsigned char *)SubFileData, BytesRead );
 				}
 				else
@@ -827,7 +819,7 @@ void CGHost :: ExtractScripts( )
 
 				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
 				{
-					CONSOLE_Print( "[GHOST] extracting Scripts\\blizzard.j from MPQ file to [%sblizzard.j]", m_MapCFGPath.c_str() );
+					CONSOLE_Print( "[GHOST] extracting Scripts\\blizzard.j from MPQ file to [" + m_MapCFGPath + "blizzard.j]" );
 					UTIL_FileWrite( m_MapCFGPath + "blizzard.j", (unsigned char *)SubFileData, BytesRead );
 				}
 				else
@@ -844,7 +836,7 @@ void CGHost :: ExtractScripts( )
 		SFileCloseArchive( PatchMPQ );
 	}
 	else
-		CONSOLE_Print( "[GHOST] warning - unable to load MPQ file [%s]", PatchMPQFileName.c_str() );
+		CONSOLE_Print( "[GHOST] warning - unable to load MPQ file [" + PatchMPQFileName + "]" );
 }
 
 void CGHost :: LoadIPToCountryData( )
@@ -900,7 +892,7 @@ void CGHost :: LoadIPToCountryData( )
 				if( NewPercent != Percent && NewPercent % 10 == 0 )
 				{
 					Percent = NewPercent;
-					CONSOLE_Print( "[GHOST] iptocountry data: %d%% loaded", Percent );
+					CONSOLE_Print( "[GHOST] iptocountry data: " + UTIL_ToString( Percent ) + "% loaded" );
 				}
 			}
 
@@ -1022,7 +1014,7 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 		return;
 	}
 
-	CONSOLE_Print( "[GHOST] creating game [%s]", gameName.c_str() );
+	CONSOLE_Print( "[GHOST] creating game [" + gameName + "]" );
 
 	if( saveGame )
 		m_CurrentGame = new CGame( this, m_Map, m_SaveGame, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );

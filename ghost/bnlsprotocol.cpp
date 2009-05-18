@@ -56,7 +56,7 @@ BYTEARRAY CBNLSProtocol :: RECEIVE_BNLS_WARDEN( BYTEARRAY data )
 		if( Result == 0x00 )
 			return BYTEARRAY( data.begin( ) + 11, data.end( ) );
 		else
-			CONSOLE_Print( "[BNLSPROTO] received error code %d", data[8] );
+			CONSOLE_Print( "[BNLSPROTO] received error code " + UTIL_ToString( data[8] ) );
 	}
 
 	return BYTEARRAY( );

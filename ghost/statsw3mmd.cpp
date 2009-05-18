@@ -32,8 +32,8 @@
 
 CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame, string nCategory ) : CStats( nGame )
 {
-	CONSOLE_Print( "[STATSW3MMD] using Warcraft 3 Map Meta Data stats parser version 0" );
-	CONSOLE_Print( "[STATSW3MMD] using map_statsw3mmdcategory [%s]", nCategory.c_str() );
+	CONSOLE_Print( "[STATSW3MMD] using Warcraft 3 Map Meta Data stats parser version 1" );
+	CONSOLE_Print( "[STATSW3MMD] using map_statsw3mmdcategory [" + nCategory + "]" );
 	m_Category = nCategory;
 	m_NextValueID = 0;
 	m_NextCheckID = 0;
@@ -51,28 +51,6 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 	BYTEARRAY MissionKey;
 	BYTEARRAY Key;
 	BYTEARRAY Value;
-
-	/*
-
-	**Message Format**
-	- The sub-packets carrying messages in the game data have the format byte 0x6B, string filename, string mission_key, string key, dword value.
-	- The strings are all null-terminated, and dwords are little-endian.
-	- Messages can be identified by the surrounding pattern: kMMD.Dat[null]val:[decimal-number][null][message contents][null][dword]"
-	- Checksum messages can be identified by the surrounding pattern: kMMD.Dat[null]chk:[decimal-number][null][decimal-number][null][dword]"
-	- Message ids start at 0 and increase by 1 for each message. IDs become very important in cases where cheaters try to fake messages.
-	- Messages are composed of a sequence of arguments separated by non-escaped spaces.
-	- Escape sequences are '\ ' for ' ' (space), '\\' for '\' (backslash).
-	- The dword value in the message is a weak checksum for the message. The parser does not need to understand this checksum, as it is only used by client to detects forgeries.
-	- A message must be followed by a checksum message with the message contents replaced by the msg id.
-	- The purpose of the checksum message is to allow friendly clients to detect tampering, and ultimately is only required because of the limitations of wc3 JASS.
-	- An example of data containing a message with checksum:
-			...
-			kMMD.Dat[null]val:0[null]init version 0 0[null][0xFFFFFFFF]
-			...
-			kMMD.Dat[null]chk:0[null]0[null][0xFFFFFFFF]
-			...
-
-	*/
 
 	while( ActionData.size( ) >= i + 9 )
 	{
@@ -121,12 +99,12 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 											// Tokens[2] = minimum
 											// Tokens[3] = current
 
-											CONSOLE_Print( "[STATSW3MMD: %s] map is using Warcraft 3 Map Meta Data library version [%s]", m_Game->GetGameName( ).c_str(), Tokens[3].c_str() );
+											CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] map is using Warcraft 3 Map Meta Data library version [" + Tokens[3] + "]" );
 
-											if( UTIL_ToUInt32( Tokens[2] ) > 0 )
-												CONSOLE_Print( "[STATSW3MMD: %s] warning - parser version 0 is not compatible with this map, minimum version [%s]", m_Game->GetGameName( ).c_str(), Tokens[2].c_str() );
+											if( UTIL_ToUInt32( Tokens[2] ) > 1 )
+												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] warning - parser version 1 is not compatible with this map, minimum version [" + Tokens[2] + "]" );
 											else
-												CONSOLE_Print( "[STATSW3MMD: %s] parser version 0 is compatible with this map, minimum version [%s]", m_Game->GetGameName( ).c_str(), Tokens[2].c_str() );
+												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] parser version 1 is compatible with this map, minimum version [" + Tokens[2] + "]" );
 										}
 										else if( Tokens[1] == "pid" && Tokens.size( ) == 4 )
 										{
@@ -136,7 +114,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 											uint32_t PID = UTIL_ToUInt32( Tokens[2] );
 
 											if( m_PIDToName.find( PID ) != m_PIDToName.end( ) )
-												CONSOLE_Print( "[STATSW3MMD: %s] overwriting previous name [%s] with new name [%s] for PID [%s]", m_Game->GetGameName( ).c_str(), m_PIDToName[PID].c_str(), Tokens[3].c_str(), Tokens[2].c_str() );
+												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] overwriting previous name [" + m_PIDToName[PID] + "] with new name [" + Tokens[3] + "] for PID [" + Tokens[2] + "]" );
 
 											m_PIDToName[PID] = Tokens[3];
 										}
@@ -149,13 +127,13 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 										// Tokens[4] = suggestion (ignored here)
 
 										if( m_DefVarPs.find( Tokens[1] ) != m_DefVarPs.end( ) )
-											CONSOLE_Print( "[STATSW3MMD: %s] duplicate DefVarP [%s] found, ignoring", m_Game->GetGameName( ).c_str(), KeyString.c_str() );
+											CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] duplicate DefVarP [" + KeyString + "] found, ignoring" );
 										else
 										{
 											if( Tokens[2] == "int" || Tokens[2] == "real" || Tokens[2] == "string" )
 												m_DefVarPs[Tokens[1]] = Tokens[2];
 											else
-												CONSOLE_Print( "[STATSW3MMD: %s] unknown DefVarP [%s] found, ignoring", m_Game->GetGameName( ).c_str(), KeyString.c_str() );
+												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown DefVarP [" + KeyString + "] found, ignoring" );
 										}
 
 									}
@@ -167,7 +145,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 										// Tokens[4] = value
 
 										if( m_DefVarPs.find( Tokens[2] ) == m_DefVarPs.end( ) )
-											CONSOLE_Print( "[STATSW3MMD: %s] VarP [%s] found without a corresponding DefVarP, ignoring", m_Game->GetGameName( ).c_str(), KeyString.c_str() );
+											CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] VarP [" + KeyString + "] found without a corresponding DefVarP, ignoring" );
 										else
 										{
 											string ValueType = m_DefVarPs[Tokens[2]];
@@ -184,7 +162,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 														m_VarPInts[VP] += UTIL_ToInt32( Tokens[4] );
 													else
 													{
-														// CONSOLE_Print( "[STATSW3MMD: %s] int VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
+														// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] int VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
 														m_VarPInts[VP] = UTIL_ToInt32( Tokens[4] );
 													}
 												}
@@ -194,12 +172,12 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 														m_VarPInts[VP] -= UTIL_ToInt32( Tokens[4] );
 													else
 													{
-														// CONSOLE_Print( "[STATSW3MMD: %s] int VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
+														// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] int VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
 														m_VarPInts[VP] = -UTIL_ToInt32( Tokens[4] );
 													}
 												}
 												else
-													CONSOLE_Print( "[STATSW3MMD: %s] unknown int VarP [%s] operation [%s] found, ignoring", m_Game->GetGameName( ).c_str(), KeyString.c_str(), Tokens[3].c_str() );
+													CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown int VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
 											}
 											else if( ValueType == "real" )
 											{
@@ -213,7 +191,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 														m_VarPReals[VP] += UTIL_ToDouble( Tokens[4] );
 													else
 													{
-														// CONSOLE_Print( "[STATSW3MMD: %s] real VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
+														// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] real VarP [" + KeyString + "] found with relative operation [+=] without a previously assigned value, ignoring" );
 														m_VarPReals[VP] = UTIL_ToDouble( Tokens[4] );
 													}
 												}
@@ -223,12 +201,12 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 														m_VarPReals[VP] -= UTIL_ToDouble( Tokens[4] );
 													else
 													{
-														// CONSOLE_Print( "[STATSW3MMD: %s] real VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
+														// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] real VarP [" + KeyString + "] found with relative operation [-=] without a previously assigned value, ignoring" );
 														m_VarPReals[VP] = -UTIL_ToDouble( Tokens[4] );
 													}
 												}
 												else
-													CONSOLE_Print( "[STATSW3MMD: %s] unknown real VarP [%s] operation [%s] found, ignoring", m_Game->GetGameName( ).c_str(), KeyString.c_str(), Tokens[3].c_str() );
+													CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown real VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
 											}
 											else
 											{
@@ -237,7 +215,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 												if( Tokens[3] == "=" )
 													m_VarPStrings[VP] = Tokens[4];
 												else
-													CONSOLE_Print( "[STATSW3MMD: %s] unknown string VarP [%s] operation [%s] found, ignoring", m_Game->GetGameName( ).c_str(), KeyString.c_str(), Tokens[3].c_str() );
+													CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown string VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
 											}
 										}
 									}
@@ -257,13 +235,13 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 											else
 											{
 												if( m_Flags.find( PID ) != m_Flags.end( ) )
-													CONSOLE_Print( "[STATSW3MMD: %s] overwriting previous flag [%s] with new flag [%s] for PID [%s]", m_Game->GetGameName( ).c_str(), m_Flags[PID].c_str(), Tokens[2].c_str(), Tokens[1].c_str() );
+													CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] overwriting previous flag [" + m_Flags[PID] + "] with new flag [" + Tokens[2] + "] for PID [" + Tokens[1] + "]" );
 
 												m_Flags[PID] = Tokens[2];
 											}
 										}
 										else
-											CONSOLE_Print( "[STATSW3MMD: %s] unknown flag [%s] found, ignoring", m_Game->GetGameName( ).c_str(), Tokens[2].c_str() );
+											CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown flag [" + Tokens[2] + "] found, ignoring" );
 									}
 									else if( Tokens[0] == "DefEvent" )
 									{
@@ -273,20 +251,24 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 									{
 										// todotodo: use event definitions to display event messages in a readable format
 
-										CONSOLE_Print( "[STATSW3MMD: %s] event [%s]", m_Game->GetGameName( ).c_str(), KeyString.c_str() );
+										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] event [" + KeyString + "]" );
+									}
+									else if( Tokens[0] == "Blank" )
+									{
+										// ignore
 									}
 									else if( Tokens[0] == "Custom" )
 									{
-										CONSOLE_Print( "[STATSW3MMD: %s] custom [%s]", m_Game->GetGameName( ).c_str(), KeyString.c_str() );
+										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] custom [" + KeyString + "]" );
 									}
 									else
-										CONSOLE_Print( "[STATSW3MMD: %s] unknown message type [%s] found, ignoring", m_Game->GetGameName( ).c_str(), Tokens[0].c_str() );
+										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown message type [" + Tokens[0] + "] found, ignoring" );
 								}
 
 								m_NextValueID++;
 							}
 							else
-								CONSOLE_Print( "[STATSW3MMD: %s] found value id [%s] but expected %d, ignoring", m_Game->GetGameName( ).c_str(), ValueIDString.c_str(), m_NextValueID );
+								CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] found value id [" + ValueIDString + "] but expected " + UTIL_ToString( m_NextValueID ) + ", ignoring" );
 						}
 						else if( MissionKeyString.size( ) > 4 && MissionKeyString.substr( 0, 4 ) == "chk:" )
 						{
@@ -300,10 +282,10 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 								m_NextCheckID++;
 							}
 							else
-								CONSOLE_Print( "[STATSW3MMD: %s] found check id [%s] but expected %d, ignoring", m_Game->GetGameName( ).c_str(), CheckIDString.c_str(), m_NextCheckID );
+								CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] found check id [" + CheckIDString + "] but expected " + UTIL_ToString( m_NextCheckID ) + ", ignoring" );
 						}
 						else
-							CONSOLE_Print( "[STATSW3MMD: %s] unknown mission key [%s] found, ignoring", m_Game->GetGameName( ).c_str(), MissionKeyString.c_str() );
+							CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown mission key [" + MissionKeyString + "] found, ignoring" );
 
 						i += 15 + MissionKey.size( ) + Key.size( );
 					}
@@ -325,7 +307,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 
 void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 {
-	CONSOLE_Print( "[STATSW3MMD: %s] received %d/%d value/check messages", m_Game->GetGameName( ).c_str(), m_NextValueID, m_NextCheckID );
+	CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] received " + UTIL_ToString( m_NextValueID ) + "/" + UTIL_ToString( m_NextCheckID ) + " value/check messages" );
 
 	if( DB->Begin( ) )
 	{
@@ -335,7 +317,7 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		for( map<uint32_t,string> :: iterator i = m_PIDToName.begin( ); i != m_PIDToName.end( ); i++ )
 		{
 			if( m_Flags.find( i->first ) == m_Flags.end( ) )
-				CONSOLE_Print( "[STATSW3MMD: %s] warning - no flag recorded for PID [%d]", m_Game->GetGameName( ).c_str(), i->first );
+				CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] warning - no flag recorded for PID [" + UTIL_ToString( i->first ) + "]" );
 
 			uint32_t Leaver = 0;
 			uint32_t Practicing = 0;
@@ -359,12 +341,12 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPStrings ) );
 
 		if( DB->Commit( ) )
-			CONSOLE_Print( "[STATSW3MMD: %s] saving data", m_Game->GetGameName( ).c_str() );
+			CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] saving data" );
 		else
-			CONSOLE_Print( "[STATSW3MMD: %s] unable to commit database transaction, data not saved", m_Game->GetGameName( ).c_str() );
+			CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unable to commit database transaction, data not saved" );
 	}
 	else
-		CONSOLE_Print( "[STATSW3MMD: %s] unable to begin database transaction, data not saved", m_Game->GetGameName( ).c_str() );
+		CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unable to begin database transaction, data not saved" );
 }
 
 vector<string> CStatsW3MMD :: TokenizeKey( string key )
@@ -383,7 +365,7 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 				Token += '\\';
 			else
 			{
-				CONSOLE_Print( "[STATSW3MMD: %s] error tokenizing key [%s], invalid escape sequence found, ignoring", m_Game->GetGameName( ).c_str(), key.c_str() );
+				CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] error tokenizing key [" + key + "], invalid escape sequence found, ignoring" );
 				return vector<string>( );
 			}
 
@@ -395,7 +377,7 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 			{
 				if( Token.empty( ) )
 				{
-					CONSOLE_Print( "[STATSW3MMD: %s] error tokenizing key [%s], empty token found, ignoring", m_Game->GetGameName( ).c_str(), key.c_str() );
+					CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] error tokenizing key [" + key + "], empty token found, ignoring" );
 					return vector<string>( );
 				}
 
@@ -411,7 +393,7 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 
 	if( Token.empty( ) )
 	{
-		CONSOLE_Print( "[STATSW3MMD: %s] error tokenizing key [%s], empty token found, ignoring", m_Game->GetGameName( ).c_str(), key.c_str() );
+		CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] error tokenizing key [" + key + "], empty token found, ignoring" );
 		return vector<string>( );
 	}
 

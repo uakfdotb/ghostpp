@@ -92,13 +92,13 @@ bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( string war3Path, string keyROC, 
 	else
 	{
 		if( !ExistsWar3EXE )
-			CONSOLE_Print( "[BNCSUI] unable to open [%s]", FileWar3EXE.c_str() );
+			CONSOLE_Print( "[BNCSUI] unable to open [" + FileWar3EXE + "]" );
 
 		if( !ExistsStormDLL )
-			CONSOLE_Print( "[BNCSUI] unable to open [%s]", FileStormDLL.c_str() );
+			CONSOLE_Print( "[BNCSUI] unable to open [" + FileStormDLL + "]" );
 
 		if( !ExistsGameDLL )
-			CONSOLE_Print( "[BNCSUI] unable to open [%s]", FileGameDLL.c_str() );
+			CONSOLE_Print( "[BNCSUI] unable to open [" + FileGameDLL + "]" );
 	}
 
 	return false;
