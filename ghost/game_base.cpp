@@ -788,10 +788,13 @@ bool CBaseGame :: Update( void *fd )
 		{
 			// check the IP blacklist
 
-			if( m_IPBlackList.find( NewSocket->GetIPString( ) ) != m_IPBlackList.end( ) )
+			if( m_IPBlackList.find( NewSocket->GetIPString( ) ) == m_IPBlackList.end( ) )
 				m_Potentials.push_back( new CPotentialPlayer( m_Protocol, this, NewSocket ) );
 			else
+			{
+				CONSOLE_Print( "[GAME: " + m_GameName + "] rejected connection from [" + NewSocket->GetIPString( ) + "] due to blacklist" );
 				delete NewSocket;
+			}
 		}
 
 		if( m_Socket->HasError( ) )
