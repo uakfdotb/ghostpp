@@ -219,7 +219,10 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 
 CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) )
 {
-	m_Packets = potential->GetPackets( );
+	// todotodo: properly copy queued packets to the new player, this just discards them
+	// this isn't a big problem because official Warcraft III clients don't send any packets after the join request until they receive a response
+
+	// m_Packets = potential->GetPackets( );
 	m_PID = nPID;
 	m_Name = nName;
 	m_InternalIP = nInternalIP;
