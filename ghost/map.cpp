@@ -515,7 +515,8 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								ISS.seekg( 4, ios :: cur );				// ally low priorities
 								ISS.seekg( 4, ios :: cur );				// ally high priorities
 
-								Slots.push_back( Slot );
+								if( Slot.GetSlotStatus( ) != SLOTSTATUS_CLOSED )
+									Slots.push_back( Slot );
 							}
 
 							ISS.read( (char *)&RawMapNumTeams, 4 );		// number of teams
