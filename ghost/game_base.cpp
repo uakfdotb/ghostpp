@@ -82,7 +82,6 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_LastCountDownTicks = 0;
 	m_CountDownCounter = 0;
 	m_StartedLoadingTicks = 0;
-	m_StartedLoadingTime = 0;
 	m_StartPlayers = 0;
 	m_LastActionSentTicks = 0;
 	m_StartedLaggingTime = 0;
@@ -575,7 +574,6 @@ bool CBaseGame :: Update( void *fd )
 		else if( !m_GameLoading && !m_GameLoaded )
 		{
 			m_StartedLoadingTicks = GetTicks( );
-			m_StartedLoadingTime = GetTime( );
 			m_GameLoading = true;
 			EventGameStarted( );
 		}

@@ -89,7 +89,6 @@ protected:
 	uint32_t m_LastCountDownTicks;					// GetTicks when the last countdown message was sent
 	uint32_t m_CountDownCounter;					// the countdown is finished when this reaches zero
 	uint32_t m_StartedLoadingTicks;					// GetTicks when the game started loading
-	uint32_t m_StartedLoadingTime;					// GetTime when the game started loading
 	uint32_t m_StartPlayers;						// number of players when the game started
 	uint32_t m_LastActionSentTicks;					// GetTicks when the last action packet was sent
 	uint32_t m_StartedLaggingTime;					// GetTime when the last lag screen started
