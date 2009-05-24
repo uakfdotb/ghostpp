@@ -2318,7 +2318,10 @@ void CBaseGame :: EventGameStarted( )
 	// and finally reenter battle.net chat
 
 	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+	{
+		(*i)->QueueGameUncreate( );
 		(*i)->QueueEnterChat( );
+	}
 }
 
 void CBaseGame :: EventGameLoaded( )

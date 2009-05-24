@@ -579,7 +579,10 @@ bool CGHost :: Update( long usecBlock )
 			m_CurrentGame = NULL;
 
 			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+			{
+				(*i)->QueueGameUncreate( );
 				(*i)->QueueEnterChat( );
+			}
 		}
 		else if( m_CurrentGame )
 			m_CurrentGame->UpdatePost( );

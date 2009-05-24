@@ -103,6 +103,7 @@ private:
 	uint32_t m_NextConnectTime;						// GetTime when we should try connecting to battle.net next (after we get disconnected)
 	uint32_t m_LastNullTime;						// GetTime when the last null packet was sent for detecting disconnects
 	uint32_t m_LastOutPacketTicks;					// GetTicks when the last packet was sent for the m_OutPackets queue
+	uint32_t m_LastOutPacketSize;
 	uint32_t m_LastAdminRefreshTime;				// GetTime when the admin list was last refreshed from the database
 	uint32_t m_LastBanRefreshTime;					// GetTime when the ban list was last refreshed from the database
 	bool m_WaitingToConnect;						// if we're waiting to reconnect to battle.net after being disconnected
@@ -153,6 +154,7 @@ public:
 	void QueueChatCommand( string chatCommand, string user, bool whisper );
 	void QueueGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t hostCounter );
 	void QueueGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter );
+	void QueueGameUncreate( );
 
 	// other functions
 

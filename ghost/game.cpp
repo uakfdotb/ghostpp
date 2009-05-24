@@ -1255,6 +1255,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
+					(*i)->QueueGameUncreate( );
 					(*i)->QueueEnterChat( );
 
 					// we need to send the game creation message now because private games are not refreshed
@@ -1283,6 +1284,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
+					(*i)->QueueGameUncreate( );
 					(*i)->QueueEnterChat( );
 
 					// the game creation message will be sent on the next refresh

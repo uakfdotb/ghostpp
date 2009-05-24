@@ -75,6 +75,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBN
 	m_NextConnectTime = GetTime( );
 	m_LastNullTime = 0;
 	m_LastOutPacketTicks = 0;
+	m_LastOutPacketSize = 0;
 	m_LastAdminRefreshTime = GetTime( );
 	m_LastBanRefreshTime = GetTime( );
 	m_WaitingToConnect = true;
@@ -393,13 +394,13 @@ bool CBNET :: Update( void *fd )
 		// the socket has an error
 
 		CONSOLE_Print( "[BNET: " + m_Server + "] disconnected from battle.net due to socket error" );
-		CONSOLE_Print( "[BNET: " + m_Server + "] waiting 30 seconds to reconnect" );
+		CONSOLE_Print( "[BNET: " + m_Server + "] waiting 90 seconds to reconnect" );
 		m_GHost->EventBNETDisconnected( this );
 		delete m_BNLSClient;
 		m_BNLSClient = NULL;
 		m_BNCSUtil->Reset( m_UserName, m_UserPassword );
 		m_Socket->Reset( );
-		m_NextConnectTime = GetTime( ) + 30;
+		m_NextConnectTime = GetTime( ) + 90;
 		m_LoggedIn = false;
 		m_InChat = false;
 		m_WaitingToConnect = true;
@@ -411,13 +412,13 @@ bool CBNET :: Update( void *fd )
 		// the socket was disconnected
 
 		CONSOLE_Print( "[BNET: " + m_Server + "] disconnected from battle.net due to socket not connected" );
-		CONSOLE_Print( "[BNET: " + m_Server + "] waiting 30 seconds to reconnect" );
+		CONSOLE_Print( "[BNET: " + m_Server + "] waiting 90 seconds to reconnect" );
 		m_GHost->EventBNETDisconnected( this );
 		delete m_BNLSClient;
 		m_BNLSClient = NULL;
 		m_BNCSUtil->Reset( m_UserName, m_UserPassword );
 		m_Socket->Reset( );
-		m_NextConnectTime = GetTime( ) + 30;
+		m_NextConnectTime = GetTime( ) + 90;
 		m_LoggedIn = false;
 		m_InChat = false;
 		m_WaitingToConnect = true;
@@ -452,12 +453,19 @@ bool CBNET :: Update( void *fd )
 		}
 
 		// check if at least one packet is waiting to be sent and if we've waited long enough to prevent flooding
-		// the original VB source used a formula based on the message length but 2.9 seconds seems to work fine
-		// note: updated this from 2 seconds to 2.5 then to 2.9 seconds because less is NOT enough
+		// this formula has changed many times but currently we wait 1 second if the last packet was "small" and 3 seconds if it was "big"
 
-		if( !m_OutPackets.empty( ) && GetTicks( ) >= m_LastOutPacketTicks + 2900 )
+		uint32_t WaitTicks = 0;
+
+		if( m_LastOutPacketSize < 20 )
+			WaitTicks = 1000;
+		else
+			WaitTicks = 3000;
+
+		if( !m_OutPackets.empty( ) && GetTicks( ) >= m_LastOutPacketTicks + WaitTicks )
 		{
 			m_Socket->PutBytes( m_OutPackets.front( ) );
+			m_LastOutPacketSize = m_OutPackets.front( ).size( );
 			m_OutPackets.pop( );
 			m_LastOutPacketTicks = GetTicks( );
 		}
@@ -500,10 +508,10 @@ bool CBNET :: Update( void *fd )
 			// the connection attempt timed out (15 seconds)
 
 			CONSOLE_Print( "[BNET: " + m_Server + "] connect timed out" );
-			CONSOLE_Print( "[BNET: " + m_Server + "] waiting 30 seconds to reconnect" );
+			CONSOLE_Print( "[BNET: " + m_Server + "] waiting 90 seconds to reconnect" );
 			m_GHost->EventBNETConnectTimedOut( this );
 			m_Socket->Reset( );
-			m_NextConnectTime = GetTime( ) + 30;
+			m_NextConnectTime = GetTime( ) + 90;
 			m_WaitingToConnect = true;
 			return m_Exiting;
 		}
@@ -2043,6 +2051,12 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
 		}
 	}
+}
+
+void CBNET :: QueueGameUncreate( )
+{
+	if( m_LoggedIn )
+		m_OutPackets.push( m_Protocol->SEND_SID_STOPADV( ) );
 }
 
 bool CBNET :: IsAdmin( string name )
