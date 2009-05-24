@@ -554,10 +554,14 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							CONSOLE_Print( "[MAP] calculated map_numplayers = " + UTIL_ToString( MapNumPlayers ) );
 							MapNumTeams = RawMapNumTeams;
 							CONSOLE_Print( "[MAP] calculated map_numteams = " + UTIL_ToString( MapNumTeams ) );
-							CONSOLE_Print( "[MAP] found " + UTIL_ToString( Slots.size( ) ) + " slots" );
 
-							/* for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); i++ )
-								DEBUG_Print( (*i).GetByteArray( ) ); */
+							uint32_t SlotNum = 1;
+
+							for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); i++ )
+							{
+								CONSOLE_Print( "[MAP] calculated map_slot" + UTIL_ToString( SlotNum ) + " = " + UTIL_ByteArrayToDecString( (*i).GetByteArray( ) ) );
+								SlotNum++;
+							}
 
 							// if it's a melee map...
 
