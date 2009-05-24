@@ -472,6 +472,14 @@ bool CBaseGame :: Update( void *fd )
 
 				while( (*i)->GetLastMapPartSent( ) < (*i)->GetLastMapPartAcked( ) + 1442 * 50 && (*i)->GetLastMapPartSent( ) < MapSize )
 				{
+					if( (*i)->GetLastMapPartSent( ) == 0 )
+					{
+						// overwrite the "started download ticks" since this is the first time we've sent any map data to the player
+						// prior to this we've only determined if the player needs to download the map but it's possible we could have delayed sending any data due to download limits
+
+						(*i)->SetStartedDownloadingTicks( GetTicks( ) );
+					}
+
 					// limit the download speed if we're sending too much data
 					// we divide by 4 because we run this code every 250ms (i.e. four times per second)
 
