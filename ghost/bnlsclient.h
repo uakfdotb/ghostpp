@@ -55,8 +55,8 @@ public:
 
 	// processing functions
 
-	unsigned int SetFD( void *fd, int *nfds );
-	bool Update( void *fd );
+	unsigned int SetFD( void *fd, void *send_fd, int *nfds );
+	bool Update( void *fd, void *send_fd );
 	void ExtractPackets( );
 	void ProcessPackets( );
 

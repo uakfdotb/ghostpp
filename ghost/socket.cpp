@@ -117,12 +117,13 @@ string CSocket :: GetErrorString( )
 	return "UNKNOWN ERROR (" + UTIL_ToString( m_Error ) + ")";
 }
 
-void CSocket :: SetFD( fd_set *fd, int *nfds )
+void CSocket :: SetFD( fd_set *fd, fd_set *send_fd, int *nfds )
 {
 	if( m_Socket == INVALID_SOCKET )
 		return;
 
 	FD_SET( m_Socket, fd );
+	FD_SET( m_Socket, send_fd );
 
 #ifndef WIN32
 	if( m_Socket > *nfds )
@@ -206,6 +207,22 @@ CTCPSocket :: ~CTCPSocket( )
 
 }
 
+void CTCPSocket :: SetFD( fd_set *fd, fd_set *send_fd, int *nfds )
+{
+	if( m_Socket == INVALID_SOCKET )
+		return;
+
+	FD_SET( m_Socket, fd );
+
+	if( !m_SendBuffer.empty( ) )
+		FD_SET( m_Socket, send_fd );
+
+#ifndef WIN32
+	if( m_Socket > *nfds )
+		*nfds = m_Socket;
+#endif
+}
+
 void CTCPSocket :: Reset( )
 {
 	CSocket :: Reset( );
@@ -280,33 +297,12 @@ void CTCPSocket :: DoRecv( fd_set *fd )
 	}
 }
 
-void CTCPSocket :: DoSend( )
+void CTCPSocket :: DoSend( fd_set *send_fd )
 {
 	if( m_Socket == INVALID_SOCKET || m_HasError || !m_Connected || m_SendBuffer.empty( ) )
 		return;
 
-	fd_set fd;
-	FD_ZERO( &fd );
-	FD_SET( m_Socket, &fd );
-
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-
-	// check if the socket is ready to send
-
-#ifdef WIN32
-	if( select( 1, NULL, &fd, NULL, &tv ) == SOCKET_ERROR )
-#else
-	if( select( m_Socket + 1, NULL, &fd, NULL, &tv ) == SOCKET_ERROR )
-#endif
-	{
-		m_HasError = true;
-		m_Error = GetLastError( );
-		return;
-	}
-
-	if( FD_ISSET( m_Socket, &fd ) )
+	if( FD_ISSET( m_Socket, send_fd ) )
 	{
 		// socket is ready, send it
 

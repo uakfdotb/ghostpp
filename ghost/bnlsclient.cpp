@@ -68,18 +68,18 @@ BYTEARRAY CBNLSClient :: GetWardenResponse( )
 	return WardenResponse;
 }
 
-unsigned int CBNLSClient :: SetFD( void *fd, int *nfds )
+unsigned int CBNLSClient :: SetFD( void *fd, void *send_fd, int *nfds )
 {
 	if( !m_Socket->HasError( ) && m_Socket->GetConnected( ) )
 	{
-		m_Socket->SetFD( (fd_set *)fd, nfds );
+		m_Socket->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
 		return 1;
 	}
 
 	return 0;
 }
 
-bool CBNLSClient :: Update( void *fd )
+bool CBNLSClient :: Update( void *fd, void *send_fd )
 {
 	if( m_Socket->HasError( ) )
 	{
@@ -111,7 +111,7 @@ bool CBNLSClient :: Update( void *fd )
 			m_OutPackets.pop( );
 		}
 
-		m_Socket->DoSend( );
+		m_Socket->DoSend( (fd_set *)send_fd );
 		return false;
 	}
 

@@ -147,9 +147,9 @@ public:
 
 	// processing functions
 
-	virtual unsigned int SetFD( void *fd, int *nfds );
-	virtual bool Update( void *fd );
-	virtual void UpdatePost( );
+	virtual unsigned int SetFD( void *fd, void *send_fd, int *nfds );
+	virtual bool Update( void *fd, void *send_fd );
+	virtual void UpdatePost( void *send_fd );
 
 	// generic functions to send packets to players
 

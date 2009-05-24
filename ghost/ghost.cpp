@@ -554,36 +554,38 @@ bool CGHost :: Update( long usecBlock )
 
 	int nfds = 0;
 	fd_set fd;
+	fd_set send_fd;
 	FD_ZERO( &fd );
+	FD_ZERO( &send_fd );
 
 	// 1. all battle.net sockets
 
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-		NumFDs += (*i)->SetFD( &fd, &nfds );
+		NumFDs += (*i)->SetFD( &fd, &send_fd, &nfds );
 
 	// 2. the current game's server and player sockets
 
 	if( m_CurrentGame )
-		NumFDs += m_CurrentGame->SetFD( &fd, &nfds );
+		NumFDs += m_CurrentGame->SetFD( &fd, &send_fd, &nfds );
 
 	// 3. the admin game's server and player sockets
 
 	if( m_AdminGame )
-		NumFDs += m_AdminGame->SetFD( &fd, &nfds );
+		NumFDs += m_AdminGame->SetFD( &fd, &send_fd, &nfds );
 
 	// 4. all running games' player sockets
 
 	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); i++ )
-		NumFDs += (*i)->SetFD( &fd, &nfds );
+		NumFDs += (*i)->SetFD( &fd, &send_fd, &nfds );
 
 	struct timeval tv;
 	tv.tv_sec = 0;
 	tv.tv_usec = usecBlock;
 
 #ifdef WIN32
-	select( 1, &fd, NULL, NULL, &tv );
+	select( 1, &fd, &send_fd, NULL, &tv );
 #else
-	select( nfds + 1, &fd, NULL, NULL, &tv );
+	select( nfds + 1, &fd, &send_fd, NULL, &tv );
 #endif
 
 	if( NumFDs == 0 )
@@ -601,7 +603,7 @@ bool CGHost :: Update( long usecBlock )
 
 	if( m_CurrentGame )
 	{
-		if( m_CurrentGame->Update( &fd ) )
+		if( m_CurrentGame->Update( &fd, &send_fd ) )
 		{
 			CONSOLE_Print( "[GHOST] deleting current game [" + m_CurrentGame->GetGameName( ) + "]" );
 			delete m_CurrentGame;
@@ -614,14 +616,14 @@ bool CGHost :: Update( long usecBlock )
 			}
 		}
 		else if( m_CurrentGame )
-			m_CurrentGame->UpdatePost( );
+			m_CurrentGame->UpdatePost( &send_fd );
 	}
 
 	// update admin game
 
 	if( m_AdminGame )
 	{
-		if( m_AdminGame->Update( &fd ) )
+		if( m_AdminGame->Update( &fd, &send_fd ) )
 		{
 			CONSOLE_Print( "[GHOST] deleting admin game" );
 			delete m_AdminGame;
@@ -629,14 +631,14 @@ bool CGHost :: Update( long usecBlock )
 			AdminExit = true;
 		}
 		else if( m_AdminGame )
-			m_AdminGame->UpdatePost( );
+			m_AdminGame->UpdatePost( &send_fd );
 	}
 
 	// update running games
 
 	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); )
 	{
-		if( (*i)->Update( &fd ) )
+		if( (*i)->Update( &fd, &send_fd ) )
 		{
 			CONSOLE_Print( "[GHOST] deleting game [" + (*i)->GetGameName( ) + "]" );
 			EventGameDeleted( *i );
@@ -645,7 +647,7 @@ bool CGHost :: Update( long usecBlock )
 		}
 		else
 		{
-			(*i)->UpdatePost( );
+			(*i)->UpdatePost( &send_fd );
 			i++;
 		}
 	}
@@ -654,7 +656,7 @@ bool CGHost :: Update( long usecBlock )
 
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 	{
-		if( (*i)->Update( &fd ) )
+		if( (*i)->Update( &fd, &send_fd ) )
 			BNETExit = true;
 	}
 

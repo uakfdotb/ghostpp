@@ -271,13 +271,13 @@ void CBaseGame :: SetAnnounce( uint32_t interval, string message )
 	m_LastAnnounceTime = GetTime( );
 }
 
-unsigned int CBaseGame :: SetFD( void *fd, int *nfds )
+unsigned int CBaseGame :: SetFD( void *fd, void *send_fd, int *nfds )
 {
 	unsigned int NumFDs = 0;
 
 	if( m_Socket )
 	{
-		m_Socket->SetFD( (fd_set *)fd, nfds );
+		m_Socket->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
 		NumFDs++;
 	}
 
@@ -285,7 +285,7 @@ unsigned int CBaseGame :: SetFD( void *fd, int *nfds )
 	{
 		if( (*i)->GetSocket( ) )
 		{
-			(*i)->GetSocket( )->SetFD( (fd_set *)fd, nfds );
+			(*i)->GetSocket( )->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
 			NumFDs++;
 		}
 	}
@@ -294,7 +294,7 @@ unsigned int CBaseGame :: SetFD( void *fd, int *nfds )
 	{
 		if( (*i)->GetSocket( ) )
 		{
-			(*i)->GetSocket( )->SetFD( (fd_set *)fd, nfds );
+			(*i)->GetSocket( )->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
 			NumFDs++;
 		}
 	}
@@ -302,7 +302,7 @@ unsigned int CBaseGame :: SetFD( void *fd, int *nfds )
 	return NumFDs;
 }
 
-bool CBaseGame :: Update( void *fd )
+bool CBaseGame :: Update( void *fd, void *send_fd )
 {
 	// update callables
 
@@ -347,7 +347,7 @@ bool CBaseGame :: Update( void *fd )
 			// flush the socket (e.g. in case a rejection message is queued)
 
 			if( (*i)->GetSocket( ) )
-				(*i)->GetSocket( )->DoSend( );
+				(*i)->GetSocket( )->DoSend( (fd_set *)send_fd );
 
 			delete *i;
 			i = m_Potentials.erase( i );
@@ -816,7 +816,7 @@ bool CBaseGame :: Update( void *fd )
 	return m_Exiting;
 }
 
-void CBaseGame :: UpdatePost( )
+void CBaseGame :: UpdatePost( void *send_fd )
 {
 	// we need to manually call DoSend on each player now because CGamePlayer :: Update doesn't do it
 	// this is in case player 2 generates a packet for player 1 during the update but it doesn't get sent because player 1 already finished updating
@@ -825,13 +825,13 @@ void CBaseGame :: UpdatePost( )
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
 		if( (*i)->GetSocket( ) )
-			(*i)->GetSocket( )->DoSend( );
+			(*i)->GetSocket( )->DoSend( (fd_set *)send_fd );
 	}
 
 	for( vector<CPotentialPlayer *> :: iterator i = m_Potentials.begin( ); i != m_Potentials.end( ); i++ )
 	{
 		if( (*i)->GetSocket( ) )
-			(*i)->GetSocket( )->DoSend( );
+			(*i)->GetSocket( )->DoSend( (fd_set *)send_fd );
 	}
 }
 

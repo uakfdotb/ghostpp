@@ -141,7 +141,7 @@ CGame :: ~CGame( )
 	}
 }
 
-bool CGame :: Update( void *fd )
+bool CGame :: Update( void *fd, void *send_fd )
 {
 	// update callables
 
@@ -288,7 +288,7 @@ bool CGame :: Update( void *fd )
 			i++;
 	}
 
-	return CBaseGame :: Update( fd );
+	return CBaseGame :: Update( fd, send_fd );
 }
 
 void CGame :: EventPlayerDeleted( CGamePlayer *player )
@@ -1719,12 +1719,12 @@ CAdminGame :: ~CAdminGame( )
 
 }
 
-bool CAdminGame :: Update( void *fd )
+bool CAdminGame :: Update( void *fd, void *send_fd )
 {
 	// reset the last reserved seen timer since the admin game should never be considered abandoned
 
 	m_LastReservedSeen = GetTime( );
-	return CBaseGame :: Update( fd );
+	return CBaseGame :: Update( fd, send_fd );
 }
 
 void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )

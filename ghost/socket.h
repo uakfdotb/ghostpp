@@ -116,7 +116,7 @@ public:
 	virtual bool HasError( )						{ return m_HasError; }
 	virtual int GetError( )							{ return m_Error; }
 	virtual string GetErrorString( );
-	virtual void SetFD( fd_set *fd, int *nfds );
+	virtual void SetFD( fd_set *fd, fd_set *send_fd, int *nfds );
 	virtual void Allocate( int type );
 	virtual void Reset( );
 };
@@ -141,6 +141,7 @@ public:
 	CTCPSocket( SOCKET nSocket, struct sockaddr_in nSIN );
 	virtual ~CTCPSocket( );
 
+	virtual void SetFD( fd_set *fd, fd_set *send_fd, int *nfds );
 	virtual void Reset( );
 	virtual bool GetConnected( )				{ return m_Connected; }
 	virtual string *GetBytes( )					{ return &m_RecvBuffer; }
@@ -149,7 +150,7 @@ public:
 	virtual uint32_t GetLastRecv( )				{ return m_LastRecv; }
 	virtual uint32_t GetLastSend( )				{ return m_LastSend; }
 	virtual void DoRecv( fd_set *fd );
-	virtual void DoSend( );
+	virtual void DoSend( fd_set *send_fd );
 	virtual void Disconnect( );
 };
 

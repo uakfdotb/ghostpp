@@ -156,23 +156,23 @@ BYTEARRAY CBNET :: GetUniqueName( )
 	return m_Protocol->GetUniqueName( );
 }
 
-unsigned int CBNET :: SetFD( void *fd, int *nfds )
+unsigned int CBNET :: SetFD( void *fd, void *send_fd, int *nfds )
 {
 	unsigned int NumFDs = 0;
 
 	if( !m_Socket->HasError( ) && m_Socket->GetConnected( ) )
 	{
-		m_Socket->SetFD( (fd_set *)fd, nfds );
+		m_Socket->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
 		NumFDs++;
 
 		if( m_BNLSClient )
-			NumFDs += m_BNLSClient->SetFD( fd, nfds );
+			NumFDs += m_BNLSClient->SetFD( fd, send_fd, nfds );
 	}
 
 	return NumFDs;
 }
 
-bool CBNET :: Update( void *fd )
+bool CBNET :: Update( void *fd, void *send_fd )
 {
 	//
 	// update callables
@@ -449,7 +449,7 @@ bool CBNET :: Update( void *fd )
 
 		if( m_BNLSClient )
 		{
-			if( m_BNLSClient->Update( fd ) )
+			if( m_BNLSClient->Update( fd, send_fd ) )
 			{
 				CONSOLE_Print( "[BNET: " + m_Server + "] deleting BNLS client" );
 				delete m_BNLSClient;
@@ -490,7 +490,7 @@ bool CBNET :: Update( void *fd )
 			m_LastNullTime = GetTime( );
 		}
 
-		m_Socket->DoSend( );
+		m_Socket->DoSend( (fd_set *)send_fd );
 		return m_Exiting;
 	}
 
@@ -506,7 +506,7 @@ bool CBNET :: Update( void *fd )
 			m_GHost->EventBNETConnected( this );
 			m_Socket->PutBytes( m_Protocol->SEND_PROTOCOL_INITIALIZE_SELECTOR( ) );
 			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version, m_CountryAbbrev, m_Country ) );
-			m_Socket->DoSend( );
+			m_Socket->DoSend( (fd_set *)send_fd );
 			m_LastNullTime = GetTime( );
 			m_LastOutPacketTicks = GetTicks( );
 

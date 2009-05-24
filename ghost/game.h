@@ -58,7 +58,7 @@ public:
 	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CGame( );
 
-	virtual bool Update( void *fd );
+	virtual bool Update( void *fd, void *send_fd );
 	virtual void EventPlayerDeleted( CGamePlayer *player );
 	virtual void EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
 	virtual void EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
@@ -83,7 +83,7 @@ public:
 	CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword );
 	virtual ~CAdminGame( );
 
-	virtual bool Update( void *fd );
+	virtual bool Update( void *fd, void *send_fd );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
 	virtual void EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
