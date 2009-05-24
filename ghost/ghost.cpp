@@ -278,6 +278,7 @@ CGHost :: CGHost( CConfig *CFG )
 	CONSOLE_Print( "[GHOST] opening secondary (local) database" );
 	m_DBLocal = new CGHostDBSQLite( CFG );
 	m_Exiting = false;
+	m_ExitingNice = false;
 	m_Enabled = true;
 	m_Version = "13.1";
 	m_HostCounter = 1;
@@ -503,6 +504,34 @@ bool CGHost :: Update( long usecBlock )
 	{
 		CONSOLE_Print( "[GHOST] local database error - " + m_DBLocal->GetError( ) );
 		return true;
+	}
+
+	// try to exit nicely if requested to do so
+
+	if( m_ExitingNice )
+	{
+		if( !m_BNETs.empty( ) )
+		{
+			CONSOLE_Print( "[GHOST] deleting all battle.net connections in preparation for exiting nicely" );
+
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+				delete *i;
+
+			m_BNETs.clear( );
+		}
+
+		if( m_AdminGame )
+		{
+			CONSOLE_Print( "[GHOST] deleting admin game in preparation for exiting nicely" );
+			delete m_AdminGame;
+			m_AdminGame = NULL;
+		}
+
+		if( !m_CurrentGame && m_Games.empty( ) )
+		{
+			CONSOLE_Print( "[GHOST] all games finished, exiting nicely" );
+			m_Exiting = true;
+		}
 	}
 
 	// update callables

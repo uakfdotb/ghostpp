@@ -478,7 +478,7 @@ In battle.net (via local chat or whisper at any time):
 !disable                        disable creation of new games
 !enable                         enable creation of new games
 !end <number>                   end the specified game in progress (disconnect everyone)
-!exit [force]                   shutdown ghost++, optionally add [force] to skip checks
+!exit [force|nice]              shutdown ghost++, optionally add [force] to skip checks or [nice] to allow running games to finish first
 !getclan                        refresh the internal copy of the clan members list
 !getfriends                     refresh the internal copy of the friends list
 !getgame <number>               display information about a game in progress
@@ -494,7 +494,7 @@ In battle.net (via local chat or whisper at any time):
 !privby <owner> <name>          host private game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
-!quit [force]                   alias to !exit
+!quit [force|nice]              alias to !exit
 !say <text>                     send <text> to battle.net as a chat command
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
@@ -600,7 +600,7 @@ In admin game lobby:
 !disable                        disable creation of new games
 !enable                         enable creation of new games
 !end <number>                   end a game in progress (disconnect everyone)
-!exit [force]                   shutdown ghost++, optionally add [force] to skip checks
+!exit [force|nice]              shutdown ghost++, optionally add [force] to skip checks or [nice] to allow running games to finish first
 !getgame <number>               display information on a game in progress
 !getgames                       display information on all games
 !hostsg <name>                  host a saved game
@@ -612,7 +612,7 @@ In admin game lobby:
 !privby <owner> <name>          host private game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
-!quit [force]                   alias to !exit
+!quit [force|nice]              alias to !exit
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
 !unhost                         unhost game

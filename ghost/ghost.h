@@ -103,6 +103,7 @@ public:
 	CMap *m_AdminMap;						// the map to use in the admin game
 	CSaveGame *m_SaveGame;					// the save game to use
 	bool m_Exiting;							// set to true to force ghost to shutdown next update (used by SignalCatcher)
+	bool m_ExitingNice;						// set to true to force ghost to disconnect from all battle.net connections and wait for all games to finish before shutting down
 	bool m_Enabled;							// set to false to prevent new games from being created
 	string m_Version;						// GHost++ version string
 	uint32_t m_HostCounter;					// the current host counter (a unique number to identify a game, incremented each time a game is created)

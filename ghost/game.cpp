@@ -2123,7 +2123,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 		if( Command == "exit" || Command == "quit" )
 		{
-			if( Payload == "force" )
+			if( Payload == "nice" )
+				m_GHost->m_ExitingNice = true;
+			else if( Payload == "force" )
 				m_Exiting = true;
 			else
 			{

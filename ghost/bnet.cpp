@@ -1390,7 +1390,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				{
 					if( IsRootAdmin( User ) )
 					{
-						if( Payload == "force" )
+						if( Payload == "nice" )
+							m_GHost->m_ExitingNice = true;
+						else if( Payload == "force" )
 							m_Exiting = true;
 						else
 						{
