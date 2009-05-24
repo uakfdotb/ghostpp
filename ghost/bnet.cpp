@@ -457,7 +457,7 @@ bool CBNET :: Update( void *fd )
 
 		uint32_t WaitTicks = 0;
 
-		if( m_LastOutPacketSize < 20 )
+		if( m_LastOutPacketSize < 10 )
 			WaitTicks = 1000;
 		else
 			WaitTicks = 3000;
