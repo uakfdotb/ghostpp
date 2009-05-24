@@ -1441,7 +1441,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 		if( NumOtherPlayers < m_Map->GetMapNumPlayers( ) )
 		{
-			if( SID < m_Map->GetMapNumTeams( ) )
+			if( SID < m_Map->GetMapNumPlayers( ) )
 				m_Slots[SID].SetTeam( SID );
 			else
 				m_Slots[SID].SetTeam( 0 );
@@ -2008,7 +2008,7 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 		}
 		else
 		{
-			if( team >= m_Map->GetMapNumTeams( ) )
+			if( team >= m_Map->GetMapNumPlayers( ) )
 				return;
 
 			// make sure there aren't too many other players already

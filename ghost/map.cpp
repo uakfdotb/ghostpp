@@ -567,7 +567,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 							if( RawMapFlags & 4 )
 							{
-								CONSOLE_Print( "[MAP] found melee map, initializing slots and setting map_numteams = map_numplayers" );
+								CONSOLE_Print( "[MAP] found melee map, initializing slots" );
 
 								// give each slot a different team and set the race to random
 
@@ -578,10 +578,6 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 									(*i).SetTeam( Team++ );
 									(*i).SetRace( SLOTRACE_RANDOM );
 								}
-
-								// and set numteams = numplayers because numteams doesn't seem to be a meaningful value in melee maps
-
-								MapNumTeams = MapNumPlayers;
 							}
 						}
 					}
