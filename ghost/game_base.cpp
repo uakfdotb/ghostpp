@@ -1066,11 +1066,11 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 		{
 			getline( in, Line );
 
-			if( in.eof( ) )
-				break;
-
 			if( Line.empty( ) )
-				SendChat( player, " " );
+			{
+				if( !in.eof( ) )
+					SendChat( player, " " );
+			}
 			else
 				SendChat( player, Line );
 
@@ -1099,11 +1099,11 @@ void CBaseGame :: SendEndMessage( )
 		{
 			getline( in, Line );
 
-			if( in.eof( ) )
-				break;
-
 			if( Line.empty( ) )
-				SendAllChat( " " );
+			{
+				if( !in.eof( ) )
+					SendAllChat( " " );
+			}
 			else
 				SendAllChat( Line );
 
@@ -2367,11 +2367,11 @@ void CBaseGame :: EventGameLoaded( )
 		{
 			getline( in, Line );
 
-			if( in.eof( ) )
-				break;
-
 			if( Line.empty( ) )
-				SendAllChat( " " );
+			{
+				if( !in.eof( ) )
+					SendAllChat( " " );
+			}
 			else
 				SendAllChat( Line );
 
