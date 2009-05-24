@@ -57,10 +57,20 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBN
 	m_BNLSWardenCookie = nBNLSWardenCookie;
 	m_CDKeyROC = nCDKeyROC;
 	m_CDKeyTFT = nCDKeyTFT;
+
+	// remove dashes from CD keys and convert to uppercase
+
 	m_CDKeyROC.erase( remove( m_CDKeyROC.begin( ), m_CDKeyROC.end( ), '-' ), m_CDKeyROC.end( ) );
 	m_CDKeyTFT.erase( remove( m_CDKeyTFT.begin( ), m_CDKeyTFT.end( ), '-' ), m_CDKeyTFT.end( ) );
 	transform( m_CDKeyROC.begin( ), m_CDKeyROC.end( ), m_CDKeyROC.begin( ), (int(*)(int))toupper );
 	transform( m_CDKeyTFT.begin( ), m_CDKeyTFT.end( ), m_CDKeyTFT.begin( ), (int(*)(int))toupper );
+
+	if( m_CDKeyROC.size( ) != 26 )
+		CONSOLE_Print( "[BNET: " + m_Server + "] warning - your ROC CD key is not 26 characters long and is probably invalid" );
+
+	if( m_CDKeyTFT.size( ) != 26 )
+		CONSOLE_Print( "[BNET: " + m_Server + "] warning - your TFT CD key is not 26 characters long and is probably invalid" );
+
 	m_CountryAbbrev = nCountryAbbrev;
 	m_Country = nCountry;
 	m_UserName = nUserName;
