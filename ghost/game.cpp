@@ -1222,7 +1222,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					{
 						Pings += UTIL_ToString( (*i)->GetPing( m_GHost->m_LCPings ) );
 
-						if( !m_GameLoading && !m_GameLoaded && !(*i)->GetReserved( ) && !Payload.empty( ) && (*i)->GetPing( m_GHost->m_LCPings ) > KickPing )
+						if( !m_GameLoading && !m_GameLoaded && !(*i)->GetReserved( ) && KickPing > 0 && (*i)->GetPing( m_GHost->m_LCPings ) > KickPing )
 						{
 							(*i)->SetDeleteMe( true );
 							(*i)->SetLeftReason( "was kicked for excessive ping " + UTIL_ToString( (*i)->GetPing( m_GHost->m_LCPings ) ) + " > " + UTIL_ToString( KickPing ) );
