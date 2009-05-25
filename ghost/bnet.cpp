@@ -2054,7 +2054,7 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			BYTEARRAY MapHeight;
 			MapHeight.push_back( 0 );
 			MapHeight.push_back( 0 );
-			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), hostCounter ) );
+			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), hostCounter ) );
 		}
 		else
 		{
@@ -2062,7 +2062,7 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapGameType.push_back( 32 );
 			MapGameType.push_back( 73 );
 			MapGameType.push_back( 0 );
-			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), hostCounter ) );
+			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), hostCounter ) );
 		}
 	}
 }

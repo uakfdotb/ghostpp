@@ -606,7 +606,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CHECKAD( )
 	return packet;
 }
 
-BYTEARRAY CBNETProtocol :: SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t hostCounter )
+BYTEARRAY CBNETProtocol :: SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, BYTEARRAY mapSHA1, uint32_t hostCounter )
 {
 	// todotodo: sort out how GameType works, the documentation is horrendous
 
@@ -657,9 +657,10 @@ Flags:
 	UTIL_AppendByteArray( StatString, mapPath );
 	UTIL_AppendByteArray( StatString, hostName );
 	StatString.push_back( 0 );
+	UTIL_AppendByteArray( StatString, mapSHA1 );
 	StatString = UTIL_EncodeStatString( StatString );
 
-	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 && StatString.size( ) < 128 && HostCounterString.size( ) == 8 )
+	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 && mapSHA1.size( ) == 20 && StatString.size( ) < 128 && HostCounterString.size( ) == 8 )
 	{
 		// make the rest of the packet
 
