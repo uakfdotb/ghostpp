@@ -112,12 +112,9 @@ uint32_t GetTicks( )
 #endif
 }
 
-void SignalCatcher( int signal )
+void SignalCatcher2( int s )
 {
-	// signal( SIGABRT, SignalCatcher );
-	// signal( SIGINT, SignalCatcher );
-
-	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( signal ) + ", shutting down" );
+	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( s ) + ", shutting down NOW" );
 
 	if( gGHost )
 	{
@@ -126,6 +123,19 @@ void SignalCatcher( int signal )
 		else
 			gGHost->m_Exiting = true;
 	}
+	else
+		exit( 1 );
+}
+
+void SignalCatcher( int s )
+{
+	// signal( SIGABRT, SignalCatcher2 );
+	signal( SIGINT, SignalCatcher2 );
+
+	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( s ) + ", shutting down nicely" );
+
+	if( gGHost )
+		gGHost->m_ExitingNice = true;
 	else
 		exit( 1 );
 }
