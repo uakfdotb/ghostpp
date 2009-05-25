@@ -472,6 +472,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							}
 
 							ISS.read( (char *)&RawMapNumPlayers, 4 );	// number of players
+							uint32_t ClosedSlots = 0;
 
 							for( uint32_t i = 0; i < RawMapNumPlayers; i++ )
 							{
@@ -493,7 +494,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 									Slot.SetComputerType( SLOTCOMP_NORMAL );
 								}
 								else
+								{
 									Slot.SetSlotStatus( SLOTSTATUS_CLOSED );
+									ClosedSlots++;
+								}
 
 								ISS.read( (char *)&Race, 4 );			// race
 
@@ -550,7 +554,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ByteArrayToDecString( MapWidth ) );
 							MapHeight = UTIL_CreateByteArray( (uint16_t)RawMapHeight, false );
 							CONSOLE_Print( "[MAP] calculated map_height = " + UTIL_ByteArrayToDecString( MapHeight ) );
-							MapNumPlayers = RawMapNumPlayers;
+							MapNumPlayers = RawMapNumPlayers - ClosedSlots;
 							CONSOLE_Print( "[MAP] calculated map_numplayers = " + UTIL_ToString( MapNumPlayers ) );
 							MapNumTeams = RawMapNumTeams;
 							CONSOLE_Print( "[MAP] calculated map_numteams = " + UTIL_ToString( MapNumTeams ) );
