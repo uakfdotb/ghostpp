@@ -1235,3 +1235,37 @@ string CLanguage :: RatedPlayersSpread( string rated, string total, string sprea
 	Replace( Out, "$SPREAD$", spread );
 	return Out;
 }
+
+string CLanguage :: ErrorListingMaps( )
+{
+	return m_CFG->GetString( "lang_0171", "lang_0171" );
+}
+
+string CLanguage :: FoundMaps( string maps )
+{
+	string Out = m_CFG->GetString( "lang_0172", "lang_0172" );
+	Replace( Out, "$MAPS$", maps );
+	return Out;
+}
+
+string CLanguage :: NoMapsFound( )
+{
+	return m_CFG->GetString( "lang_0173", "lang_0173" );
+}
+
+string CLanguage :: ErrorListingMapConfigs( )
+{
+	return m_CFG->GetString( "lang_0174", "lang_0174" );
+}
+
+string CLanguage :: FoundMapConfigs( string mapconfigs )
+{
+	string Out = m_CFG->GetString( "lang_0175", "lang_0175" );
+	Replace( Out, "$MAPCONFIGS$", mapconfigs );
+	return Out;
+}
+
+string CLanguage :: NoMapConfigsFound( )
+{
+	return m_CFG->GetString( "lang_0176", "lang_0176" );
+}

@@ -101,3 +101,8 @@ string CConfig :: GetString( string key, string x )
 	else
 		return m_CFG[key];
 }
+
+void CConfig :: Set( string key, string x )
+{
+	m_CFG[key] = x;
+}

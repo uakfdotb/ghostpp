@@ -206,6 +206,12 @@ public:
 	string WasKickedForHavingFurthestScore( string score, string average );
 	string PlayerHasScore( string player, string score );
 	string RatedPlayersSpread( string rated, string total, string spread );
+	string ErrorListingMaps( );
+	string FoundMaps( string maps );
+	string NoMapsFound( );
+	string ErrorListingMapConfigs( );
+	string FoundMapConfigs( string mapconfigs );
+	string NoMapConfigsFound( );
 };
 
 #endif
