@@ -1494,56 +1494,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					m_GHost->CreateGame( GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
 
 				//
-				// !LISTMAPS
-				// !LS
-				//
-
-				if( ( Command == "listmaps" || Command == "ls" ) && !Payload.empty( ) )
-				{
-					string FoundMapConfigs;
-
-					try
-					{
-						path MapCFGPath( m_GHost->m_MapCFGPath );
-						boost :: regex Regex( Payload );
-
-						if( !exists( MapCFGPath ) )
-						{
-							CONSOLE_Print( "[BNET: " + m_Server + "] error listing map configs - map config path doesn't exist" );
-							QueueChatCommand( m_GHost->m_Language->ErrorListingMapConfigs( ), User, Whisper );
-						}
-						else
-						{
-							directory_iterator EndIterator;
-
-							for( directory_iterator i( MapCFGPath ); i != EndIterator; i++ )
-							{
-								string FileName = i->filename( );
-								transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
-
-								if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && boost :: regex_match( FileName, Regex ) )
-								{
-									if( FoundMapConfigs.empty( ) )
-										FoundMapConfigs = i->filename( );
-									else
-										FoundMapConfigs += ", " + i->filename( );
-								}
-							}
-						}
-					}
-					catch( const exception &ex )
-					{
-						CONSOLE_Print( "[BNET: " + m_Server + "] error listing map configs - caught exception [" + ex.what( ) + "]" );
-						QueueChatCommand( m_GHost->m_Language->ErrorListingMapConfigs( ), User, Whisper );
-					}
-
-					if( !FoundMapConfigs.empty( ) )
-						QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
-					else
-						QueueChatCommand( m_GHost->m_Language->NoMapConfigsFound( ), User, Whisper );
-				}
-
-				//
 				// !LOAD (load config file)
 				// !MAP
 				//
@@ -1554,32 +1504,80 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						QueueChatCommand( m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ), User, Whisper );
 					else
 					{
-						// only load files in the current directory just to be safe
+						string FoundMapConfigs;
 
-						if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
-							QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFilesOutside( ), User, Whisper );
-						else
+						try
 						{
-							string File = m_GHost->m_MapCFGPath + Payload + ".cfg";
+							path MapCFGPath( m_GHost->m_MapCFGPath );
+							boost :: regex Regex( Payload );
+							string Pattern = Payload;
+							transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
-							if( UTIL_FileExists( File ) )
+							if( !exists( MapCFGPath ) )
 							{
-								// we have to be careful here because we didn't copy the map data when creating the game (there's only one global copy)
-								// therefore if we change the map data while a game is in the lobby everything will get screwed up
-								// the easiest solution is to simply reject the command if a game is in the lobby
-
-								if( m_GHost->m_CurrentGame )
-									QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ), User, Whisper );
-								else
-								{
-									QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
-									CConfig MapCFG;
-									MapCFG.Read( File );
-									m_GHost->m_Map->Load( &MapCFG, File );
-								}
+								CONSOLE_Print( "[BNET: " + m_Server + "] error listing map configs - map config path doesn't exist" );
+								QueueChatCommand( m_GHost->m_Language->ErrorListingMapConfigs( ), User, Whisper );
 							}
 							else
-								QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileDoesntExist( File ), User, Whisper );
+							{
+								directory_iterator EndIterator;
+								path LastMatch;
+								uint32_t Matches = 0;
+
+								for( directory_iterator i( MapCFGPath ); i != EndIterator; i++ )
+								{
+									string FileName = i->filename( );
+									transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
+									bool Matched = false;
+
+									if( m_GHost->m_UseRegexes )
+									{
+										if( boost :: regex_match( FileName, Regex ) )
+											Matched = true;
+									}
+									else if( FileName.find( Pattern ) != string :: npos )
+										Matched = true;
+
+									if( !is_directory( i->status( ) ) && Matched )
+									{
+										LastMatch = i->path( );
+										Matches++;
+
+										if( FoundMapConfigs.empty( ) )
+											FoundMapConfigs = i->filename( );
+										else
+											FoundMapConfigs += ", " + i->filename( );
+									}
+								}
+
+								if( Matches == 0 )
+									QueueChatCommand( m_GHost->m_Language->NoMapConfigsFound( ), User, Whisper );
+								else if( Matches == 1 )
+								{
+									string File = LastMatch.filename( );
+
+									// we have to be careful here because we didn't copy the map data when creating the game (there's only one global copy)
+									// therefore if we change the map data while a game is in the lobby everything will get screwed up
+									// the easiest solution is to simply reject the command if a game is in the lobby
+
+									if( m_GHost->m_CurrentGame )
+										QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ), User, Whisper );
+									else
+									{
+										QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
+										CConfig MapCFG;
+										MapCFG.Read( LastMatch.string( ) );
+										m_GHost->m_Map->Load( &MapCFG, File );
+									}
+								}
+								else
+									QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
+							}
+						}
+						catch( const exception &ex )
+						{
+							CONSOLE_Print( "[BNET: " + m_Server + "] error listing map configs - caught exception [" + ex.what( ) + "]" );
+							QueueChatCommand( m_GHost->m_Language->ErrorListingMapConfigs( ), User, Whisper );
 						}
 					}
 				}
@@ -1733,6 +1731,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						{
 							path MapPath( m_GHost->m_MapPath );
 							boost :: regex Regex( Payload );
+							string Pattern = Payload;
+							transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
 							if( !exists( MapPath ) )
 							{
@@ -1749,8 +1749,17 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 								{
 									string FileName = i->filename( );
 									transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
+									bool Matched = false;
 
-									if( !is_directory( i->status( ) ) && boost :: regex_match( FileName, Regex ) )
+									if( m_GHost->m_UseRegexes )
+									{
+										if( boost :: regex_match( FileName, Regex ) )
+											Matched = true;
+									}
+									else if( FileName.find( Pattern ) != string :: npos )
+										Matched = true;
+
+									if( !is_directory( i->status( ) ) && Matched )
 									{
 										LastMatch = i->path( );
 										Matches++;
