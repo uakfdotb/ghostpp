@@ -582,10 +582,16 @@ bool CGHost :: Update( long usecBlock )
 	tv.tv_sec = 0;
 	tv.tv_usec = usecBlock;
 
+	struct timeval send_tv;
+	send_tv.tv_sec = 0;
+	send_tv.tv_usec = 0;
+
 #ifdef WIN32
-	select( 1, &fd, &send_fd, NULL, &tv );
+	select( 1, &fd, NULL, NULL, &tv );
+	select( 1, NULL, &send_fd, NULL, &send_tv );
 #else
-	select( nfds + 1, &fd, &send_fd, NULL, &tv );
+	select( nfds + 1, &fd, NULL, NULL, &tv );
+	select( nfds + 1, NULL, &send_fd, NULL, &send_tv );
 #endif
 
 	if( NumFDs == 0 )

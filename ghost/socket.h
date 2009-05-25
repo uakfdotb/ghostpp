@@ -141,7 +141,6 @@ public:
 	CTCPSocket( SOCKET nSocket, struct sockaddr_in nSIN );
 	virtual ~CTCPSocket( );
 
-	virtual void SetFD( fd_set *fd, fd_set *send_fd, int *nfds );
 	virtual void Reset( );
 	virtual bool GetConnected( )				{ return m_Connected; }
 	virtual string *GetBytes( )					{ return &m_RecvBuffer; }

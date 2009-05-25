@@ -207,22 +207,6 @@ CTCPSocket :: ~CTCPSocket( )
 
 }
 
-void CTCPSocket :: SetFD( fd_set *fd, fd_set *send_fd, int *nfds )
-{
-	if( m_Socket == INVALID_SOCKET )
-		return;
-
-	FD_SET( m_Socket, fd );
-
-	if( !m_SendBuffer.empty( ) )
-		FD_SET( m_Socket, send_fd );
-
-#ifndef WIN32
-	if( m_Socket > *nfds )
-		*nfds = m_Socket;
-#endif
-}
-
 void CTCPSocket :: Reset( )
 {
 	CSocket :: Reset( );
