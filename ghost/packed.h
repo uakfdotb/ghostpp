@@ -45,6 +45,7 @@ public:
 	virtual void Load( string fileName, bool allBlocks );
 	virtual bool Save( string fileName );
 	virtual bool Extract( string inFileName, string outFileName );
+	virtual bool Pack( string inFileName, string outFileName );
 	virtual void Decompress( bool allBlocks );
 	virtual void Compress( );
 };

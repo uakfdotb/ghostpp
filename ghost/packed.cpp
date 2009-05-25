@@ -112,6 +112,19 @@ bool CPacked :: Extract( string inFileName, string outFileName )
 		return false;
 }
 
+bool CPacked :: Pack( string inFileName, string outFileName )
+{
+	m_Valid = true;
+	CONSOLE_Print( "[PACKET] packing data from file [" + inFileName + "] to file [" + outFileName + "]" );
+	m_Decompressed = UTIL_FileRead( inFileName );
+	Compress( );
+
+	if( m_Valid )
+		return UTIL_FileWrite( outFileName, (unsigned char *)m_Compressed.c_str( ), m_Compressed.size( ) );
+	else
+		return false;
+}
+
 void CPacked :: Decompress( bool allBlocks )
 {
 	CONSOLE_Print( "[PACKED] decompressing data" );

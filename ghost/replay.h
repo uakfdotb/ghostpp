@@ -47,11 +47,13 @@ public:
 private:
 	vector<ReplayPlayer> m_Players;
 	vector<CGameSlot> m_Slots;
+	queue<BYTEARRAY> m_LoadingBlocks;
 	queue<BYTEARRAY> m_Blocks;
 	queue<uint32_t> m_CheckSums;
 	uint32_t m_RandomSeed;
 	unsigned char m_SelectMode;
 	unsigned char m_StartSpotCount;
+	unsigned char m_MapGameType;
 	unsigned char m_HostPID;
 	string m_HostName;
 
@@ -64,10 +66,12 @@ public:
 	void SetRandomSeed( uint32_t nRandomSeed )				{ m_RandomSeed = nRandomSeed; }
 	void SetSelectMode( unsigned char nSelectMode )			{ m_SelectMode = nSelectMode; }
 	void SetStartSpotCount( unsigned char nStartSpotCount )	{ m_StartSpotCount = nStartSpotCount; }
+	void SetMapGameType( unsigned char nMapGameType )		{ m_MapGameType = nMapGameType; }
 	void SetHostPID( unsigned char nHostPID )				{ m_HostPID = nHostPID; }
 	void SetHostName( string nHostName )					{ m_HostName = nHostName; }
 
 	void AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t result );
+	void AddLeaveGameDuringLoading( uint32_t reason, unsigned char PID, uint32_t result );
 	void AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions );
 	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
 	void AddCheckSum( uint32_t checkSum );

@@ -33,6 +33,7 @@ CReplay :: CReplay( CGHost *nGHost ) : CPacked( nGHost )
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
 	m_StartSpotCount = 0;
+	m_MapGameType = 1;
 	m_HostPID = 0;
 }
 
@@ -41,7 +42,7 @@ CReplay :: ~CReplay( )
 
 }
 
-void CReplay :: AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t result  )
+void CReplay :: AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t result )
 {
 	BYTEARRAY Block;
 	Block.push_back( REPLAY_LEAVEGAME );
@@ -50,6 +51,17 @@ void CReplay :: AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t resul
 	UTIL_AppendByteArray( Block, result, false );
 	UTIL_AppendByteArray( Block, (uint32_t)1, false );
 	m_Blocks.push( Block );
+}
+
+void CReplay :: AddLeaveGameDuringLoading( uint32_t reason, unsigned char PID, uint32_t result )
+{
+	BYTEARRAY Block;
+	Block.push_back( REPLAY_LEAVEGAME );
+	UTIL_AppendByteArray( Block, reason, false );
+	Block.push_back( PID );
+	UTIL_AppendByteArray( Block, result, false );
+	UTIL_AppendByteArray( Block, (uint32_t)1, false );
+	m_LoadingBlocks.push( Block );
 }
 
 void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions )
@@ -104,9 +116,6 @@ void CReplay :: BuildReplay( string gameName, string statString )
 {
 	CONSOLE_Print( "[REPLAY] building replay" );
 
-	// todotodo: figure out GameType
-
-	uint32_t GameType = 0x00492801;
 	uint32_t LanguageID = 0x0012F8B0;
 
 	BYTEARRAY Replay;
@@ -123,7 +132,10 @@ void CReplay :: BuildReplay( string gameName, string statString )
 	Replay.push_back( 0 );															// Null (4.0)
 	UTIL_AppendByteArray( Replay, statString );										// StatString (4.3)
 	UTIL_AppendByteArray( Replay, (uint32_t)m_Slots.size( ), false );				// PlayerCount (4.6)
-	UTIL_AppendByteArray( Replay, GameType, false );								// GameType (4.7)
+	Replay.push_back( m_MapGameType );												// GameType (4.7)
+	Replay.push_back( 32 );															// GameType (4.7)
+	Replay.push_back( 73 );															// GameType (4.7)
+	Replay.push_back( 0 );															// GameType (4.7)
 	UTIL_AppendByteArray( Replay, LanguageID, false );								// LanguageID (4.8)
 
 	// PlayerList (4.9)
@@ -160,6 +172,15 @@ void CReplay :: BuildReplay( string gameName, string statString )
 	UTIL_AppendByteArray( Replay, (uint32_t)1, false );
 	Replay.push_back( REPLAY_SECONDSTARTBLOCK );
 	UTIL_AppendByteArray( Replay, (uint32_t)1, false );
+
+	// leavers during loading need to be stored between the second and third start blocks
+
+	while( !m_LoadingBlocks.empty( ) )
+	{
+		UTIL_AppendByteArray( Replay, m_LoadingBlocks.front( ) );
+		m_LoadingBlocks.pop( );
+	}
+
 	Replay.push_back( REPLAY_THIRDSTARTBLOCK );
 	UTIL_AppendByteArray( Replay, (uint32_t)1, false );
 
