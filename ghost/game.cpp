@@ -40,6 +40,11 @@
 #include <string.h>
 #include <time.h>
 
+#include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
+
+using namespace boost :: filesystem;
+
 //
 // sorting classes
 //
@@ -1734,9 +1739,9 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "GHost++ Admin Game                    http://forum.codelain.com/" );
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 	SendChat( player, "Commands: addadmin, autohost, checkadmin, countadmins, deladmin" );
-	SendChat( player, "Commands: disable, enable, end, exit, getgame, getgames" );
-	SendChat( player, "Commands: hostsg, load, loadsg, map, password, priv, privby" );
-	SendChat( player, "Commands: pub, pubby, quit, saygame, saygames, unhost" );
+	SendChat( player, "Commands: disable, enable, end, exit, getgame, getgames, hostsg" );
+	SendChat( player, "Commands: load, loadsg, map, password, priv, privby, pub, pubby" );
+	SendChat( player, "Commands: rload, rmap, quit, saygame, saygames, unhost" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
@@ -2176,32 +2181,80 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				SendChat( player, m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ) );
 			else
 			{
-				// only load files in the current directory just to be safe
+				string FoundMapConfigs;
 
-				if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
-					SendChat( player, m_GHost->m_Language->UnableToLoadConfigFilesOutside( ) );
-				else
+				try
 				{
-					string File = m_GHost->m_MapCFGPath + Payload + ".cfg";
+					path MapCFGPath( m_GHost->m_MapCFGPath );
+					boost :: regex Regex( Payload );
+					string Pattern = Payload;
+					transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
-					if( UTIL_FileExists( File ) )
+					if( !exists( MapCFGPath ) )
 					{
-						// we have to be careful here because we didn't copy the map data when creating the game (there's only one global copy)
-						// therefore if we change the map data while a game is in the lobby everything will get screwed up
-						// the easiest solution is to simply reject the command if a game is in the lobby
-
-						if( m_GHost->m_CurrentGame )
-							SendChat( player, m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ) );
-						else
-						{
-							SendChat( player, m_GHost->m_Language->LoadingConfigFile( File ) );
-							CConfig MapCFG;
-							MapCFG.Read( File );
-							m_GHost->m_Map->Load( &MapCFG, File );
-						}
+						CONSOLE_Print( "[ADMINGAME] error listing map configs - map config path doesn't exist" );
+						SendChat( player, m_GHost->m_Language->ErrorListingMapConfigs( ) );
 					}
 					else
-						SendChat( player, m_GHost->m_Language->UnableToLoadConfigFileDoesntExist( File ) );
+					{
+						directory_iterator EndIterator;
+						path LastMatch;
+						uint32_t Matches = 0;
+
+						for( directory_iterator i( MapCFGPath ); i != EndIterator; i++ )
+						{
+							string FileName = i->filename( );
+							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
+							bool Matched = false;
+
+							if( m_GHost->m_UseRegexes )
+							{
+								if( boost :: regex_match( FileName, Regex ) )
+									Matched = true;
+							}
+							else if( FileName.find( Pattern ) != string :: npos )
+								Matched = true;
+
+							if( !is_directory( i->status( ) ) && Matched )
+							{
+								LastMatch = i->path( );
+								Matches++;
+
+								if( FoundMapConfigs.empty( ) )
+									FoundMapConfigs = i->filename( );
+								else
+									FoundMapConfigs += ", " + i->filename( );
+							}
+						}
+
+						if( Matches == 0 )
+							SendChat( player, m_GHost->m_Language->NoMapConfigsFound( ) );
+						else if( Matches == 1 )
+						{
+							string File = LastMatch.filename( );
+
+							// we have to be careful here because we didn't copy the map data when creating the game (there's only one global copy)
+							// therefore if we change the map data while a game is in the lobby everything will get screwed up
+							// the easiest solution is to simply reject the command if a game is in the lobby
+
+							if( m_GHost->m_CurrentGame )
+								SendChat( player, m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ) );
+							else
+							{
+								SendChat( player, m_GHost->m_Language->LoadingConfigFile( File ) );
+								CConfig MapCFG;
+								MapCFG.Read( LastMatch.string( ) );
+								m_GHost->m_Map->Load( &MapCFG, File );
+							}
+						}
+						else
+							SendChat( player, m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ) );
+					}
+				}
+				catch( const exception &ex )
+				{
+					CONSOLE_Print( string( "[ADMINGAME] error listing map configs - caught exception [" ) + ex.what( ) + "]" );
+					SendChat( player, m_GHost->m_Language->ErrorListingMapConfigs( ) );
 				}
 			}
 		}
@@ -2296,6 +2349,99 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		}
 
 		//
+		// !RLOAD
+		// !RMAP
+		//
+
+		if( Command == "rload" || Command == "rmap" )
+		{
+			if( Payload.empty( ) )
+				SendChat( player, m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ) );
+			else
+			{
+				string FoundMaps;
+
+				try
+				{
+					path MapPath( m_GHost->m_MapPath );
+					boost :: regex Regex( Payload );
+					string Pattern = Payload;
+					transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
+
+					if( !exists( MapPath ) )
+					{
+						CONSOLE_Print( "[ADMINGAME] error listing maps - map path doesn't exist" );
+						SendChat( player, m_GHost->m_Language->ErrorListingMaps( ) );
+					}
+					else
+					{
+						directory_iterator EndIterator;
+						path LastMatch;
+						uint32_t Matches = 0;
+
+						for( directory_iterator i( MapPath ); i != EndIterator; i++ )
+						{
+							string FileName = i->filename( );
+							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
+							bool Matched = false;
+
+							if( m_GHost->m_UseRegexes )
+							{
+								if( boost :: regex_match( FileName, Regex ) )
+									Matched = true;
+							}
+							else if( FileName.find( Pattern ) != string :: npos )
+								Matched = true;
+
+							if( !is_directory( i->status( ) ) && Matched )
+							{
+								LastMatch = i->path( );
+								Matches++;
+
+								if( FoundMaps.empty( ) )
+									FoundMaps = i->filename( );
+								else
+									FoundMaps += ", " + i->filename( );
+							}
+						}
+
+						if( Matches == 0 )
+							SendChat( player, m_GHost->m_Language->NoMapsFound( ) );
+						else if( Matches == 1 )
+						{
+							string File = LastMatch.filename( );
+
+							// we have to be careful here because we didn't copy the map data when creating the game (there's only one global copy)
+							// therefore if we change the map data while a game is in the lobby everything will get screwed up
+							// the easiest solution is to simply reject the command if a game is in the lobby
+
+							if( m_GHost->m_CurrentGame )
+								SendChat( player, m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ) );
+							else
+							{
+								SendChat( player, m_GHost->m_Language->LoadingConfigFile( File ) );
+
+								// hackhack: create a config file in memory with the required information to load the map
+
+								CConfig MapCFG;
+								MapCFG.Set( "map_path", "Maps\\Download\\" + File );
+								MapCFG.Set( "map_localpath", File );
+								m_GHost->m_Map->Load( &MapCFG, File );
+							}
+						}
+						else
+							SendChat( player, m_GHost->m_Language->FoundMaps( FoundMaps ) );
+					}
+				}
+				catch( const exception &ex )
+				{
+					CONSOLE_Print( string( "[ADMINGAME] error listing maps - caught exception [" ) + ex.what( ) + "]" );
+					SendChat( player, m_GHost->m_Language->ErrorListingMaps( ) );
+				}
+			}
+		}
+
+		//
 		// !SAYGAME
 		//
 
@@ -2311,11 +2457,11 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			SS >> GameNumber;
 
 			if( SS.fail( ) )
-				CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to saygame command" );
+				CONSOLE_Print( "[ADMINGAME] bad input #1 to saygame command" );
 			else
 			{
 				if( SS.eof( ) )
-					CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to saygame command" );
+					CONSOLE_Print( "[ADMINGAME] missing input #2 to saygame command" );
 				else
 				{
 					getline( SS, Message );
