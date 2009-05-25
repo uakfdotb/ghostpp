@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 13.1
+GHost++ Version 13.2
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
@@ -7,6 +7,8 @@ It is a Warcraft III game hosting bot.
 It contains many enhancements and fixes that were not present in the original GHost.
 You can compile and run GHost++ on Windows or Linux with this release although the code should be mostly portable to other operating systems such as OS X with only very minor changes.
 Since it is written in native code you do not need to install the .NET framework on Windows or Mono on Linux.
+The official GHost++ forums are currently located at http://forum.codelain.com
+The official GHost++ SVN repository is current located at http://code.google.com/p/ghostplusplus/
 
 =============
 Configuration
@@ -347,6 +349,47 @@ If you want GHost++ to automatically extract common.j and blizzard.j from War3Pa
 
 Note that some map files are "protected" in such a way that StormLib is unable to read them. In this case the bot might calculate incorrect values.
 
+=====================================
+Using the "rload" and "rmap" Commands
+=====================================
+
+Since Version 13.2 GHost++ supports loading Warcraft III maps without corresponding map config files.
+These maps will always be loaded with default options, more specifically:
+
+1.) The map speed will be fast.
+2.) The map visibility will be default.
+3.) The map observers will be none.
+4.) The map flags will be teams together + fixed teams.
+5.) The map game type will be custom.
+
+This means you cannot use the rload and rmap commands to load non-custom (e.g. blizzard or melee) maps at this time.
+You will need to create config files for any maps that you want to change these settings for and use the load and map commands to load them.
+
+===================
+Regular Expressions
+===================
+
+Since Version 13.2 GHost++ supports regular expressions when loading map config files and map files.
+You can control this behaviour with the bot_useregexes config value.
+When regexes are disabled, GHost++ will perform a simple partial match on the given pattern. GHost++ does NOT support wildcards such as "*" or "?".
+When regexes are enabled, GHost++ will perform a regular expression match on the given pattern.
+
+Examples (regexes disabled):
+
+!load dota -> this matches names such as "dota6.59d.cfg" or "mydota.cfg"
+!load war -> this matches names such as "warlock.cfg" or "wormwar.cfg"
+!load dota* -> this does NOT match "dota6.59d.cfg" because GHost++ does not support wildcards
+!load 59d -> this matches names such as "dota6.59d.cfg"
+
+Examples (regexes enabled):
+
+!load dota -> this matches the single name "dota"
+!load dota* -> this does NOT match "dota6.59d.cfg" because regular expressions do not work this way, it matches "dotaaa.cfg" and "dotaaaa.cfg" instead
+!load dota.* -> this matches names such as "dota6.59d.cfg" or "dota6.60.cfg" but NOT "mydota.cfg"
+!load .*war.* -> this matches names such as "warlock.cfg" or "wormwar.cfg"
+
+You can search the internet for more information on regular expressions if you are interested in learning how they work as they are quite common.
+
 ===========
 Using MySQL
 ===========
@@ -485,9 +528,9 @@ In battle.net (via local chat or whisper at any time):
 !getgames                       display information about all games
 !hold <name> ...                hold a slot for someone
 !hostsg <name>                  host a saved game
-!load <filename>                load a config file (for changing maps), leave blank to see current map - the ".cfg" is automatically appended to the filename
+!load <pattern>                 load a config file (for changing maps), leave blank to see current map
 !loadsg <filename>              load a saved game
-!map <filename>                 alias to !load
+!map <pattern>                  alias to !load
 !open <number> ...              open slot
 !openall                        open all closed slots
 !priv <name>                    host private game
@@ -495,6 +538,8 @@ In battle.net (via local chat or whisper at any time):
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force|nice]              alias to !exit
+!rload <pattern>                load a real map file, leave blank to see current map
+!rmap <pattern>                 alias to !rload
 !say <text>                     send <text> to battle.net as a chat command
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
@@ -604,15 +649,17 @@ In admin game lobby:
 !getgame <number>               display information on a game in progress
 !getgames                       display information on all games
 !hostsg <name>                  host a saved game
-!load <filename>                load a config file (for changing maps), leave blank to see current map - the ".cfg" is automatically appended to the filename
+!load <pattern>                 load a config file (for changing maps), leave blank to see current map
 !loadsg <filename>              load a saved game
-!map <filename>                 alias to !load
+!map <pattern>                  alias to !load
 !password <p>                   login (the password is set in ghost.cfg with admingame_password)
 !priv <name>                    host private game
 !privby <owner> <name>          host private game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force|nice]              alias to !exit
+!rload <pattern>                load a real map file, leave blank to see current map
+!rmap <pattern>                 alias to !rload
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
 !unhost                         unhost game
@@ -626,9 +673,10 @@ Compiling GHost++ on Windows
  a. Go to http://www.boost.org/ and download and extract Boost 1.38.0.
  b. Open Visual C++ and click Tools -> Options -> Projects and Solutions -> VC++ Directories -> Show directories for: Include files.
  c. Select the path to wherever you downloaded Boost (e.g. for me it's "D:\boost_1_38_0").
-2. Open ghost.sln
-3. Choose a Debug or Release version
-4. Build
+2. Download the precompiled GHost++ boost libraries for Windows from http://code.google.com/p/ghostplusplus/ and extract them to the "boost\lib\" subdirectory.
+3. Open ghost.sln
+4. Choose a Debug or Release version
+5. Build
 
 Notes:
 
@@ -672,18 +720,14 @@ To install Boost manually:
 
 7. Download and extract Boost 1.38.0 from http://www.boost.org/
 8. su to root.
-9. ./configure --prefix=/usr --with-libraries=date_time,thread
-10. make install
+9. ./configure --prefix=/usr --with-libraries=date_time,thread,system,filesystem,regex
+10. Edit the newly created Makefile with your favourite text editor. The second line should be "BJAM_CONFIG=". Replace it with "BJAM_CONFIG= --layout=system".
+11. make install
 
 Once it's built you can continue:
 
-11. cd ~/ghost/ghost/
-12. make
-
-Notes:
-
-If your system produces differently named boost libraries you may need to edit the Makefile and specify the correct libraries.
-The manual install of Boost also put the headers in a "boost_1_38/boost" directory in /usr/include so I was forced to move the boost subdirectory into /usr/include and delete the (now empty) boost_1_38 directory.
+12. cd ~/ghost/ghost/
+13. make
 
 ========================
 Running GHost++ on Linux

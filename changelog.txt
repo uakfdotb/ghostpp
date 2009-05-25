@@ -2,6 +2,36 @@
 GHost++ Changelog
 =================
 
+Version 13.2
+ - GHost++ now requires the boost system, filesystem, and regex libraries (ONLY NECESSARY IF YOU ARE COMPILING GHOST++ YOURSELF)
+  * removed precompiled boost libraries from the release
+  * you can download precompiled boost 1.38 libraries for Windows from the ghostplusplus googlecode page
+  * updated the compile instructions for Linux and Windows to reflect these changes
+ - updated the default map in ghost.cfg to dota6.59d
+ - increased the battle.net reconnect timer from 30 seconds to 90 seconds
+ - tweaked the battle.net strict queue a bit
+ - automatically removed dashes from CD keys
+ - started saving game durations and player left times to the database based on actual game ticks instead of time since loading
+ - printed the calculated map slot configuration to the console when loading a map
+ - added "nice" option to !exit/!quit to allow running games to finish first
+ - modified Ctrl-C behaviour to exit nicely the first time and exit immediately the second time
+ - added new command !rload and !rmap in battle.net and the admin game
+  * see the "Using the 'rload' and 'rmap' Commands" section of the readme for more information
+ - modified the !load/!map command to include a listing feature like the !rload/!rmap command
+ - added new config value bot_useregexes to enable or disable regular expressions 
+ - the map listing commands now accept regular expressions if configured to
+  * see the "Regular Expressions" section of the readme for more information
+ - implemented megablue's patch for removing the subselect in DoSend, an optimization to the network code
+ - minor changes to the battle.net protocol
+ - allowed team changes up to the maximum number of players in non-custom maps instead of the maximum number of teams (aka "forces")
+ - fixed a bug introduced in GHost++ Version 13.0 where games would never be removed from the custom game list in battle.net
+ - fixed a bug where the last line of motd.txt/gameloaded.txt/gameover.txt would sometimes be ignored
+ - fixed a bug where a player's map download time and rate would be incorrect when they were restricted from downloading due to download limits
+ - fixed a bug with calculating map data on some maps (specifically Pyramid Escape 1.42)
+ - fixed some bugs with saving replays, particularly when there's a leaver during loading
+ - fixed a bug with the !ping command where everyone would be kicked when a non-numeric payload was used
+ - modified language.cfg
+
 Version 13.1
  - implemented a stricter packet queueing system on battle.net to help fix the flooding problem
   * as a result you may notice it sometimes takes the bot longer to respond to your battle.net commands
