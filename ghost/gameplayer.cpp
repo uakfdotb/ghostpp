@@ -365,9 +365,16 @@ void CGamePlayer :: ProcessPackets( )
 			case CGameProtocol :: W3GS_GAMELOADED_SELF:
 				if( m_Protocol->RECEIVE_W3GS_GAMELOADED_SELF( Packet->GetData( ) ) )
 				{
-					m_FinishedLoading = true;
-					m_FinishedLoadingTicks = GetTicks( );
-					m_Game->EventPlayerLoaded( this );
+					if( !m_FinishedLoading )
+					{
+						m_FinishedLoading = true;
+						m_FinishedLoadingTicks = GetTicks( );
+						m_Game->EventPlayerLoaded( this );
+					}
+					else
+					{
+						// we received two W3GS_GAMELOADED_SELF packets from this player!
+					}
 				}
 
 				break;

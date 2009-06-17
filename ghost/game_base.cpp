@@ -647,9 +647,16 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 						// stop the lag screen
 
 						for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
-							Send( *i, m_Protocol->SEND_W3GS_STOP_LAG( *j, true ) );
+						{
+							if( !(*j)->GetFinishedLoading( ) )
+								Send( *i, m_Protocol->SEND_W3GS_STOP_LAG( *j, true ) );
+						}
 
 						// send an empty update
+						// this resets the lag screen timer but creates a rather annoying problem
+						// in order to prevent a desync we must make sure every player receives the exact same "desyncable game data" (updates and player leaves) in the exact same order
+						// unfortunately we cannot send updates to players who are still loading the map, so we buffer the updates to those players (see the else clause a few lines down for the code)
+						// in addition to this we must ensure any player leave messages are sent in the exact same position relative to these updates so those must be buffered too
 
 						Send( *i, m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
 
@@ -657,7 +664,16 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 						Send( *i, m_Protocol->SEND_W3GS_START_LAG( m_Players, true ) );
 					}
+					else
+					{
+						// buffer the empty update since the player is still loading the map
+
+						UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
+					}
 				}
+
+				if( m_Replay )
+					m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) );
 
 				m_LastLoadInGameResetTime = GetTime( );
 			}
@@ -1168,7 +1184,7 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 	// autosave
 
-	if( m_AutoSave && m_GameLoaded && player->GetLeftCode( ) == PLAYERLEAVE_DISCONNECT )
+	if( m_GameLoaded && player->GetLeftCode( ) == PLAYERLEAVE_DISCONNECT && m_AutoSave )
 	{
 		string SaveGameName = UTIL_FileSafeName( "GHost++ AutoSave " + m_GameName + " (" + player->GetName( ) + ").w3z" );
 		CONSOLE_Print( "[GAME: " + m_GameName + "] auto saving [" + SaveGameName + "] before player drop, shortened send interval = " + UTIL_ToString( GetTicks( ) - m_LastActionSentTicks ) );
@@ -1180,9 +1196,30 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 		SendAllActions( );
 	}
 
-	// tell everyone about the player leaving
+	if( m_GameLoading && m_LoadInGame )
+	{
+		// we must buffer player leave messages when using "load in game" to prevent desyncs
+		// this ensures the player leave messages are correctly interleaved with the empty updates sent to each player
 
-	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( (*i)->GetFinishedLoading( ) )
+			{
+				if( !player->GetFinishedLoading( ) )
+					Send( *i, m_Protocol->SEND_W3GS_STOP_LAG( player ) );
+
+				Send( *i, m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
+			}
+			else
+				UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
+		}
+	}
+	else
+	{
+		// tell everyone about the player leaving
+
+		SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
+	}
 
 	// set the replay's host PID and name to the last player to leave the game
 	// this will get overwritten as each player leaves the game so it will eventually be set to the last player
@@ -1194,10 +1231,15 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 		// add leave message to replay
 
-		if( m_GameLoading )
-			m_Replay->AddLeaveGameDuringLoading( 1, player->GetPID( ), player->GetLeftCode( ) );
-		else
+		if( m_LoadInGame )
 			m_Replay->AddLeaveGame( 1, player->GetPID( ), player->GetLeftCode( ) );
+		else
+		{
+			if( m_GameLoading )
+				m_Replay->AddLeaveGameDuringLoading( 1, player->GetPID( ), player->GetLeftCode( ) );
+			else
+				m_Replay->AddLeaveGame( 1, player->GetPID( ), player->GetLeftCode( ) );
+		}
 	}
 
 	// abort the countdown if there was one in progress
@@ -1881,6 +1923,11 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 			Send( player, m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( (*i)->GetPID( ) ) );
+
+		// send any buffered data to the player now
+		// see the Update function for more information about why we do this
+
+		Send( player, *player->GetLoadInGameData( ) );
 
 		// start the lag screen for the new player
 
