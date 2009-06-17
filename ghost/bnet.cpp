@@ -1029,7 +1029,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						{
 							QueueChatCommand( m_GHost->m_Language->AutoHostDisabled( ), User, Whisper );
 							m_GHost->m_AutoHostGameName.clear( );
-							m_GHost->m_AutoHostMapCFG.clear( );
 							m_GHost->m_AutoHostOwner.clear( );
 							m_GHost->m_AutoHostServer.clear( );
 							m_GHost->m_AutoHostMaximumGames = 0;
@@ -1072,8 +1071,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 											GameName = GameName.substr( Start );
 
 										QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
+										delete m_GHost->m_AutoHostMap;
+										m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map );
 										m_GHost->m_AutoHostGameName = GameName;
-										m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
 										m_GHost->m_AutoHostOwner = User;
 										m_GHost->m_AutoHostServer = m_Server;
 										m_GHost->m_AutoHostMaximumGames = MaximumGames;
@@ -1103,7 +1103,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						{
 							QueueChatCommand( m_GHost->m_Language->AutoHostDisabled( ), User, Whisper );
 							m_GHost->m_AutoHostGameName.clear( );
-							m_GHost->m_AutoHostMapCFG.clear( );
 							m_GHost->m_AutoHostOwner.clear( );
 							m_GHost->m_AutoHostServer.clear( );
 							m_GHost->m_AutoHostMaximumGames = 0;
@@ -1160,8 +1159,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 													GameName = GameName.substr( Start );
 
 												QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
+												delete m_GHost->m_AutoHostMap;
+												m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map );
 												m_GHost->m_AutoHostGameName = GameName;
-												m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
 												m_GHost->m_AutoHostOwner = User;
 												m_GHost->m_AutoHostServer = m_Server;
 												m_GHost->m_AutoHostMaximumGames = MaximumGames;

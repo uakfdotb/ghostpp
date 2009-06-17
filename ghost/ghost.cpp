@@ -441,6 +441,7 @@ CGHost :: CGHost( CConfig *CFG )
 	MapCFG.Read( m_MapCFGPath + m_DefaultMap + ".cfg" );
 	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap + ".cfg" );
 	m_AdminMap = new CMap( this );
+	m_AutoHostMap = new CMap( *m_Map );
 	m_SaveGame = new CSaveGame( this );
 
 	// load the iptocountry data
@@ -498,6 +499,7 @@ CGHost :: ~CGHost( )
 	delete m_Language;
 	delete m_Map;
 	delete m_AdminMap;
+	delete m_AutoHostMap;
 	delete m_SaveGame;
 }
 
@@ -679,7 +681,7 @@ bool CGHost :: Update( long usecBlock )
 
 	// autohost
 
-	if( !m_AutoHostGameName.empty( ) && !m_AutoHostMapCFG.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) >= m_LastAutoHostTime + 30 )
+	if( !m_AutoHostGameName.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) >= m_LastAutoHostTime + 30 )
 	{
 		string GameName = m_AutoHostGameName + " #" + UTIL_ToString( m_HostCounter );
 
@@ -688,13 +690,7 @@ bool CGHost :: Update( long usecBlock )
 
 		if( m_Enabled && GameName.size( ) <= 31 && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames )
 		{
-			// load the autohost map config
-
-			CConfig MapCFG;
-			MapCFG.Read( m_AutoHostMapCFG );
-			m_Map->Load( &MapCFG, m_AutoHostMapCFG );
-
-			if( m_Map->GetValid( ) )
+			if( m_AutoHostMap->GetValid( ) )
 			{
 				CreateGame( GAME_PUBLIC, false, GameName, string( ), m_AutoHostOwner, m_AutoHostServer, false );
 
@@ -726,9 +722,8 @@ bool CGHost :: Update( long usecBlock )
 			}
 			else
 			{
-				CONSOLE_Print( "[GHOST] stopped auto hosting, map config file [" + m_AutoHostMapCFG + "] is invalid" );
+				CONSOLE_Print( "[GHOST] stopped auto hosting, map config file [" + m_AutoHostMap->GetCFGFile( ) + "] is invalid" );
 				m_AutoHostGameName.clear( );
-				m_AutoHostMapCFG.clear( );
 				m_AutoHostOwner.clear( );
 				m_AutoHostServer.clear( );
 				m_AutoHostMaximumGames = 0;

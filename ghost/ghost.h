@@ -101,6 +101,7 @@ public:
 	CLanguage *m_Language;					// language
 	CMap *m_Map;							// the currently loaded map (this is global data, CBaseGame just references it so don't modify it unless you know what you're doing)
 	CMap *m_AdminMap;						// the map to use in the admin game
+	CMap *m_AutoHostMap;					// the map to use when autohosting
 	CSaveGame *m_SaveGame;					// the save game to use
 	bool m_Exiting;							// set to true to force ghost to shutdown next update (used by SignalCatcher)
 	bool m_ExitingNice;						// set to true to force ghost to disconnect from all battle.net connections and wait for all games to finish before shutting down
@@ -108,7 +109,6 @@ public:
 	string m_Version;						// GHost++ version string
 	uint32_t m_HostCounter;					// the current host counter (a unique number to identify a game, incremented each time a game is created)
 	string m_AutoHostGameName;				// the base game name to auto host with
-	string m_AutoHostMapCFG;				// the map config to auto host with
 	string m_AutoHostOwner;
 	string m_AutoHostServer;
 	uint32_t m_AutoHostMaximumGames;		// maximum number of games to auto host
