@@ -51,6 +51,7 @@ CMap :: CMap( CGHost *nGHost )
 	m_MapGameType = 9;
 	m_MapWidth = UTIL_ExtractNumbers( "172 0", 2 );
 	m_MapHeight = UTIL_ExtractNumbers( "172 0", 2 );
+	m_MapLoadInGame = false;
 	m_MapNumPlayers = 12;
 	m_MapNumTeams = 12;
 	m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 0, SLOTRACE_RANDOM ) );
@@ -676,6 +677,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapType = CFG->GetString( "map_type", string( ) );
 	m_MapMatchMakingCategory = CFG->GetString( "map_matchmakingcategory", string( ) );
 	m_MapStatsW3MMDCategory = CFG->GetString( "map_statsw3mmdcategory", string( ) );
+	m_MapLoadInGame = CFG->GetInt( "map_loadingame", 0 ) == 0 ? false : true;
 
 	if( MapNumPlayers == 0 )
 		MapNumPlayers = CFG->GetInt( "map_numplayers", 0 );

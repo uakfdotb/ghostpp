@@ -1269,3 +1269,10 @@ string CLanguage :: NoMapConfigsFound( )
 {
 	return m_CFG->GetString( "lang_0176", "lang_0176" );
 }
+
+string CLanguage :: PlayerFinishedLoading( string user )
+{
+	string Out = m_CFG->GetString( "lang_0177", "lang_0177" );
+	Replace( Out, "$USER$", user );
+	return Out;
+}

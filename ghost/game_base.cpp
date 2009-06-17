@@ -83,6 +83,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_CountDownCounter = 0;
 	m_StartedLoadingTicks = 0;
 	m_StartPlayers = 0;
+	m_LastLoadInGameResetTime = 0;
 	m_LastActionSentTicks = 0;
 	m_StartedLaggingTime = 0;
 	m_LastLagScreenTime = 0;
@@ -99,6 +100,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_CountDownStarted = false;
 	m_GameLoading = false;
 	m_GameLoaded = false;
+	m_LoadInGame = m_Map->GetMapLoadInGame( );
 	m_Desynced = false;
 	m_Lagging = false;
 	m_AutoSave = m_GHost->m_AutoSave;
@@ -582,6 +584,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		else if( !m_GameLoading && !m_GameLoaded )
 		{
 			m_StartedLoadingTicks = GetTicks( );
+			m_LastLoadInGameResetTime = GetTime( );
 			m_GameLoading = true;
 			EventGameStarted( );
 		}
@@ -630,6 +633,34 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			m_GameLoading = false;
 			m_GameLoaded = true;
 			EventGameLoaded( );
+		}
+		else
+		{
+			// reset the "lag" screen (the load-in-game screen) every 30 seconds
+
+			if( m_LoadInGame && GetTime( ) >= m_LastLoadInGameResetTime + 30 )
+			{
+				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+				{
+					if( (*i)->GetFinishedLoading( ) )
+					{
+						// stop the lag screen
+
+						for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
+							Send( *i, m_Protocol->SEND_W3GS_STOP_LAG( *j, true ) );
+
+						// send an empty update
+
+						Send( *i, m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
+
+						// start the lag screen
+
+						Send( *i, m_Protocol->SEND_W3GS_START_LAG( m_Players, true ) );
+					}
+				}
+
+				m_LastLoadInGameResetTime = GetTime( );
+			}
 		}
 	}
 
@@ -1763,20 +1794,23 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( (*i)->GetScore( ) < -99999.0 )
-			PlayersNotScored++;
-		else
+		if( !(*i)->GetLeftMessageSent( ) )
 		{
-			PlayersScored++;
-			AverageScore += (*i)->GetScore( );
+			if( (*i)->GetScore( ) < -99999.0 )
+				PlayersNotScored++;
+			else
+			{
+				PlayersScored++;
+				AverageScore += (*i)->GetScore( );
 
-			if( !Found || (*i)->GetScore( ) < MinScore )
-				MinScore = (*i)->GetScore( );
+				if( !Found || (*i)->GetScore( ) < MinScore )
+					MinScore = (*i)->GetScore( );
 
-			if( !Found || (*i)->GetScore( ) > MaxScore )
-				MaxScore = (*i)->GetScore( );
+				if( !Found || (*i)->GetScore( ) > MaxScore )
+					MaxScore = (*i)->GetScore( );
 
-			Found = true;
+				Found = true;
+			}
 		}
 	}
 
@@ -1840,7 +1874,53 @@ void CBaseGame :: EventPlayerLeft( CGamePlayer *player )
 
 void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 {
-	SendAll( m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( player->GetPID( ) ) );
+	if( m_LoadInGame )
+	{
+		// tell the client that everyone has loaded even though they might or might not have
+		// this causes the client to start the game, but we use the lag screen to prevent the game from progressing
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+			Send( player, m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( (*i)->GetPID( ) ) );
+
+		// start the lag screen for the new player
+
+		bool FinishedLoading = true;
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			FinishedLoading = (*i)->GetFinishedLoading( );
+
+			if( !FinishedLoading )
+				break;
+		}
+
+		if( !FinishedLoading )
+			Send( player, m_Protocol->SEND_W3GS_START_LAG( m_Players, true ) );
+
+		// remove the new player from previously loaded players' lag screens
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( *i != player && (*i)->GetFinishedLoading( ) )
+				Send( *i, m_Protocol->SEND_W3GS_STOP_LAG( player ) );
+		}
+
+		// send a chat message to previously loaded players
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			if( *i != player && (*i)->GetFinishedLoading( ) )
+			{
+				// hackhack: this is a TERRIBLE way to force the chat messages to be sent in the correct format
+
+				m_GameLoaded = true;
+				SendChat( *i, m_GHost->m_Language->PlayerFinishedLoading( player->GetName( ) ) );
+				m_GameLoaded = false;
+			}
+		}
+	}
+	else
+		SendAll( m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( player->GetPID( ) ) );
 }
 
 void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )

@@ -71,6 +71,7 @@ private:
 	string m_MapMatchMakingCategory;			// config value: map matchmaking category (for matchmaking)
 	string m_MapStatsW3MMDCategory;				// config value: map stats w3mmd category (for saving w3mmd stats)
 	string m_MapLocalPath;						// config value: map local path
+	bool m_MapLoadInGame;
 	string m_MapData;							// the map data itself, for sending the map to players
 	uint32_t m_MapNumPlayers;
 	uint32_t m_MapNumTeams;
@@ -100,6 +101,7 @@ public:
 	string GetMapMatchMakingCategory( )	{ return m_MapMatchMakingCategory; }
 	string GetMapStatsW3MMDCategory( )	{ return m_MapStatsW3MMDCategory; }
 	string GetMapLocalPath( )			{ return m_MapLocalPath; }
+	bool GetMapLoadInGame( )			{ return m_MapLoadInGame; }
 	string *GetMapData( )				{ return &m_MapData; }
 	uint32_t GetMapNumPlayers( )		{ return m_MapNumPlayers; }
 	uint32_t GetMapNumTeams( )			{ return m_MapNumTeams; }

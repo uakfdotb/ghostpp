@@ -212,6 +212,7 @@ public:
 	string ErrorListingMapConfigs( );
 	string FoundMapConfigs( string mapconfigs );
 	string NoMapConfigsFound( );
+	string PlayerFinishedLoading( string user );
 };
 
 #endif

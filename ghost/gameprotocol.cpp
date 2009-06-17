@@ -543,7 +543,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTE
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players )
+BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, bool loadInGame )
 {
 	BYTEARRAY packet;
 
@@ -551,8 +551,16 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players )
 
 	for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
 	{
-		if( (*i)->GetLagging( ) )
-			NumLaggers++;
+		if( loadInGame )
+		{
+			if( !(*i)->GetFinishedLoading( ) )
+				NumLaggers++;
+		}
+		else
+		{
+			if( (*i)->GetLagging( ) )
+				NumLaggers++;
+		}
 	}
 
 	if( NumLaggers > 0 )
@@ -565,10 +573,21 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players )
 
 		for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
 		{
-			if( (*i)->GetLagging( ) )
+			if( loadInGame )
 			{
-				packet.push_back( (*i)->GetPID( ) );
-				UTIL_AppendByteArray( packet, GetTicks( ) - (*i)->GetStartedLaggingTicks( ), false );
+				if( !(*i)->GetFinishedLoading( ) )
+				{
+					packet.push_back( (*i)->GetPID( ) );
+					UTIL_AppendByteArray( packet, (uint32_t)0, false );
+				}
+			}
+			else
+			{
+				if( (*i)->GetLagging( ) )
+				{
+					packet.push_back( (*i)->GetPID( ) );
+					UTIL_AppendByteArray( packet, GetTicks( ) - (*i)->GetStartedLaggingTicks( ), false );
+				}
 			}
 		}
 
@@ -582,7 +601,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_STOP_LAG( CGamePlayer *player )
+BYTEARRAY CGameProtocol :: SEND_W3GS_STOP_LAG( CGamePlayer *player, bool loadInGame )
 {
 	BYTEARRAY packet;
 	packet.push_back( W3GS_HEADER_CONSTANT );	// W3GS header constant
@@ -590,7 +609,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_STOP_LAG( CGamePlayer *player )
 	packet.push_back( 0 );						// packet length will be assigned later
 	packet.push_back( 0 );						// packet length will be assigned later
 	packet.push_back( player->GetPID( ) );
-	UTIL_AppendByteArray( packet, GetTicks( ) - player->GetStartedLaggingTicks( ), false );
+
+	if( loadInGame )
+		UTIL_AppendByteArray( packet, (uint32_t)0, false );
+	else
+		UTIL_AppendByteArray( packet, GetTicks( ) - player->GetStartedLaggingTicks( ), false );
+
 	AssignLength( packet );
 	// DEBUG_Print( "SENT W3GS_STOP_LAG" );
 	// DEBUG_Print( packet );

@@ -90,6 +90,7 @@ protected:
 	uint32_t m_CountDownCounter;					// the countdown is finished when this reaches zero
 	uint32_t m_StartedLoadingTicks;					// GetTicks when the game started loading
 	uint32_t m_StartPlayers;						// number of players when the game started
+	uint32_t m_LastLoadInGameResetTime;				// GetTime when the "lag" screen was last reset when using load-in-game
 	uint32_t m_LastActionSentTicks;					// GetTicks when the last action packet was sent
 	uint32_t m_StartedLaggingTime;					// GetTime when the last lag screen started
 	uint32_t m_LastLagScreenTime;					// GetTime when the last lag screen was active (continuously updated)
@@ -106,6 +107,7 @@ protected:
 	bool m_CountDownStarted;						// if the game start countdown has started or not
 	bool m_GameLoading;								// if the game is currently loading or not
 	bool m_GameLoaded;								// if the game has loaded or not
+	bool m_LoadInGame;								// if the load-in-game feature is enabled or not
 	bool m_Desynced;								// if the game has desynced or not
 	bool m_Lagging;									// if the lag screen is active or not
 	bool m_AutoSave;								// if we should auto save the game before someone disconnects
