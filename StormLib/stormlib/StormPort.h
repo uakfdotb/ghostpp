@@ -55,13 +55,25 @@
 
   // Macintosh using Carbon
   #include <Carbon/Carbon.h> // Mac OS X
-  
-  typedef unsigned char * LPBYTE;
+  //#include <sys/sysproto.h>
+  #include <sys/stat.h>
+  #include <sys/dtrace.h>
+  #include <sys/types.h>
+  #include <unistd.h>
+  #include <fcntl.h>
+  #include <unistd.h>
+  #include <stdint.h>
+  #include <stdlib.h>
+  #include <stdio.h>
+  #include <stdarg.h>
+  #include <string.h>
+  #include <ctype.h>
+  #include <assert.h> 
+  //  typedef unsigned char * LPBYTE;
   typedef const char    * LPCSTR;
-  typedef unsigned long * LPDWORD;
   typedef long          * PLONG;
   typedef void          * LPVOID;
-  typedef unsigned int  UINT;
+  //  typedef unsigned int  UINT;
   
   #define    PKEXPORT
   #define    __SYS_ZLIB
@@ -132,7 +144,9 @@
   typedef char           TCHAR;
   typedef uint32_t       LCID;
   typedef unsigned int   UINT;
+#if !defined(__APPLE__)
   typedef LONG         * PLONG;
+#endif
   typedef DWORD        * LPDWORD;
   typedef BYTE         * LPBYTE;
   

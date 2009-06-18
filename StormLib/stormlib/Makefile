@@ -17,6 +17,8 @@
 # updated on October 6, 2008 by Trevor Hogan #
 ##############################################
 
+SHELL = /bin/sh
+SYSTEM = $(shell uname)
 C++ = g++
 CC = gcc
 DFLAGS = -D__SYS_ZLIB
@@ -28,19 +30,34 @@ CFLAGS += $(OFLAGS) $(DFLAGS)
 OBJS = SCommon.o SCompression.o SFileCompactArchive.o \
        SFileCreateArchiveEx.o SFileExtractFile.o SFileFindFile.o \
        SListFile.o SFileOpenArchive.o SFileOpenFileEx.o \
-       SAttrFile.o SFileReadFile.o StormPortLinux.o \
+       SAttrFile.o SFileReadFile.o \
        wave/wave.o \
        huffman/huff.o \
        misc/crc32.o misc/md5.o
 
+ifeq ($(SYSTEM),Darwin)
+OBJS += StormPortMac.o
+else
+OBJS += StormPortLinux.o
+endif
+
 COBJS = pklib/crc32.o pklib/explode.o pklib/implode.o
 
+ifeq ($(SYSTEM),Darwin)
+LIB = libStorm.dylib
+else
 LIB = libStorm.so
+endif
 
 all: $(OBJS) $(COBJS) $(LIB)
 
+ifeq ($(SYSTEM),Darwin)
+$(LIB): $(OBJS) $(COBJS)
+	$(C++) -dynamiclib -framework CoreServices -o $(LIB) $(OBJS) $(COBJS) $(LFLAGS)
+else
 $(LIB): $(OBJS) $(COBJS)
 	$(C++) -shared -o $(LIB) $(OBJS) $(COBJS) $(LFLAGS)
+endif
 
 clean:
 	rm -f $(OBJS) $(COBJS) $(LIB)

@@ -32,6 +32,9 @@
 	#endif
 #endif
 
+#ifdef __APPLE__
+#include <CoreServices/CoreServices.h>
+#endif
 
 /*****************************************************************************/
 
