@@ -8,7 +8,7 @@ It contains many enhancements and fixes that were not present in the original GH
 You can compile and run GHost++ on Windows or Linux with this release although the code should be mostly portable to other operating systems such as OS X with only very minor changes.
 Since it is written in native code you do not need to install the .NET framework on Windows or Mono on Linux.
 The official GHost++ forums are currently located at http://forum.codelain.com
-The official GHost++ SVN repository is current located at http://code.google.com/p/ghostplusplus/
+The official GHost++ SVN repository is currently located at http://code.google.com/p/ghostplusplus/
 
 =============
 Configuration
@@ -384,7 +384,7 @@ Examples (regexes disabled):
 Examples (regexes enabled):
 
 !load dota -> this matches the single name "dota"
-!load dota* -> this does NOT match "dota6.59d.cfg" because regular expressions do not work this way, it matches "dotaaa.cfg" and "dotaaaa.cfg" instead
+!load dota* -> this does NOT match "dota6.59d.cfg" because regular expressions do not work this way, it matches "dotaaa" and "dotaaaa" instead
 !load dota.* -> this matches names such as "dota6.59d.cfg" or "dota6.60.cfg" but NOT "mydota.cfg"
 !load .*war.* -> this matches names such as "warlock.cfg" or "wormwar.cfg"
 
@@ -673,10 +673,10 @@ Compiling GHost++ on Windows
  a. Go to http://www.boost.org/ and download and extract Boost 1.38.0.
  b. Open Visual C++ and click Tools -> Options -> Projects and Solutions -> VC++ Directories -> Show directories for: Include files.
  c. Select the path to wherever you downloaded Boost (e.g. for me it's "D:\boost_1_38_0").
-2. Download the precompiled GHost++ boost libraries for Windows from http://code.google.com/p/ghostplusplus/ and extract them to the "boost\lib\" subdirectory.
-3. Open ghost.sln
-4. Choose a Debug or Release version
-5. Build
+3. Download the precompiled GHost++ boost libraries for Windows from http://code.google.com/p/ghostplusplus/ and extract them to the "boost\lib\" subdirectory.
+4. Open ghost.sln
+5. Choose a Debug or Release version with or without MySQL support
+6. Build
 
 Notes:
 

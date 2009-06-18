@@ -35,29 +35,22 @@ OBJS = SCommon.o SCompression.o SFileCompactArchive.o \
        huffman/huff.o \
        misc/crc32.o misc/md5.o
 
-ifeq ($(SYSTEM),Darwin)
-OBJS += StormPortMac.o
-else
-OBJS += StormPortLinux.o
-endif
-
 COBJS = pklib/crc32.o pklib/explode.o pklib/implode.o
 
 ifeq ($(SYSTEM),Darwin)
+OBJS += StormPortMac.o
+LFLAGS += -dynamiclib -framework CoreServices
 LIB = libStorm.dylib
 else
+OBJS += StormPortLinux.o
+LFLAGS += -shared
 LIB = libStorm.so
 endif
 
 all: $(OBJS) $(COBJS) $(LIB)
 
-ifeq ($(SYSTEM),Darwin)
 $(LIB): $(OBJS) $(COBJS)
-	$(C++) -dynamiclib -framework CoreServices -o $(LIB) $(OBJS) $(COBJS) $(LFLAGS)
-else
-$(LIB): $(OBJS) $(COBJS)
-	$(C++) -shared -o $(LIB) $(OBJS) $(COBJS) $(LFLAGS)
-endif
+	$(C++) -o $(LIB) $(OBJS) $(COBJS) $(LFLAGS)
 
 clean:
 	rm -f $(OBJS) $(COBJS) $(LIB)

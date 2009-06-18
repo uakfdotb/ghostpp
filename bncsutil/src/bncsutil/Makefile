@@ -8,7 +8,7 @@ CCFLAGS = -Wall -O3 -I ../ -Wno-multichar -fPIC
 CCOBJ = nls.o pe.o sha1.o stack.o
 
 ifeq ($(SYSTEM),Darwin)
-LDFLAGS = -dynamiclib -lgmp
+LDFLAGS = -dynamiclib -lgmp -L/opt/local/lib
 TARGET = libbncsutil.dylib
 else
 LDFLAGS = -shared -lgmp
