@@ -388,12 +388,11 @@ void CTCPClient :: Connect( string localaddress, string address, uint16_t port )
 
 	// connect
 
-	struct sockaddr_in sin;
-	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = HostAddress;
-	sin.sin_port = htons( port );
+	m_SIN.sin_family = AF_INET;
+	m_SIN.sin_addr.s_addr = HostAddress;
+	m_SIN.sin_port = htons( port );
 
-	if( connect( m_Socket, (struct sockaddr *)&sin, sizeof( sin ) ) == SOCKET_ERROR )
+	if( connect( m_Socket, (struct sockaddr *)&m_SIN, sizeof( m_SIN ) ) == SOCKET_ERROR )
 	{
 		if( GetLastError( ) != EINPROGRESS && GetLastError( ) != EWOULDBLOCK )
 		{
@@ -404,19 +403,8 @@ void CTCPClient :: Connect( string localaddress, string address, uint16_t port )
 			CONSOLE_Print( "[TCPCLIENT] error (connect) - " + GetErrorString( ) );
 			return;
 		}
-		else
-		{
-			// connect still in progress
-			// note: this shouldn't even happen since we can't get this far if m_Connecting is true (which it should be)
-
-			m_Connecting = true;
-			return;
-		}
 	}
 
-	// connect started
-
-	m_SIN = sin;
 	m_Connecting = true;
 }
 

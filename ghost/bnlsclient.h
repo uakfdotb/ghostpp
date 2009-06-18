@@ -37,6 +37,7 @@ private:
 	queue<CCommandPacket *> m_Packets;				// queue of incoming packets
 	bool m_WasConnected;
 	string m_Server;
+	string m_ServerIP;
 	uint16_t m_Port;
 	uint32_t m_LastNullTime;
 	uint32_t m_WardenCookie;						// the warden cookie

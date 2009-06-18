@@ -546,7 +546,24 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		if( !m_GHost->m_BindAddress.empty( ) )
 			CONSOLE_Print( "[BNET: " + m_Server + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]" );
 
-		m_Socket->Connect( m_GHost->m_BindAddress, m_Server, 6112 );
+		if( m_ServerIP.empty( ) )
+		{
+			m_Socket->Connect( m_GHost->m_BindAddress, m_Server, 6112 );
+
+			if( !m_Socket->HasError( ) )
+			{
+				m_ServerIP = m_Socket->GetIPString( );
+				CONSOLE_Print( "[BNET: " + m_Server + "] resolved and cached server IP address " + m_ServerIP );
+			}
+		}
+		else
+		{
+			// use cached server IP address since resolving takes time and is blocking
+
+			CONSOLE_Print( "[BNET: " + m_Server + "] using cached server IP address " + m_ServerIP );
+			m_Socket->Connect( m_GHost->m_BindAddress, m_ServerIP, 6112 );
+		}
+
 		m_WaitingToConnect = false;
 		return m_Exiting;
 	}
