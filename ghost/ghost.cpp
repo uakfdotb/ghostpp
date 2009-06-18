@@ -89,6 +89,10 @@
  #include <sys/time.h>
 #endif
 
+#ifdef __APPLE__
+ #include <mach/mach_time.h>
+#endif
+
 time_t gStartTime;
 string gLogFile;
 CGHost *gGHost = NULL;
@@ -102,6 +106,15 @@ uint32_t GetTicks( )
 {
 #ifdef WIN32
 	return GetTickCount( );
+#elif __APPLE__
+	uint64_t current = mach_absolute_time( );
+	static mach_timebase_info_data_t info = { 0, 0 };
+	// get timebase info
+	if( info.denom == 0 )
+		mach_timebase_info( &info );
+	uint64_t elapsednano = current * ( info.numer / info.denom );
+	// convert ns to ms
+	return elapsednano / 1e6;
 #else
 	uint32_t ticks;
 	struct timespec t;
@@ -114,7 +127,7 @@ uint32_t GetTicks( )
 
 void SignalCatcher2( int s )
 {
-	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( s ) + ", shutting down NOW" );
+	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( s ) + ", exiting NOW" );
 
 	if( gGHost )
 	{
@@ -132,7 +145,7 @@ void SignalCatcher( int s )
 	// signal( SIGABRT, SignalCatcher2 );
 	signal( SIGINT, SignalCatcher2 );
 
-	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( s ) + ", shutting down nicely" );
+	CONSOLE_Print( "[!!!] caught signal " + UTIL_ToString( s ) + ", exiting nicely" );
 
 	if( gGHost )
 		gGHost->m_ExitingNice = true;

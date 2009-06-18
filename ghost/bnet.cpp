@@ -470,14 +470,16 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 
 		// check if at least one packet is waiting to be sent and if we've waited long enough to prevent flooding
-		// this formula has changed many times but currently we wait 1 second if the last packet was "small" and 3 seconds if it was "big"
+		// this formula has changed many times but currently we wait 1 second if the last packet was "small", 3 seconds if it was "medium", and 4 seconds if it was "big"
 
 		uint32_t WaitTicks = 0;
 
 		if( m_LastOutPacketSize < 10 )
 			WaitTicks = 1000;
-		else
+		else if( m_LastOutPacketSize < 100 )
 			WaitTicks = 3000;
+		else
+			WaitTicks = 4000;
 
 		if( !m_OutPackets.empty( ) && GetTicks( ) >= m_LastOutPacketTicks + WaitTicks )
 		{
