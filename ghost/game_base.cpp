@@ -914,7 +914,7 @@ void CBaseGame :: SendChat( unsigned char fromPID, CGamePlayer *player, string m
 
 	if( player )
 	{
-		if( !m_GameLoaded )
+		if( !m_GameLoading && !m_GameLoaded )
 		{
 			if( message.size( ) > 254 )
 				message = message.substr( 0, 254 );
@@ -961,7 +961,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 
 	if( GetNumPlayers( ) > 0 )
 	{
-		if( !m_GameLoaded )
+		if( !m_GameLoading && !m_GameLoaded )
 		{
 			if( message.size( ) > 254 )
 				message = message.substr( 0, 254 );
@@ -1948,21 +1948,11 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
 			if( *i != player && (*i)->GetFinishedLoading( ) )
-			{
-				// hackhack: this is a TERRIBLE way to force the chat messages to be sent in the correct format
-
-				m_GameLoaded = true;
 				SendChat( *i, m_GHost->m_Language->PlayerFinishedLoading( player->GetName( ) ) );
-				m_GameLoaded = false;
-			}
 		}
 
 		if( !FinishedLoading )
-		{
-			m_GameLoaded = true;
 			SendChat( player, m_GHost->m_Language->PleaseWaitPlayersStillLoading( ) );
-			m_GameLoaded = false;
-		}
 	}
 	else
 		SendAll( m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( player->GetPID( ) ) );
@@ -2019,59 +2009,56 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 		{
 			// relay the chat message to other players
 
-			if( !m_GameLoading )
+			bool Relay = !player->GetMuted( );
+			BYTEARRAY ExtraFlags = chatPlayer->GetExtraFlags( );
+
+			// calculate timestamp
+
+			string MinString = UTIL_ToString( ( m_GameTicks / 1000 ) / 60 );
+			string SecString = UTIL_ToString( ( m_GameTicks / 1000 ) % 60 );
+
+			if( MinString.size( ) == 1 )
+				MinString.insert( 0, "0" );
+
+			if( SecString.size( ) == 1 )
+				SecString.insert( 0, "0" );
+
+			if( !ExtraFlags.empty( ) )
 			{
-				bool Relay = !player->GetMuted( );
-				BYTEARRAY ExtraFlags = chatPlayer->GetExtraFlags( );
-
-				// calculate timestamp
-
-				string MinString = UTIL_ToString( ( m_GameTicks / 1000 ) / 60 );
-				string SecString = UTIL_ToString( ( m_GameTicks / 1000 ) % 60 );
-
-				if( MinString.size( ) == 1 )
-					MinString.insert( 0, "0" );
-
-				if( SecString.size( ) == 1 )
-					SecString.insert( 0, "0" );
-
-				if( !ExtraFlags.empty( ) )
+				if( ExtraFlags[0] == 0 )
 				{
-					if( ExtraFlags[0] == 0 )
-					{
-						// this is an ingame [All] message, print it to the console
+					// this is an ingame [All] message, print it to the console
 
-						CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+					CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
 
-						// don't relay ingame messages targeted for all players if we're currently muting all
-						// note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
+					// don't relay ingame messages targeted for all players if we're currently muting all
+					// note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
 
-						if( m_MuteAll )
-							Relay = false;
-					}
-
-					if( Relay )
-					{
-						// add chat message to replay
-						// this includes allied chat and private chat from both teams as long as it was relayed
-
-						if( m_Replay )
-							m_Replay->AddChatMessage( chatPlayer->GetFromPID( ), chatPlayer->GetFlag( ), UTIL_ByteArrayToUInt32( chatPlayer->GetExtraFlags( ), false ), chatPlayer->GetMessage( ) );
-					}
-				}
-				else
-				{
-					// this is a lobby message, print it to the console
-
-					CONSOLE_Print( "[GAME: " + m_GameName + "] [Lobby] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
-
-					if( m_MuteLobby )
+					if( m_MuteAll )
 						Relay = false;
 				}
 
 				if( Relay )
-					Send( chatPlayer->GetToPIDs( ), m_Protocol->SEND_W3GS_CHAT_FROM_HOST( chatPlayer->GetFromPID( ), chatPlayer->GetToPIDs( ), chatPlayer->GetFlag( ), chatPlayer->GetExtraFlags( ), chatPlayer->GetMessage( ) ) );
+				{
+					// add chat message to replay
+					// this includes allied chat and private chat from both teams as long as it was relayed
+
+					if( m_Replay )
+						m_Replay->AddChatMessage( chatPlayer->GetFromPID( ), chatPlayer->GetFlag( ), UTIL_ByteArrayToUInt32( chatPlayer->GetExtraFlags( ), false ), chatPlayer->GetMessage( ) );
+				}
 			}
+			else
+			{
+				// this is a lobby message, print it to the console
+
+				CONSOLE_Print( "[GAME: " + m_GameName + "] [Lobby] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+
+				if( m_MuteLobby )
+					Relay = false;
+			}
+
+			if( Relay )
+				Send( chatPlayer->GetToPIDs( ), m_Protocol->SEND_W3GS_CHAT_FROM_HOST( chatPlayer->GetFromPID( ), chatPlayer->GetToPIDs( ), chatPlayer->GetFlag( ), chatPlayer->GetExtraFlags( ), chatPlayer->GetMessage( ) ) );
 
 			// handle bot commands
 
