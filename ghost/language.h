@@ -213,6 +213,7 @@ public:
 	string FoundMapConfigs( string mapconfigs );
 	string NoMapConfigsFound( );
 	string PlayerFinishedLoading( string user );
+	string PleaseWaitPlayersStillLoading( );
 };
 
 #endif

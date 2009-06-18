@@ -1276,3 +1276,8 @@ string CLanguage :: PlayerFinishedLoading( string user )
 	Replace( Out, "$USER$", user );
 	return Out;
 }
+
+string CLanguage :: PleaseWaitPlayersStillLoading( )
+{
+	return m_CFG->GetString( "lang_0178", "lang_0178" );
+}

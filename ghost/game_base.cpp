@@ -1956,6 +1956,13 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 				m_GameLoaded = false;
 			}
 		}
+
+		if( !FinishedLoading )
+		{
+			m_GameLoaded = true;
+			SendChat( player, m_GHost->m_Language->PleaseWaitPlayersStillLoading( ) );
+			m_GameLoaded = false;
+		}
 	}
 	else
 		SendAll( m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( player->GetPID( ) ) );
