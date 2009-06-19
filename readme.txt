@@ -1,14 +1,23 @@
 ====================
-GHost++ Version 13.2
+GHost++ Version 13.3
 ====================
 
 GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
-It is a Warcraft III game hosting bot.
 It contains many enhancements and fixes that were not present in the original GHost.
-You can compile and run GHost++ on Windows or Linux with this release although the code should be mostly portable to other operating systems such as OS X with only very minor changes.
-Since it is written in native code you do not need to install the .NET framework on Windows or Mono on Linux.
+You can compile and run GHost++ on Windows, Linux, and OS X with this release although the code should be mostly portable to other operating systems with only very minor changes.
 The official GHost++ forums are currently located at http://forum.codelain.com
 The official GHost++ SVN repository is currently located at http://code.google.com/p/ghostplusplus/
+
+========
+Overview
+========
+
+GHost++ is a Warcraft III: The Frozen Throne game hosting bot.
+It can host Warcraft III: The Frozen Throne games on LAN, on battle.net, on PVPGN, and on any combination of these networks at the same time.
+Since GHost++ is a bot it must have its own CD keys, username, and password for each battle.net server.
+Note that you can use the same set of CD keys on each battle.net server (East, West, Europe, Asia) at the same time.
+This means that to play on your own GHost++ bot you will need one set of CD keys for yourself and one set for your bot.
+It is possible to work around this limitation using the "Admin Game" feature of GHost++ (search this readme for more information).
 
 =============
 Configuration
@@ -43,6 +52,35 @@ If you want GHost++ to automatically calculate map values:
 -> "common.j" in your bot_mapcfgpath
 
 Note that blizzard.j and common.j will be automatically extracted from War3Patch.mpq if you provide GHost++ with your War3Patch.mpq file (as mentioned above).
+
+===================
+Optimizing Your Bot
+===================
+
+*** General Tips:
+
+The most common reason for lag in GHost++ games on Windows is due to the way Windows allocates CPU time to programs.
+If you are experiencing extreme lag on Windows, open the task manager (Ctrl+Alt+Delete), find ghost.exe in the process list, and increase the priority by one level.
+
+The second most common reason is due to the local SQLite database GHost++ uses.
+The local SQLite database GHost++ uses is not intended to be used with large scale bots.
+If you are experiencing lag when adding admins and bans and when games end you should either delete your ghost.dbs and start over, or clean it up manually, or use MySQL instead.
+Cleaning up the database manually requires using a 3rd party tool not included in GHost++ (e.g. the SQLite Manager addon for Firefox) and is not described here.
+Using MySQL requires setting up a MySQL database server and is only recommended for advanced users.
+
+If you are experiencing lag when using the !stats and !statsdota commands, these commands are not optimized for large databases. There is no workaround for this.
+Another reason for lag on Windows is that Windows does not handle very large log files efficiently.
+If your ghost.log is too large (several MB) you should delete or rename it. You can do this while the bot is running.
+
+*** Network Tips:
+
+If you are experiencing spikes when the bot is reconnecting to battle.net the most likely reason is due to the DNS resolver.
+GHost++ resolves battle.net server addresses and BNLS addresses when connecting.
+Since Version 13.3 GHost++ automatically caches all battle.net server addresses after the first connection but does NOT cache BNLS addresses.
+To avoid calling the DNS resolver when reconnecting you should ensure that the BNLS addresses in ghost.cfg are in "dots and numbers" format (e.g. "1.2.3.4").
+It is not necessary to do the same for the battle.net server addresses as they are cached and changing these addresses will affect your admins and bans.
+
+If you are experiencing lag when players are downloading the map, try decreasing bot_maxdownloaders and bot_maxdownloadspeed in ghost.cfg.
 
 ===============
 How Admins Work
@@ -158,6 +196,11 @@ Now, when you start GHost++:
 7.) Leave the game and return to the LAN screen. After a few seconds you will see your newly created game appear. Join it.
 8.) You are now ready to play. Your game has been created on the local network and, if configured to do so, on each battle.net server.
 9.) If you make a mistake and want to unhost the game you can use !unhost in either game (the Admin Game or your newly created game).
+
+*** IMPORTANT ***
+
+MySQL support has not yet been implemented in the admin game.
+If you are using a MySQL database any commands that modify the database (e.g. adding admins or bans) will not work in the admin game.
 
 ================================
 Using GHost++ on Multiple Realms
@@ -410,6 +453,11 @@ GHost++ won't create or modify your MySQL database schema like it does with SQLi
 This means you need to keep track of what schema you're using and run the appropriate "mysql_upgrade.sql" file(s) on your database as necessary.
 Note that with MySQL you can configure multiple bots to use the same database although support for this is not 100% complete or configurable.
 
+*** IMPORTANT ***
+
+MySQL support has not yet been implemented in the admin game.
+If you are using a MySQL database any commands that modify the database (e.g. adding admins or bans) will not work in the admin game.
+
 =====================
 Automatic Matchmaking
 =====================
@@ -495,6 +543,20 @@ If GHost++ loses connection to the BNLS server, it will stop responding to the W
 In this case battle.net will kick you from the server after 2 minutes of not responding to Warden requests.
 When GHost++ automatically reconnects to battle.net it will try to connect to the BNLS server again. If successful it will continue operating as normal.
 
+==========================
+The "Load In Game" Feature
+==========================
+
+Since Version 13.3 GHost++ supports a new "load in game" feature. Credit goes to Strilanc for the idea.
+This feature is disabled by default although it is possible it will become enabled by default in a future version after enough testing.
+To enable loading in game for a particular map, simply open the map config file and add "map_loadingame = 1".
+When loading in game is enabled, as each player finishes loading the map they will immediately start the game rather than waiting at the loading screen.
+However, since other players are still loading the map, the lag screen will appear and every player still loading the map will be listed.
+As players finish loading the map they will be removed from the lag screen and a chat message will be printed.
+Since it is possible it will take more than 45 seconds for everyone to load, the lag screen timer will be reset every 30 seconds.
+This feature allows players to see who is still loading the map and allows them to chat while waiting.
+Please note that some maps with intro cutscenes do not permit chatting in the first few seconds and therefore it is not possible to chat while waiting.
+
 ========
 Commands
 ========
@@ -519,6 +581,7 @@ In battle.net (via local chat or whisper at any time):
 !deladmin <name>                remove an admin from the database for this realm
 !delban <name>                  remove a ban from the database for all realms
 !disable                        disable creation of new games
+!downloads <0|1|2>              disable/enable/conditional map downloads
 !enable                         enable creation of new games
 !end <number>                   end the specified game in progress (disconnect everyone)
 !exit [force|nice]              shutdown ghost++, optionally add [force] to skip checks or [nice] to allow running games to finish first
@@ -643,6 +706,7 @@ In admin game lobby:
 !countadmins <realm>            display the total number of admins for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
 !deladmin <name> <realm>        remove an admin from the database for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
 !disable                        disable creation of new games
+!downloads <0|1|2>              disable/enable/conditional map downloads
 !enable                         enable creation of new games
 !end <number>                   end a game in progress (disconnect everyone)
 !exit [force|nice]              shutdown ghost++, optionally add [force] to skip checks or [nice] to allow running games to finish first
@@ -735,4 +799,21 @@ Running GHost++ on Linux
 
 You will need to copy ~/ghost/bncsutil/src/bncsutil/libbncutil.so to /usr/local/lib/ or otherwise set LD_LIBRARY_PATH so it can find the bncsutil library.
 You will need to copy ~/ghost/StormLib/stormlib/libStorm.so to /usr/local/lib/ or otherwise set LD_LIBRARY_PATH so it can file the StormLib library.
-You will also need to copy game.dll, Storm.dll, and war3.exe from a valid Warcraft III installation to the location specified in your ghost.cfg.
+You will also need to copy game.dll, Storm.dll, and war3.exe (and possibly War3Patch.mpq) from a valid Warcraft III installation to the location specified in your ghost.cfg.
+
+Note that some systems do not automatically load libraries from /usr/local/lib/
+If you are having trouble loading libbncsutil and libStorm, you can either copy them to /usr/lib/ instead (not recommended) or set LD_LIBRARY_PATH.
+To set LD_LIBRARY_PATH type "export LD_LIBRARY_PATH=/usr/local/lib/" without the quotes.
+If you are a Linux expert and you know a better solution to this problem please feel free to join the GHost++ forums and let us know.
+
+=========================
+Compiling GHost++ on OS X
+=========================
+
+Nothing here yet.
+
+=======================
+Running GHost++ on OS X
+=======================
+
+Nothing here yet.

@@ -470,19 +470,22 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 
 		// check if at least one packet is waiting to be sent and if we've waited long enough to prevent flooding
-		// this formula has changed many times but currently we wait 1 second if the last packet was "small", 3 seconds if it was "medium", and 4 seconds if it was "big"
+		// this formula has changed many times but currently we wait 1 second if the last packet was "small", 3.2 seconds if it was "medium", and 4 seconds if it was "big"
 
 		uint32_t WaitTicks = 0;
 
 		if( m_LastOutPacketSize < 10 )
 			WaitTicks = 1000;
 		else if( m_LastOutPacketSize < 100 )
-			WaitTicks = 3000;
+			WaitTicks = 3200;
 		else
 			WaitTicks = 4000;
 
 		if( !m_OutPackets.empty( ) && GetTicks( ) >= m_LastOutPacketTicks + WaitTicks )
 		{
+			if( m_OutPackets.size( ) > 7 )
+				CONSOLE_Print( "[BNET: " + m_Server + "] packet queue warning - there are " + UTIL_ToString( m_OutPackets.size( ) ) + " packets waiting to be sent" );
+
 			m_Socket->PutBytes( m_OutPackets.front( ) );
 			m_LastOutPacketSize = m_OutPackets.front( ).size( );
 			m_OutPackets.pop( );
@@ -1371,6 +1374,31 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
+				// !DOWNLOADS
+				//
+
+				if( Command == "downloads" && !Payload.empty( ) )
+				{
+					uint32_t Downloads = UTIL_ToUInt32( Payload );
+
+					if( Downloads == 0 )
+					{
+						QueueChatCommand( m_GHost->m_Language->MapDownloadsDisabled( ), User, Whisper );
+						m_GHost->m_AllowDownloads = 0;
+					}
+					else if( Downloads == 1 )
+					{
+						QueueChatCommand( m_GHost->m_Language->MapDownloadsEnabled( ), User, Whisper );
+						m_GHost->m_AllowDownloads = 1;
+					}
+					else if( Downloads == 2 )
+					{
+						QueueChatCommand( m_GHost->m_Language->MapDownloadsConditional( ), User, Whisper );
+						m_GHost->m_AllowDownloads = 2;
+					}
+				}
+
+				//
 				// !ENABLE
 				//
 
@@ -1996,7 +2024,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 			}
 			else
-				CONSOLE_Print( "[BNET: " + m_Server + "] user [" + User + "] sent command [" + Message + "]" );
+				CONSOLE_Print( "[BNET: " + m_Server + "] non-admin [" + User + "] sent command [" + Message + "]" );
 
 			/*********************
 			* NON ADMIN COMMANDS *

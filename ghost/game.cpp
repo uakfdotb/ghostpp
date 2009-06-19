@@ -1534,7 +1534,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		}
 	}
 	else
-		CONSOLE_Print( "[GAME: " + m_GameName + "] user [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] non-admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
 
 	/*********************
 	* NON ADMIN COMMANDS *
@@ -1735,13 +1735,13 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 {
 	SendChat( player, " " );
-	SendChat( player, " " );
 	SendChat( player, "GHost++ Admin Game                    http://forum.codelain.com/" );
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
-	SendChat( player, "Commands: addadmin, autohost, checkadmin, countadmins, deladmin" );
-	SendChat( player, "Commands: disable, enable, end, exit, getgame, getgames, hostsg" );
-	SendChat( player, "Commands: load, loadsg, map, password, priv, privby, pub, pubby" );
-	SendChat( player, "Commands: rload, rmap, quit, saygame, saygames, unhost" );
+	SendChat( player, "Commands: addadmin, autohost, checkadmin, countadmins" );
+	SendChat( player, "Commands: deladmin, disable, downloads, enable, end" );
+	SendChat( player, "Commands: exit, getgame, getgames, hostsg, load, loadsg" );
+	SendChat( player, "Commands: map, password, priv, privby, pub, pubby, rload" );
+	SendChat( player, "Commands: rmap, quit, saygame, saygames, unhost" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
@@ -2089,6 +2089,31 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		{
 			SendChat( player, m_GHost->m_Language->BotDisabled( ) );
 			m_GHost->m_Enabled = false;
+		}
+
+		//
+		// !DOWNLOADS
+		//
+
+		if( Command == "downloads" && !Payload.empty( ) )
+		{
+			uint32_t Downloads = UTIL_ToUInt32( Payload );
+
+			if( Downloads == 0 )
+			{
+				SendChat( player, m_GHost->m_Language->MapDownloadsDisabled( ) );
+				m_GHost->m_AllowDownloads = 0;
+			}
+			else if( Downloads == 1 )
+			{
+				SendChat( player, m_GHost->m_Language->MapDownloadsEnabled( ) );
+				m_GHost->m_AllowDownloads = 1;
+			}
+			else if( Downloads == 2 )
+			{
+				SendChat( player, m_GHost->m_Language->MapDownloadsConditional( ) );
+				m_GHost->m_AllowDownloads = 2;
+			}
 		}
 
 		//

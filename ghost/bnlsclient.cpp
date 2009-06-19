@@ -126,25 +126,7 @@ bool CBNLSClient :: Update( void *fd, void *send_fd )
 	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && !m_WasConnected )
 	{
 		CONSOLE_Print( "[BNLSC: " + m_Server + ":" + UTIL_ToString( m_Port ) + ":C" + UTIL_ToString( m_WardenCookie ) + "] connecting to server [" + m_Server + "] on port " + UTIL_ToString( m_Port ) );
-
-		if( m_ServerIP.empty( ) )
-		{
-			m_Socket->Connect( string( ), m_Server, m_Port );
-
-			if( !m_Socket->HasError( ) )
-			{
-				m_ServerIP = m_Socket->GetIPString( );
-				CONSOLE_Print( "[BNLSC: " + m_Server + ":" + UTIL_ToString( m_Port ) + ":C" + UTIL_ToString( m_WardenCookie ) + "] resolved and cached server IP address " + m_ServerIP );
-			}
-		}
-		else
-		{
-			// use cached server IP address since resolving takes time and is blocking
-
-			CONSOLE_Print( "[BNLSC: " + m_Server + ":" + UTIL_ToString( m_Port ) + ":C" + UTIL_ToString( m_WardenCookie ) + "] using cached server IP address " + m_ServerIP );
-			m_Socket->Connect( string( ), m_ServerIP, m_Port );
-		}
-
+		m_Socket->Connect( string( ), m_Server, m_Port );
 		return false;
 	}
 

@@ -1281,3 +1281,18 @@ string CLanguage :: PleaseWaitPlayersStillLoading( )
 {
 	return m_CFG->GetString( "lang_0178", "lang_0178" );
 }
+
+string CLanguage :: MapDownloadsDisabled( )
+{
+	return m_CFG->GetString( "lang_0179", "lang_0179" );
+}
+
+string CLanguage :: MapDownloadsEnabled( )
+{
+	return m_CFG->GetString( "lang_0180", "lang_0180" );
+}
+
+string CLanguage :: MapDownloadsConditional( )
+{
+	return m_CFG->GetString( "lang_0181", "lang_0181" );
+}
