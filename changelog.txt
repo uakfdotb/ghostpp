@@ -2,6 +2,19 @@
 GHost++ Changelog
 =================
 
+Version 13.3
+ - committed nindoja's modifications to bncsutil/StormLib/GHost++ to compile on OS X
+ - added a new feature "load in game" - credit goes to Strilanc for the idea
+  * see the "Load In Game" section of the readme for more information
+ - added new map config value map_loadingame
+ - added new command !downloads to change the bot_allowdownloads value while the bot is running
+ - adjusted the battle.net flood protection code
+ - cached battle.net IP addresses on first connect to eliminate resolver lag on reconnect
+ - fixed a bug where autohosting wouldn't work anymore after the map was changed (introduced in 13.2)
+ - fixed a minor bug where the bot would include the kicked player's score in the spread when using matchmaking
+ - updated the readme with an overview and some optimization tips
+ - modified language.cfg
+
 Version 13.2
  - GHost++ now requires the boost system, filesystem, and regex libraries (ONLY NECESSARY IF YOU ARE COMPILING GHOST++ YOURSELF)
   * removed precompiled boost libraries from the release
