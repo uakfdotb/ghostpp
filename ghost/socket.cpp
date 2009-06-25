@@ -548,6 +548,9 @@ CUDPSocket :: CUDPSocket( ) : CSocket( )
 
 	int OptVal = 1;
 	setsockopt( m_Socket, SOL_SOCKET, SO_BROADCAST, (const char *)&OptVal, sizeof( int ) );
+	
+	// set default broadcast target
+	m_BroadcastTarget.s_addr = INADDR_BROADCAST;
 }
 
 CUDPSocket :: ~CUDPSocket( )
@@ -603,7 +606,7 @@ bool CUDPSocket :: Broadcast( uint16_t port, BYTEARRAY message )
 
 	struct sockaddr_in sin;
 	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = INADDR_BROADCAST;
+	sin.sin_addr.s_addr = m_BroadcastTarget.s_addr;
 	sin.sin_port = htons( port );
 
 	string MessageString = string( message.begin( ), message.end( ) );
@@ -615,6 +618,30 @@ bool CUDPSocket :: Broadcast( uint16_t port, BYTEARRAY message )
 	}
 
 	return true;
+}
+
+bool CUDPSocket :: SetBroadcastTarget( string subnet )
+{
+	// this function does not check whether the given subnet is a valid subnet the user is on
+	// convert string representation of ip/subnet to in_addr
+	m_BroadcastTarget.s_addr = inet_addr( subnet.c_str( ) );
+	// if conversion fails, inet_addr( ) returns INADDR_NONE
+	if( m_BroadcastTarget.s_addr == INADDR_NONE )
+	{
+		m_BroadcastTarget.s_addr = INADDR_BROADCAST;
+		return false;
+	}
+	return true;
+}
+
+void CUDPSocket :: SetDontRoute( bool dontRoute )
+{
+	int OptVal = 0;
+	if( dontRoute )
+		OptVal = 1;
+	// don't route packets; make them ignore routes set by routing table and send them to the interface
+	// belonging to the target address directly
+	setsockopt( m_Socket, SOL_SOCKET, SO_DONTROUTE, (const char *)&OptVal, sizeof( int ) );
 }
 
 //

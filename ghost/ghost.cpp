@@ -279,6 +279,9 @@ void DEBUG_Print( BYTEARRAY b )
 CGHost :: CGHost( CConfig *CFG )
 {
 	m_UDPSocket = new CUDPSocket( );
+	if( !m_UDPSocket->SetBroadcastTarget( CFG->GetString( "udp_broadcasttarget", string( ) ) ) )
+		CONSOLE_Print( "[UDPSOCKET] using default broadcast target" );
+	m_UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
 	m_CRC = new CCRC32( );
 	m_CRC->Initialize( );
 	m_SHA = new CSHA1( );
