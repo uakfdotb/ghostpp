@@ -2266,10 +2266,10 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 								SendChat( player, m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ) );
 							else
 							{
-								SendChat( player, m_GHost->m_Language->LoadingConfigFile( File ) );
+								SendChat( player, m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ) );
 								CConfig MapCFG;
 								MapCFG.Read( LastMatch.string( ) );
-								m_GHost->m_Map->Load( &MapCFG, File );
+								m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File );
 							}
 						}
 						else

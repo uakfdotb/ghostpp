@@ -1611,10 +1611,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ), User, Whisper );
 									else
 									{
-										QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
+										QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
 										CConfig MapCFG;
 										MapCFG.Read( LastMatch.string( ) );
-										m_GHost->m_Map->Load( &MapCFG, File );
+										m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File );
 									}
 								}
 								else
