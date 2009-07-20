@@ -303,18 +303,31 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 
 		for( map<uint32_t,string> :: iterator i = m_PIDToName.begin( ); i != m_PIDToName.end( ); i++ )
 		{
-			if( m_Flags.find( i->first ) == m_Flags.end( ) )
-				CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] warning - no flag recorded for PID [" + UTIL_ToString( i->first ) + "]" );
-
+			string Flags = m_Flags[i->first];
 			uint32_t Leaver = 0;
 			uint32_t Practicing = 0;
 
 			if( m_FlagsLeaver.find( i->first ) != m_FlagsLeaver.end( ) && m_FlagsLeaver[i->first] )
+			{
 				Leaver = 1;
 
+				if( !Flags.empty( ) )
+					Flags += "/";
+
+				Flags += "leaver";
+			}
+
 			if( m_FlagsPracticing.find( i->first ) != m_FlagsPracticing.end( ) && m_FlagsPracticing[i->first] )
+			{
 				Practicing = 1;
 
+				if( !Flags.empty( ) )
+					Flags += "/";
+
+				Flags += "practicing";
+			}
+
+			CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] recorded flags [" + Flags + "] for player [" + i->second + "] with PID [" + UTIL_ToString( i->first ) + "]" );
 			GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( m_Category, GameID, i->first, i->second, m_Flags[i->first], Leaver, Practicing ) );
 		}
 
