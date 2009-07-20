@@ -659,6 +659,16 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !CLEARHCL
+			//
+
+			if( Command == "clearhcl" && !m_CountDownStarted )
+			{
+				m_HCLCommandString.clear( );
+				SendAllChat( m_GHost->m_Language->ClearingHCL( ) );
+			}
+
+			//
 			// !CLOSE (close slot)
 			//
 
@@ -1010,6 +1020,33 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				}
 
 				SendAllChat( Froms );
+			}
+
+			//
+			// !HCL
+			//
+
+			if( Command == "hcl" && !m_CountDownStarted )
+			{
+				if( !Payload.empty( ) )
+				{
+					if( Payload.size( ) <= m_Slots.size( ) )
+					{
+						string HCLChars = "abcdefghijklmnopqrstuvwxyz0123456789 -=,.";
+
+						if( Payload.find_first_not_of( HCLChars ) == string :: npos )
+						{
+							m_HCLCommandString = Payload;
+							SendAllChat( m_GHost->m_Language->SettingHCL( m_HCLCommandString ) );
+						}
+						else
+							SendAllChat( m_GHost->m_Language->UnableToSetHCLInvalid( ) );
+					}
+					else
+						SendAllChat( m_GHost->m_Language->UnableToSetHCLTooLong( ) );
+				}
+				else
+					SendAllChat( m_GHost->m_Language->TheHCLIs( m_HCLCommandString ) );
 			}
 
 			//

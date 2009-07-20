@@ -72,6 +72,7 @@ protected:
 	string m_AnnounceMessage;						// a message to be sent every m_AnnounceInterval seconds
 	string m_StatString;							// the stat string when the game started (used when saving replays)
 	string m_KickVotePlayer;						// the player to be kicked with the currently running kick vote
+	string m_HCLCommandString;						// the "HostBot Command Library" command string, used to pass a limited amount of data to specially designed maps
 	uint32_t m_RandomSeed;							// the random seed sent to the Warcraft III clients
 	uint32_t m_HostCounter;							// a unique game number
 	uint32_t m_Latency;								// the number of ms to wait between sending action packets (we queue any received during this time)
@@ -141,6 +142,7 @@ public:
 	virtual void SetRefreshError( bool nRefreshError )				{ m_RefreshError = nRefreshError; }
 	virtual void SetMatchMaking( bool nMatchMaking )				{ m_MatchMaking = nMatchMaking; }
 
+	virtual uint32_t GetSlotsOccupied( );
 	virtual uint32_t GetSlotsOpen( );
 	virtual uint32_t GetNumPlayers( );
 	virtual string GetDescription( );

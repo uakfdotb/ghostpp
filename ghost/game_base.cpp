@@ -228,6 +228,19 @@ CBaseGame :: ~CBaseGame( )
 	}
 }
 
+uint32_t CBaseGame :: GetSlotsOccupied( )
+{
+	uint32_t NumSlotsOccupied = 0;
+
+	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); i++ )
+	{
+		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED )
+			NumSlotsOccupied++;
+	}
+
+	return NumSlotsOccupied;
+}
+
 uint32_t CBaseGame :: GetSlotsOpen( )
 {
 	uint32_t NumSlotsOpen = 0;
@@ -582,12 +595,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			m_CountDownCounter--;
 		}
 		else if( !m_GameLoading && !m_GameLoaded )
-		{
-			m_StartedLoadingTicks = GetTicks( );
-			m_LastLoadInGameResetTime = GetTime( );
-			m_GameLoading = true;
 			EventGameStarted( );
-		}
 
 		m_LastCountDownTicks = GetTicks( );
 	}
@@ -1102,10 +1110,10 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 		SendChat( player, " " );
 		SendChat( player, " " );
 		SendChat( player, " " );
-		SendChat( player, " " );
 		SendChat( player, "GHost++                                        http://forum.codelain.com/" );
 		SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
-		SendChat( player, "          Game Name:     " + m_GameName );
+		SendChat( player, "     Game Name:                 " + m_GameName );
+		SendChat( player, "     HCL Command String: " + m_HCLCommandString );
 	}
 	else
 	{
@@ -1911,6 +1919,8 @@ void CBaseGame :: EventPlayerLeft( CGamePlayer *player )
 
 void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 {
+	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] finished loading in " + UTIL_ToString( (float)( player->GetFinishedLoadingTicks( ) - m_StartedLoadingTicks ) / 1000, 2 ) + " seconds" );
+
 	if( m_LoadInGame )
 	{
 		// send any buffered data to the player now
@@ -2360,6 +2370,67 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 void CBaseGame :: EventGameStarted( )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] started loading with " + UTIL_ToString( GetNumPlayers( ) ) + " players" );
+
+	// encode the HCL command string in the slot handicaps
+	// here's how it works:
+	//  the user inputs a command string to be sent to the map
+	//  it is almost impossible to send a message from the bot to the map so we encode the command string in the slot handicaps
+	//  this works because there are only 6 valid handicaps but Warcraft III allows the bot to set up to 256 handicaps
+	//  we encode the original (unmodified) handicaps in the new handicaps and use the remaining space to store a short message
+	//  only occupied slots deliver their handicaps to the map and we can send one character (from a list) per handicap
+	//  when the map finishes loading, assuming it's designed to use the HCL system, it checks if anyone has an invalid handicap
+	//  if so, it decodes the message from the handicaps and restores the original handicaps using the encoded values
+	//  the meaning of the message is specific to each map and the bot doesn't need to understand it
+	//  e.g. you could send game modes, # of rounds, level to start on, anything you want as long as it fits in the limited space available
+	//  note: if you attempt to use the HCL system on a map that does not support HCL the bot will drastically modify the handicaps
+	//  since the map won't automatically restore the original handicaps in this case your game will be ruined
+
+	if( !m_HCLCommandString.empty( ) )
+	{
+		if( m_HCLCommandString.size( ) <= GetSlotsOccupied( ) )
+		{
+			string HCLChars = "abcdefghijklmnopqrstuvwxyz0123456789 -=,.";
+
+			if( m_HCLCommandString.find_first_not_of( HCLChars ) == string :: npos )
+			{
+				unsigned char EncodingMap[256];
+				unsigned char j = 0;
+
+				for( uint32_t i = 0; i < 256; i++ )
+				{
+					// the following 7 handicap values are forbidden
+
+					if( j == 0 || j == 50 || j == 60 || j == 70 || j == 80 || j == 90 || j == 100 )
+						j++;
+
+					EncodingMap[i] = j++;
+				}
+
+				unsigned char CurrentSlot = 0;
+
+				for( string :: iterator si = m_HCLCommandString.begin( ); si != m_HCLCommandString.end( ); si++ )
+				{
+					while( m_Slots[CurrentSlot].GetSlotStatus( ) != SLOTSTATUS_OCCUPIED )
+						CurrentSlot++;
+
+					unsigned char HandicapIndex = ( m_Slots[CurrentSlot].GetHandicap( ) - 50 ) / 10;
+					unsigned char CharIndex = HCLChars.find( *si );
+					m_Slots[CurrentSlot++].SetHandicap( EncodingMap[HandicapIndex + CharIndex * 6] );
+				}
+
+				SendAllSlotInfo( );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] successfully encoded HCL command string [" + m_HCLCommandString + "]" );
+			}
+			else
+				CONSOLE_Print( "[GAME: " + m_GameName + "] encoding HCL command string [" + m_HCLCommandString + "] failed because it contains invalid characters" );
+		}
+		else
+			CONSOLE_Print( "[GAME: " + m_GameName + "] encoding HCL command string [" + m_HCLCommandString + "] failed because there aren't enough occupied slots" );
+	}
+
+	m_StartedLoadingTicks = GetTicks( );
+	m_LastLoadInGameResetTime = GetTime( );
+	m_GameLoading = true;
 
 	// since we use a fake countdown to deal with leavers during countdown the COUNTDOWN_START and COUNTDOWN_END packets are sent in quick succession
 	// send a start countdown packet
@@ -3175,6 +3246,14 @@ void CBaseGame :: StartCountDown( bool force )
 		}
 		else
 		{
+			// check if the HCL command string is short enough
+
+			if( m_HCLCommandString.size( ) > GetSlotsOccupied( ) )
+			{
+				SendAllChat( m_GHost->m_Language->TheHCLIsTooLongUseForceToStart( ) );
+				return;
+			}
+
 			// check if everyone has the map
 
 			string StillDownloading;
@@ -3339,6 +3418,7 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 					*/
 
 					// todotodo: figure something out with multiple realms here
+					// idea: we can send a different host counter to each realm and use that to determine the likely realm the user came from!
 				}
 			}
 		}

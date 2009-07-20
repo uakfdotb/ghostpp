@@ -217,6 +217,12 @@ public:
 	string MapDownloadsDisabled( );
 	string MapDownloadsEnabled( );
 	string MapDownloadsConditional( );
+	string SettingHCL( string HCL );
+	string UnableToSetHCLInvalid( );
+	string UnableToSetHCLTooLong( );
+	string TheHCLIs( string HCL );
+	string TheHCLIsTooLongUseForceToStart( );
+	string ClearingHCL( );
 };
 
 #endif

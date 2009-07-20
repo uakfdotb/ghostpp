@@ -69,6 +69,7 @@ Cleaning up the database manually requires using a 3rd party tool not included i
 Using MySQL requires setting up a MySQL database server and is only recommended for advanced users.
 
 If you are experiencing lag when using the !stats and !statsdota commands, these commands are not optimized for large databases. There is no workaround for this.
+
 Another reason for lag on Windows is that Windows does not handle very large log files efficiently.
 If your ghost.log is too large (several MB) you should delete or rename it. You can do this while the bot is running.
 

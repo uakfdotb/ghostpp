@@ -1296,3 +1296,37 @@ string CLanguage :: MapDownloadsConditional( )
 {
 	return m_CFG->GetString( "lang_0181", "lang_0181" );
 }
+
+string CLanguage :: SettingHCL( string HCL )
+{
+	string Out = m_CFG->GetString( "lang_0182", "lang_0182" );
+	Replace( Out, "$HCL$", HCL );
+	return Out;
+}
+
+string CLanguage :: UnableToSetHCLInvalid( )
+{
+	return m_CFG->GetString( "lang_0183", "lang_0183" );
+}
+
+string CLanguage :: UnableToSetHCLTooLong( )
+{
+	return m_CFG->GetString( "lang_0184", "lang_0184" );
+}
+
+string CLanguage :: TheHCLIs( string HCL )
+{
+	string Out = m_CFG->GetString( "lang_0185", "lang_0185" );
+	Replace( Out, "$HCL$", HCL );
+	return Out;
+}
+
+string CLanguage :: TheHCLIsTooLongUseForceToStart( )
+{
+	return m_CFG->GetString( "lang_0186", "lang_0186" );
+}
+
+string CLanguage :: ClearingHCL( )
+{
+	return m_CFG->GetString( "lang_0187", "lang_0187" );
+}
