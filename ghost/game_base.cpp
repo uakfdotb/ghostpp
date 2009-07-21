@@ -434,6 +434,32 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		m_LastPingTime = GetTime( );
 	}
 
+	// auto rehost if there was a refresh error in autohosted games
+
+	if( m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && !m_GHost->m_AutoHostGameName.empty( ) && m_GHost->m_AutoHostMaximumGames != 0 && m_GHost->m_AutoHostAutoStartPlayers != 0 && m_AutoStartPlayers != 0 )
+	{
+		// there's a slim chance that this isn't actually an autohosted game since there is no explicit autohost flag
+		// however, if autohosting is enabled and this game is public and this game is set to autostart, it's probably autohosted
+		// so rehost it using the current autohost game name
+
+		string GameName = m_GHost->m_AutoHostGameName + " #" + UTIL_ToString( m_GHost->m_HostCounter );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] automatically trying to rehost as public game [" + GameName + "] due to refresh failure" );
+		m_GameName = GameName;
+		m_HostCounter = m_GHost->m_HostCounter++;
+		m_RefreshError = false;
+
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			(*i)->QueueGameUncreate( );
+			(*i)->QueueEnterChat( );
+
+			// the game creation message will be sent on the next refresh
+		}
+
+		m_CreationTime = GetTime( );
+		m_LastRefreshTime = GetTime( );
+	}
+
 	// refresh every 3 seconds
 
 	if( !m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 3 )
@@ -1113,7 +1139,7 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 		SendChat( player, "GHost++                                        http://forum.codelain.com/" );
 		SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 		SendChat( player, "     Game Name:                 " + m_GameName );
-		SendChat( player, "     HCL Command String: " + m_HCLCommandString );
+		SendChat( player, "     HCL Command String:  " + m_HCLCommandString );
 	}
 	else
 	{
