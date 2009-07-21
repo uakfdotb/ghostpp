@@ -1017,9 +1017,18 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 					if( i != m_Players.end( ) - 1 )
 						Froms += ", ";
+
+					if( ( m_GameLoading || m_GameLoaded ) && Froms.size( ) > 100 )
+					{
+						// cut the text into multiple lines ingame
+
+						SendAllChat( Froms );
+						Froms.clear( );
+					}
 				}
 
-				SendAllChat( Froms );
+				if( !Froms.empty( ) )
+					SendAllChat( Froms );
 			}
 
 			//
@@ -1275,9 +1284,18 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 					if( i != SortedPlayers.end( ) - 1 )
 						Pings += ", ";
+
+					if( ( m_GameLoading || m_GameLoaded ) && Pings.size( ) > 100 )
+					{
+						// cut the text into multiple lines ingame
+
+						SendAllChat( Pings );
+						Pings.clear( );
+					}
 				}
 
-				SendAllChat( Pings );
+				if( !Pings.empty( ) )
+					SendAllChat( Pings );
 
 				if( Kicked > 0 )
 					SendAllChat( m_GHost->m_Language->KickingPlayersWithPingsGreaterThan( UTIL_ToString( Kicked ), UTIL_ToString( KickPing ) ) );
