@@ -2295,7 +2295,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							else if( FileName.find( Pattern ) != string :: npos )
 								Matched = true;
 
-							if( !is_directory( i->status( ) ) && Matched )
+							if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && Matched )
 							{
 								LastMatch = i->path( );
 								Matches++;
