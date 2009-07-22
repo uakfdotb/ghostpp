@@ -2284,7 +2284,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 						for( directory_iterator i( MapCFGPath ); i != EndIterator; i++ )
 						{
 							string FileName = i->filename( );
+							string Stem = i->path( ).stem( );
 							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
+							transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 							bool Matched = false;
 
 							if( m_GHost->m_UseRegexes )
@@ -2307,7 +2309,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 								// if we aren't using regexes and the pattern matches the filename exactly, with or without extension, stop any further matching
 
-								if( !m_GHost->m_UseRegexes && ( FileName == Pattern || i->path( ).stem( ) == Pattern ) )
+								if( !m_GHost->m_UseRegexes && ( FileName == Pattern || Stem == Pattern ) )
 								{
 									Matches = 1;
 									break;
@@ -2470,7 +2472,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 						for( directory_iterator i( MapPath ); i != EndIterator; i++ )
 						{
 							string FileName = i->filename( );
+							string Stem = i->path( ).stem( );
 							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
+							transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 							bool Matched = false;
 
 							if( m_GHost->m_UseRegexes )
@@ -2493,7 +2497,7 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 								// if we aren't using regexes and the pattern matches the filename exactly, with or without extension, stop any further matching
 
-								if( !m_GHost->m_UseRegexes && ( FileName == Pattern || i->path( ).stem( ) == Pattern ) )
+								if( !m_GHost->m_UseRegexes && ( FileName == Pattern || Stem == Pattern ) )
 								{
 									Matches = 1;
 									break;
