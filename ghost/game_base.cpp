@@ -65,6 +65,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_OwnerName = nOwnerName;
 	m_CreatorName = nCreatorName;
 	m_CreatorServer = nCreatorServer;
+	m_HCLCommandString = m_Map->GetMapDefaultHCL( );
 	m_RandomSeed = GetTicks( );
 	m_HostCounter = m_GHost->m_HostCounter++;
 	m_Latency = m_GHost->m_Latency;

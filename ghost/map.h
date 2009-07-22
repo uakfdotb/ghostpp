@@ -57,8 +57,8 @@ private:
 	string m_CFGFile;
 	string m_MapPath;							// config value: map path
 	BYTEARRAY m_MapSize;						// config value: map size (4 bytes)
-	BYTEARRAY m_MapInfo;						// config value: map info (4 bytes)
-	BYTEARRAY m_MapCRC;							// config value: map crc (4 bytes)
+	BYTEARRAY m_MapInfo;						// config value: map info (4 bytes) -> this is the real CRC
+	BYTEARRAY m_MapCRC;							// config value: map crc (4 bytes) -> this is not the real CRC, it's the "xoro" value
 	BYTEARRAY m_MapSHA1;						// config value: map sha1 (20 bytes)
 	unsigned char m_MapSpeed;
 	unsigned char m_MapVisibility;
@@ -70,6 +70,7 @@ private:
 	string m_MapType;							// config value: map type (for stats class)
 	string m_MapMatchMakingCategory;			// config value: map matchmaking category (for matchmaking)
 	string m_MapStatsW3MMDCategory;				// config value: map stats w3mmd category (for saving w3mmd stats)
+	string m_MapDefaultHCL;						// config value: map default HCL to use (this should really be specified elsewhere and not part of the map config)
 	string m_MapLocalPath;						// config value: map local path
 	bool m_MapLoadInGame;
 	string m_MapData;							// the map data itself, for sending the map to players
@@ -100,6 +101,7 @@ public:
 	string GetMapType( )				{ return m_MapType; }
 	string GetMapMatchMakingCategory( )	{ return m_MapMatchMakingCategory; }
 	string GetMapStatsW3MMDCategory( )	{ return m_MapStatsW3MMDCategory; }
+	string GetMapDefaultHCL( )			{ return m_MapDefaultHCL; }
 	string GetMapLocalPath( )			{ return m_MapLocalPath; }
 	bool GetMapLoadInGame( )			{ return m_MapLoadInGame; }
 	string *GetMapData( )				{ return &m_MapData; }

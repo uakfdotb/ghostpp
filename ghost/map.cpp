@@ -677,6 +677,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapType = CFG->GetString( "map_type", string( ) );
 	m_MapMatchMakingCategory = CFG->GetString( "map_matchmakingcategory", string( ) );
 	m_MapStatsW3MMDCategory = CFG->GetString( "map_statsw3mmdcategory", string( ) );
+	m_MapDefaultHCL = CFG->GetString( "map_defaulthcl", string( ) );
 	m_MapLoadInGame = CFG->GetInt( "map_loadingame", 0 ) == 0 ? false : true;
 
 	if( MapNumPlayers == 0 )
