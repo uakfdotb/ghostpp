@@ -279,8 +279,10 @@ void DEBUG_Print( BYTEARRAY b )
 CGHost :: CGHost( CConfig *CFG )
 {
 	m_UDPSocket = new CUDPSocket( );
+
 	if( !m_UDPSocket->SetBroadcastTarget( CFG->GetString( "udp_broadcasttarget", string( ) ) ) )
 		CONSOLE_Print( "[UDPSOCKET] using default broadcast target" );
+
 	m_UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
 	m_CRC = new CCRC32( );
 	m_CRC->Initialize( );
@@ -308,9 +310,10 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Enabled = true;
 	m_Version = "13.3";
 	m_HostCounter = 1;
-	m_AutoHostMaximumGames = 0;
-	m_AutoHostAutoStartPlayers = 0;
-	m_LastAutoHostTime = 0;
+	m_AutoHostMaximumGames = CFG->GetInt( "autohost_maxgames", 0 );
+	m_AutoHostAutoStartPlayers = CFG->GetInt( "autohost_startplayers", 0 );
+	m_AutoHostGameName = CFG->GetString( "autohost_gamename", string( ) );
+	m_LastAutoHostTime = GetTime( );
 	m_AutoHostMatchMaking = false;
 	m_AutoHostMinimumScore = 0.0;
 	m_AutoHostMaximumScore = 0.0;
