@@ -2399,7 +2399,7 @@ void CBaseGame :: EventGameRefreshed( string server, string gameName )
 {
 	if( m_RefreshRehosted && gameName == m_GameName )
 	{
-		SendAllChat( "Rehost was successful on at least one realm!" );
+		SendAllChat( m_GHost->m_Language->RehostWasSuccessful( ) );
 		m_RefreshRehosted = false;
 	}
 }
