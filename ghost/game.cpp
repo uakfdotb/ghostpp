@@ -1308,10 +1308,12 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			if( Command == "priv" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
 				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as private game [" + Payload + "]" );
+				SendAllChat( m_GHost->m_Language->TryingToRehostAsPrivateGame( Payload ) );
 				m_GameState = GAME_PRIVATE;
 				m_GameName = Payload;
 				m_HostCounter = m_GHost->m_HostCounter++;
 				m_RefreshError = false;
+				m_RefreshRehosted = true;
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
@@ -1337,10 +1339,12 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			if( Command == "pub" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
 				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]" );
+				SendAllChat( m_GHost->m_Language->TryingToRehostAsPublicGame( Payload ) );
 				m_GameState = GAME_PUBLIC;
 				m_GameName = Payload;
 				m_HostCounter = m_GHost->m_HostCounter++;
 				m_RefreshError = false;
+				m_RefreshRehosted = true;
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{

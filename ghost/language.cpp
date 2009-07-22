@@ -1330,3 +1330,22 @@ string CLanguage :: ClearingHCL( )
 {
 	return m_CFG->GetString( "lang_0187", "lang_0187" );
 }
+
+string CLanguage :: TryingToRehostAsPrivateGame( string gamename )
+{
+	string Out = m_CFG->GetString( "lang_0188", "lang_0188" );
+	Replace( Out, "$GAMENAME$", gamename );
+	return Out;
+}
+
+string CLanguage :: TryingToRehostAsPublicGame( string gamename )
+{
+	string Out = m_CFG->GetString( "lang_0189", "lang_0189" );
+	Replace( Out, "$GAMENAME$", gamename );
+	return Out;
+}
+
+string CLanguage :: RehostWasSuccessful( )
+{
+	return m_CFG->GetString( "lang_0190", "lang_0190" );
+}

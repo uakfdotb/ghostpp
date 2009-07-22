@@ -223,6 +223,9 @@ public:
 	string TheHCLIs( string HCL );
 	string TheHCLIsTooLongUseForceToStart( );
 	string ClearingHCL( );
+	string TryingToRehostAsPrivateGame( string gamename );
+	string TryingToRehostAsPublicGame( string gamename );
+	string RehostWasSuccessful( );
 };
 
 #endif

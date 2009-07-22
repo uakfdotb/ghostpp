@@ -2277,6 +2277,8 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapGameType.push_back( 0 );
 			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), hostCounter ) );
 		}
+
+		m_LastRefreshedGameName = gameName;
 	}
 }
 

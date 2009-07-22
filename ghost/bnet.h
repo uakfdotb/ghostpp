@@ -95,6 +95,7 @@ private:
 	string m_FirstChannel;							// the first chat channel to join upon entering chat (note: we hijack this to store the last channel when entering a game)
 	string m_CurrentChannel;						// the current chat channel
 	string m_RootAdmin;								// the root admin
+	string m_LastRefreshedGameName;					// the game name sent in the last refresh message
 	char m_CommandTrigger;							// the character prefix to identify commands
 	unsigned char m_War3Version;					// custom warcraft 3 version for PvPGN users
 	BYTEARRAY m_EXEVersion;							// custom exe version for PvPGN users
@@ -126,6 +127,7 @@ public:
 	string GetFirstChannel( )			{ return m_FirstChannel; }
 	string GetCurrentChannel( )			{ return m_CurrentChannel; }
 	string GetRootAdmin( )				{ return m_RootAdmin; }
+	string GetLastRefreshedGameName( )	{ return m_LastRefreshedGameName; }
 	char GetCommandTrigger( )			{ return m_CommandTrigger; }
 	BYTEARRAY GetEXEVersion( )			{ return m_EXEVersion; }
 	BYTEARRAY GetEXEVersionHash( )		{ return m_EXEVersionHash; }

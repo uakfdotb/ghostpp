@@ -103,6 +103,7 @@ protected:
 	bool m_Locked;									// if the game owner is the only one allowed to run game commands or not
 	bool m_RefreshMessages;							// if we should display "game refreshed..." messages or not
 	bool m_RefreshError;							// if there was an error refreshing the game
+	bool m_RefreshRehosted;							// if we just rehosted and are waiting for confirmation that it was successful
 	bool m_MuteAll;									// if we should stop forwarding ingame chat messages targeted for all players or not
 	bool m_MuteLobby;								// if we should stop forwarding lobby chat messages
 	bool m_CountDownStarted;						// if the game start countdown has started or not
@@ -204,6 +205,7 @@ public:
 
 	// these events are called outside of any iterations
 
+	virtual void EventGameRefreshed( string server, string gameName );
 	virtual void EventGameStarted( );
 	virtual void EventGameLoaded( );
 

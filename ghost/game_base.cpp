@@ -96,6 +96,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Locked = false;
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
 	m_RefreshError = false;
+	m_RefreshRehosted = false;
 	m_MuteAll = false;
 	m_MuteLobby = false;
 	m_CountDownStarted = false;
@@ -2391,6 +2392,15 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 		player->SetLeftReason( "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) );
 		player->SetLeftCode( PLAYERLEAVE_LOBBY );
 		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
+	}
+}
+
+void CBaseGame :: EventGameRefreshed( string server, string gameName )
+{
+	if( m_RefreshRehosted && gameName == m_GameName )
+	{
+		SendAllChat( "Rehost was successful on at least one realm!" );
+		m_RefreshRehosted = false;
 	}
 }
 
