@@ -1594,6 +1594,12 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 											FoundMapConfigs = i->filename( );
 										else
 											FoundMapConfigs += ", " + i->filename( );
+
+										if( !m_GHost->m_UseRegexes && FileName == Pattern )
+										{
+											Matches = 1;
+											break;
+										}
 									}
 								}
 
@@ -1815,6 +1821,12 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 											FoundMaps = i->filename( );
 										else
 											FoundMaps += ", " + i->filename( );
+
+										if( !m_GHost->m_UseRegexes && FileName == Pattern )
+										{
+											Matches = 1;
+											break;
+										}
 									}
 								}
 
