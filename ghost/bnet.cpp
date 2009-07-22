@@ -1595,7 +1595,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										else
 											FoundMapConfigs += ", " + i->filename( );
 
-										if( !m_GHost->m_UseRegexes && FileName == Pattern )
+										// if we aren't using regexes and the pattern matches the filename exactly, with or without extension, stop any further matching
+
+										if( !m_GHost->m_UseRegexes && ( FileName == Pattern || i->path( ).stem( ) == Pattern ) )
 										{
 											Matches = 1;
 											break;
@@ -1822,7 +1824,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										else
 											FoundMaps += ", " + i->filename( );
 
-										if( !m_GHost->m_UseRegexes && FileName == Pattern )
+										// if we aren't using regexes and the pattern matches the filename exactly, with or without extension, stop any further matching
+
+										if( !m_GHost->m_UseRegexes && ( FileName == Pattern || i->path( ).stem( ) == Pattern ) )
 										{
 											Matches = 1;
 											break;

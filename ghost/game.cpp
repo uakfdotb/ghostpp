@@ -2305,7 +2305,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 								else
 									FoundMapConfigs += ", " + i->filename( );
 
-								if( !m_GHost->m_UseRegexes && FileName == Pattern )
+								// if we aren't using regexes and the pattern matches the filename exactly, with or without extension, stop any further matching
+
+								if( !m_GHost->m_UseRegexes && ( FileName == Pattern || i->path( ).stem( ) == Pattern ) )
 								{
 									Matches = 1;
 									break;
@@ -2489,7 +2491,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 								else
 									FoundMaps += ", " + i->filename( );
 
-								if( !m_GHost->m_UseRegexes && FileName == Pattern )
+								// if we aren't using regexes and the pattern matches the filename exactly, with or without extension, stop any further matching
+
+								if( !m_GHost->m_UseRegexes && ( FileName == Pattern || i->path( ).stem( ) == Pattern ) )
 								{
 									Matches = 1;
 									break;
