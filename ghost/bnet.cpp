@@ -44,7 +44,7 @@ using namespace boost :: filesystem;
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -100,6 +100,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBN
 	m_InChat = false;
 	m_HoldFriends = nHoldFriends;
 	m_HoldClan = nHoldClan;
+	m_PublicCommands = nPublicCommands;
 }
 
 CBNET :: ~CBNET( )
@@ -2055,7 +2056,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			// in some cases the queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
 			// e.g. when several users join a game at the same time and cause multiple /whois messages to be queued at once
 
-			if( IsAdmin( User ) || IsRootAdmin( User ) || m_OutPackets.size( ) <= 3 )
+			if( IsAdmin( User ) || IsRootAdmin( User ) || ( m_PublicCommands && m_OutPackets.size( ) <= 3 ) )
 			{
 				//
 				// !STATS

@@ -112,9 +112,10 @@ private:
 	bool m_InChat;									// if we've entered chat or not (but we're not necessarily in a chat channel yet)
 	bool m_HoldFriends;								// whether to auto hold friends when creating a game or not
 	bool m_HoldClan;								// whether to auto hold clan members when creating a game or not
+	bool m_PublicCommands;							// whether to allow public commands or not
 
 public:
-	CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength );
+	CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength );
 	~CBNET( );
 
 	bool GetExiting( )					{ return m_Exiting; }
@@ -134,6 +135,7 @@ public:
 	bool GetInChat( )					{ return m_InChat; }
 	bool GetHoldFriends( )				{ return m_HoldFriends; }
 	bool GetHoldClan( )					{ return m_HoldClan; }
+	bool GetPublicCommands( )			{ return m_PublicCommands; }
 	uint32_t GetOutPacketsQueued( )		{ return m_OutPackets.size( ); }
 	BYTEARRAY GetUniqueName( );
 
