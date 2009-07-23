@@ -2395,10 +2395,14 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 	}
 }
 
-void CBaseGame :: EventGameRefreshed( string server, string gameName )
+void CBaseGame :: EventGameRefreshed( string server )
 {
-	if( m_RefreshRehosted && gameName == m_GameName )
+	if( m_RefreshRehosted )
 	{
+		// we're not actually guaranteed this refresh was for the rehosted game and not the previous one
+		// but since we unqueue game refreshes when rehosting, the only way this can happen is due to network delay
+		// it's a risk we're willing to take but can result in a false positive here
+
 		SendAllChat( m_GHost->m_Language->RehostWasSuccessful( ) );
 		m_RefreshRehosted = false;
 	}

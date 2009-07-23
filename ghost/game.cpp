@@ -1317,6 +1317,11 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
+					// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
+					// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
+					// we assume this won't happen very often since the only downside is a potential false positive
+
+					(*i)->UnqueueGameRefreshes( );
 					(*i)->QueueGameUncreate( );
 					(*i)->QueueEnterChat( );
 
@@ -1348,6 +1353,11 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 				{
+					// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
+					// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
+					// we assume this won't happen very often since the only downside is a potential false positive
+
+					(*i)->UnqueueGameRefreshes( );
 					(*i)->QueueGameUncreate( );
 					(*i)->QueueEnterChat( );
 

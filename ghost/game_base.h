@@ -205,7 +205,7 @@ public:
 
 	// these events are called outside of any iterations
 
-	virtual void EventGameRefreshed( string server, string gameName );
+	virtual void EventGameRefreshed( string server );
 	virtual void EventGameStarted( );
 	virtual void EventGameLoaded( );
 

@@ -788,12 +788,8 @@ void CGHost :: EventBNETGameRefreshed( CBNET *bnet )
 	if( m_AdminGame )
 		m_AdminGame->SendAllChat( m_Language->BNETGameHostingSucceeded( bnet->GetServer( ) ) );
 
-	// technically the last refreshed game name might not correspond to this particular refresh message
-	// but battle.net always seems to respond very quickly and it's going to be correct most of the time
-	// the correct way to do this is to keep track of each refresh message and response
-
 	if( m_CurrentGame )
-		m_CurrentGame->EventGameRefreshed( bnet->GetServer( ), bnet->GetLastRefreshedGameName( ) );
+		m_CurrentGame->EventGameRefreshed( bnet->GetServer( ) );
 }
 
 void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )

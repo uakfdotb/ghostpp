@@ -2277,8 +2277,6 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapGameType.push_back( 0 );
 			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), hostCounter ) );
 		}
-
-		m_LastRefreshedGameName = gameName;
 	}
 }
 
@@ -2286,6 +2284,35 @@ void CBNET :: QueueGameUncreate( )
 {
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_STOPADV( ) );
+}
+
+void CBNET :: UnqueuePackets( unsigned char type )
+{
+	queue<BYTEARRAY> Packets;
+	uint32_t Unqueued = 0;
+
+	while( !m_OutPackets.empty( ) )
+	{
+		// todotodo: it's very inefficient to have to copy all these packets while searching the queue
+
+		BYTEARRAY Packet = m_OutPackets.front( );
+		m_OutPackets.pop( );
+
+		if( Packet.size( ) >= 2 && Packet[1] == type )
+			Unqueued++;
+		else
+			Packets.push( Packet );
+	}
+
+	m_OutPackets = Packets;
+
+	if( Unqueued > 0 )
+		CONSOLE_Print( "[BNET: " + m_Server + "] unqueued " + UTIL_ToString( Unqueued ) + " packets of type " + UTIL_ToString( type ) );
+}
+
+void CBNET :: UnqueueGameRefreshes( )
+{
+	UnqueuePackets( CBNETProtocol :: SID_STARTADVEX3 );
 }
 
 bool CBNET :: IsAdmin( string name )
