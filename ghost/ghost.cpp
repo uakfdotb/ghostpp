@@ -712,7 +712,7 @@ bool CGHost :: Update( long usecBlock )
 		{
 			if( m_AutoHostMap->GetValid( ) )
 			{
-				CreateGame( GAME_PUBLIC, false, GameName, string( ), m_AutoHostOwner, m_AutoHostServer, false );
+				CreateGame( GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
 
 				if( m_CurrentGame )
 				{

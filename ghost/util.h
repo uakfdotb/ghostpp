@@ -70,4 +70,8 @@ string UTIL_FileSafeName( string fileName );
 BYTEARRAY UTIL_EncodeStatString( BYTEARRAY &data );
 BYTEARRAY UTIL_DecodeStatString( BYTEARRAY &data );
 
+// other
+
+bool UTIL_IsLanIP( BYTEARRAY ip );
+
 #endif

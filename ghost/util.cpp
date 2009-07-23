@@ -512,3 +512,30 @@ BYTEARRAY UTIL_DecodeStatString( BYTEARRAY &data )
 
 	return Result;
 }
+
+bool UTIL_IsLanIP( BYTEARRAY ip )
+{
+	// thanks to LuCasn for this function
+
+	// 127.0.0.1
+	if( ip[0] == 127 && ip[1] == 0 && ip[2] == 0 && ip[3] == 1 )
+		return true;
+
+	// 10.x.x.x
+	if( ip[0] == 10 )
+		return true;
+
+	// 172.16.0.0-172.31.255.255
+	if( ip[0] == 172 && ip[1] >= 16 && ip[1] <= 31 )
+		return true;
+
+	// 192.168.x.x
+	if( ip[0] == 192 && ip[1] == 168 )
+		return true;
+
+	// RFC 3330 and RFC 3927 automatic address range
+	if( ip[0] == 169 && ip[1] == 254 )
+		return true;
+
+	return false;
+}

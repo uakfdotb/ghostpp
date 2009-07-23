@@ -1519,10 +1519,9 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
 	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
 
-	// consider the owner player to have already spoof checked
-	// we will still attempt to spoof check them if it's enabled but this allows owners connecting over LAN to access admin commands
+	// consider LAN players to have already spoof checked since they can't
 
-	if( IsOwner( joinPlayer->GetName( ) ) )
+	if( UTIL_IsLanIP( Player->GetExternalIP( ) )
 		Player->SetSpoofed( true );
 
 	m_Players.push_back( Player );
