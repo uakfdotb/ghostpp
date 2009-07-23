@@ -2874,6 +2874,26 @@ unsigned char CBaseGame :: GetEmptySlot( bool reserved )
 			}
 
 			// no closed slots either, give them an occupied slot but not one occupied by another reserved player
+			// first look for a player who is downloading the map and has the least amount downloaded so far
+
+			unsigned char LeastDownloaded = 100;
+			unsigned char LeastSID = 255;
+
+			for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+			{
+				CGamePlayer *Player = GetPlayerFromSID( i );
+
+				if( Player && !Player->GetReserved( ) && m_Slots[i].GetDownloadStatus( ) < LeastDownloaded )
+				{
+					LeastDownloaded = m_Slots[i].GetDownloadStatus( );
+					LeastSID = i;
+				}
+			}
+
+			if( LeastSID != 255 )
+				return LeastSID;
+
+			// nobody who isn't reserved is downloading the map, just choose the first player who isn't reserved
 
 			for( unsigned char i = 0; i < m_Slots.size( ); i++ )
 			{
