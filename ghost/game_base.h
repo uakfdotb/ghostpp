@@ -146,6 +146,7 @@ public:
 	virtual uint32_t GetSlotsOccupied( );
 	virtual uint32_t GetSlotsOpen( );
 	virtual uint32_t GetNumPlayers( );
+	virtual uint32_t GetNumHumanPlayers( );
 	virtual string GetDescription( );
 
 	virtual void SetAnnounce( uint32_t interval, string message );

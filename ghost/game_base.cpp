@@ -258,20 +258,30 @@ uint32_t CBaseGame :: GetSlotsOpen( )
 
 uint32_t CBaseGame :: GetNumPlayers( )
 {
-	uint32_t NumPlayers = 0;
+	uint32_t NumPlayers = GetNumHumanPlayers( );
 
-	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-	{
-		if( !(*i)->GetLeftMessageSent( ) )
-			NumPlayers++;
-	}
+	if( m_FakePlayerPID != 255 )
+		NumPlayers++;
 
 	return NumPlayers;
 }
 
+uint32_t CBaseGame :: GetNumHumanPlayers( )
+{
+	uint32_t NumHumanPlayers = 0;
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		if( !(*i)->GetLeftMessageSent( ) )
+			NumHumanPlayers++;
+	}
+
+	return NumHumanPlayers;
+}
+
 string CBaseGame :: GetDescription( )
 {
-	string Description = m_GameName + " : " + m_OwnerName + " : " + UTIL_ToString( GetNumPlayers( ) ) + "/" + UTIL_ToString( m_GameLoading || m_GameLoaded ? m_StartPlayers : m_Slots.size( ) );
+	string Description = m_GameName + " : " + m_OwnerName + " : " + UTIL_ToString( GetNumHumanPlayers( ) ) + "/" + UTIL_ToString( m_GameLoading || m_GameLoaded ? m_StartPlayers : m_Slots.size( ) );
 
 	if( m_GameLoading || m_GameLoaded )
 		Description += " : " + UTIL_ToString( ( m_GameTicks / 1000 ) / 60 ) + "m";
@@ -375,7 +385,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// create the virtual host player
 
-	if( !m_GameLoading && !m_GameLoaded && ( GetNumPlayers( ) < 12 || ( m_FakePlayerPID != 255 && GetNumPlayers( ) < 11 ) ) )
+	if( !m_GameLoading && !m_GameLoaded && GetNumPlayers( ) < 12 )
 		CreateVirtualHost( );
 
 	// unlock the game
@@ -995,7 +1005,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 {
 	// send a public message to all players - it'll be marked [All] in Warcraft 3
 
-	if( GetNumPlayers( ) > 0 )
+	if( GetNumHumanPlayers( ) > 0 )
 	{
 		if( !m_GameLoading && !m_GameLoaded )
 		{
@@ -1509,7 +1519,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if( GetNumPlayers( ) >= 11 || ( m_FakePlayerPID != 255 && GetNumPlayers( ) >= 10 ) )
+	if( GetNumPlayers( ) >= 11 )
 		DeleteVirtualHost( );
 
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
@@ -1928,7 +1938,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 
 	// balance the slots
 
-	if( m_AutoStartPlayers != 0 && GetNumPlayers( ) == m_AutoStartPlayers )
+	if( m_AutoStartPlayers != 0 && GetNumHumanPlayers( ) == m_AutoStartPlayers )
 		BalanceSlots( );
 }
 
@@ -2409,7 +2419,7 @@ void CBaseGame :: EventGameRefreshed( string server )
 
 void CBaseGame :: EventGameStarted( )
 {
-	CONSOLE_Print( "[GAME: " + m_GameName + "] started loading with " + UTIL_ToString( GetNumPlayers( ) ) + " players" );
+	CONSOLE_Print( "[GAME: " + m_GameName + "] started loading with " + UTIL_ToString( GetNumHumanPlayers( ) ) + " players" );
 
 	// encode the HCL command string in the slot handicaps
 	// here's how it works:
@@ -2492,7 +2502,7 @@ void CBaseGame :: EventGameStarted( )
 
 	// record the starting number of players
 
-	m_StartPlayers = GetNumPlayers( );
+	m_StartPlayers = GetNumHumanPlayers( );
 
 	// close the listening socket
 
@@ -2575,7 +2585,7 @@ void CBaseGame :: EventGameStarted( )
 
 void CBaseGame :: EventGameLoaded( )
 {
-	CONSOLE_Print( "[GAME: " + m_GameName + "] finished loading with " + UTIL_ToString( GetNumPlayers( ) ) + " players" );
+	CONSOLE_Print( "[GAME: " + m_GameName + "] finished loading with " + UTIL_ToString( GetNumHumanPlayers( ) ) + " players" );
 
 	// send shortest, longest, and personal load times to each player
 
@@ -3408,9 +3418,9 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 	{
 		// check if enough players are present
 
-		if( GetNumPlayers( ) < m_AutoStartPlayers )
+		if( GetNumHumanPlayers( ) < m_AutoStartPlayers )
 		{
-			SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumPlayers( ) ) ) );
+			SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanPlayers( ) ) ) );
 			return;
 		}
 
