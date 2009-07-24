@@ -3575,6 +3575,9 @@ void CBaseGame :: CreateFakePlayer( )
 
 	if( SID < m_Slots.size( ) )
 	{
+		if( GetNumPlayers( ) >= 11 )
+			DeleteVirtualHost( );
+
 		m_FakePlayerPID = GetNewPID( );
 		BYTEARRAY IP;
 		IP.push_back( 0 );
