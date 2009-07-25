@@ -1673,20 +1673,20 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	if( Command == "votekick" && m_GHost->m_VoteKickAllowed && !Payload.empty( ) )
 	{
 		if( !m_KickVotePlayer.empty( ) )
-			SendAllChat( m_GHost->m_Language->UnableToVoteKickAlreadyInProgress( ) );
+			SendChat( player, m_GHost->m_Language->UnableToVoteKickAlreadyInProgress( ) );
 		else if( m_Players.size( ) == 2 )
-			SendAllChat( m_GHost->m_Language->UnableToVoteKickNotEnoughPlayers( ) );
+			SendChat( player, m_GHost->m_Language->UnableToVoteKickNotEnoughPlayers( ) );
 		else
 		{
 			CGamePlayer *LastMatch = NULL;
 			uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
 
 			if( Matches == 0 )
-				SendAllChat( m_GHost->m_Language->UnableToVoteKickNoMatchesFound( Payload ) );
+				SendChat( player, m_GHost->m_Language->UnableToVoteKickNoMatchesFound( Payload ) );
 			else if( Matches == 1 )
 			{
 				if( LastMatch->GetReserved( ) )
-					SendAllChat( m_GHost->m_Language->UnableToVoteKickPlayerIsReserved( LastMatch->GetName( ) ) );
+					SendChat( player, m_GHost->m_Language->UnableToVoteKickPlayerIsReserved( LastMatch->GetName( ) ) );
 				else
 				{
 					m_KickVotePlayer = LastMatch->GetName( );
@@ -1702,7 +1702,7 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				}
 			}
 			else
-				SendAllChat( m_GHost->m_Language->UnableToVoteKickFoundMoreThanOneMatch( Payload ) );
+				SendChat( player, m_GHost->m_Language->UnableToVoteKickFoundMoreThanOneMatch( Payload ) );
 		}
 	}
 
