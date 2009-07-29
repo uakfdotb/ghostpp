@@ -771,6 +771,16 @@ void CMap :: CheckValid( )
 		CONSOLE_Print( "[MAP] invalid map_size detected" );
 	}
 
+	/*
+
+	else if( !m_MapData.empty( ) && m_MapData.size( ) != UTIL_ByteArrayToUInt32( m_MapSize, false ) )
+	{
+		m_Valid = false;
+		CONSOLE_Print( "[MAP] invalid map_size detected - size mismatch with map data" );
+	}
+
+	*/
+
 	if( m_MapInfo.size( ) != 4 )
 	{
 		m_Valid = false;
