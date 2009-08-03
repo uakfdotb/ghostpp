@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BNCSutil", "bncsutil\vc8_bu
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "update_dota_elo", "update_dota_elo\update_dota_elo.vcproj", "{B77E1E52-C1FB-4226-B05B-9E70433BB95E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "update_w3mmd_elo", "update_w3mmd_elo\update_w3mmd_elo.vcproj", "{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug MySQL|Win32 = Debug MySQL|Win32
@@ -42,6 +44,14 @@ Global
 		{B77E1E52-C1FB-4226-B05B-9E70433BB95E}.Release MySQL|Win32.Build.0 = Release|Win32
 		{B77E1E52-C1FB-4226-B05B-9E70433BB95E}.Release|Win32.ActiveCfg = Release|Win32
 		{B77E1E52-C1FB-4226-B05B-9E70433BB95E}.Release|Win32.Build.0 = Release|Win32
+		{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}.Debug MySQL|Win32.ActiveCfg = Debug|Win32
+		{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}.Debug MySQL|Win32.Build.0 = Debug|Win32
+		{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}.Debug|Win32.Build.0 = Debug|Win32
+		{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}.Release MySQL|Win32.ActiveCfg = Release|Win32
+		{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}.Release MySQL|Win32.Build.0 = Release|Win32
+		{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}.Release|Win32.ActiveCfg = Release|Win32
+		{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
