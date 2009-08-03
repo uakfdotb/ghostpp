@@ -307,6 +307,8 @@ int main( int argc, char **argv )
 
 						team_winners[num_players] = 1.0;
 					}
+					else
+						team_winners[num_players] = 0.0;
 
 					if( !Row[0].empty( ) )
 						rowids[num_players] = UTIL_ToUInt32( Row[0] );
