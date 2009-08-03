@@ -794,6 +794,7 @@ uint32_t MySQLGameAdd( void *conn, string *error, string server, string map, str
 
 uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
 {
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t RowID = 0;
 	string EscName = MySQLEscapeString( conn, name );
 	string EscIP = MySQLEscapeString( conn, ip );
@@ -1041,6 +1042,7 @@ double MySQLScoreCheck( void *conn, string *error, string category, string name,
 
 uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
 {
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t RowID = 0;
 	string EscCategory = MySQLEscapeString( conn, category );
 	string EscName = MySQLEscapeString( conn, name );
