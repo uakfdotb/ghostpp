@@ -1,8 +1,8 @@
 ====================
-GHost++ Version 13.3
+GHost++ Version 14.0
 ====================
 
-GHost++ is a port of the original GHost project to C++ (ported by Trevor Hogan).
+GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
 It contains many enhancements and fixes that were not present in the original GHost.
 You can compile and run GHost++ on Windows, Linux, and OS X with this release although the code should be mostly portable to other operating systems with only very minor changes.
 The official GHost++ forums are currently located at http://forum.codelain.com
@@ -38,18 +38,18 @@ Required Files
 
 If you want to be able to connect to battle.net:
 
--> "game.dll" in your bot_war3path
--> "Storm.dll" in your bot_war3path
--> "war3.exe" in your bot_war3path
+-> put "game.dll" in your bot_war3path
+-> put "Storm.dll" in your bot_war3path
+-> put "war3.exe" in your bot_war3path
 
 If you want GHost++ to automatically extract blizzard.j and common.j on startup (used when automatically calculating map values):
 
--> "War3Patch.mpq" in your bot_war3path
+-> put "War3Patch.mpq" in your bot_war3path
 
 If you want GHost++ to automatically calculate map values:
 
--> "blizzard.j" in your bot_mapcfgpath
--> "common.j" in your bot_mapcfgpath
+-> put "blizzard.j" in your bot_mapcfgpath
+-> put "common.j" in your bot_mapcfgpath
 
 Note that blizzard.j and common.j will be automatically extracted from War3Patch.mpq if you provide GHost++ with your War3Patch.mpq file (as mentioned above).
 
@@ -61,6 +61,7 @@ Optimizing Your Bot
 
 The most common reason for lag in GHost++ games on Windows is due to the way Windows allocates CPU time to programs.
 If you are experiencing extreme lag on Windows, open the task manager (Ctrl+Alt+Delete), find ghost.exe in the process list, and increase the priority by one level.
+Do not set the priority to "realtime" as this does not benefit GHost++ and can cause system instability.
 
 The second most common reason is due to the local SQLite database GHost++ uses.
 The local SQLite database GHost++ uses is not intended to be used with large scale bots.
@@ -68,7 +69,8 @@ If you are experiencing lag when adding admins and bans and when games end you s
 Cleaning up the database manually requires using a 3rd party tool not included in GHost++ (e.g. the SQLite Manager addon for Firefox) and is not described here.
 Using MySQL requires setting up a MySQL database server and is only recommended for advanced users.
 
-If you are experiencing lag when using the !stats and !statsdota commands, these commands are not optimized for large databases. There is no workaround for this.
+If you are experiencing lag when using the !stats and !statsdota commands, these commands are not optimized for large databases whether SQLite or MySQL.
+You can disable anonymous access to !stats and !statsdota by setting the bnet*_publiccommands config value to 0 for each realm you want to disable these commands on.
 
 Another reason for lag on Windows is that Windows does not handle very large log files efficiently.
 If your ghost.log is too large (several MB) you should delete or rename it. You can do this while the bot is running.
@@ -94,13 +96,14 @@ There are three types of admins:
 Each battle.net server has a root admin defined in ghost.cfg.
 Root admins have access to every command both in battle.net and in the lobby and ingame.
 In particular this includes !addadmin, !checkadmin, !countadmins, !deladmin, !exit, and !quit among others.
+Root admins are also exempt from command restrictions in locked games and can change the owner of a game using !owner even when the game owner is present.
 
 2.) Game Owners.
 
 Each game has an owner defined as the user who ran the !priv or !pub command or the user specified with the !privby or !pubby command.
 Game owners have access to every command in the lobby and ingame but NO commands in battle.net.
 You can think of the game owner as a temporary admin for one game only - it doesn't have to be a root admin or a regular admin.
-The game owner is also the only user who can use commands inside a game which is locked (see the !lock and !unlock commands for more information).
+The game owner is also the only user other than root admins who can use commands inside a game which is locked (see the !lock and !unlock commands for more information).
 The game owner for a particular game can be changed after the game is created with the !owner command.
 
 3.) Admins.
@@ -113,7 +116,7 @@ So, how does GHost++ determine whether a user has admin access in the lobby and 
 
 1.) The user must be spoof checked.
  a.) If spoof checking is disabled they must still manually spoof check by whispering the bot.
- b.) GHost++ treats the game owner as spoof checked even if they aren't. This is because it's impossible to spoof check in LAN games.
+ b.) GHost++ treats players joining from the local network (LAN) as spoof checked because they cannot spoof check since they aren't connected to battle.net.
 2.) The user must be either a root admin on the realm they spoof checked on, or they must be the game owner, or they must be an admin on the realm they spoof checked on.
 
 If the bot is ignoring you in the lobby and ingame it's most likely because you haven't spoof checked.
@@ -162,7 +165,8 @@ If the player is considered a reserved player they will be given preference when
 
 1.) If an open slot is found they will join that slot.
 2.) If a closed slot is found they will join that slot.
-3.) If a slot occupied by a non-reserved player is found that player will be kicked and the reserved player will join that slot.
+3.) If a slot occupied by a non-reserved player is found and that player is downloading the map and has the least amount downloaded so far that player will be kicked and the reserved player will join that slot.
+4.) If a slot occupied by a non-reserved player is found that player will be kicked and the reserved player will join that slot.
 
 Additionally, if the player is the game owner they will be guaranteed a slot in the following way:
 
@@ -220,15 +224,19 @@ Here's how:
  f.) *firstchannel
  g.) *rootadmin
  h.) *commandtrigger
- i.) *bnlsserver
- j.) *bnlsport
- k.) *bnlswardencookie
- l.) *custom_war3version
- m.) *custom_exeversion
- n.) *custom_exeversionhash
- o.) *custom_passwordhashtype
- p.) *custom_countryabbrev
- q.) *custom_country
+ i.) *holdfriends
+ j.) *holdclan
+ k.) *publiccommands
+ l.) *bnlsserver
+ m.) *bnlsport
+ n.) *bnlswardencookie
+ o.) *custom_war3version
+ p.) *custom_exeversion
+ q.) *custom_exeversionhash
+ r.) *custom_passwordhashtype
+ s.) *custom_maxmessagelength
+ t.) *custom_countryabbrev
+ u.) *custom_country
 3.) GHost++ will search for battle.net connection information by replacing the "*" in each key above with "bnet_" then "bnet2_" then "bnet3_" and so on until "bnet9_".
  a.) Note that GHost++ doesn't search for "bnet1_" for backwards compatibility reasons.
 4.) If GHost++ doesn't find a *server key it stops searching for any further battle.net connection information.
@@ -243,7 +251,7 @@ Here's how:
 
 1.) Load the map you want to auto host with the !load or !map commands.
 2.) Use the !autohost command to start the auto hosting process.
-3.) The bot will keep track of which map config file was loaded when the !autohost command was used and it will reload that map config file before auto hosting each game.
+3.) The bot will keep track of which map file was loaded when the !autohost command was used and it will use that map file when auto hosting each game.
 
 The autohost command takes three arguments: !autohost <m> <p> <n>
 
@@ -258,7 +266,8 @@ The autohost command takes three arguments: !autohost <m> <p> <n>
  b.) For example if you specify "BattleShips Auto" it will create games like "BattleShips Auto #1" and "BattleShips Auto #2" and so on.
 
 It will take up to 30 seconds before each game is created.
-The previously loaded map config file will not be reloaded after the bot auto hosts each game.
+Note that if the map is changed while the bot is auto hosting it will continue creating games using the original map file.
+To change the auto hosted map you must stop the auto hoster, change the map, and restart it using the !autohost command again.
 
 Example usage:
 
@@ -393,9 +402,9 @@ If you want GHost++ to automatically extract common.j and blizzard.j from War3Pa
 
 Note that some map files are "protected" in such a way that StormLib is unable to read them. In this case the bot might calculate incorrect values.
 
-=====================================
-Using the "rload" and "rmap" Commands
-=====================================
+=======================
+Using the "map" Command
+=======================
 
 Since Version 13.2 GHost++ supports loading Warcraft III maps without corresponding map config files.
 These maps will always be loaded with default options, more specifically:
@@ -406,8 +415,8 @@ These maps will always be loaded with default options, more specifically:
 4.) The map flags will be teams together + fixed teams.
 5.) The map game type will be custom.
 
-This means you cannot use the rload and rmap commands to load non-custom (e.g. blizzard or melee) maps at this time.
-You will need to create config files for any maps that you want to change these settings for and use the load and map commands to load them.
+This means you cannot use the !map command to load non-custom (e.g. blizzard or melee) maps at this time.
+You will need to create config files for any maps that you want to change these settings for and use the !load command to load them.
 
 ===================
 Regular Expressions
@@ -449,6 +458,7 @@ db_mysql_password = YOUR_PASSWORD
 db_mysql_port = 0
 
 You can use a remote MySQL server if you wish, just specify the server and port above (the default MySQL port is 3306).
+Please be aware that GHost++ does not cache and retry failed queries so it is possible for GHost++ to lose data when using a remote (or even local) MySQL server.
 Create a new database on your MySQL server then run the most recent "mysql_create_tables.sql" file on it.
 GHost++ won't create or modify your MySQL database schema like it does with SQLite so you are responsible for making sure your database schema is accurate.
 This means you need to keep track of what schema you're using and run the appropriate "mysql_upgrade.sql" file(s) on your database as necessary.
@@ -500,9 +510,8 @@ This will not work with every map, only with maps that specifically support the 
 Here's how to use it:
 
 1.) Obtain a map that supports the W3MMD standard.
- a.) Note: At the time of this writing no maps support this standard although the author of "Civ Wars" has announced it will be supported in the next version.
 2.) Choose a category for the map. The category is used to allow multiple versions of the same map to share the same statistics.
- a.) For example, you might use the category "civwars" for Civ Wars 2.19 and also for Civ Wars 2.20 and future versions.
+ a.) For example, you might use the category "civwars" for Civ Wars 2.30 and also for Civ Wars 2.31 and future versions.
  b.) You can change the category at any time although only future statistics will be affected, it's just an arbitrary name used to identify where the statistics came from.
 3.) Open the map config file.
  a.) Add "map_type = w3mmd".
@@ -592,9 +601,9 @@ In battle.net (via local chat or whisper at any time):
 !getgames                       display information about all games
 !hold <name> ...                hold a slot for someone
 !hostsg <name>                  host a saved game
-!load <pattern>                 load a config file (for changing maps), leave blank to see current map
+!load <pattern>                 load a map config file (".cfg" files), leave blank to see current map
 !loadsg <filename>              load a saved game
-!map <pattern>                  alias to !load
+!map <pattern>                  load a map file (".w3m" and ".w3x" files), leave blank to see current map
 !open <number> ...              open slot
 !openall                        open all closed slots
 !priv <name>                    host private game
@@ -602,8 +611,6 @@ In battle.net (via local chat or whisper at any time):
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force|nice]              alias to !exit
-!rload <pattern>                load a real map file, leave blank to see current map
-!rmap <pattern>                 alias to !rload
 !say <text>                     send <text> to battle.net as a chat command
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
@@ -714,17 +721,15 @@ In admin game lobby:
 !getgame <number>               display information on a game in progress
 !getgames                       display information on all games
 !hostsg <name>                  host a saved game
-!load <pattern>                 load a config file (for changing maps), leave blank to see current map
+!load <pattern>                 load a map config file (".cfg" files), leave blank to see current map
 !loadsg <filename>              load a saved game
-!map <pattern>                  alias to !load
+!map <pattern>                  load a map file (".w3m" and ".w3x" files), leave blank to see current map
 !password <p>                   login (the password is set in ghost.cfg with admingame_password)
 !priv <name>                    host private game
 !privby <owner> <name>          host private game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force|nice]              alias to !exit
-!rload <pattern>                load a real map file, leave blank to see current map
-!rmap <pattern>                 alias to !rload
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
 !unhost                         unhost game
@@ -745,7 +750,7 @@ Compiling GHost++ on Windows
 
 Notes:
 
-The ghost.sln includes two projects, bncsutil and ghost.
+The ghost.sln includes four projects: bncsutil, ghost, update_dota_elo, and update_w3mmd_elo.
 bncsutil was not written by me and can be found here: http://code.google.com/p/bncsutil/
 bncsutil requires gmp (GNU Multiple Precision Arithmetic Library) but I have included a prebuilt gmp.lib so you don't need to build one yourself unless you want to.
 gmp can be found here: http://gmplib.org/

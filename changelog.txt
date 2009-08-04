@@ -2,6 +2,49 @@
 GHost++ Changelog
 =================
 
+Version 14.0
+ - added support for the "HostBot Command Library" (HCL) system
+ - added new lobby command !hcl to set the HCL string
+ - added new lobby command !clearhcl to clear the HCL string
+ - added new map config value map_defaulthcl to specify the default HCL string to use
+ - added new project update_w3mmd_elo
+ - IMPORTANT: REMOVED/RENAMED THE !RLOAD/!RMAP COMMANDS
+  *** the !load command now loads map config files (".cfg" files) just like the old !load/!map commands
+  *** the !map command now loads map files (".w3m" and ".w3x" files) just like the old !rload/!rmap commands
+ - updated ip-to-country.csv to the latest version from June 3, 2009
+ - added new config value udp_broadcasttarget
+ - added new config value udp_dontroute
+ - added new config value bnet*_publiccommands to enable or disable anonymous access to public commands such as !stats
+ - added support for automatically starting the autohost system when the bot starts up without requiring an explicit command
+ - added new config value autohost_maxgames
+ - added new config value autohost_startplayers
+ - added new config value autohost_gamename
+ - rewrote the way maps are handled internally to allow map changes while a game is in the lobby (the map change will affect subsequent games)
+  * this requires GHost++ to duplicate some map data internally and will result in a slight increase in memory usage
+ - players joining the game via LAN are now considered spoof checked automatically
+ - game owners are no longer considered spoof checked automatically
+ - autohosted games once again have a game owner defined as the player who ran the !autohost command
+ - fixed a crash bug when the map config's map_size was larger than the actual map size and a player tried to download the map
+ - fixed a crash bug when saving W3MMD stats
+ - fixed a bug where the bot would frequently reject W3MMD messages sent by maps using the W3MMD system
+ - fixed a bug where autohosted games would sometimes get "stuck" when the bot was disconnected from battle.net
+ - fixed a bug where !ping and !from responses would sometimes be truncated when used in game
+ - fixed a bug where the !map/!load and !rmap/!rload commands would sometimes fail to load a file
+ - fixed a bug where the !map/!load commands could be used to load files without a ".cfg" extension
+ - fixed a bug where everyone would be dropped from the lobby when the fake player was used in a full 12 player game
+ - fixed a bug where player names were not forced to lowercase when using MySQL databases
+ - fixed a bug where "player was autokicked for excessive ping" messages could be printed more than once for a player in some cases
+ - fixed a bug where changing the map while the autohost was between games would change the autohosted map
+ - the "player is trying to join the game but is banned" messages will now only be printed once per player per game
+ - added new "player is trying to join the game but is banned" messages to distinguish whether the ban was by name or by IP
+ - added new "player is connecting with a banned name/ip" messages when the ban method permits the player to join
+ - chat responses to the !votekick command are now sent privately unless the vote was started successfully
+ - added a chat response when rehosting games with !pub and !priv
+ - added a chat response when rehosting is successful on at least one realm
+ - the bot now tries to kick a player who is downloading the map first when a reserved player joins and there aren't any empty slots
+ - adjusted the battle.net flood protection code again
+ - printed some more information messages to the server console (e.g. when a player finishes loading)
+
 Version 13.3
  - committed nindoja's modifications to bncsutil/StormLib/GHost++ to compile on OS X
  - added a new feature "load in game" - credit goes to Strilanc for the idea
