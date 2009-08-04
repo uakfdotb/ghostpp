@@ -2,6 +2,18 @@
 GHost++ Changelog
 =================
 
+Version 14.1
+ - updated SQLite to SQLite 3.6.16
+ - added new config value lan_war3version
+ - used the lan_war3version instead of a hard coded value when broadcasting games to the LAN
+ - updated the default Warcraft 3 version to 1.24
+ - sent a text message to the current game lobby when a battle.net connection's status changes (e.g. connected or disconnected)
+ - modified some console messages to make it more clear when a player is banned but is still permitted to join the game
+ - the bot now waits 60 seconds for (database) threads to finish when exiting nicely
+ - removed outdated map configs
+ - updated wormwar.cfg to work with Warcraft 3 version 1.24
+ - changed the default map to wormwar in ghost.cfg
+
 Version 14.0
  - added support for the "HostBot Command Library" (HCL) system
  - added new lobby command !hcl to set the HCL string
