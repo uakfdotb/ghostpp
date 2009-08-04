@@ -2266,10 +2266,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 		//
 		// !LOAD (load config file)
-		// !MAP
 		//
 
-		if( Command == "load" || Command == "map" )
+		if( Command == "load" )
 		{
 			if( Payload.empty( ) )
 				SendChat( player, m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ) );
@@ -2397,67 +2396,10 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		}
 
 		//
-		// !PRIV (host private game)
+		// !MAP (load map file)
 		//
 
-		if( Command == "priv" && !Payload.empty( ) )
-			m_GHost->CreateGame( GAME_PRIVATE, false, Payload, User, User, string( ), false );
-
-		//
-		// !PRIVBY (host private game by other player)
-		//
-
-		if( Command == "privby" && !Payload.empty( ) )
-		{
-			// extract the owner and the game name
-			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
-
-			string Owner;
-			string GameName;
-			string :: size_type GameNameStart = Payload.find( " " );
-
-			if( GameNameStart != string :: npos )
-			{
-				Owner = Payload.substr( 0, GameNameStart );
-				GameName = Payload.substr( GameNameStart + 1 );
-				m_GHost->CreateGame( GAME_PRIVATE, false, GameName, Owner, User, string( ), false );
-			}
-		}
-
-		//
-		// !PUB (host public game)
-		//
-
-		if( Command == "pub" && !Payload.empty( ) )
-			m_GHost->CreateGame( GAME_PUBLIC, false, Payload, User, User, string( ), false );
-
-		//
-		// !PUBBY (host public game by other player)
-		//
-
-		if( Command == "pubby" && !Payload.empty( ) )
-		{
-			// extract the owner and the game name
-			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
-
-			string Owner;
-			string GameName;
-			string :: size_type GameNameStart = Payload.find( " " );
-
-			if( GameNameStart != string :: npos )
-			{
-				Owner = Payload.substr( 0, GameNameStart );
-				GameName = Payload.substr( GameNameStart + 1 );
-				m_GHost->CreateGame( GAME_PUBLIC, false, GameName, Owner, User, string( ), false );
-			}
-		}
-
-		//
-		// !RLOAD
-		// !RMAP
-		//
-
-		if( Command == "rload" || Command == "rmap" )
+		if( Command == "map" )
 		{
 			if( Payload.empty( ) )
 				SendChat( player, m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ) );
@@ -2552,6 +2494,62 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 					CONSOLE_Print( string( "[ADMINGAME] error listing maps - caught exception [" ) + ex.what( ) + "]" );
 					SendChat( player, m_GHost->m_Language->ErrorListingMaps( ) );
 				}
+			}
+		}
+
+		//
+		// !PRIV (host private game)
+		//
+
+		if( Command == "priv" && !Payload.empty( ) )
+			m_GHost->CreateGame( GAME_PRIVATE, false, Payload, User, User, string( ), false );
+
+		//
+		// !PRIVBY (host private game by other player)
+		//
+
+		if( Command == "privby" && !Payload.empty( ) )
+		{
+			// extract the owner and the game name
+			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
+
+			string Owner;
+			string GameName;
+			string :: size_type GameNameStart = Payload.find( " " );
+
+			if( GameNameStart != string :: npos )
+			{
+				Owner = Payload.substr( 0, GameNameStart );
+				GameName = Payload.substr( GameNameStart + 1 );
+				m_GHost->CreateGame( GAME_PRIVATE, false, GameName, Owner, User, string( ), false );
+			}
+		}
+
+		//
+		// !PUB (host public game)
+		//
+
+		if( Command == "pub" && !Payload.empty( ) )
+			m_GHost->CreateGame( GAME_PUBLIC, false, Payload, User, User, string( ), false );
+
+		//
+		// !PUBBY (host public game by other player)
+		//
+
+		if( Command == "pubby" && !Payload.empty( ) )
+		{
+			// extract the owner and the game name
+			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
+
+			string Owner;
+			string GameName;
+			string :: size_type GameNameStart = Payload.find( " " );
+
+			if( GameNameStart != string :: npos )
+			{
+				Owner = Payload.substr( 0, GameNameStart );
+				GameName = Payload.substr( GameNameStart + 1 );
+				m_GHost->CreateGame( GAME_PUBLIC, false, GameName, Owner, User, string( ), false );
 			}
 		}
 
