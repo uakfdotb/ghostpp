@@ -376,6 +376,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AdminGameCreate = CFG->GetInt( "admingame_create", 0 ) == 0 ? false : true;
 	m_AdminGamePort = CFG->GetInt( "admingame_port", 6113 );
 	m_AdminGamePassword = CFG->GetString( "admingame_password", string( ) );
+	m_LANWar3Version = CFG->GetInt( "lan_war3version", 24 );
 
 	// load the battle.net connections
 	// we're just loading the config data and creating the CBNET classes here, the connections are established later (in the Update function)
@@ -409,7 +410,7 @@ CGHost :: CGHost( CConfig *CFG )
 		string BNLSServer = CFG->GetString( Prefix + "bnlsserver", string( ) );
 		int BNLSPort = CFG->GetInt( Prefix + "bnlsport", 9367 );
 		int BNLSWardenCookie = CFG->GetInt( Prefix + "bnlswardencookie", 0 );
-		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 23 );
+		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 24 );
 		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversion", string( ) ), 4 );
 		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
 		string PasswordHashType = CFG->GetString( Prefix + "custom_passwordhashtype", string( ) );

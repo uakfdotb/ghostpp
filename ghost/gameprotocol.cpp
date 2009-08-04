@@ -201,10 +201,10 @@ CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data 
 	return NULL;
 }
 
-bool CGameProtocol :: RECEIVE_W3GS_SEARCHGAME( BYTEARRAY data )
+bool CGameProtocol :: RECEIVE_W3GS_SEARCHGAME( BYTEARRAY data, unsigned char war3Version )
 {
 	uint32_t ProductID	= 1462982736;	// "W3XP"
-	uint32_t Version	= 23;			// 1.23
+	uint32_t Version	= war3Version;
 
 	// DEBUG_Print( "RECEIVED W3GS_SEARCHGAME" );
 	// DEBUG_Print( data );
@@ -621,11 +621,11 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_STOP_LAG( CGamePlayer *player, bool loadInG
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( unsigned char war3Version )
 {
-	unsigned char ProductID[]	= { 80, 88, 51, 87 };	// "W3XP"
-	unsigned char Version[]		= { 23,  0,  0,  0 };	// 1.23
-	unsigned char Unknown[]		= {  0,  0,  0,  0 };
+	unsigned char ProductID[]	= {          80, 88, 51, 87 };	// "W3XP"
+	unsigned char Version[]		= { war3Version,  0,  0,  0 };
+	unsigned char Unknown[]		= {           0,  0,  0,  0 };
 
 	BYTEARRAY packet;
 	packet.push_back( W3GS_HEADER_CONSTANT );		// W3GS header constant
@@ -641,12 +641,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter )
+BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter )
 {
-	unsigned char ProductID[]	= { 80, 88, 51, 87 };	// "W3XP"
-	unsigned char Version[]		= { 23,  0,  0,  0 };	// 1.23
-	unsigned char Unknown1[]	= {  1,  2,  3,  4 };
-	unsigned char Unknown2[]	= {  1,  0,  0,  0 };
+	unsigned char ProductID[]	= {          80, 88, 51, 87 };	// "W3XP"
+	unsigned char Version[]		= { war3Version,  0,  0,  0 };
+	unsigned char Unknown1[]	= {           1,  2,  3,  4 };
+	unsigned char Unknown2[]	= {           1,  0,  0,  0 };
 
 	BYTEARRAY packet;
 
@@ -695,11 +695,11 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( BYTEARRAY mapGameType, BYTEARRAY 
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_CREATEGAME( )
+BYTEARRAY CGameProtocol :: SEND_W3GS_CREATEGAME( unsigned char war3Version )
 {
-	unsigned char ProductID[]	= { 80, 88, 51, 87 };	// "W3XP"
-	unsigned char Version[]		= { 23,  0,  0,  0 };	// 1.23
-	unsigned char HostCounter[]	= {  1,  0,  0,  0 };
+	unsigned char ProductID[]	= {          80, 88, 51, 87 };	// "W3XP"
+	unsigned char Version[]		= { war3Version,  0,  0,  0 };
+	unsigned char HostCounter[]	= {           1,  0,  0,  0 };
 
 	BYTEARRAY packet;
 	packet.push_back( W3GS_HEADER_CONSTANT );		// W3GS header constant

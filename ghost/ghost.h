@@ -156,6 +156,7 @@ public:
 	bool m_AdminGameCreate;					// config value: create the admin game or not
 	uint16_t m_AdminGamePort;				// config value: the port to host the admin game on
 	string m_AdminGamePassword;				// config value: the admin game password
+	unsigned char m_LANWar3Version;			// config value: LAN warcraft 3 version
 
 	CGHost( CConfig *CFG );
 	~CGHost( );

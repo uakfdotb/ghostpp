@@ -521,6 +521,43 @@ GHost++ will now save map statistics to the database under the specified categor
 There is no way to display these stats from within GHost++.
 The intention is that you will display the stats externally, e.g. on a website, or you will use the update_w3mmd_elo project to generate scores for use with matchmaking.
 
+==========================================
+The HCL (HostBot Command Library) Standard
+==========================================
+
+Since Version 14.0 GHost++ supports passing a very limited amount of arbitrary data to maps which support the HCL standard.
+The passed data is interpreted by each map individually and does not necessarily have the same meaning for different maps.
+It is intended that maps will use the HCL system to allow the bot to set game modes or other "startup" data which should not be specified by the players themselves.
+For example, when autohosting DotA games it is desirable for the bot to set the game mode rather than the players so that it will be set correctly.
+
+Here's how to use it:
+
+1.) Obtain a map that supports the HCL standard.
+ a.) At the time of this writing no maps support the HCL standard although DotA will likely support it in the future.
+2.) Set the "HCL Command String" (the data to be passed to the map) by using the !hcl command in the lobby.
+ a.) The HCL Command String can only contain one character per player and/or computer player when the game starts.
+ b.) It can also only contain characters from a limited set (lowercase letters, numbers, and a small number of special characters).
+ c.) For example, with 4 players (or 3 players and 1 computer, and so on) the HCL Command String can be at most 4 characters long.
+ d.) The HCL Command String has a different meaning for different maps so you will need to find out what the HCL means for each map before you use it.
+ e.) Use the !clearhcl command to clear the HCL Command String if you change your mind and don't wish to use it.
+3.) Start the game.
+
+The HCL system works by embedding information in the player handicaps in such a way that the original handicaps can be restored after the map finishes loading.
+This means that if you try to set the HCL command String on a map that doesn't support the standard, the bot will drastically modify the player handicaps.
+However, maps that do not support the standard will not restore the handicaps to their original values and your game will be ruined.
+Do not attempt to set the HCL Command String on a map that doesn't support the HCL standard.
+
+If you want to set the HCL for every game automatically (e.g. when autohosting):
+
+1.) Create a map config file for the map you wish to autohost with.
+2.) Set "map_defaulthcl = <something>" in your map config file.
+3.) Load your map config file with the !load command.
+4.) Start autohosting with the !autohost command. The bot will use the default HCL specified in your map config file.
+ a.) Note that this is a somewhat clumsy method of setting the default HCL and may be modified in future versions of GHost++.
+
+Map makers take note: You may wish to include the HCL system in your map even if you don't intend to use the HCL Command String anywhere.
+This is because including the HCL system immunizes your map from accidental disruption of the player handicaps due to setting the HCL Command String on an unsupported map.
+
 ======
 Warden
 ======

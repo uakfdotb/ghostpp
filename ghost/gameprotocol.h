@@ -111,7 +111,7 @@ public:
 	CIncomingAction *RECEIVE_W3GS_OUTGOING_ACTION( BYTEARRAY data, unsigned char PID );
 	uint32_t RECEIVE_W3GS_OUTGOING_KEEPALIVE( BYTEARRAY data );
 	CIncomingChatPlayer *RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data );
-	bool RECEIVE_W3GS_SEARCHGAME( BYTEARRAY data );
+	bool RECEIVE_W3GS_SEARCHGAME( BYTEARRAY data, unsigned char war3Version );
 	CIncomingMapSize *RECEIVE_W3GS_MAPSIZE( BYTEARRAY data, BYTEARRAY mapSize );
 	uint32_t RECEIVE_W3GS_MAPPARTOK( BYTEARRAY data );
 	uint32_t RECEIVE_W3GS_PONG_TO_HOST( BYTEARRAY data );
@@ -131,9 +131,9 @@ public:
 	BYTEARRAY SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTEARRAY toPIDs, unsigned char flag, BYTEARRAY flagExtra, string message );
 	BYTEARRAY SEND_W3GS_START_LAG( vector<CGamePlayer *> players, bool loadInGame = false );
 	BYTEARRAY SEND_W3GS_STOP_LAG( CGamePlayer *player, bool loadInGame = false );
-	BYTEARRAY SEND_W3GS_SEARCHGAME( );
-	BYTEARRAY SEND_W3GS_GAMEINFO( BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter );
-	BYTEARRAY SEND_W3GS_CREATEGAME( );
+	BYTEARRAY SEND_W3GS_SEARCHGAME( unsigned char war3Version );
+	BYTEARRAY SEND_W3GS_GAMEINFO( unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter );
+	BYTEARRAY SEND_W3GS_CREATEGAME( unsigned char war3Version );
 	BYTEARRAY SEND_W3GS_REFRESHGAME( uint32_t players, uint32_t playerSlots );
 	BYTEARRAY SEND_W3GS_DECREATEGAME( );
 	BYTEARRAY SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 );
