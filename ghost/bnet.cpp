@@ -1539,7 +1539,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 
 				if( Command == "hostsg" && !Payload.empty( ) )
-					m_GHost->CreateGame( GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
+					m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
 
 				//
 				// !LOAD (load config file)
@@ -1612,20 +1612,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 								else if( Matches == 1 )
 								{
 									string File = LastMatch.filename( );
-
-									// we have to be careful here because we didn't copy the map data when creating the game (there's only one global copy)
-									// therefore if we change the map data while a game is in the lobby everything will get screwed up
-									// the easiest solution is to simply reject the command if a game is in the lobby
-
-									if( m_GHost->m_CurrentGame )
-										QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ), User, Whisper );
-									else
-									{
-										QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
-										CConfig MapCFG;
-										MapCFG.Read( LastMatch.string( ) );
-										m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File );
-									}
+									QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
+									CConfig MapCFG;
+									MapCFG.Read( LastMatch.string( ) );
+									m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File );
 								}
 								else
 									QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
@@ -1743,24 +1733,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 								else if( Matches == 1 )
 								{
 									string File = LastMatch.filename( );
+									QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
 
-									// we have to be careful here because we didn't copy the map data when creating the game (there's only one global copy)
-									// therefore if we change the map data while a game is in the lobby everything will get screwed up
-									// the easiest solution is to simply reject the command if a game is in the lobby
+									// hackhack: create a config file in memory with the required information to load the map
 
-									if( m_GHost->m_CurrentGame )
-										QueueChatCommand( m_GHost->m_Language->UnableToLoadConfigFileGameInLobby( ), User, Whisper );
-									else
-									{
-										QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
-
-										// hackhack: create a config file in memory with the required information to load the map
-
-										CConfig MapCFG;
-										MapCFG.Set( "map_path", "Maps\\Download\\" + File );
-										MapCFG.Set( "map_localpath", File );
-										m_GHost->m_Map->Load( &MapCFG, File );
-									}
+									CConfig MapCFG;
+									MapCFG.Set( "map_path", "Maps\\Download\\" + File );
+									MapCFG.Set( "map_localpath", File );
+									m_GHost->m_Map->Load( &MapCFG, File );
 								}
 								else
 									QueueChatCommand( m_GHost->m_Language->FoundMaps( FoundMaps ), User, Whisper );
@@ -1822,7 +1802,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 
 				if( Command == "priv" && !Payload.empty( ) )
-					m_GHost->CreateGame( GAME_PRIVATE, false, Payload, User, User, m_Server, Whisper );
+					m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, Payload, User, User, m_Server, Whisper );
 
 				//
 				// !PRIVBY (host private game by other player)
@@ -1841,7 +1821,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					{
 						Owner = Payload.substr( 0, GameNameStart );
 						GameName = Payload.substr( GameNameStart + 1 );
-						m_GHost->CreateGame( GAME_PRIVATE, false, GameName, Owner, User, m_Server, Whisper );
+						m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, GameName, Owner, User, m_Server, Whisper );
 					}
 				}
 
@@ -1850,7 +1830,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 
 				if( Command == "pub" && !Payload.empty( ) )
-					m_GHost->CreateGame( GAME_PUBLIC, false, Payload, User, User, m_Server, Whisper );
+					m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, Payload, User, User, m_Server, Whisper );
 
 				//
 				// !PUBBY (host public game by other player)
@@ -1869,7 +1849,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					{
 						Owner = Payload.substr( 0, GameNameStart );
 						GameName = Payload.substr( GameNameStart + 1 );
-						m_GHost->CreateGame( GAME_PUBLIC, false, GameName, Owner, User, m_Server, Whisper );
+						m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, User, m_Server, Whisper );
 					}
 				}
 

@@ -712,7 +712,7 @@ bool CGHost :: Update( long usecBlock )
 		{
 			if( m_AutoHostMap->GetValid( ) )
 			{
-				CreateGame( GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
+				CreateGame( m_AutoHostMap, GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
 
 				if( m_CurrentGame )
 				{
@@ -975,7 +975,7 @@ void CGHost :: LoadIPToCountryData( )
 	}
 }
 
-void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper )
+void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper )
 {
 	if( !m_Enabled )
 	{
@@ -1005,7 +1005,7 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 		return;
 	}
 
-	if( !m_Map->GetValid( ) )
+	if( !map->GetValid( ) )
 	{
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		{
@@ -1036,7 +1036,7 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 		}
 
 		string MapPath1 = m_SaveGame->GetMapPath( );
-		string MapPath2 = m_Map->GetMapPath( );
+		string MapPath2 = map->GetMapPath( );
 		transform( MapPath1.begin( ), MapPath1.end( ), MapPath1.begin( ), (int(*)(int))tolower );
 		transform( MapPath2.begin( ), MapPath2.end( ), MapPath2.begin( ), (int(*)(int))tolower );
 
@@ -1086,9 +1086,9 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 	CONSOLE_Print( "[GHOST] creating game [" + gameName + "]" );
 
 	if( saveGame )
-		m_CurrentGame = new CGame( this, m_Map, m_SaveGame, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
+		m_CurrentGame = new CGame( this, map, m_SaveGame, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
 	else
-		m_CurrentGame = new CGame( this, m_Map, NULL, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
+		m_CurrentGame = new CGame( this, map, NULL, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
 
 	// todotodo: check if listening failed and report the error to the user
 
@@ -1114,9 +1114,9 @@ void CGHost :: CreateGame( unsigned char gameState, bool saveGame, string gameNa
 		}
 
 		if( saveGame )
-			(*i)->QueueGameCreate( gameState, gameName, string( ), m_Map, m_SaveGame, m_CurrentGame->GetHostCounter( ) );
+			(*i)->QueueGameCreate( gameState, gameName, string( ), map, m_SaveGame, m_CurrentGame->GetHostCounter( ) );
 		else
-			(*i)->QueueGameCreate( gameState, gameName, string( ), m_Map, NULL, m_CurrentGame->GetHostCounter( ) );
+			(*i)->QueueGameCreate( gameState, gameName, string( ), map, NULL, m_CurrentGame->GetHostCounter( ) );
 	}
 
 	if( m_AdminGame )

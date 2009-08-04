@@ -99,7 +99,7 @@ public:
 	CGHostDB *m_DBLocal;					// local database (for temporary data)
 	vector<CBaseCallable *> m_Callables;	// vector of orphaned callables waiting to die
 	CLanguage *m_Language;					// language
-	CMap *m_Map;							// the currently loaded map (this is global data, CBaseGame just references it so don't modify it unless you know what you're doing)
+	CMap *m_Map;							// the currently loaded map
 	CMap *m_AdminMap;						// the map to use in the admin game
 	CMap *m_AutoHostMap;					// the map to use when autohosting
 	CSaveGame *m_SaveGame;					// the save game to use
@@ -179,7 +179,7 @@ public:
 
 	void ExtractScripts( );
 	void LoadIPToCountryData( );
-	void CreateGame( unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
+	void CreateGame( CMap *map, unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
 };
 
 #endif
