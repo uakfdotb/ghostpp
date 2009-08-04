@@ -1365,3 +1365,19 @@ string CLanguage :: TryingToJoinTheGameButBannedByIP( string victim, string ip, 
 	Replace( Out, "$BANNEDNAME$", bannedname );
 	return Out;
 }
+
+string CLanguage :: HasBannedName( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0193", "lang_0193" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: HasBannedIP( string victim, string ip, string bannedname )
+{
+	string Out = m_CFG->GetString( "lang_0194", "lang_0194" );
+	Replace( Out, "$VICTIM$", victim );
+	Replace( Out, "$IP$", ip );
+	Replace( Out, "$BANNEDNAME$", bannedname );
+	return Out;
+}

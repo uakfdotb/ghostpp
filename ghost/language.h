@@ -228,6 +228,8 @@ public:
 	string RehostWasSuccessful( );
 	string TryingToJoinTheGameButBannedByName( string victim );
 	string TryingToJoinTheGameButBannedByIP( string victim, string ip, string bannedname );
+	string HasBannedName( string victim );
+	string HasBannedIP( string victim, string ip, string bannedname );
 };
 
 #endif
