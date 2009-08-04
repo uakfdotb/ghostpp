@@ -1349,3 +1349,19 @@ string CLanguage :: RehostWasSuccessful( )
 {
 	return m_CFG->GetString( "lang_0190", "lang_0190" );
 }
+
+string CLanguage :: TryingToJoinTheGameButBannedByName( string victim )
+{
+	string Out = m_CFG->GetString( "lang_0191", "lang_0191" );
+	Replace( Out, "$VICTIM$", victim );
+	return Out;
+}
+
+string CLanguage :: TryingToJoinTheGameButBannedByIP( string victim, string ip, string bannedname )
+{
+	string Out = m_CFG->GetString( "lang_0192", "lang_0192" );
+	Replace( Out, "$VICTIM$", victim );
+	Replace( Out, "$IP$", ip );
+	Replace( Out, "$BANNEDNAME$", bannedname );
+	return Out;
+}

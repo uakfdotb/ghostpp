@@ -54,6 +54,7 @@ protected:
 	vector<CCallableScoreCheck *> m_ScoreChecks;
 	queue<CIncomingAction *> m_Actions;				// queue of actions to be sent
 	vector<string> m_Reserved;						// vector of player names with reserved slots (from the !hold command)
+	set<string> m_IgnoredNames;						// set of player names to NOT print ban messages for when joining because they've already been printed
 	set<string> m_IPBlackList;						// set of IP addresses to blacklist from joining (todotodo: convert to uint32's for efficiency)
 	CMap *m_Map;									// map data (this is a pointer to global data)
 	CSaveGame *m_SaveGame;							// savegame data (this is a pointer to global data)

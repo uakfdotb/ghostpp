@@ -226,6 +226,8 @@ public:
 	string TryingToRehostAsPrivateGame( string gamename );
 	string TryingToRehostAsPublicGame( string gamename );
 	string RehostWasSuccessful( );
+	string TryingToJoinTheGameButBannedByName( string victim );
+	string TryingToJoinTheGameButBannedByIP( string victim, string ip, string bannedname );
 };
 
 #endif
