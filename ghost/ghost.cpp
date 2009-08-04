@@ -317,6 +317,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMatchMaking = false;
 	m_AutoHostMinimumScore = 0.0;
 	m_AutoHostMaximumScore = 0.0;
+	m_AllGamesFinishedTime = 0;
 	m_LanguageFile = CFG->GetString( "bot_language", "language.cfg" );
 	m_Language = new CLanguage( m_LanguageFile );
 	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
@@ -563,8 +564,26 @@ bool CGHost :: Update( long usecBlock )
 
 		if( !m_CurrentGame && m_Games.empty( ) )
 		{
-			CONSOLE_Print( "[GHOST] all games finished, exiting nicely" );
-			m_Exiting = true;
+			if( m_AllGamesFinishedTime == 0 )
+			{
+				CONSOLE_Print( "[GHOST] all games finished, waiting 60 seconds for threads to finish" );
+				CONSOLE_Print( "[GHOST] there are " + UTIL_ToString( m_Callables.size( ) ) + " threads in progress" );
+				m_AllGamesFinishedTime = GetTime( );
+			}
+			else
+			{
+				if( m_Callables.empty( ) )
+				{
+					CONSOLE_Print( "[GHOST] all threads finished, exiting nicely" );
+					m_Exiting = true;
+				}
+				else if( GetTime( ) >= m_AllGamesFinishedTime + 60 )
+				{
+					CONSOLE_Print( "[GHOST] waited 60 seconds for threads to finish, exiting anyway" );
+					CONSOLE_Print( "[GHOST] there are " + UTIL_ToString( m_Callables.size( ) ) + " threads still in progress which will be terminated" );
+					m_Exiting = true;
+				}
+			}
 		}
 	}
 
