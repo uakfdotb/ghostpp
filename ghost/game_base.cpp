@@ -2746,6 +2746,14 @@ uint32_t CBaseGame :: GetPlayerFromNamePartial( string name, CGamePlayer **playe
 			{
 				Matches++;
 				*player = *i;
+
+				// if the name matches exactly stop any further matching
+
+				if( TestName == name )
+				{
+					Matches = 1;
+					break;
+				}
 			}
 		}
 	}

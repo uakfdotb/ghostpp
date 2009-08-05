@@ -445,6 +445,14 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							Matches++;
 							LastMatch = *i;
+
+							// if the name matches exactly stop any further matching
+
+							if( TestName == VictimLower )
+							{
+								Matches = 1;
+								break;
+							}
 						}
 					}
 
