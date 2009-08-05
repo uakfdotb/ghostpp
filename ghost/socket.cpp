@@ -174,11 +174,6 @@ CTCPSocket :: CTCPSocket( ) : CSocket( )
 #else
 	fcntl( m_Socket, F_SETFL, fcntl( m_Socket, F_GETFL ) | O_NONBLOCK );
 #endif
-
-	// disable Nagle's algorithm for better performance
-
-	/* int OptVal = 1;
-	setsockopt( m_Socket, IPPROTO_TCP, TCP_NODELAY, (const char *)&OptVal, sizeof( int ) ); */
 }
 
 CTCPSocket :: CTCPSocket( SOCKET nSocket, struct sockaddr_in nSIN ) : CSocket( nSocket, nSIN )
@@ -195,11 +190,6 @@ CTCPSocket :: CTCPSocket( SOCKET nSocket, struct sockaddr_in nSIN ) : CSocket( n
 #else
 	fcntl( m_Socket, F_SETFL, fcntl( m_Socket, F_GETFL ) | O_NONBLOCK );
 #endif
-
-	// disable Nagle's algorithm for better performance
-
-	/* int OptVal = 1;
-	setsockopt( m_Socket, IPPROTO_TCP, TCP_NODELAY, (const char *)&OptVal, sizeof( int ) ); */
 }
 
 CTCPSocket :: ~CTCPSocket( )
@@ -226,11 +216,6 @@ void CTCPSocket :: Reset( )
 #else
 	fcntl( m_Socket, F_SETFL, fcntl( m_Socket, F_GETFL ) | O_NONBLOCK );
 #endif
-
-	// disable Nagle's algorithm for better performance
-
-	/* int OptVal = 1;
-	setsockopt( m_Socket, IPPROTO_TCP, TCP_NODELAY, (const char *)&OptVal, sizeof( int ) ); */
 }
 
 void CTCPSocket :: PutBytes( string bytes )
@@ -317,6 +302,16 @@ void CTCPSocket :: Disconnect( )
 		shutdown( m_Socket, SHUT_RDWR );
 
 	m_Connected = false;
+}
+
+void CTCPSocket :: SetNoDelay( bool noDelay )
+{
+	int OptVal = 0;
+
+	if( noDelay )
+		OptVal = 1;
+
+	setsockopt( m_Socket, IPPROTO_TCP, TCP_NODELAY, (const char *)&OptVal, sizeof( int ) );
 }
 
 //

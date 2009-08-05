@@ -159,6 +159,7 @@ public:
 	string m_AdminGamePassword;				// config value: the admin game password
 	string m_AdminGameMap;					// config value: the admin game map config to use
 	unsigned char m_LANWar3Version;			// config value: LAN warcraft 3 version
+	bool m_TCPNoDelay;						// config value: use Nagle's algorithm or not
 
 	CGHost( CConfig *CFG );
 	~CGHost( );

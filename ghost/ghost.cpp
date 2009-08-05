@@ -376,6 +376,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AdminGamePassword = CFG->GetString( "admingame_password", string( ) );
 	m_AdminGameMap = CFG->GetString( "admingame_map", string( ) );
 	m_LANWar3Version = CFG->GetInt( "lan_war3version", 24 );
+	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 
 	// load the battle.net connections
 	// we're just loading the config data and creating the CBNET classes here, the connections are established later (in the Update function)

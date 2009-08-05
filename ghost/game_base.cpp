@@ -895,7 +895,12 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			// check the IP blacklist
 
 			if( m_IPBlackList.find( NewSocket->GetIPString( ) ) == m_IPBlackList.end( ) )
+			{
+				if( m_GHost->m_TCPNoDelay )
+					NewSocket->SetNoDelay( true );
+
 				m_Potentials.push_back( new CPotentialPlayer( m_Protocol, this, NewSocket ) );
+			}
 			else
 			{
 				CONSOLE_Print( "[GAME: " + m_GameName + "] rejected connection from [" + NewSocket->GetIPString( ) + "] due to blacklist" );
