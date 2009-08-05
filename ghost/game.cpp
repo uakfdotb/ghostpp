@@ -1806,11 +1806,11 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, " " );
 	SendChat( player, "GHost++ Admin Game                    http://forum.codelain.com/" );
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
-	SendChat( player, "Commands: addadmin, autohost, checkadmin, countadmins" );
-	SendChat( player, "Commands: deladmin, disable, downloads, enable, end" );
-	SendChat( player, "Commands: exit, getgame, getgames, hostsg, load, loadsg" );
-	SendChat( player, "Commands: map, password, priv, privby, pub, pubby, rload" );
-	SendChat( player, "Commands: rmap, quit, saygame, saygames, unhost" );
+	SendChat( player, "Commands: addadmin, autohost, autohostmm, checkadmin" );
+	SendChat( player, "Commands: countadmins, deladmin, disable, downloads" );
+	SendChat( player, "Commands: enable, end, exit, getgame, getgames, hostsg" );
+	SendChat( player, "Commands: load, loadsg, map, password, priv, privby" );
+	SendChat( player, "Commands: pub, pubby, quit, saygame, saygames, unhost" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )

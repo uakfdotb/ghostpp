@@ -620,27 +620,41 @@ bool CUDPSocket :: Broadcast( uint16_t port, BYTEARRAY message )
 	return true;
 }
 
-bool CUDPSocket :: SetBroadcastTarget( string subnet )
+void CUDPSocket :: SetBroadcastTarget( string subnet )
 {
-	// this function does not check whether the given subnet is a valid subnet the user is on
-	// convert string representation of ip/subnet to in_addr
-	m_BroadcastTarget.s_addr = inet_addr( subnet.c_str( ) );
-	// if conversion fails, inet_addr( ) returns INADDR_NONE
-	if( m_BroadcastTarget.s_addr == INADDR_NONE )
+	if( subnet.empty( ) )
 	{
+		CONSOLE_Print( "[UDPSOCKET] using default broadcast target" );
 		m_BroadcastTarget.s_addr = INADDR_BROADCAST;
-		return false;
 	}
-	return true;
+	else
+	{
+		// this function does not check whether the given subnet is a valid subnet the user is on
+		// convert string representation of ip/subnet to in_addr
+
+		CONSOLE_Print( "[UDPSOCKET] using broadcast target [" + subnet + "]" );
+		m_BroadcastTarget.s_addr = inet_addr( subnet.c_str( ) );
+
+		// if conversion fails, inet_addr( ) returns INADDR_NONE
+
+		if( m_BroadcastTarget.s_addr == INADDR_NONE )
+		{
+			CONSOLE_Print( "[UDPSOCKET] invalid broadcast target, using default broadcast target" );
+			m_BroadcastTarget.s_addr = INADDR_BROADCAST;
+		}
+	}
 }
 
 void CUDPSocket :: SetDontRoute( bool dontRoute )
 {
 	int OptVal = 0;
+
 	if( dontRoute )
 		OptVal = 1;
+
 	// don't route packets; make them ignore routes set by routing table and send them to the interface
 	// belonging to the target address directly
+
 	setsockopt( m_Socket, SOL_SOCKET, SO_DONTROUTE, (const char *)&OptVal, sizeof( int ) );
 }
 

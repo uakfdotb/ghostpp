@@ -42,8 +42,8 @@ CMap :: CMap( CGHost *nGHost )
 	m_MapPath = "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x";
 	m_MapSize = UTIL_ExtractNumbers( "174 221 4 0", 4 );
 	m_MapInfo = UTIL_ExtractNumbers( "251 57 68 98", 4 );
-	m_MapCRC = UTIL_ExtractNumbers( "112 185 65 97", 4 );
-	m_MapSHA1 = UTIL_ExtractNumbers( "187 28 143 4 97 223 210 52 218 28 95 52 217 203 121 202 24 120 59 213", 20 );
+	m_MapCRC = UTIL_ExtractNumbers( "108 250 204 59", 4 );
+	m_MapSHA1 = UTIL_ExtractNumbers( "35 81 104 182 223 63 204 215 1 17 87 234 220 66 3 185 82 99 6 13", 20 );
 	m_MapSpeed = MAPSPEED_FAST;
 	m_MapVisibility = MAPVIS_DEFAULT;
 	m_MapObservers = MAPOBS_NONE;
