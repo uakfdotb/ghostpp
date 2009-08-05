@@ -576,7 +576,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// try to auto start every 10 seconds
 
-	if( m_AutoStartPlayers != 0 && GetTime( ) >= m_LastAutoStartTime + 10 )
+	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && GetTime( ) >= m_LastAutoStartTime + 10 )
 	{
 		// require spoof checks when using matchmaking
 
