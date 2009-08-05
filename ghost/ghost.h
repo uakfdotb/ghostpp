@@ -159,6 +159,8 @@ public:
 	string m_AdminGamePassword;				// config value: the admin game password
 	string m_AdminGameMap;					// config value: the admin game map config to use
 	unsigned char m_LANWar3Version;			// config value: LAN warcraft 3 version
+	uint32_t m_ReplayWar3Version;			// config value: replay warcraft 3 version (for saving replays)
+	uint32_t m_ReplayBuildNumber;			// config value: replay build number (for saving replays)
 	bool m_TCPNoDelay;						// config value: use Nagle's algorithm or not
 
 	CGHost( CConfig *CFG );
