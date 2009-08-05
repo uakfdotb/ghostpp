@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 14.1
+GHost++ Version 14.2
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
@@ -59,31 +59,34 @@ Optimizing Your Bot
 
 *** General Tips:
 
-The most common reason for lag in GHost++ games on Windows is due to the way Windows allocates CPU time to programs.
+1.) The most common reason for lag in GHost++ games on Windows is due to the way Windows allocates CPU time to programs.
 If you are experiencing extreme lag on Windows, open the task manager (Ctrl+Alt+Delete), find ghost.exe in the process list, and increase the priority by one level.
 Do not set the priority to "realtime" as this does not benefit GHost++ and can cause system instability.
 
-The second most common reason is due to the local SQLite database GHost++ uses.
+2.) The second most common reason is due to the local SQLite database GHost++ uses.
 The local SQLite database GHost++ uses is not intended to be used with large scale bots.
 If you are experiencing lag when adding admins and bans and when games end you should either delete your ghost.dbs and start over, or clean it up manually, or use MySQL instead.
 Cleaning up the database manually requires using a 3rd party tool not included in GHost++ (e.g. the SQLite Manager addon for Firefox) and is not described here.
 Using MySQL requires setting up a MySQL database server and is only recommended for advanced users.
 
-If you are experiencing lag when using the !stats and !statsdota commands, these commands are not optimized for large databases whether SQLite or MySQL.
+3.) If you are experiencing lag when using the !stats and !statsdota commands, these commands are not optimized for large databases whether SQLite or MySQL.
 You can disable anonymous access to !stats and !statsdota by setting the bnet*_publiccommands config value to 0 for each realm you want to disable these commands on.
 
-Another reason for lag on Windows is that Windows does not handle very large log files efficiently.
+4.) Another reason for lag on Windows is that Windows does not handle very large log files efficiently.
 If your ghost.log is too large (several MB) you should delete or rename it. You can do this while the bot is running.
 
 *** Network Tips:
 
-If you are experiencing spikes when the bot is reconnecting to battle.net the most likely reason is due to the DNS resolver.
+1.) If you are experiencing spikes when the bot is reconnecting to battle.net the most likely reason is due to the DNS resolver.
 GHost++ resolves battle.net server addresses and BNLS addresses when connecting.
 Since Version 13.3 GHost++ automatically caches all battle.net server addresses after the first connection but does NOT cache BNLS addresses.
 To avoid calling the DNS resolver when reconnecting you should ensure that the BNLS addresses in ghost.cfg are in "dots and numbers" format (e.g. "1.2.3.4").
 It is not necessary to do the same for the battle.net server addresses as they are cached and changing these addresses will affect your admins and bans.
 
-If you are experiencing lag when players are downloading the map, try decreasing bot_maxdownloaders and bot_maxdownloadspeed in ghost.cfg.
+2.) If you are experiencing lag when players are downloading the map, try decreasing bot_maxdownloaders and bot_maxdownloadspeed in ghost.cfg.
+
+3.) If you want to minimize the latency in your games and you have a fast internet connection, try setting tcp_nodelay = 1 in ghost.cfg.
+This may reduce game latency but will also slightly increase the bandwidth required to run each game.
 
 ===============
 How Admins Work

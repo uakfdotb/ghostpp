@@ -2,6 +2,17 @@
 GHost++ Changelog
 =================
 
+Version 14.2
+ - the bot now accepts default maps with or without the ".cfg" extension in ghost.cfg
+ - added support for specifying a different admin game map
+ - added new config value admingame_map
+ - added support for disabling Nagle's algorithm on game sockets
+ - added new config value tcp_nodelay
+ - fixed a bug where UDP broadcasts would sometimes fail when not using a broadcast target
+ - fixed a bug where the bot would not allow you to join the admin game with Warcraft 3 version 1.24
+ - fixed a crash bug when using !autohostmm
+ - updated the admin game welcome message
+
 Version 14.1
  - updated SQLite to SQLite 3.6.16
  - added new config value lan_war3version
