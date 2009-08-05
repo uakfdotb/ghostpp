@@ -37,6 +37,7 @@
 
 CMap :: CMap( CGHost *nGHost )
 {
+	CONSOLE_Print( "[MAP] using hardcoded Emerald Gardens map data for Warcraft 3 version 1.24" );
 	m_GHost = nGHost;
 	m_Valid = true;
 	m_MapPath = "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x";

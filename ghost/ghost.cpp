@@ -374,6 +374,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AdminGameCreate = CFG->GetInt( "admingame_create", 0 ) == 0 ? false : true;
 	m_AdminGamePort = CFG->GetInt( "admingame_port", 6113 );
 	m_AdminGamePassword = CFG->GetString( "admingame_password", string( ) );
+	m_AdminGameMap = CFG->GetString( "admingame_map", string( ) );
 	m_LANWar3Version = CFG->GetInt( "lan_war3version", 24 );
 
 	// load the battle.net connections
@@ -456,10 +457,42 @@ CGHost :: CGHost( CConfig *CFG )
 
 	// load the default maps (note: make sure to run ExtractScripts first)
 
+	if( m_DefaultMap.size( ) < 4 || m_DefaultMap.substr( m_DefaultMap.size( ) - 4 ) != ".cfg" )
+	{
+		m_DefaultMap += ".cfg";
+		CONSOLE_Print( "[GHOST] adding \".cfg\" to default map -> new default is [" + m_DefaultMap + "]" );
+	}
+
 	CConfig MapCFG;
-	MapCFG.Read( m_MapCFGPath + m_DefaultMap + ".cfg" );
-	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap + ".cfg" );
-	m_AdminMap = new CMap( this );
+	MapCFG.Read( m_MapCFGPath + m_DefaultMap );
+	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap );
+
+	if( !m_AdminGameMap.empty( ) )
+	{
+		if( m_AdminGameMap.size( ) < 4 || m_AdminGameMap.substr( m_AdminGameMap.size( ) - 4 ) != ".cfg" )
+		{
+			m_AdminGameMap += ".cfg";
+			CONSOLE_Print( "[GHOST] adding \".cfg\" to default admin game map -> new default is [" + m_AdminGameMap + "]" );
+		}
+
+		CONSOLE_Print( "[GHOST] trying to load default admin game map" );
+		CConfig AdminMapCFG;
+		AdminMapCFG.Read( m_MapCFGPath + m_AdminGameMap );
+		m_AdminMap = new CMap( this, &AdminMapCFG, m_MapCFGPath + m_AdminGameMap );
+
+		if( !m_AdminMap->GetValid( ) )
+		{
+			CONSOLE_Print( "[GHOST] default admin game map isn't valid, using hardcoded admin game map instead" );
+			delete m_AdminMap;
+			m_AdminMap = new CMap( this );
+		}
+	}
+	else
+	{
+		CONSOLE_Print( "[GHOST] using hardcoded admin game map" );
+		m_AdminMap = new CMap( this );
+	}
+
 	m_AutoHostMap = new CMap( *m_Map );
 	m_SaveGame = new CSaveGame( this );
 
