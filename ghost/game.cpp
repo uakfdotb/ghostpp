@@ -1611,7 +1611,12 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		}
 	}
 	else
-		CONSOLE_Print( "[GAME: " + m_GameName + "] non-admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
+	{
+		if( !player->GetSpoofed( ) )
+			CONSOLE_Print( "[GAME: " + m_GameName + "] non-spoofchecked user [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
+		else
+			CONSOLE_Print( "[GAME: " + m_GameName + "] non-admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
+	}
 
 	/*********************
 	* NON ADMIN COMMANDS *
