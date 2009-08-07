@@ -515,6 +515,9 @@ BYTEARRAY UTIL_DecodeStatString( BYTEARRAY &data )
 
 bool UTIL_IsLanIP( BYTEARRAY ip )
 {
+	if( ip.size( ) != 4 )
+		return false;
+
 	// thanks to LuCasn for this function
 
 	// 127.0.0.1
@@ -536,6 +539,23 @@ bool UTIL_IsLanIP( BYTEARRAY ip )
 	// RFC 3330 and RFC 3927 automatic address range
 	if( ip[0] == 169 && ip[1] == 254 )
 		return true;
+
+	return false;
+}
+
+bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs )
+{
+	if( ip.size( ) != 4 )
+		return false;
+
+	for( vector<BYTEARRAY> :: iterator i = localIPs.begin( ); i != localIPs.end( ); i++ )
+	{
+		if( (*i).size( ) != 4 )
+			continue;
+
+		if( ip[0] == (*i)[0] && ip[1] == (*i)[1] && ip[2] == (*i)[2] && ip[3] == (*i)[3] )
+			return true;
+	}
 
 	return false;
 }

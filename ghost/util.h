@@ -73,5 +73,6 @@ BYTEARRAY UTIL_DecodeStatString( BYTEARRAY &data );
 // other
 
 bool UTIL_IsLanIP( BYTEARRAY ip );
+bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs );
 
 #endif

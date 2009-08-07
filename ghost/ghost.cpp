@@ -302,6 +302,34 @@ CGHost :: CGHost( CConfig *CFG )
 
 	CONSOLE_Print( "[GHOST] opening secondary (local) database" );
 	m_DBLocal = new CGHostDBSQLite( CFG );
+
+	// get a list of local IP addresses
+	// this list is used elsewhere to determine if a player connecting to the bot is local or not
+
+	CONSOLE_Print( "[GHOST] attempting to find local IP addresses" );
+	char HostName[255];
+
+	if( gethostname( HostName, 255 ) == SOCKET_ERROR )
+		CONSOLE_Print( "[GHOST] error getting local hostname" );
+	else
+	{
+		CONSOLE_Print( "[GHOST] local hostname is [" + string( HostName ) + "]" );
+		struct hostent *HostEnt = gethostbyname( HostName );
+
+		if( !HostEnt )
+			CONSOLE_Print( "[GHOST] error finding local IP addresses" );
+		else
+		{
+			for( int i = 0; HostEnt->h_addr_list[i] != NULL; i++ )
+			{
+				struct in_addr Address;
+				memcpy( &Address, HostEnt->h_addr_list[i], sizeof(struct in_addr) );
+				CONSOLE_Print( "[GHOST] local IP address #" + UTIL_ToString( i + 1 ) + " is [" + string( inet_ntoa( Address ) ) + "]" );
+				m_LocalAddresses.push_back( UTIL_CreateByteArray( (uint32_t)Address.s_addr, false ) );
+			}
+		}
+	}
+
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;

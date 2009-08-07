@@ -1557,7 +1557,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	// consider LAN players to have already spoof checked since they can't
 
-	if( UTIL_IsLanIP( Player->GetExternalIP( ) ) )
+	if( UTIL_IsLanIP( Player->GetExternalIP( ) ) || UTIL_IsLocalIP( Player->GetExternalIP( ), m_GHost->m_LocalAddresses ) )
 		Player->SetSpoofed( true );
 
 	m_Players.push_back( Player );
