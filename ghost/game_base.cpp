@@ -2090,9 +2090,9 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 					if( Player )
 					{
 						if( Players.empty( ) )
-							Players = (*i)->GetName( );
+							Players = Player->GetName( );
 						else
-							Players += ", " + (*i)->GetName( );
+							Players += ", " + Player->GetName( );
 					}
 				}
 
