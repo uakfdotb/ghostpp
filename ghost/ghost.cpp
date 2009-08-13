@@ -195,6 +195,11 @@ int main( int argc, char **argv )
 	gStartTime = GetTime( );
 
 #ifdef WIN32
+	// increase process priority
+
+	CONSOLE_Print( "[GHOST] setting process priority to \"above normal\"" );
+	SetPriorityClass( GetCurrentProcess( ), ABOVE_NORMAL_PRIORITY_CLASS );
+
 	// initialize winsock
 
 	CONSOLE_Print( "[GHOST] starting winsock" );
