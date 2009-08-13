@@ -40,6 +40,10 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#ifdef WIN32
+ #include <ws2tcpip.h>		// for WSAIoctl
+#endif
+
 #define __STORMLIB_SELF__
 #include <stormlib/StormLib.h>
 
@@ -307,17 +311,51 @@ CGHost :: CGHost( CConfig *CFG )
 	// this list is used elsewhere to determine if a player connecting to the bot is local or not
 
 	CONSOLE_Print( "[GHOST] attempting to find local IP addresses" );
+
+#ifdef WIN32
+	// use a more reliable Windows specific method since the portable method doesn't always work properly on Windows
+	// code stolen from: http://tangentsoft.net/wskfaq/examples/getifaces.html
+
+	SOCKET sd = WSASocket( AF_INET, SOCK_DGRAM, 0, 0, 0, 0 );
+
+	if( sd == SOCKET_ERROR )
+		CONSOLE_Print( "[GHOST] error finding local IP addresses - failed to create socket (error code " + UTIL_ToString( WSAGetLastError( ) ) + ")" );
+	else
+	{
+		INTERFACE_INFO InterfaceList[20];
+		unsigned long nBytesReturned;
+
+		if( WSAIoctl( sd, SIO_GET_INTERFACE_LIST, 0, 0, &InterfaceList, sizeof(InterfaceList), &nBytesReturned, 0, 0 ) == SOCKET_ERROR )
+			CONSOLE_Print( "[GHOST] error finding local IP addresses - WSAIoctl failed (error code " + UTIL_ToString( WSAGetLastError( ) ) + ")" );
+		else
+		{
+			int nNumInterfaces = nBytesReturned / sizeof(INTERFACE_INFO);
+
+			for( int i = 0; i < nNumInterfaces; i++ )
+			{
+				sockaddr_in *pAddress;
+				pAddress = (sockaddr_in *)&(InterfaceList[i].iiAddress);
+				CONSOLE_Print( "[GHOST] local IP address #" + UTIL_ToString( i + 1 ) + " is [" + string( inet_ntoa( pAddress->sin_addr ) ) + "]" );
+				m_LocalAddresses.push_back( UTIL_CreateByteArray( (uint32_t)pAddress->sin_addr.s_addr, false ) );
+			}
+		}
+
+		closesocket( sd );
+	}
+#else
+	// use a portable method
+
 	char HostName[255];
 
 	if( gethostname( HostName, 255 ) == SOCKET_ERROR )
-		CONSOLE_Print( "[GHOST] error getting local hostname" );
+		CONSOLE_Print( "[GHOST] error finding local IP addresses - failed to get local hostname" );
 	else
 	{
 		CONSOLE_Print( "[GHOST] local hostname is [" + string( HostName ) + "]" );
 		struct hostent *HostEnt = gethostbyname( HostName );
 
 		if( !HostEnt )
-			CONSOLE_Print( "[GHOST] error finding local IP addresses" );
+			CONSOLE_Print( "[GHOST] error finding local IP addresses - gethostbyname failed" );
 		else
 		{
 			for( int i = 0; HostEnt->h_addr_list[i] != NULL; i++ )
@@ -329,6 +367,7 @@ CGHost :: CGHost( CConfig *CFG )
 			}
 		}
 	}
+#endif
 
 	m_Exiting = false;
 	m_ExitingNice = false;
