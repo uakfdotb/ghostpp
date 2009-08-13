@@ -1381,3 +1381,11 @@ string CLanguage :: HasBannedIP( string victim, string ip, string bannedname )
 	Replace( Out, "$BANNEDNAME$", bannedname );
 	return Out;
 }
+
+string CLanguage :: PlayersInGameState( string number, string players )
+{
+	string Out = m_CFG->GetString( "lang_0195", "lang_0195" );
+	Replace( Out, "$NUMBER$", number );
+	Replace( Out, "$PLAYERS$", players );
+	return Out;
+}

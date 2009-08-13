@@ -230,6 +230,7 @@ public:
 	string TryingToJoinTheGameButBannedByIP( string victim, string ip, string bannedname );
 	string HasBannedName( string victim );
 	string HasBannedIP( string victim, string ip, string bannedname );
+	string PlayersInGameState( string number, string players );
 };
 
 #endif

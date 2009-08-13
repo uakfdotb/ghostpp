@@ -1013,12 +1013,12 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 
 	if( GetNumHumanPlayers( ) > 0 )
 	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] [Local]: " + message );
+
 		if( !m_GameLoading && !m_GameLoaded )
 		{
 			if( message.size( ) > 254 )
 				message = message.substr( 0, 254 );
-
-			// this is a lobby ghost chat message
 
 			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 16, BYTEARRAY( ), message ) );
 		}
@@ -1027,9 +1027,6 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 			if( message.size( ) > 127 )
 				message = message.substr( 0, 127 );
 
-			// this is an ingame ghost chat message, print it to the console
-
-			CONSOLE_Print( "[GAME: " + m_GameName + "] [Local]: " + message );
 			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 32, UTIL_CreateByteArray( (uint32_t)0, false ), message ) );
 
 			if( m_Replay )
@@ -2060,8 +2057,79 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 			m_Desynced = true;
 			CONSOLE_Print( "[GAME: " + m_GameName + "] desync detected" );
 			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
-			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
-			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
+
+			// try to figure out who desynced
+			// this is complicated by the fact that we don't know what the correct game state is so we let the players vote
+			// put the players into bins based on their game state
+
+			map<uint32_t,vector<unsigned char>> Bins;
+
+			for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
+				Bins[(*j)->GetCheckSums( )->front( )].push_back( (*j)->GetPID( ) );
+
+			uint32_t StateNumber = 1;
+			map<uint32_t,vector<unsigned char>> :: iterator LargestBin = Bins.begin( );
+			bool Tied = false;
+
+			for( map<uint32_t,vector<unsigned char>> :: iterator j = Bins.begin( ); j != Bins.end( ); j++ )
+			{
+				if( (*j).second.size( ) > (*LargestBin).second.size( ) )
+				{
+					LargestBin = j;
+					Tied = false;
+				}
+				else if( (*j).second.size( ) == (*LargestBin).second.size( ) )
+					Tied = true;
+
+				string Players;
+
+				for( vector<unsigned char> :: iterator k = (*j).second.begin( ); k != (*j).second.end( ); k++ )
+				{
+					CGamePlayer *Player = GetPlayerFromPID( *k );
+
+					if( Player )
+					{
+						if( Players.empty( ) )
+							Players = (*i)->GetName( );
+						else
+							Players += ", " + (*i)->GetName( );
+					}
+				}
+
+				SendAllChat( m_GHost->m_Language->PlayersInGameState( UTIL_ToString( StateNumber ), Players ) );
+				StateNumber++;
+			}
+
+			// todotodo: kick the desynced player(s) and don't stop recording the replay
+
+			/*
+
+			if( Tied )
+			{
+				// can't kick
+			}
+			else
+			{
+				for( map<uint32_t,vector<unsigned char>> :: iterator j = Bins.begin( ); j != Bins.end( ); j++ )
+				{
+					if( (*j).first != (*LargestBin).first )
+					{
+						for( vector<unsigned char> :: iterator k = (*j).second.begin( ); k != (*j).second.end( ); k++ )
+						{
+							CGamePlayer *Player = GetPlayerFromPID( *k );
+
+							if( Player )
+							{
+								Player->SetDeleteMe( true );
+								Player->SetLeftReason( "was dropped due to desync" );
+								Player->SetLeftCode( PLAYERLEAVE_LOBBY );
+							}
+						}
+					}
+				}
+			}
+
+			*/
 		}
 	}
 
