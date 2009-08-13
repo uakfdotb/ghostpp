@@ -2062,16 +2062,16 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 			// this is complicated by the fact that we don't know what the correct game state is so we let the players vote
 			// put the players into bins based on their game state
 
-			map<uint32_t,vector<unsigned char>> Bins;
+			map<uint32_t, vector<unsigned char> > Bins;
 
 			for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
 				Bins[(*j)->GetCheckSums( )->front( )].push_back( (*j)->GetPID( ) );
 
 			uint32_t StateNumber = 1;
-			map<uint32_t,vector<unsigned char>> :: iterator LargestBin = Bins.begin( );
+			map<uint32_t, vector<unsigned char> > :: iterator LargestBin = Bins.begin( );
 			bool Tied = false;
 
-			for( map<uint32_t,vector<unsigned char>> :: iterator j = Bins.begin( ); j != Bins.end( ); j++ )
+			for( map<uint32_t, vector<unsigned char> > :: iterator j = Bins.begin( ); j != Bins.end( ); j++ )
 			{
 				if( (*j).second.size( ) > (*LargestBin).second.size( ) )
 				{
@@ -2110,7 +2110,7 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 			}
 			else
 			{
-				for( map<uint32_t,vector<unsigned char>> :: iterator j = Bins.begin( ); j != Bins.end( ); j++ )
+				for( map<uint32_t, vector<unsigned char> > :: iterator j = Bins.begin( ); j != Bins.end( ); j++ )
 				{
 					if( (*j).first != (*LargestBin).first )
 					{
