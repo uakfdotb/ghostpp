@@ -828,41 +828,56 @@ bool CGHost :: Update( long usecBlock )
 
 	if( !m_AutoHostGameName.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) >= m_LastAutoHostTime + 30 )
 	{
-		string GameName = m_AutoHostGameName + " #" + UTIL_ToString( m_HostCounter );
-
 		// copy all the checks from CGHost :: CreateGame here because we don't want to spam the chat when there's an error
 		// instead we fail silently and try again soon
 
-		if( m_Enabled && GameName.size( ) <= 31 && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames )
+		if( m_Enabled && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames )
 		{
 			if( m_AutoHostMap->GetValid( ) )
 			{
-				CreateGame( m_AutoHostMap, GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
+				string GameName = m_AutoHostGameName + " #" + UTIL_ToString( m_HostCounter );
 
-				if( m_CurrentGame )
+				if( GameName.size( ) <= 31 )
 				{
-					m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );
+					CreateGame( m_AutoHostMap, GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
 
-					if( m_AutoHostMatchMaking )
+					if( m_CurrentGame )
 					{
-						if( !m_Map->GetMapMatchMakingCategory( ).empty( ) )
-						{
-							if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
-								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
-							else if( m_BNETs.size( ) != 1 )
-								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with one battle.net connection, matchmaking disabled" );
-							else
-							{
-								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found, matchmaking enabled" );
+						m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );
 
-								m_CurrentGame->SetMatchMaking( true );
-								m_CurrentGame->SetMinimumScore( m_AutoHostMinimumScore );
-								m_CurrentGame->SetMaximumScore( m_AutoHostMaximumScore );
+						if( m_AutoHostMatchMaking )
+						{
+							if( !m_Map->GetMapMatchMakingCategory( ).empty( ) )
+							{
+								if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
+									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
+								else if( m_BNETs.size( ) != 1 )
+									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with one battle.net connection, matchmaking disabled" );
+								else
+								{
+									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found, matchmaking enabled" );
+
+									m_CurrentGame->SetMatchMaking( true );
+									m_CurrentGame->SetMinimumScore( m_AutoHostMinimumScore );
+									m_CurrentGame->SetMaximumScore( m_AutoHostMaximumScore );
+								}
 							}
+							else
+								CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory not found, matchmaking disabled" );
 						}
-						else
-							CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory not found, matchmaking disabled" );
 					}
+				}
+				else
+				{
+					CONSOLE_Print( "[GHOST] stopped auto hosting, next game name [" + GameName + "] is too long (the maximum is 31 characters)" );
+					m_AutoHostGameName.clear( );
+					m_AutoHostOwner.clear( );
+					m_AutoHostServer.clear( );
+					m_AutoHostMaximumGames = 0;
+					m_AutoHostAutoStartPlayers = 0;
+					m_AutoHostMatchMaking = false;
+					m_AutoHostMinimumScore = 0.0;
+					m_AutoHostMaximumScore = 0.0;
 				}
 			}
 			else
