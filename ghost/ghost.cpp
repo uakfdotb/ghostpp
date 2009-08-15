@@ -36,6 +36,7 @@
 #include "gameprotocol.h"
 #include "game_base.h"
 #include "game.h"
+#include "game_admin.h"
 
 #include <signal.h>
 #include <stdlib.h>
@@ -76,6 +77,7 @@
 #include "gameprotocol.h"
 #include "game_base.h"
 #include "game.h"
+#include "game_admin.h"
 #include "stats.h"
 #include "statsdota.h"
 #include "sqlite3.h"

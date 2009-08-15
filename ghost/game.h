@@ -67,26 +67,4 @@ public:
 	virtual void SaveGameData( );
 };
 
-//
-// CAdminGame
-//
-
-typedef pair<string,uint32_t> TempBan;
-
-class CAdminGame : public CBaseGame
-{
-protected:
-	string m_Password;
-	vector<TempBan> m_TempBans;
-
-public:
-	CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword );
-	virtual ~CAdminGame( );
-
-	virtual bool Update( void *fd, void *send_fd );
-	virtual void SendWelcomeMessage( CGamePlayer *player );
-	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
-	virtual void EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
-};
-
 #endif
