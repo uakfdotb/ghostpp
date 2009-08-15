@@ -25,16 +25,19 @@
 // CAdminGame
 //
 
-class CCallableBanCheck;
-class CCallableBanAdd;
-class CCallableGameAdd;
-class CCallableGamePlayerSummaryCheck;
-class CCallableDotAPlayerSummaryCheck;
+class CCallableAdminCount;
+class CCallableAdminAdd;
+class CCallableAdminRemove;
+class CCallableBanCount;
+// class CCallableBanAdd;
+class CCallableBanRemove;
 
-typedef pair<string,CCallableBanCheck *> PairedBanCheck;
-typedef pair<string,CCallableBanAdd *> PairedBanAdd;
-typedef pair<string,CCallableGamePlayerSummaryCheck *> PairedGPSCheck;
-typedef pair<string,CCallableDotAPlayerSummaryCheck *> PairedDPSCheck;
+typedef pair<string,CCallableAdminCount *> PairedAdminCount;
+typedef pair<string,CCallableAdminAdd *> PairedAdminAdd;
+typedef pair<string,CCallableAdminRemove *> PairedAdminRemove;
+typedef pair<string,CCallableBanCount *> PairedBanCount;
+// typedef pair<string,CCallableBanAdd *> PairedBanAdd;
+typedef pair<string,CCallableBanRemove *> PairedBanRemove;
 
 typedef pair<string,uint32_t> TempBan;
 
@@ -43,6 +46,12 @@ class CAdminGame : public CBaseGame
 protected:
 	string m_Password;
 	vector<TempBan> m_TempBans;
+	vector<PairedAdminCount> m_PairedAdminCounts;	// vector of paired threaded database admin counts in progress
+	vector<PairedAdminAdd> m_PairedAdminAdds;		// vector of paired threaded database admin adds in progress
+	vector<PairedAdminRemove> m_PairedAdminRemoves;	// vector of paired threaded database admin removes in progress
+	vector<PairedBanCount> m_PairedBanCounts;		// vector of paired threaded database ban counts in progress
+	// vector<PairedBanAdd> m_PairedBanAdds;		// vector of paired threaded database ban adds in progress
+	vector<PairedBanRemove> m_PairedBanRemoves;		// vector of paired threaded database ban removes in progress
 
 public:
 	CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword );

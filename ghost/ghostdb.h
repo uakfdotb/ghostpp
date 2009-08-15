@@ -185,6 +185,7 @@ public:
 	CCallableAdminCount( string nServer ) : CBaseCallable( ), m_Server( nServer ), m_Result( 0 ) { }
 	virtual ~CCallableAdminCount( );
 
+	virtual string GetServer( )					{ return m_Server; }
 	virtual uint32_t GetResult( )				{ return m_Result; }
 	virtual void SetResult( uint32_t nResult )	{ m_Result = nResult; }
 };
@@ -264,6 +265,7 @@ public:
 	CCallableBanCount( string nServer ) : CBaseCallable( ), m_Server( nServer ), m_Result( 0 ) { }
 	virtual ~CCallableBanCount( );
 
+	virtual string GetServer( )					{ return m_Server; }
 	virtual uint32_t GetResult( )				{ return m_Result; }
 	virtual void SetResult( uint32_t nResult )	{ m_Result = nResult; }
 };

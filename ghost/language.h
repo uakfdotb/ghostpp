@@ -231,6 +231,7 @@ public:
 	string HasBannedName( string victim );
 	string HasBannedIP( string victim, string ip, string bannedname );
 	string PlayersInGameState( string number, string players );
+	string ValidServers( string servers );
 };
 
 #endif

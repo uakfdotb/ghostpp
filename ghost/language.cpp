@@ -1389,3 +1389,10 @@ string CLanguage :: PlayersInGameState( string number, string players )
 	Replace( Out, "$PLAYERS$", players );
 	return Out;
 }
+
+string CLanguage :: ValidServers( string servers )
+{
+	string Out = m_CFG->GetString( "lang_0196", "lang_0196" );
+	Replace( Out, "$SERVERS$", servers );
+	return Out;
+}
