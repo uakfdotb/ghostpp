@@ -284,9 +284,9 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "Commands: addadmin, autohost, autohostmm, checkadmin" );
 	SendChat( player, "Commands: checkban, countadmins, countbans, deladmin" );
 	SendChat( player, "Commands: delban, disable, downloads, enable, end" );
-	SendChat( player, "Commands: exit, getgame, getgames, hostsg, load" );
-	SendChat( player, "Commands: loadsg, map, password, priv, privby, pub" );
-	SendChat( player, "Commands: pubby, quit, saygame, saygames, unban, unhost" );
+	SendChat( player, "Commands: exit, getgame, getgames, hostsg, load, loadsg" );
+	SendChat( player, "Commands: map, password, priv, privby, pub, pubby" );
+	SendChat( player, "Commands: quit, saygame, saygames, unban, unhost, w" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
@@ -1204,6 +1204,26 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			}
 			else
 				SendChat( player, m_GHost->m_Language->UnableToUnhostGameNoGameInLobby( ) );
+		}
+
+		//
+		// !W
+		//
+
+		if( Command == "w" && !Payload.empty( ) )
+		{
+			string Name;
+			string Message;
+			string :: size_type MessageStart = Payload.find( " " );
+
+			if( MessageStart != string :: npos )
+			{
+				Name = Payload.substr( 0, MessageStart );
+				Message = Payload.substr( MessageStart + 1 );
+
+				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+					(*i)->QueueChatCommand( Message, Name, true );
+			}
 		}
 	}
 	else
