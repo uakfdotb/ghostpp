@@ -34,7 +34,6 @@
 #include "savegame.h"
 #include "gameprotocol.h"
 #include "game_base.h"
-#include "game_admin.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
@@ -923,16 +922,12 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		if( Event == CBNETProtocol :: EID_WHISPER )
 		{
 			CONSOLE_Print( "[WHISPER: " + m_ServerAlias + "] [" + User + "] " + Message );
-
-			if( m_GHost->m_AdminGame )
-				m_GHost->m_AdminGame->SendAdminChat( "[W: " + m_ServerAlias + "] [" + User + "] " + Message );
+			m_GHost->EventBNETWhisper( this, User, Message );
 		}
 		else
 		{
 			CONSOLE_Print( "[LOCAL: " + m_ServerAlias + "] [" + User + "] " + Message );
-
-			if( m_GHost->m_AdminGame )
-				m_GHost->m_AdminGame->SendAdminChat( "[L: " + m_ServerAlias + "] [" + User + "] " + Message );
+			m_GHost->EventBNETChat( this, User, Message );
 		}
 
 		// handle spoof checking for current game
@@ -2173,9 +2168,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 	else if( Event == CBNETProtocol :: EID_EMOTE )
 	{
 		CONSOLE_Print( "[EMOTE: " + m_ServerAlias + "] [" + User + "] " + Message );
-
-		if( m_GHost->m_AdminGame )
-			m_GHost->m_AdminGame->SendAdminChat( "[E: " + m_ServerAlias + "] [" + User + "] " + Message );
+		m_GHost->EventBNETEmote( this, User, Message );
 	}
 }
 

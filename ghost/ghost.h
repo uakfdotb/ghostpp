@@ -180,6 +180,9 @@ public:
 	void EventBNETGameRefreshed( CBNET *bnet );
 	void EventBNETGameRefreshFailed( CBNET *bnet );
 	void EventBNETConnectTimedOut( CBNET *bnet );
+	void EventBNETWhisper( CBNET *bnet, string user, string message );
+	void EventBNETChat( CBNET *bnet, string user, string message );
+	void EventBNETEmote( CBNET *bnet, string user, string message );
 	void EventGameDeleted( CBaseGame *game );
 
 	// other functions

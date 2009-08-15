@@ -985,6 +985,24 @@ void CGHost :: EventBNETConnectTimedOut( CBNET *bnet )
 		m_CurrentGame->SendAllChat( m_Language->ConnectingToBNETTimedOut( bnet->GetServer( ) ) );
 }
 
+void CGHost :: EventBNETWhisper( CBNET *bnet, string user, string message )
+{
+	if( m_AdminGame )
+		m_AdminGame->SendAdminChat( "[W: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
+}
+
+void CGHost :: EventBNETChat( CBNET *bnet, string user, string message )
+{
+	if( m_AdminGame )
+		m_AdminGame->SendAdminChat( "[L: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
+}
+
+void CGHost :: EventBNETEmote( CBNET *bnet, string user, string message )
+{
+	if( m_AdminGame )
+		m_AdminGame->SendAdminChat( "[E: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
+}
+
 void CGHost :: EventGameDeleted( CBaseGame *game )
 {
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )

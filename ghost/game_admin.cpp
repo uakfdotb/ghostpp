@@ -1212,6 +1212,9 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 		if( Command == "w" && !Payload.empty( ) )
 		{
+			// extract the name and the message
+			// e.g. "Varlock hello there!" -> name: "Varlock", message: "hello there!"
+
 			string Name;
 			string Message;
 			string :: size_type MessageStart = Payload.find( " " );
