@@ -83,6 +83,7 @@ private:
 	bool m_Exiting;									// set to true and this class will be deleted next update
 	string m_Server;								// battle.net server to connect to
 	string m_ServerIP;								// battle.net server to connect to (the IP address so we don't have to resolve it every time we connect)
+	string m_ServerAlias;							// battle.net server alias (short name, e.g. "USEast")
 	string m_BNLSServer;							// BNLS server to connect to (for warden handling)
 	uint16_t m_BNLSPort;							// BNLS port
 	uint32_t m_BNLSWardenCookie;					// BNLS warden cookie
@@ -115,11 +116,12 @@ private:
 	bool m_PublicCommands;							// whether to allow public commands or not
 
 public:
-	CBNET( CGHost *nGHost, string nServer, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength );
+	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength );
 	~CBNET( );
 
 	bool GetExiting( )					{ return m_Exiting; }
 	string GetServer( )					{ return m_Server; }
+	string GetServerAlias( )			{ return m_ServerAlias; }
 	string GetCDKeyROC( )				{ return m_CDKeyROC; }
 	string GetCDKeyTFT( )				{ return m_CDKeyTFT; }
 	string GetUserName( )				{ return m_UserName; }

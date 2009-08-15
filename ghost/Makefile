@@ -52,7 +52,7 @@ $(COBJS): %.o: %.c
 all: $(PROGS)
 
 bncsutilinterface.o: ghost.h util.h bncsutilinterface.h
-bnet.o: ghost.h util.h config.h language.h socket.h commandpacket.h ghostdb.h bncsutilinterface.h bnlsclient.h bnetprotocol.h bnet.h map.h packed.h savegame.h gameprotocol.h game.h
+bnet.o: ghost.h util.h config.h language.h socket.h commandpacket.h ghostdb.h bncsutilinterface.h bnlsclient.h bnetprotocol.h bnet.h map.h packed.h savegame.h gameprotocol.h game_base.h game_admin.h
 bnetprotocol.o: ghost.h util.h bnetprotocol.h
 bnlsclient.o: ghost.h util.h socket.h commandpacket.h bnlsprotocol.h bnlsclient.h
 bnlsprotocol.o: ghost.h util.h bnlsprotocol.h

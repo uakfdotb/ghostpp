@@ -268,6 +268,15 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 	return CBaseGame :: Update( fd, send_fd );
 }
 
+void CAdminGame :: SendAdminChat( string message )
+{
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		if( (*i)->GetLoggedIn( ) )
+			SendChat( *i, message );
+	}
+}
+
 void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 {
 	SendChat( player, "GHost++ Admin Game                    http://forum.codelain.com/" );

@@ -467,6 +467,7 @@ CGHost :: CGHost( CConfig *CFG )
 			Prefix = "bnet" + UTIL_ToString( i ) + "_";
 
 		string Server = CFG->GetString( Prefix + "server", string( ) );
+		string ServerAlias = CFG->GetString( Prefix + "serveralias", string( ) );
 		string CDKeyROC = CFG->GetString( Prefix + "cdkeyroc", string( ) );
 		string CDKeyTFT = CFG->GetString( Prefix + "cdkeytft", string( ) );
 		string CountryAbbrev = CFG->GetString( Prefix + "countryabbrev", "USA" );
@@ -520,7 +521,7 @@ CGHost :: CGHost( CConfig *CFG )
 		}
 
 		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
-		m_BNETs.push_back( new CBNET( this, Server, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, MaxMessageLength ) );
+		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, MaxMessageLength ) );
 	}
 
 	if( m_BNETs.empty( ) )

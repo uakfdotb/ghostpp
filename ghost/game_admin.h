@@ -58,6 +58,7 @@ public:
 	virtual ~CAdminGame( );
 
 	virtual bool Update( void *fd, void *send_fd );
+	virtual void SendAdminChat( string message );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
 	virtual void EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
