@@ -32,8 +32,10 @@ uint32_t UTIL_ByteArrayToUInt32( BYTEARRAY b, bool reverse, unsigned int start =
 string UTIL_ByteArrayToDecString( BYTEARRAY b );
 string UTIL_ByteArrayToHexString( BYTEARRAY b );
 void UTIL_AppendByteArray( BYTEARRAY &b, BYTEARRAY append );
+void UTIL_AppendByteArrayFast( BYTEARRAY &b, BYTEARRAY &append );
 void UTIL_AppendByteArray( BYTEARRAY &b, unsigned char *a, int size );
 void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator = true );
+void UTIL_AppendByteArrayFast( BYTEARRAY &b, string &append, bool terminator = true );
 void UTIL_AppendByteArray( BYTEARRAY &b, uint16_t i, bool reverse );
 void UTIL_AppendByteArray( BYTEARRAY &b, uint32_t i, bool reverse );
 BYTEARRAY UTIL_ExtractCString( BYTEARRAY &b, unsigned int start );

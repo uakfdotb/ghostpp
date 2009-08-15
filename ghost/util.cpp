@@ -25,15 +25,10 @@
 
 BYTEARRAY UTIL_CreateByteArray( unsigned char *a, int size )
 {
-	// todotodo: this should *still* be optimized - meaning that these horrific BYTEARRAYS should be completely eliminated from the project
+	if( size < 1 )
+		return BYTEARRAY( );
 
-	BYTEARRAY result;
-	result.reserve( size );
-
-	for( int i = 0; i < size; i++ )
-		result.push_back( a[i] );
-
-	return result;
+	return BYTEARRAY( a, a + size );
 }
 
 BYTEARRAY UTIL_CreateByteArray( unsigned char c )
@@ -129,12 +124,27 @@ void UTIL_AppendByteArray( BYTEARRAY &b, BYTEARRAY append )
 	b.insert( b.end( ), append.begin( ), append.end( ) );
 }
 
+void UTIL_AppendByteArrayFast( BYTEARRAY &b, BYTEARRAY &append )
+{
+	b.insert( b.end( ), append.begin( ), append.end( ) );
+}
+
 void UTIL_AppendByteArray( BYTEARRAY &b, unsigned char *a, int size )
 {
 	UTIL_AppendByteArray( b, UTIL_CreateByteArray( a, size ) );
 }
 
 void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator )
+{
+	// append the string plus a null terminator
+
+	b.insert( b.end( ), append.begin( ), append.end( ) );
+
+	if( terminator )
+		b.push_back( 0 );
+}
+
+void UTIL_AppendByteArrayFast( BYTEARRAY &b, string &append, bool terminator )
 {
 	// append the string plus a null terminator
 

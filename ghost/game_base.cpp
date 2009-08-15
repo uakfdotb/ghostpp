@@ -2034,7 +2034,7 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 
 	// check for players saving the game and notify everyone
 
-	if( !action->GetAction( ).empty( ) && action->GetAction( )[0] == 6 )
+	if( !action->GetAction( )->empty( ) && (*action->GetAction( ))[0] == 6 )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] is saving the game" );
 		SendAllChat( m_GHost->m_Language->PlayerIsSavingTheGame( player->GetName( ) ) );

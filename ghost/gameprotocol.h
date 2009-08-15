@@ -184,7 +184,7 @@ public:
 
 	unsigned char GetPID( )	{ return m_PID; }
 	BYTEARRAY GetCRC( )		{ return m_CRC; }
-	BYTEARRAY GetAction( )	{ return m_Action; }
+	BYTEARRAY *GetAction( )	{ return &m_Action; }
 	uint32_t GetLength( )	{ return m_Action.size( ) + 3; }
 };
 

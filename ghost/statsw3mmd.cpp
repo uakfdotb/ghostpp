@@ -47,7 +47,7 @@ CStatsW3MMD :: ~CStatsW3MMD( )
 bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 {
 	unsigned int i = 0;
-	BYTEARRAY ActionData = Action->GetAction( );
+	BYTEARRAY ActionData = *Action->GetAction( );
 	BYTEARRAY MissionKey;
 	BYTEARRAY Key;
 	BYTEARRAY Value;

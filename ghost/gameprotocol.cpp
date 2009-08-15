@@ -316,12 +316,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY 
 		packet.push_back( 0 );														// packet length will be assigned later
 		packet.push_back( 0 );														// packet length will be assigned later
 		UTIL_AppendByteArray( packet, (uint16_t)SlotInfo.size( ), false );			// SlotInfo length
-		UTIL_AppendByteArray( packet, SlotInfo );									// SlotInfo
+		UTIL_AppendByteArrayFast( packet, SlotInfo );								// SlotInfo
 		packet.push_back( PID );													// PID
 		packet.push_back( 2 );														// AF_INET
 		packet.push_back( 0 );														// AF_INET continued...
 		UTIL_AppendByteArray( packet, port );										// port
-		UTIL_AppendByteArray( packet, externalIP );									// external IP
+		UTIL_AppendByteArrayFast( packet, externalIP );								// external IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );									// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );									// ???
 		AssignLength( packet );
@@ -363,21 +363,21 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, string name,
 		packet.push_back( 0 );												// packet length will be assigned later
 		UTIL_AppendByteArray( packet, PlayerJoinCounter, 4 );				// player join counter
 		packet.push_back( PID );											// PID
-		UTIL_AppendByteArray( packet, name );								// player name
+		UTIL_AppendByteArrayFast( packet, name );							// player name
 		packet.push_back( 1 );												// ???
 		packet.push_back( 0 );												// ???
 		packet.push_back( 2 );												// AF_INET
 		packet.push_back( 0 );												// AF_INET continued...
 		packet.push_back( 0 );												// port
 		packet.push_back( 0 );												// port continued...
-		UTIL_AppendByteArray( packet, externalIP );							// external IP
+		UTIL_AppendByteArrayFast( packet, externalIP );						// external IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		packet.push_back( 2 );												// AF_INET
 		packet.push_back( 0 );												// AF_INET continued...
 		packet.push_back( 0 );												// port
 		packet.push_back( 0 );												// port continued...
-		UTIL_AppendByteArray( packet, internalIP );							// internal IP
+		UTIL_AppendByteArrayFast( packet, internalIP );						// internal IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		AssignLength( packet );
@@ -442,7 +442,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, uint32_
 	packet.push_back( 0 );														// packet length will be assigned later
 	packet.push_back( 0 );														// packet length will be assigned later
 	UTIL_AppendByteArray( packet, (uint16_t)SlotInfo.size( ), false );			// SlotInfo length
-	UTIL_AppendByteArray( packet, SlotInfo );									// SlotInfo
+	UTIL_AppendByteArrayFast( packet, SlotInfo );								// SlotInfo
 	AssignLength( packet );
 	// DEBUG_Print( "SENT W3GS_SLOTINFO" );
 	// DEBUG_Print( packet );
@@ -494,10 +494,9 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> a
 		{
 			CIncomingAction *Action = actions.front( );
 			actions.pop( );
-			BYTEARRAY ActionData = Action->GetAction( );
 			subpacket.push_back( Action->GetPID( ) );
-			UTIL_AppendByteArray( subpacket, (uint16_t)ActionData.size( ), false );
-			UTIL_AppendByteArray( subpacket, ActionData );
+			UTIL_AppendByteArray( subpacket, (uint16_t)Action->GetAction( )->size( ), false );
+			UTIL_AppendByteArrayFast( subpacket, *Action->GetAction( ) );
 		}
 
 		// calculate crc (we only care about the first 2 bytes though)
@@ -507,8 +506,8 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> a
 
 		// finish subpacket
 
-		UTIL_AppendByteArray( packet, crc32 );					// crc
-		UTIL_AppendByteArray( packet, subpacket );				// subpacket
+		UTIL_AppendByteArrayFast( packet, crc32 );			// crc
+		UTIL_AppendByteArrayFast( packet, subpacket );		// subpacket
 	}
 
 	AssignLength( packet );
@@ -523,16 +522,16 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTE
 
 	if( !toPIDs.empty( ) && !message.empty( ) && message.size( ) < 255 )
 	{
-		packet.push_back( W3GS_HEADER_CONSTANT );	// W3GS header constant
-		packet.push_back( W3GS_CHAT_FROM_HOST );	// W3GS_CHAT_FROM_HOST
-		packet.push_back( 0 );						// packet length will be assigned later
-		packet.push_back( 0 );						// packet length will be assigned later
-		packet.push_back( toPIDs.size( ) );			// number of receivers
-		UTIL_AppendByteArray( packet, toPIDs );		// receivers
-		packet.push_back( fromPID );				// sender
-		packet.push_back( flag );					// flag
-		UTIL_AppendByteArray( packet, flagExtra );	// extra flag
-		UTIL_AppendByteArray( packet, message );	// message
+		packet.push_back( W3GS_HEADER_CONSTANT );		// W3GS header constant
+		packet.push_back( W3GS_CHAT_FROM_HOST );		// W3GS_CHAT_FROM_HOST
+		packet.push_back( 0 );							// packet length will be assigned later
+		packet.push_back( 0 );							// packet length will be assigned later
+		packet.push_back( toPIDs.size( ) );				// number of receivers
+		UTIL_AppendByteArrayFast( packet, toPIDs );		// receivers
+		packet.push_back( fromPID );					// sender
+		packet.push_back( flag );						// flag
+		UTIL_AppendByteArrayFast( packet, flagExtra );	// extra flag
+		UTIL_AppendByteArrayFast( packet, message );	// message
 		AssignLength( packet );
 	}
 	else
@@ -655,13 +654,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char war3Version, BYTEAR
 		// make the stat string
 
 		BYTEARRAY StatString;
-		UTIL_AppendByteArray( StatString, mapFlags );
+		UTIL_AppendByteArrayFast( StatString, mapFlags );
 		StatString.push_back( 0 );
-		UTIL_AppendByteArray( StatString, mapWidth );
-		UTIL_AppendByteArray( StatString, mapHeight );
-		UTIL_AppendByteArray( StatString, mapCRC );
-		UTIL_AppendByteArray( StatString, mapPath );
-		UTIL_AppendByteArray( StatString, hostName );
+		UTIL_AppendByteArrayFast( StatString, mapWidth );
+		UTIL_AppendByteArrayFast( StatString, mapHeight );
+		UTIL_AppendByteArrayFast( StatString, mapCRC );
+		UTIL_AppendByteArrayFast( StatString, mapPath );
+		UTIL_AppendByteArrayFast( StatString, hostName );
 		StatString.push_back( 0 );
 		StatString = UTIL_EncodeStatString( StatString );
 
@@ -675,12 +674,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char war3Version, BYTEAR
 		UTIL_AppendByteArray( packet, Version, 4 );						// Version
 		UTIL_AppendByteArray( packet, hostCounter, false );				// Host Counter
 		UTIL_AppendByteArray( packet, Unknown1, 4 );					// ??? (this varies wildly even between two identical games created one after another)
-		UTIL_AppendByteArray( packet, gameName );						// Game Name
+		UTIL_AppendByteArrayFast( packet, gameName );					// Game Name
 		packet.push_back( 0 );											// ??? (maybe game password)
-		UTIL_AppendByteArray( packet, StatString );						// Stat String
+		UTIL_AppendByteArrayFast( packet, StatString );					// Stat String
 		packet.push_back( 0 );											// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)
 		UTIL_AppendByteArray( packet, slotsTotal, false );				// Slots Total
-		UTIL_AppendByteArray( packet, mapGameType );					// Game Type
+		UTIL_AppendByteArrayFast( packet, mapGameType );				// Game Type
 		UTIL_AppendByteArray( packet, Unknown2, 4 );					// ???
 		UTIL_AppendByteArray( packet, slotsOpen, false );				// Slots Open
 		UTIL_AppendByteArray( packet, upTime, false );					// time since creation
@@ -762,11 +761,11 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize
 		packet.push_back( 0 );							// packet length will be assigned later
 		packet.push_back( 0 );							// packet length will be assigned later
 		UTIL_AppendByteArray( packet, Unknown, 4 );		// ???
-		UTIL_AppendByteArray( packet, mapPath );		// map path
-		UTIL_AppendByteArray( packet, mapSize );		// map size
-		UTIL_AppendByteArray( packet, mapInfo );		// map info
-		UTIL_AppendByteArray( packet, mapCRC );			// map crc
-		UTIL_AppendByteArray( packet, mapSHA1 );		// map sha1
+		UTIL_AppendByteArrayFast( packet, mapPath );	// map path
+		UTIL_AppendByteArrayFast( packet, mapSize );	// map size
+		UTIL_AppendByteArrayFast( packet, mapInfo );	// map info
+		UTIL_AppendByteArrayFast( packet, mapCRC );		// map crc
+		UTIL_AppendByteArrayFast( packet, mapSHA1 );	// map sha1
 		AssignLength( packet );
 	}
 	else
@@ -821,12 +820,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_MAPPART( unsigned char fromPID, unsigned ch
 		// calculate crc
 
 		BYTEARRAY crc32 = UTIL_CreateByteArray( m_GHost->m_CRC->FullCRC( (unsigned char *)mapData->c_str( ) + start, End - start ), false );
-		UTIL_AppendByteArray( packet, crc32 );
+		UTIL_AppendByteArrayFast( packet, crc32 );
 
 		// map data
 
 		BYTEARRAY Data = UTIL_CreateByteArray( (unsigned char *)mapData->c_str( ) + start, End - start );
-		UTIL_AppendByteArray( packet, Data );
+		UTIL_AppendByteArrayFast( packet, Data );
 		AssignLength( packet );
 	}
 	else
@@ -857,10 +856,9 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION2( queue<CIncomingAction *> 
 		{
 			CIncomingAction *Action = actions.front( );
 			actions.pop( );
-			BYTEARRAY ActionData = Action->GetAction( );
 			subpacket.push_back( Action->GetPID( ) );
-			UTIL_AppendByteArray( subpacket, (uint16_t)ActionData.size( ), false );
-			UTIL_AppendByteArray( subpacket, ActionData );
+			UTIL_AppendByteArray( subpacket, (uint16_t)Action->GetAction( )->size( ), false );
+			UTIL_AppendByteArrayFast( subpacket, *Action->GetAction( ) );
 		}
 
 		// calculate crc (we only care about the first 2 bytes though)
@@ -870,8 +868,8 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION2( queue<CIncomingAction *> 
 
 		// finish subpacket
 
-		UTIL_AppendByteArray( packet, crc32 );					// crc
-		UTIL_AppendByteArray( packet, subpacket );				// subpacket
+		UTIL_AppendByteArrayFast( packet, crc32 );			// crc
+		UTIL_AppendByteArrayFast( packet, subpacket );		// subpacket
 	}
 
 	AssignLength( packet );

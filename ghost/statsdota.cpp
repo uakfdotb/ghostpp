@@ -55,7 +55,7 @@ CStatsDOTA :: ~CStatsDOTA( )
 bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 {
 	unsigned int i = 0;
-	BYTEARRAY ActionData = Action->GetAction( );
+	BYTEARRAY ActionData = *Action->GetAction( );
 	BYTEARRAY Data;
 	BYTEARRAY Key;
 	BYTEARRAY Value;

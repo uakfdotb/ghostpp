@@ -526,7 +526,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_GETADVLISTEX( string gameName )
 	UTIL_AppendByteArray( packet, MapFilter2, 4 );		// Map Filter
 	UTIL_AppendByteArray( packet, MapFilter3, 4 );		// Map Filter
 	UTIL_AppendByteArray( packet, NumGames, 4 );		// maximum number of games to list
-	UTIL_AppendByteArray( packet, gameName );			// Game Name
+	UTIL_AppendByteArrayFast( packet, gameName );		// Game Name
 	packet.push_back( 0 );								// Game Password is NULL
 	packet.push_back( 0 );								// Game Stats is NULL
 	AssignLength( packet );
@@ -566,7 +566,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_JOINCHANNEL( string channel )
 	else
 		UTIL_AppendByteArray( packet, FirstJoin, 4 );		// flags for first join
 
-	UTIL_AppendByteArray( packet, channel );
+	UTIL_AppendByteArrayFast( packet, channel );
 	AssignLength( packet );
 	// DEBUG_Print( "SENT SID_JOINCHANNEL" );
 	// DEBUG_Print( packet );
@@ -576,11 +576,11 @@ BYTEARRAY CBNETProtocol :: SEND_SID_JOINCHANNEL( string channel )
 BYTEARRAY CBNETProtocol :: SEND_SID_CHATCOMMAND( string command )
 {
 	BYTEARRAY packet;
-	packet.push_back( BNET_HEADER_CONSTANT );	// BNET header constant
-	packet.push_back( SID_CHATCOMMAND );		// SID_CHATCOMMAND
-	packet.push_back( 0 );						// packet length will be assigned later
-	packet.push_back( 0 );						// packet length will be assigned later
-	UTIL_AppendByteArray( packet, command );	// Message
+	packet.push_back( BNET_HEADER_CONSTANT );		// BNET header constant
+	packet.push_back( SID_CHATCOMMAND );			// SID_CHATCOMMAND
+	packet.push_back( 0 );							// packet length will be assigned later
+	packet.push_back( 0 );							// packet length will be assigned later
+	UTIL_AppendByteArrayFast( packet, command );	// Message
 	AssignLength( packet );
 	// DEBUG_Print( "SENT SID_CHATCOMMAND" );
 	// DEBUG_Print( packet );
@@ -649,39 +649,39 @@ Flags:
 	// make the stat string
 
 	BYTEARRAY StatString;
-	UTIL_AppendByteArray( StatString, mapFlags );
+	UTIL_AppendByteArrayFast( StatString, mapFlags );
 	StatString.push_back( 0 );
-	UTIL_AppendByteArray( StatString, mapWidth );
-	UTIL_AppendByteArray( StatString, mapHeight );
-	UTIL_AppendByteArray( StatString, mapCRC );
-	UTIL_AppendByteArray( StatString, mapPath );
-	UTIL_AppendByteArray( StatString, hostName );
+	UTIL_AppendByteArrayFast( StatString, mapWidth );
+	UTIL_AppendByteArrayFast( StatString, mapHeight );
+	UTIL_AppendByteArrayFast( StatString, mapCRC );
+	UTIL_AppendByteArrayFast( StatString, mapPath );
+	UTIL_AppendByteArrayFast( StatString, hostName );
 	StatString.push_back( 0 );
-	UTIL_AppendByteArray( StatString, mapSHA1 );
+	UTIL_AppendByteArrayFast( StatString, mapSHA1 );
 	StatString = UTIL_EncodeStatString( StatString );
 
 	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 && mapSHA1.size( ) == 20 && StatString.size( ) < 128 && HostCounterString.size( ) == 8 )
 	{
 		// make the rest of the packet
 
-		packet.push_back( BNET_HEADER_CONSTANT );					// BNET header constant
-		packet.push_back( SID_STARTADVEX3 );						// SID_STARTADVEX3
-		packet.push_back( 0 );										// packet length will be assigned later
-		packet.push_back( 0 );										// packet length will be assigned later
-		packet.push_back( state );									// State (16 = public, 17 = private, 18 = close)
-		packet.push_back( 0 );										// State continued...
-		packet.push_back( 0 );										// State continued...
-		packet.push_back( 0 );										// State continued...
-		UTIL_AppendByteArray( packet, upTime, false );				// time since creation
-		UTIL_AppendByteArray( packet, mapGameType );				// Game Type, Parameter
-		UTIL_AppendByteArray( packet, Unknown, 4 );					// ???
-		UTIL_AppendByteArray( packet, CustomGame, 4 );				// Custom Game
-		UTIL_AppendByteArray( packet, gameName );					// Game Name
-		packet.push_back( 0 );										// Game Password is NULL
-		packet.push_back( 98 );										// Slots Free (ascii 98 = char 'b' = 11 slots free) - note: do not reduce this as this is the # of PID's Warcraft III will allocate
-		UTIL_AppendByteArray( packet, HostCounterString, false );	// Host Counter
-		UTIL_AppendByteArray( packet, StatString );					// Stat String
-		packet.push_back( 0 );										// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)
+		packet.push_back( BNET_HEADER_CONSTANT );						// BNET header constant
+		packet.push_back( SID_STARTADVEX3 );							// SID_STARTADVEX3
+		packet.push_back( 0 );											// packet length will be assigned later
+		packet.push_back( 0 );											// packet length will be assigned later
+		packet.push_back( state );										// State (16 = public, 17 = private, 18 = close)
+		packet.push_back( 0 );											// State continued...
+		packet.push_back( 0 );											// State continued...
+		packet.push_back( 0 );											// State continued...
+		UTIL_AppendByteArray( packet, upTime, false );					// time since creation
+		UTIL_AppendByteArrayFast( packet, mapGameType );				// Game Type, Parameter
+		UTIL_AppendByteArray( packet, Unknown, 4 );						// ???
+		UTIL_AppendByteArray( packet, CustomGame, 4 );					// Custom Game
+		UTIL_AppendByteArrayFast( packet, gameName );					// Game Name
+		packet.push_back( 0 );											// Game Password is NULL
+		packet.push_back( 98 );											// Slots Free (ascii 98 = char 'b' = 11 slots free) - note: do not reduce this as this is the # of PID's Warcraft III will allocate
+		UTIL_AppendByteArrayFast( packet, HostCounterString, false );	// Host Counter
+		UTIL_AppendByteArrayFast( packet, StatString );					// Stat String
+		packet.push_back( 0 );											// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)
 		AssignLength( packet );
 	}
 	else
@@ -704,7 +704,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_NOTIFYJOIN( string gameName )
 	packet.push_back( 0 );								// packet length will be assigned later
 	UTIL_AppendByteArray( packet, ProductID, 4 );		// Product ID
 	UTIL_AppendByteArray( packet, ProductVersion, 4 );	// Product Version
-	UTIL_AppendByteArray( packet, gameName );			// Game Name
+	UTIL_AppendByteArrayFast( packet, gameName );		// Game Name
 	packet.push_back( 0 );								// Game Password is NULL
 	AssignLength( packet );
 	// DEBUG_Print( "SENT SID_NOTIFYJOIN" );
@@ -718,11 +718,11 @@ BYTEARRAY CBNETProtocol :: SEND_SID_PING( BYTEARRAY pingValue )
 
 	if( pingValue.size( ) == 4 )
 	{
-		packet.push_back( BNET_HEADER_CONSTANT );	// BNET header constant
-		packet.push_back( SID_PING );				// SID_PING
-		packet.push_back( 0 );						// packet length will be assigned later
-		packet.push_back( 0 );						// packet length will be assigned later
-		UTIL_AppendByteArray( packet, pingValue );	// Ping Value
+		packet.push_back( BNET_HEADER_CONSTANT );		// BNET header constant
+		packet.push_back( SID_PING );					// SID_PING
+		packet.push_back( 0 );							// packet length will be assigned later
+		packet.push_back( 0 );							// packet length will be assigned later
+		UTIL_AppendByteArrayFast( packet, pingValue );	// Ping Value
 		AssignLength( packet );
 	}
 	else
@@ -738,14 +738,14 @@ BYTEARRAY CBNETProtocol :: SEND_SID_LOGONRESPONSE( BYTEARRAY clientToken, BYTEAR
 	// todotodo: check that the passed BYTEARRAY sizes are correct (don't know what they should be right now so I can't do this today)
 
 	BYTEARRAY packet;
-	packet.push_back( BNET_HEADER_CONSTANT );		// BNET header constant
-	packet.push_back( SID_LOGONRESPONSE );			// SID_LOGONRESPONSE
-	packet.push_back( 0 );							// packet length will be assigned later
-	packet.push_back( 0 );							// packet length will be assigned later
-	UTIL_AppendByteArray( packet, clientToken );	// Client Token
-	UTIL_AppendByteArray( packet, serverToken );	// Server Token
-	UTIL_AppendByteArray( packet, passwordHash );	// Password Hash
-	UTIL_AppendByteArray( packet, accountName );	// Account Name
+	packet.push_back( BNET_HEADER_CONSTANT );			// BNET header constant
+	packet.push_back( SID_LOGONRESPONSE );				// SID_LOGONRESPONSE
+	packet.push_back( 0 );								// packet length will be assigned later
+	packet.push_back( 0 );								// packet length will be assigned later
+	UTIL_AppendByteArrayFast( packet, clientToken );	// Client Token
+	UTIL_AppendByteArrayFast( packet, serverToken );	// Server Token
+	UTIL_AppendByteArrayFast( packet, passwordHash );	// Password Hash
+	UTIL_AppendByteArrayFast( packet, accountName );	// Account Name
 	AssignLength( packet );
 	// DEBUG_Print( "SENT SID_LOGONRESPONSE" );
 	// DEBUG_Print( packet );
@@ -792,8 +792,8 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, string country
 	UTIL_AppendByteArray( packet, TimeZoneBias, 4 );	// Time Zone Bias
 	UTIL_AppendByteArray( packet, LocaleID, 4 );		// Locale ID
 	UTIL_AppendByteArray( packet, LanguageID, 4 );		// Language ID
-	UTIL_AppendByteArray( packet, countryAbbrev );		// Country Abbreviation
-	UTIL_AppendByteArray( packet, country );			// Country
+	UTIL_AppendByteArrayFast( packet, countryAbbrev );	// Country Abbreviation
+	UTIL_AppendByteArrayFast( packet, country );		// Country
 	AssignLength( packet );
 	// DEBUG_Print( "SENT SID_AUTH_INFO" );
 	// DEBUG_Print( packet );
@@ -813,15 +813,15 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_CHECK( BYTEARRAY clientToken, BYTEARRAY
 		packet.push_back( SID_AUTH_CHECK );					// SID_AUTH_CHECK
 		packet.push_back( 0 );								// packet length will be assigned later
 		packet.push_back( 0 );								// packet length will be assigned later
-		UTIL_AppendByteArray( packet, clientToken );		// Client Token
-		UTIL_AppendByteArray( packet, exeVersion );			// EXE Version
-		UTIL_AppendByteArray( packet, exeVersionHash );		// EXE Version Hash
+		UTIL_AppendByteArrayFast( packet, clientToken );	// Client Token
+		UTIL_AppendByteArrayFast( packet, exeVersion );		// EXE Version
+		UTIL_AppendByteArrayFast( packet, exeVersionHash );	// EXE Version Hash
 		UTIL_AppendByteArray( packet, NumKeys, 4 );			// number of keys in this packet
 		UTIL_AppendByteArray( packet, UsingSpawn, 4 );		// boolean Using Spawn (32 bit)
-		UTIL_AppendByteArray( packet, keyInfoROC );			// ROC Key Info
-		UTIL_AppendByteArray( packet, keyInfoTFT );			// TFT Key Info
-		UTIL_AppendByteArray( packet, exeInfo );			// EXE Info
-		UTIL_AppendByteArray( packet, keyOwnerName );		// CD Key Owner Name
+		UTIL_AppendByteArrayFast( packet, keyInfoROC );		// ROC Key Info
+		UTIL_AppendByteArrayFast( packet, keyInfoTFT );		// TFT Key Info
+		UTIL_AppendByteArrayFast( packet, exeInfo );		// EXE Info
+		UTIL_AppendByteArrayFast( packet, keyOwnerName );	// CD Key Owner Name
 		AssignLength( packet );
 	}
 	else
@@ -838,12 +838,12 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_ACCOUNTLOGON( BYTEARRAY clientPublicKey
 
 	if( clientPublicKey.size( ) == 32 )
 	{
-		packet.push_back( BNET_HEADER_CONSTANT );			// BNET header constant
-		packet.push_back( SID_AUTH_ACCOUNTLOGON );			// SID_AUTH_ACCOUNTLOGON
-		packet.push_back( 0 );								// packet length will be assigned later
-		packet.push_back( 0 );								// packet length will be assigned later
-		UTIL_AppendByteArray( packet, clientPublicKey );	// Client Key
-		UTIL_AppendByteArray( packet, accountName );		// Account Name
+		packet.push_back( BNET_HEADER_CONSTANT );				// BNET header constant
+		packet.push_back( SID_AUTH_ACCOUNTLOGON );				// SID_AUTH_ACCOUNTLOGON
+		packet.push_back( 0 );									// packet length will be assigned later
+		packet.push_back( 0 );									// packet length will be assigned later
+		UTIL_AppendByteArrayFast( packet, clientPublicKey );	// Client Key
+		UTIL_AppendByteArrayFast( packet, accountName );		// Account Name
 		AssignLength( packet );
 	}
 	else
@@ -860,11 +860,11 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY clientPass
 
 	if( clientPasswordProof.size( ) == 20 )
 	{
-		packet.push_back( BNET_HEADER_CONSTANT );				// BNET header constant
-		packet.push_back( SID_AUTH_ACCOUNTLOGONPROOF );			// SID_AUTH_ACCOUNTLOGONPROOF
-		packet.push_back( 0 );									// packet length will be assigned later
-		packet.push_back( 0 );									// packet length will be assigned later
-		UTIL_AppendByteArray( packet, clientPasswordProof );	// Client Password Proof
+		packet.push_back( BNET_HEADER_CONSTANT );					// BNET header constant
+		packet.push_back( SID_AUTH_ACCOUNTLOGONPROOF );				// SID_AUTH_ACCOUNTLOGONPROOF
+		packet.push_back( 0 );										// packet length will be assigned later
+		packet.push_back( 0 );										// packet length will be assigned later
+		UTIL_AppendByteArrayFast( packet, clientPasswordProof );	// Client Password Proof
 		AssignLength( packet );
 	}
 	else
@@ -878,11 +878,11 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY clientPass
 BYTEARRAY CBNETProtocol :: SEND_SID_WARDEN( BYTEARRAY wardenResponse )
 {
 	BYTEARRAY packet;
-	packet.push_back( BNET_HEADER_CONSTANT );		// BNET header constant
-	packet.push_back( SID_WARDEN );					// SID_WARDEN
-	packet.push_back( 0 );							// packet length will be assigned later
-	packet.push_back( 0 );							// packet length will be assigned later
-	UTIL_AppendByteArray( packet, wardenResponse );	// warden response
+	packet.push_back( BNET_HEADER_CONSTANT );			// BNET header constant
+	packet.push_back( SID_WARDEN );						// SID_WARDEN
+	packet.push_back( 0 );								// packet length will be assigned later
+	packet.push_back( 0 );								// packet length will be assigned later
+	UTIL_AppendByteArrayFast( packet, wardenResponse );	// warden response
 	AssignLength( packet );
 	// DEBUG_Print( "SENT SID_WARDEN" );
 	// DEBUG_Print( packet );
