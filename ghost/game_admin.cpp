@@ -285,8 +285,8 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "Commands: checkban, countadmins, countbans, deladmin" );
 	SendChat( player, "Commands: delban, disable, downloads, enable, end" );
 	SendChat( player, "Commands: exit, getgame, getgames, hostsg, load, loadsg" );
-	SendChat( player, "Commands: map, password, priv, privby, pub, pubby" );
-	SendChat( player, "Commands: quit, saygame, saygames, unban, unhost, w" );
+	SendChat( player, "Commands: map, password, priv, privby, pub, pubby, quit" );
+	SendChat( player, "Commands: say, saygame, saygames, unban, unhost, w" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
@@ -1134,6 +1134,16 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				GameName = Payload.substr( GameNameStart + 1 );
 				m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, User, string( ), false );
 			}
+		}
+
+		//
+		// !SAY
+		//
+
+		if( Command == "say" && !Payload.empty( ) )
+		{
+			for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+				(*i)->QueueChatCommand( Payload );
 		}
 
 		//
