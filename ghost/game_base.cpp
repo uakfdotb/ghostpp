@@ -2213,9 +2213,6 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					Relay = false;
 			}
 
-			if( Relay )
-				Send( chatPlayer->GetToPIDs( ), m_Protocol->SEND_W3GS_CHAT_FROM_HOST( chatPlayer->GetFromPID( ), chatPlayer->GetToPIDs( ), chatPlayer->GetFlag( ), chatPlayer->GetExtraFlags( ), chatPlayer->GetMessage( ) ) );
-
 			// handle bot commands
 
 			string Message = chatPlayer->GetMessage( );
@@ -2238,8 +2235,16 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					Command = Message.substr( 1 );
 
 				transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
-				EventPlayerBotCommand( player, Command, Payload );
+
+				// don't allow EventPlayerBotCommand to veto a previous instruction to set Relay to false
+				// so if Relay is already false (e.g. because the player is muted) then it cannot be forced back to true here
+
+				if( EventPlayerBotCommand( player, Command, Payload ) )
+					Relay = false;
 			}
+
+			if( Relay )
+				Send( chatPlayer->GetToPIDs( ), m_Protocol->SEND_W3GS_CHAT_FROM_HOST( chatPlayer->GetFromPID( ), chatPlayer->GetToPIDs( ), chatPlayer->GetFlag( ), chatPlayer->GetExtraFlags( ), chatPlayer->GetMessage( ) ) );
 		}
 		else if( chatPlayer->GetType( ) == CIncomingChatPlayer :: CTH_TEAMCHANGE && !m_CountDownStarted )
 			EventPlayerChangeTeam( player, chatPlayer->GetByte( ) );
@@ -2252,9 +2257,11 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 	}
 }
 
-void CBaseGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
+bool CBaseGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
 {
+	// return true if the command itself should be hidden from other players
 
+	return false;
 }
 
 void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team )

@@ -61,7 +61,7 @@ public:
 	virtual void SendAdminChat( string message );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
-	virtual void EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
+	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
 };
 
 #endif

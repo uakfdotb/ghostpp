@@ -341,9 +341,9 @@ void CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 	}
 }
 
-void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
+bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
 {
-	CBaseGame :: EventPlayerBotCommand( player, command, payload );
+	bool HideCommand = CBaseGame :: EventPlayerBotCommand( player, command, payload );
 
 	// todotodo: don't be lazy
 
@@ -1598,6 +1598,31 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				m_KickVotePlayer.clear( );
 				m_StartedKickVoteTime = 0;
 			}
+
+			//
+			// !W
+			//
+
+			if( Command == "w" && !Payload.empty( ) )
+			{
+				// extract the name and the message
+				// e.g. "Varlock hello there!" -> name: "Varlock", message: "hello there!"
+
+				string Name;
+				string Message;
+				string :: size_type MessageStart = Payload.find( " " );
+
+				if( MessageStart != string :: npos )
+				{
+					Name = Payload.substr( 0, MessageStart );
+					Message = Payload.substr( MessageStart + 1 );
+
+					for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+						(*i)->QueueChatCommand( Message, Name, true );
+				}
+
+				HideCommand = true;
+			}
 		}
 		else
 		{
@@ -1759,6 +1784,8 @@ void CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		else
 			SendAllChat( m_GHost->m_Language->VoteKickAcceptedNeedMoreVotes( m_KickVotePlayer, User, UTIL_ToString( VotesNeeded - Votes ) ) );
 	}
+
+	return HideCommand;
 }
 
 void CGame :: EventGameStarted( )

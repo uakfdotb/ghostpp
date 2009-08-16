@@ -318,7 +318,7 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 	CBaseGame :: EventPlayerJoined( potential, joinPlayer );
 }
 
-void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
+bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
 {
 	CBaseGame :: EventPlayerBotCommand( player, command, payload );
 
@@ -1266,4 +1266,10 @@ void CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			}
 		}
 	}
+
+	// always hide chat commands from other players in the admin game
+	// note: this is actually redundant because we've already set m_MuteLobby = true so this has no effect
+	// if you actually wanted to relay chat commands you would have to set m_MuteLobby = false AND return false here
+
+	return true;
 }

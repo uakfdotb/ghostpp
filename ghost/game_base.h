@@ -197,7 +197,7 @@ public:
 	virtual void EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
 	virtual void EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum );
 	virtual void EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlayer *chatPlayer );
-	virtual void EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
+	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
 	virtual void EventPlayerChangeTeam( CGamePlayer *player, unsigned char team );
 	virtual void EventPlayerChangeColour( CGamePlayer *player, unsigned char colour );
 	virtual void EventPlayerChangeRace( CGamePlayer *player, unsigned char race );
