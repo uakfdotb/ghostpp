@@ -234,6 +234,7 @@ public:
 	string ValidServers( string servers );
 	string TeamCombinedScore( string team, string score );
 	string BalancingSlotsCompleted( );
+	string PlayerWasKickedForFurthestScore( string name, string score, string average );
 };
 
 #endif

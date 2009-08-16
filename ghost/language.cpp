@@ -1409,3 +1409,12 @@ string CLanguage :: BalancingSlotsCompleted( )
 {
 	return m_CFG->GetString( "lang_0198", "lang_0198" );
 }
+
+string CLanguage :: PlayerWasKickedForFurthestScore( string name, string score, string average )
+{
+	string Out = m_CFG->GetString( "lang_0199", "lang_0199" );
+	Replace( Out, "$NAME$", name );
+	Replace( Out, "$SCORE$", score );
+	Replace( Out, "$AVERAGE$", average );
+	return Out;
+}

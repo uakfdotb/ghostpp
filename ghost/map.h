@@ -71,6 +71,7 @@ private:
 	string m_MapMatchMakingCategory;			// config value: map matchmaking category (for matchmaking)
 	string m_MapStatsW3MMDCategory;				// config value: map stats w3mmd category (for saving w3mmd stats)
 	string m_MapDefaultHCL;						// config value: map default HCL to use (this should really be specified elsewhere and not part of the map config)
+	uint32_t m_MapDefaultPlayerScore;			// config value: map default player score (for matchmaking)
 	string m_MapLocalPath;						// config value: map local path
 	bool m_MapLoadInGame;
 	string m_MapData;							// the map data itself, for sending the map to players
@@ -83,31 +84,32 @@ public:
 	CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile );
 	~CMap( );
 
-	bool GetValid( )					{ return m_Valid; }
-	string GetCFGFile( )				{ return m_CFGFile; }
-	string GetMapPath( )				{ return m_MapPath; }
-	BYTEARRAY GetMapSize( )				{ return m_MapSize; }
-	BYTEARRAY GetMapInfo( )				{ return m_MapInfo; }
-	BYTEARRAY GetMapCRC( )				{ return m_MapCRC; }
-	BYTEARRAY GetMapSHA1( )				{ return m_MapSHA1; }
-	unsigned char GetMapSpeed( )		{ return m_MapSpeed; }
-	unsigned char GetMapVisibility( )	{ return m_MapVisibility; }
-	unsigned char GetMapObservers( )	{ return m_MapObservers; }
-	unsigned char GetMapFlags( )		{ return m_MapFlags; }
+	bool GetValid( )						{ return m_Valid; }
+	string GetCFGFile( )					{ return m_CFGFile; }
+	string GetMapPath( )					{ return m_MapPath; }
+	BYTEARRAY GetMapSize( )					{ return m_MapSize; }
+	BYTEARRAY GetMapInfo( )					{ return m_MapInfo; }
+	BYTEARRAY GetMapCRC( )					{ return m_MapCRC; }
+	BYTEARRAY GetMapSHA1( )					{ return m_MapSHA1; }
+	unsigned char GetMapSpeed( )			{ return m_MapSpeed; }
+	unsigned char GetMapVisibility( )		{ return m_MapVisibility; }
+	unsigned char GetMapObservers( )		{ return m_MapObservers; }
+	unsigned char GetMapFlags( )			{ return m_MapFlags; }
 	BYTEARRAY GetMapGameFlags( );
-	unsigned char GetMapGameType( )		{ return m_MapGameType; }
-	BYTEARRAY GetMapWidth( )			{ return m_MapWidth; }
-	BYTEARRAY GetMapHeight( )			{ return m_MapHeight; }
-	string GetMapType( )				{ return m_MapType; }
-	string GetMapMatchMakingCategory( )	{ return m_MapMatchMakingCategory; }
-	string GetMapStatsW3MMDCategory( )	{ return m_MapStatsW3MMDCategory; }
-	string GetMapDefaultHCL( )			{ return m_MapDefaultHCL; }
-	string GetMapLocalPath( )			{ return m_MapLocalPath; }
-	bool GetMapLoadInGame( )			{ return m_MapLoadInGame; }
-	string *GetMapData( )				{ return &m_MapData; }
-	uint32_t GetMapNumPlayers( )		{ return m_MapNumPlayers; }
-	uint32_t GetMapNumTeams( )			{ return m_MapNumTeams; }
-	vector<CGameSlot> GetSlots( )		{ return m_Slots; }
+	unsigned char GetMapGameType( )			{ return m_MapGameType; }
+	BYTEARRAY GetMapWidth( )				{ return m_MapWidth; }
+	BYTEARRAY GetMapHeight( )				{ return m_MapHeight; }
+	string GetMapType( )					{ return m_MapType; }
+	string GetMapMatchMakingCategory( )		{ return m_MapMatchMakingCategory; }
+	string GetMapStatsW3MMDCategory( )		{ return m_MapStatsW3MMDCategory; }
+	string GetMapDefaultHCL( )				{ return m_MapDefaultHCL; }
+	uint32_t GetMapDefaultPlayerScore( )	{ return m_MapDefaultPlayerScore; }
+	string GetMapLocalPath( )				{ return m_MapLocalPath; }
+	bool GetMapLoadInGame( )				{ return m_MapLoadInGame; }
+	string *GetMapData( )					{ return &m_MapData; }
+	uint32_t GetMapNumPlayers( )			{ return m_MapNumPlayers; }
+	uint32_t GetMapNumTeams( )				{ return m_MapNumTeams; }
+	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
 
 	void Load( CConfig *CFG, string nCFGFile );
 	void CheckValid( );

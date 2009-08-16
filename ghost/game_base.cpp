@@ -1833,9 +1833,9 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 		FurthestPlayer->SetLeftMessageSent( true );
 
 		if( FurthestPlayer->GetScore( ) < -99999.0 )
-			SendAllChat( "Player [" + FurthestPlayer->GetName( ) + "] was kicked for having the furthest rating [N/A] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+			SendAllChat( m_GHost->m_Language->PlayerWasKickedForFurthestScore( FurthestPlayer->GetName( ), "N/A", UTIL_ToString( AverageScore, 2 ) ) );
 		else
-			SendAllChat( "Player [" + FurthestPlayer->GetName( ) + "] was kicked for having the furthest rating [" + UTIL_ToString( FurthestPlayer->GetScore( ), 2 ) + "] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+			SendAllChat( m_GHost->m_Language->PlayerWasKickedForFurthestScore( FurthestPlayer->GetName( ), UTIL_ToString( FurthestPlayer->GetScore( ), 2 ), UTIL_ToString( AverageScore, 2 ) ) );
 	}
 
 	if( SID >= m_Slots.size( ) )
@@ -3474,12 +3474,11 @@ void CBaseGame :: BalanceSlots( )
 				if( Team < 12 )
 				{
 					// we are forced to use a default score because there's no way to balance the teams otherwise
-					// todotodo: this needs to be configurable rather than defaulting to 1000
 
 					double Score = (*i)->GetScore( );
 
 					if( Score < -99999.0 )
-						Score = 1000.0;
+						Score = m_Map->GetMapDefaultPlayerScore( );
 
 					PlayerIDs.push_back( PID );
 					TeamSizes[Team]++;
@@ -3590,7 +3589,7 @@ void CBaseGame :: BalanceSlots( )
 				double Score = (*j)->GetScore( );
 
 				if( Score < -99999.0 )
-					Score = 1000.0;
+					Score = m_Map->GetMapDefaultPlayerScore( );
 
 				TeamScore += Score;
 			}
