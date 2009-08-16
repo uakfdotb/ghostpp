@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 14.3
+GHost++ Version 14.4
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
@@ -31,6 +31,7 @@ The program itself runs in console mode and does not take any console input (it 
 ***You need to edit ghost.cfg before running GHost++***
 
 GHost++ takes one command line argument, the name of the main config file. It defaults to ghost.cfg if no arguments are provided.
+Note: If you are using Windows and ghost.cfg looks like an unreadable mess you should try to open it with Wordpad instead of Notepad (or some other text editor).
 
 ==============
 Required Files
@@ -213,14 +214,16 @@ This feature will only be activated when the admin game is enabled.
 When the bot receives a battle.net whisper it will send it to all logged in users in the admin game as "[W: Realm] [User] Message".
 When the bot receives a battle.net chat message it will send it to all logged in users in the admin game as "[L: Realm] [User] Message".
 When the bot receives a battle.net emote it will send it to all logged in users in the admin game as "[E: Realm] [User] Message".
+If you find these messages too annoying you can turn them off in a regular game by using "!messages off" and back on by using "!messages on".
 Additionally, if you are the game owner and you are connecting to the bot from a local or LAN IP address the bot will send you the same messages in game lobbies and in games.
-You can use the bot's battle.net account to respond to messages with the !w command.
+You can use the bot's battle.net account to respond to messages with the !w command or the !say command.
 In the admin game, in game lobbies, and in games, you can type "!w <name> <message>" to force the bot to send a whisper to <name> on ALL connected battle.net realms.
 This means that it's possible someone using the same name as your friend but on a different realm will see your message.
 Unfortunately the bot must send your message to all realms because it doesn't know which realm you want the message to be sent to.
 You can avoid problems with this by configuring your bot to only connect to a single battle.net realm.
 Note that when you use the !w command the bot will hide your message from the other players in the game lobby and in the game.
 Be careful not to mistype the command or it will be relayed to other players!
+The !say command works the same as the !w command except it doesn't require a player name (it's used for sending chat messages instead of whispers).
 
 ================================
 Using GHost++ on Multiple Realms
@@ -498,6 +501,7 @@ To use automatic matchmaking there are several requirements:
 2.) You can only use automatic matchmaking with custom (e.g. non-melee) maps.
 3.) You can only use automatic matchmaking with a single battle.net connection. You cannot use GHost++'s multirealm feature with automatic matchmaking.
 4.) You must specify the "map_matchmakingcategory" value in your map config file.
+5.) You must specify the "map_defaultplayerscore" value in your map config file (this is used when balancing the teams).
 
 Here's how it works:
 
@@ -509,7 +513,8 @@ Here's how it works:
 4.) If the game is full the player with the "furthest" score from the average (computed by absolute value) is kicked from the game.
  a.) The kicked player can be the new player if they have the furthest score.
  b.) A player without a score is considered to have the furthest score and will always be kicked in favour of a player with a score.
- c.) The teams will be automatically rebalanced (note: at the time of this writing the rebalancing code just shuffles the slots).
+ c.) The teams will be automatically rebalanced. For the purpose of balancing, players with no score are considered to have the map_defaultplayerscore.
+ d.) Note: The team balancing algorithm cannot be used for 4 teams of 3 players as it is too slow in this case.
 
 Note that GHost++ does not contain a default scoring algorithm.
 This means that automatic matchmaking DOES NOT work "out of the box".
@@ -706,6 +711,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !kick <name>            kick a player (it tries to do a partial match)
 !latency <number>       set game latency (50-500), leave blank to see current latency
 !lock                   lock the game so only the game owner can run commands
+!messages <on/off>      enable or disable local admin messages for this game (battle.net messages relayed to local admins in game)
 !mute <name>            mute a player (it tries to do a partial match)
 !open <number> ...      open slot
 !openall                open all closed slots
@@ -714,6 +720,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !priv <name>            rehost as private game
 !pub <name>             rehost as public game
 !refresh <on/off>       enable or disable refresh messages
+!say <text>             send <text> to all connected battle.net realms as a chat command (this command is HIDDEN from other players)
 !sendlan <ip> [port]    send a fake LAN message to IP address <ip> and port [port], default port is 6112 if not specified
 !sp                     shuffle players
 !start [force]          start game, optionally add [force] to skip checks
@@ -746,10 +753,12 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !kick <name>            kick a player (it tries to do a partial match)
 !latency <number>       set game latency (50-500), leave blank to see current latency
 !lock                   lock the game so only the game owner can run commands
+!messages <on/off>      enable or disable local admin messages for this game (battle.net messages relayed to local admins in game)
 !mute <name>            mute a player (it tries to do a partial match)
 !muteall                mute global chat (allied and private chat still works)
 !owner [name]           set game owner to yourself, optionally add [name] to set game owner to someone else
 !ping                   ping players
+!say <text>             send <text> to all connected battle.net realms as a chat command (this command is HIDDEN from other players)
 !stats [name]           display basic player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
 !statsdota [name]       display DotA player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
 !synclimit <number>     set sync limit for the lag screen (10-10000), leave blank to see current sync limit
@@ -790,6 +799,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force|nice]              alias to !exit
+!say <text>                     send <text> to all connected battle.net realms as a chat command
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
 !unban <name>                   alias to !delban

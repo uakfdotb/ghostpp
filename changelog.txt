@@ -2,6 +2,22 @@
 GHost++ Changelog
 =================
 
+Version 14.4
+ - implemented the team balancing algorithm when using !autohostmm
+  * the algorithm cannot be used with 4 teams of 3 players as it is too slow in this case
+  * this code has not been tested and should be considered experimental for now
+ - added new map config value map_defaultplayerscore
+ - the default player score is used for balancing unrated players when using !autohostmm
+ - added a previously hardcoded message when using !autohostmm to language.cfg
+ - added new command !messages to game lobbies and in game
+ - added new command !say to the admin game
+ - added new command !say to game lobbies and in game (this command is HIDDEN from other players)
+ - optimized parsing of dota and w3mmd stats while the game is running
+ - removed warden responses from the battle.net packet queue (they are now sent immediately)
+  * this should result in fewer disconnects from battle.net and a slightly more responsive bot
+ - added a colour terminator to coloured player names when printing !ping and !from responses
+ - fixed a crash bug when a desync was detected (introduced in version 14.3)
+
 Version 14.3
  - players joining the game from a local IP address are now considered spoof checked automatically
  - added support for configuring the replay version and build number
