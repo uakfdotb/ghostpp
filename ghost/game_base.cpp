@@ -1170,13 +1170,18 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 	{
 		// default welcome message
 
+		if( m_HCLCommandString.empty( ) )
+			SendChat( player, " " );
+
 		SendChat( player, " " );
 		SendChat( player, " " );
 		SendChat( player, " " );
 		SendChat( player, "GHost++                                        http://forum.codelain.com/" );
 		SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 		SendChat( player, "     Game Name:                 " + m_GameName );
-		SendChat( player, "     HCL Command String:  " + m_HCLCommandString );
+
+		if( !m_HCLCommandString.empty( ) )
+			SendChat( player, "     HCL Command String:  " + m_HCLCommandString );
 	}
 	else
 	{
