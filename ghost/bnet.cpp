@@ -482,7 +482,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 				BYTEARRAY WardenResponse = m_BNLSClient->GetWardenResponse( );
 
 				if( !WardenResponse.empty( ) )
-					m_OutPackets.push( m_Protocol->SEND_SID_WARDEN( WardenResponse ) );
+					m_Socket->PutBytes( m_Protocol->SEND_SID_WARDEN( WardenResponse ) );
 			}
 		}
 
