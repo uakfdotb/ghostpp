@@ -47,34 +47,34 @@ CStatsW3MMD :: ~CStatsW3MMD( )
 bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 {
 	unsigned int i = 0;
-	BYTEARRAY ActionData = *Action->GetAction( );
+	BYTEARRAY *ActionData = Action->GetAction( );
 	BYTEARRAY MissionKey;
 	BYTEARRAY Key;
 	BYTEARRAY Value;
 
-	while( ActionData.size( ) >= i + 9 )
+	while( ActionData->size( ) >= i + 9 )
 	{
-		if( ActionData[i] == 'k' &&
-			ActionData[i + 1] == 'M' &&
-			ActionData[i + 2] == 'M' &&
-			ActionData[i + 3] == 'D' &&
-			ActionData[i + 4] == '.' &&
-			ActionData[i + 5] == 'D' &&
-			ActionData[i + 6] == 'a' &&
-			ActionData[i + 7] == 't' &&
-			ActionData[i + 8] == 0x00 )
+		if( (*ActionData)[i] == 'k' &&
+			(*ActionData)[i + 1] == 'M' &&
+			(*ActionData)[i + 2] == 'M' &&
+			(*ActionData)[i + 3] == 'D' &&
+			(*ActionData)[i + 4] == '.' &&
+			(*ActionData)[i + 5] == 'D' &&
+			(*ActionData)[i + 6] == 'a' &&
+			(*ActionData)[i + 7] == 't' &&
+			(*ActionData)[i + 8] == 0x00 )
 		{
-			if( ActionData.size( ) >= i + 10 )
+			if( ActionData->size( ) >= i + 10 )
 			{
-				MissionKey = UTIL_ExtractCString( ActionData, i + 9 );
+				MissionKey = UTIL_ExtractCString( *ActionData, i + 9 );
 
-				if( ActionData.size( ) >= i + 11 + MissionKey.size( ) )
+				if( ActionData->size( ) >= i + 11 + MissionKey.size( ) )
 				{
-					Key = UTIL_ExtractCString( ActionData, i + 10 + MissionKey.size( ) );
+					Key = UTIL_ExtractCString( *ActionData, i + 10 + MissionKey.size( ) );
 
-					if( ActionData.size( ) >= i + 15 + MissionKey.size( ) + Key.size( ) )
+					if( ActionData->size( ) >= i + 15 + MissionKey.size( ) + Key.size( ) )
 					{
-						Value = BYTEARRAY( ActionData.begin( ) + i + 11 + MissionKey.size( ) + Key.size( ), ActionData.begin( ) + i + 15 + MissionKey.size( ) + Key.size( ) );
+						Value = BYTEARRAY( ActionData->begin( ) + i + 11 + MissionKey.size( ) + Key.size( ), ActionData->begin( ) + i + 15 + MissionKey.size( ) + Key.size( ) );
 						string MissionKeyString = string( MissionKey.begin( ), MissionKey.end( ) );
 						string KeyString = string( Key.begin( ), Key.end( ) );
 						uint32_t ValueInt = UTIL_ByteArrayToUInt32( Value, false );
