@@ -77,4 +77,11 @@ BYTEARRAY UTIL_DecodeStatString( BYTEARRAY &data );
 bool UTIL_IsLanIP( BYTEARRAY ip );
 bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs );
 
+// math
+
+uint32_t UTIL_Factorial( uint32_t x );
+
+#define nCr(n, r) (UTIL_Factorial(n) / UTIL_Factorial((n)-(r)) / UTIL_Factorial(r))
+#define nPr(n, r) (UTIL_Factorial(n) / UTIL_Factorial((n)-(r)))
+
 #endif

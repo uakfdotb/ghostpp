@@ -1396,3 +1396,16 @@ string CLanguage :: ValidServers( string servers )
 	Replace( Out, "$SERVERS$", servers );
 	return Out;
 }
+
+string CLanguage :: TeamCombinedScore( string team, string score )
+{
+	string Out = m_CFG->GetString( "lang_0197", "lang_0197" );
+	Replace( Out, "$TEAM$", team );
+	Replace( Out, "$SCORE$", score );
+	return Out;
+}
+
+string CLanguage :: BalancingSlotsCompleted( )
+{
+	return m_CFG->GetString( "lang_0198", "lang_0198" );
+}

@@ -554,6 +554,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\next_combination.h"
+				>
+			</File>
+			<File
 				RelativePath=".\packed.h"
 				>
 			</File>

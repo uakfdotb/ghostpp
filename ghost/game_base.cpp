@@ -37,6 +37,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "next_combination.h"
+
 //
 // CBaseGame
 //
@@ -2105,7 +2107,7 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 					LargestBin = j;
 					Tied = false;
 				}
-				else if( (*j).second.size( ) == (*LargestBin).second.size( ) )
+				else if( j != LargestBin && (*j).second.size( ) == (*LargestBin).second.size( ) )
 					Tied = true;
 
 				string Players;
@@ -3355,11 +3357,247 @@ void CBaseGame :: ShuffleSlots( )
 	SendAllSlotInfo( );
 }
 
+vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> PlayerIDs, unsigned char *TeamSizes, double *PlayerScores, unsigned char StartTeam )
+{
+	// take a brute force approach to finding the best balance by iterating through every possible combination of players
+	// 1.) since the number of teams is arbitrary this algorithm must be recursive
+	// 2.) on the first recursion step every possible combination of players into two "teams" is checked, where the first team is the correct size and the second team contains everyone else
+	// 3.) on the next recursion step every possible combination of the remaining players into two more "teams" is checked, continuing until all the actual teams are accounted for
+	// 4.) for every possible combination, check the largest difference in total scores between any two actual teams
+	// 5.) minimize this value by choosing the combination of players with the smallest difference
+
+	vector<unsigned char> BestOrdering = PlayerIDs;
+	double BestDifference = -1.0;
+
+	for( unsigned char i = StartTeam; i < 12; i++ )
+	{
+		if( TeamSizes[i] > 0 )
+		{
+			unsigned char Mid = TeamSizes[i];
+
+			// the base case where only one actual team worth of players was passed to this function is handled by the behaviour of next_combination
+			// in this case PlayerIDs.begin( ) + Mid will actually be equal to PlayerIDs.end( ) and next_combination will return false
+
+			while( next_combination( PlayerIDs.begin( ), PlayerIDs.begin( ) + Mid, PlayerIDs.end( ) ) )
+			{
+				// we're splitting the players into every possible combination of two "teams" based on the midpoint Mid
+				// the first (left) team contains the correct number of players but the second (right) "team" might or might not
+				// for example, it could contain one, two, or more actual teams worth of players
+				// so recurse using the second "team" as the full set of players to perform the balancing on
+
+				vector<unsigned char> BestSubOrdering = BalanceSlotsRecursive( vector<unsigned char>( PlayerIDs.begin( ) + Mid, PlayerIDs.end( ) ), TeamSizes, PlayerScores, i + 1 );
+
+				// BestSubOrdering now contains the best ordering of all the remaining players (the "right team") given this particular combination of players into two "teams"
+				// in order to calculate the largest difference in total scores we need to recombine the subordering with the first team
+
+				vector<unsigned char> TestOrdering = vector<unsigned char>( PlayerIDs.begin( ), PlayerIDs.begin( ) + Mid );
+				TestOrdering.insert( TestOrdering.end( ), BestSubOrdering.begin( ), BestSubOrdering.end( ) );
+
+				// now calculate the team scores for all the teams that we know about (e.g. on subsequent recursion steps this will NOT be every possible team)
+
+				vector<unsigned char> :: iterator CurrentPID = TestOrdering.begin( );
+				double TeamScores[12];
+
+				for( unsigned char j = StartTeam; j < 12; j++ )
+				{
+					TeamScores[j] = 0.0;
+
+					for( unsigned char k = 0; k < TeamSizes[j]; k++ )
+					{
+						TeamScores[j] += PlayerScores[*CurrentPID];
+						CurrentPID++;
+					}
+				}
+
+				// find the largest difference in total scores between any two teams
+
+				double LargestDifference = 0.0;
+
+				for( unsigned char j = StartTeam; j < 12; j++ )
+				{
+					if( TeamSizes[j] > 0 )
+					{
+						for( unsigned char k = j + 1; k < 12; k++ )
+						{
+							if( TeamSizes[k] > 0 )
+							{
+								double Difference = abs( TeamScores[j] - TeamScores[k] );
+
+								if( Difference > LargestDifference )
+									LargestDifference = Difference;
+							}
+						}
+					}
+				}
+
+				// and minimize it
+
+				if( BestDifference < 0.0 || LargestDifference < BestDifference )
+				{
+					BestOrdering = TestOrdering;
+					BestDifference = LargestDifference;
+				}
+			}
+		}
+	}
+
+	return BestOrdering;
+}
+
 void CBaseGame :: BalanceSlots( )
 {
-	// todotodo: this isn't a very good balancing algorithm :)
+	if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] error balancing slots - can't balance slots in non custom games" );
+		return;
+	}
 
-	ShuffleSlots( );
+	// setup the necessary variables for the balancing algorithm
+
+	vector<unsigned char> PlayerIDs;
+	unsigned char TeamSizes[12];
+	double PlayerScores[13];
+	memset( TeamSizes, 0, sizeof( unsigned char ) * 12 );
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		unsigned char PID = (*i)->GetPID( );
+
+		if( PID < 13 )
+		{
+			unsigned char SID = GetSIDFromPID( PID );
+
+			if( SID < m_Slots.size( ) )
+			{
+				unsigned char Team = m_Slots[SID].GetTeam( );
+
+				if( Team < 12 )
+				{
+					// we are forced to use a default score because there's no way to balance the teams otherwise
+					// todotodo: this needs to be configurable rather than defaulting to 1000
+
+					double Score = (*i)->GetScore( );
+
+					if( Score < -99999.0 )
+						Score = 1000.0;
+
+					PlayerIDs.push_back( PID );
+					TeamSizes[Team]++;
+					PlayerScores[PID] = Score;
+				}
+			}
+		}
+	}
+
+	sort( PlayerIDs.begin( ), PlayerIDs.end( ) );
+
+	// balancing the teams is a variation of the bin packing problem which is NP
+	// we can have up to 12 players and/or teams so the scope of the problem is sometimes small enough to process quickly
+	// let's try to figure out roughly how much work this is going to take
+	// examples:
+	//  2 teams of 4 =     70 ~    5ms *** ok
+	//  2 teams of 5 =    252 ~    5ms *** ok
+	//  2 teams of 6 =    924 ~   20ms *** ok
+	//  3 teams of 2 =     90 ~    5ms *** ok
+	//  3 teams of 3 =   1680 ~   25ms *** ok
+	//  3 teams of 4 =  34650 ~  250ms *** will cause a lag spike
+	//  4 teams of 2 =   2520 ~   30ms *** ok
+	//  4 teams of 3 = 369600 ~ 3500ms *** unacceptable
+
+	uint32_t AlgorithmCost = 0;
+	uint32_t PlayersLeft = PlayerIDs.size( );
+
+	for( unsigned char i = 0; i < 12; i++ )
+	{
+		if( TeamSizes[i] > 0 )
+		{
+			if( AlgorithmCost == 0 )
+				AlgorithmCost = nCr( PlayersLeft, TeamSizes[i] );
+			else
+				AlgorithmCost *= nCr( PlayersLeft, TeamSizes[i] );
+
+			PlayersLeft -= TeamSizes[i];
+		}
+	}
+
+	if( AlgorithmCost > 40000 )
+	{
+		// the cost is too high, don't run the algorithm
+		// a possible alternative: stop after enough iterations and/or time has passed
+
+		CONSOLE_Print( "[GAME: " + m_GameName + "] shuffling slots instead of balancing - the algorithm is too slow (with a cost of " + UTIL_ToString( AlgorithmCost ) + ") for this team configuration" );
+		SendAllChat( m_GHost->m_Language->ShufflingPlayers( ) );
+		ShuffleSlots( );
+		return;
+	}
+
+	uint32_t StartTicks = GetTicks( );
+	vector<unsigned char> BestOrdering = BalanceSlotsRecursive( PlayerIDs, TeamSizes, PlayerScores, 0 );
+	uint32_t EndTicks = GetTicks( );
+
+	// the BestOrdering assumes the teams are in slot order although this may not be the case
+	// so put the players on the correct teams regardless of slot order
+
+	vector<unsigned char> :: iterator CurrentPID = BestOrdering.begin( );
+
+	for( unsigned char i = 0; i < 12; i++ )
+	{
+		unsigned char CurrentSlot = 0;
+
+		for( unsigned char j = 0; j < TeamSizes[i]; j++ )
+		{
+			while( CurrentSlot < m_Slots.size( ) && m_Slots[CurrentSlot].GetTeam( ) != i )
+				CurrentSlot++;
+
+			// put the CurrentPID player on team i by swapping them into CurrentSlot
+
+			unsigned char SID1 = CurrentSlot;
+			unsigned char SID2 = GetSIDFromPID( *CurrentPID );
+
+			if( SID1 < m_Slots.size( ) && SID2 < m_Slots.size( ) )
+			{
+				CGameSlot Slot1 = m_Slots[SID1];
+				CGameSlot Slot2 = m_Slots[SID2];
+				m_Slots[SID1] = CGameSlot( Slot2.GetPID( ), Slot2.GetDownloadStatus( ), Slot2.GetSlotStatus( ), Slot2.GetComputer( ), Slot1.GetTeam( ), Slot1.GetColour( ), Slot1.GetRace( ) );
+				m_Slots[SID2] = CGameSlot( Slot1.GetPID( ), Slot1.GetDownloadStatus( ), Slot1.GetSlotStatus( ), Slot1.GetComputer( ), Slot2.GetTeam( ), Slot2.GetColour( ), Slot2.GetRace( ) );
+			}
+			else
+			{
+				CONSOLE_Print( "[GAME: " + m_GameName + "] shuffling slots instead of balancing - the balancing algorithm tried to do an invalid swap (this shouldn't happen)" );
+				SendAllChat( m_GHost->m_Language->ShufflingPlayers( ) );
+				ShuffleSlots( );
+				return;
+			}
+
+			CurrentPID++;
+		}
+	}
+
+	CONSOLE_Print( "[GAME: " + m_GameName + "] balancing slots completed in " + UTIL_ToString( EndTicks - StartTicks ) + "ms (with a cost of " + UTIL_ToString( AlgorithmCost ) + ")" );
+	SendAllChat( m_GHost->m_Language->BalancingSlotsCompleted( ) );
+	SendAllSlotInfo( );
+
+	for( unsigned char i = 0; i < 12; i++ )
+	{
+		double TeamScore = 0.0;
+
+		for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
+		{
+			unsigned char SID = GetSIDFromPID( (*j)->GetPID( ) );
+
+			if( SID < m_Slots.size( ) && m_Slots[SID].GetTeam( ) == i )
+			{
+				double Score = (*j)->GetScore( );
+
+				if( Score < -99999.0 )
+					Score = 1000.0;
+
+				TeamScore += Score;
+			}
+		}
+
+		SendAllChat( m_GHost->m_Language->TeamCombinedScore( UTIL_ToString( i ), UTIL_ToString( TeamScore, 2 ) ) );
+	}
 }
 
 void CBaseGame :: AddToSpoofed( string server, string name, bool sendMessage )

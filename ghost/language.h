@@ -232,6 +232,8 @@ public:
 	string HasBannedIP( string victim, string ip, string bannedname );
 	string PlayersInGameState( string number, string players );
 	string ValidServers( string servers );
+	string TeamCombinedScore( string team, string score );
+	string BalancingSlotsCompleted( );
 };
 
 #endif

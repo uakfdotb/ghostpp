@@ -569,3 +569,13 @@ bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs )
 
 	return false;
 }
+
+uint32_t UTIL_Factorial( uint32_t x )
+{
+	uint32_t Factorial = 1;
+
+	for( uint32_t i = 2; i <= x; i++ )
+		Factorial *= i;
+
+	return Factorial;
+}
