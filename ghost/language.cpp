@@ -1418,3 +1418,13 @@ string CLanguage :: PlayerWasKickedForFurthestScore( string name, string score, 
 	Replace( Out, "$AVERAGE$", average );
 	return Out;
 }
+
+string CLanguage :: LocalAdminMessagesEnabled( )
+{
+	return m_CFG->GetString( "lang_0200", "lang_0200" );
+}
+
+string CLanguage :: LocalAdminMessagesDisabled( )
+{
+	return m_CFG->GetString( "lang_0201", "lang_0201" );
+}

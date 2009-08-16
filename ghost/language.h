@@ -235,6 +235,8 @@ public:
 	string TeamCombinedScore( string team, string score );
 	string BalancingSlotsCompleted( );
 	string PlayerWasKickedForFurthestScore( string name, string score, string average );
+	string LocalAdminMessagesEnabled( );
+	string LocalAdminMessagesDisabled( );
 };
 
 #endif

@@ -109,6 +109,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Lagging = false;
 	m_AutoSave = m_GHost->m_AutoSave;
 	m_MatchMaking = false;
+	m_LocalAdminMessages = true;
 
 	if( m_SaveGame )
 	{
@@ -1044,6 +1045,9 @@ void CBaseGame :: SendAllChat( string message )
 
 void CBaseGame :: SendLocalAdminChat( string message )
 {
+	if( !m_LocalAdminMessages )
+		return;
+
 	// send a message to LAN/local players who are admins
 	// at the time of this writing it is only possible for the game owner to meet this criteria because being an admin requires spoof checking
 	// this is mainly used for relaying battle.net whispers, chat messages, and emotes to these players
