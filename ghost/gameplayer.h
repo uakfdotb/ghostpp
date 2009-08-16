@@ -179,6 +179,7 @@ public:
 	void SetMuted( bool nMuted )											{ m_Muted = nMuted; }
 	void SetLeftMessageSent( bool nLeftMessageSent )						{ m_LeftMessageSent = nLeftMessageSent; }
 
+	string GetNameTerminated( );
 	uint32_t GetPing( bool LCPing );
 
 	// processing functions

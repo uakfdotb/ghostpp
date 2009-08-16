@@ -1013,7 +1013,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				{
 					// we reverse the byte order on the IP because it's stored in network byte order
 
-					Froms += (*i)->GetName( );
+					Froms += (*i)->GetNameTerminated( );
 					Froms += ": (";
 					Froms += m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( (*i)->GetExternalIP( ), true ) );
 					Froms += ")";
@@ -1264,7 +1264,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				for( vector<CGamePlayer *> :: iterator i = SortedPlayers.begin( ); i != SortedPlayers.end( ); i++ )
 				{
-					Pings += (*i)->GetName( );
+					Pings += (*i)->GetNameTerminated( );
 					Pings += ": ";
 
 					if( (*i)->GetNumPings( ) > 0 )
