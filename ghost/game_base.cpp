@@ -1040,6 +1040,21 @@ void CBaseGame :: SendAllChat( string message )
 	SendAllChat( GetHostPID( ), message );
 }
 
+void CBaseGame :: SendLocalAdminChat( string message )
+{
+	// send a message to LAN/local players who are admins
+	// at the time of this writing it is only possible for the game owner to meet this criteria because being an admin requires spoof checking
+	// this is mainly used for relaying battle.net whispers, chat messages, and emotes to these players
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		// make the chat message originate from the recipient since it's not going to be logged to the replay
+
+		if( (*i)->GetSpoofed( ) && IsOwner( (*i)->GetName( ) ) && ( UTIL_IsLanIP( (*i)->GetExternalIP( ) ) || UTIL_IsLocalIP( (*i)->GetExternalIP( ), m_GHost->m_LocalAddresses ) ) )
+			SendChat( (*i)->GetPID( ), *i, message );
+	}
+}
+
 void CBaseGame :: SendAllSlotInfo( )
 {
 	if( !m_GameLoading && !m_GameLoaded )
