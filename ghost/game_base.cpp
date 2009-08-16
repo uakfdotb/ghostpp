@@ -2073,14 +2073,21 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 {
 	// check for desyncs
-
-	uint32_t FirstCheckSum = player->GetCheckSums( )->front( );
+	// however, it's possible that not every player has sent a checksum for this frame yet
+	// first we verify that we have enough checksums to work with otherwise we won't know exactly who desynced
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
 		if( (*i)->GetCheckSums( )->empty( ) )
 			return;
+	}
 
+	// now we check for desyncs since we know that every player has at least one checksum waiting
+
+	uint32_t FirstCheckSum = player->GetCheckSums( )->front( );
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
 		if( !m_Desynced && (*i)->GetCheckSums( )->front( ) != FirstCheckSum )
 		{
 			m_Desynced = true;
