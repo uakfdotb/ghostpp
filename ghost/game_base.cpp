@@ -1048,10 +1048,17 @@ void CBaseGame :: SendLocalAdminChat( string message )
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		// make the chat message originate from the recipient since it's not going to be logged to the replay
-
 		if( (*i)->GetSpoofed( ) && IsOwner( (*i)->GetName( ) ) && ( UTIL_IsLanIP( (*i)->GetExternalIP( ) ) || UTIL_IsLocalIP( (*i)->GetExternalIP( ), m_GHost->m_LocalAddresses ) ) )
-			SendChat( (*i)->GetPID( ), *i, message );
+		{
+			if( m_VirtualHostPID != 255 )
+				SendChat( m_VirtualHostPID, *i, message );
+			else
+			{
+				// make the chat message originate from the recipient since it's not going to be logged to the replay
+
+				SendChat( (*i)->GetPID( ), *i, message );
+			}
+		}
 	}
 }
 
