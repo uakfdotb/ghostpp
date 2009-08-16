@@ -2,6 +2,34 @@
 GHost++ Changelog
 =================
 
+Version 14.3
+ - players joining the game from a local IP address are now considered spoof checked automatically
+ - added support for configuring the replay version and build number
+ - added new config value replay_war3version
+ - added new config value replay_buildnumber
+ - updated default replay version to Warcraft 3 version 1.24
+ - added support for MySQL databases to the admin game
+ - added new command !checkban to the admin game
+ - added new command !countbans to the admin game
+ - added new command !delban/!unban to the admin game
+ - added support for whispering players on battle.net from within the admin game and game lobbies and games when using the admin game
+ - added new command !w to the admin game
+ - added new command !w to the lobby and in game (this command is HIDDEN from other players)
+ - added support for printing battle.net emote messages to the server console
+ - added support for printing battle.net whispers, chat messages, and emotes to the admin game
+ - added support for printing battle.net whispers, chat messages, and emotes to local game owners in the lobby or in game
+ - added new config value bnet*_serveralias
+ - console messages originating from battle.net now use the server alias instead of the server address for identification (this is a cosmetic change only)
+ - added new config value autohost_owner
+ - automatically raised the process priority to "above normal" on startup when running on Windows
+ - major optimizations to some internal data handling (there should be a noticeable reduction in CPU requirements)
+ - printed a message identifying the players in each game state when the game desyncs
+ - printed a message to the console when auto hosting is stopped due to a game name that is too long
+ - the bot's lobby messages are now printed to the console and saved to the log
+ - split the "non-admin sent command" console message into two different messages to make it more obvious when not spoof checking is the problem
+ - blank HCL command strings are no longer included in the welcome message
+ - fixed a bug where it was impossible to use commands on a player when their name was a subset of another player's name
+
 Version 14.2
  - the bot now accepts default maps with or without the ".cfg" extension in ghost.cfg
  - added support for specifying a different admin game map

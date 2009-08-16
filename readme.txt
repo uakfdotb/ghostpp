@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 14.2
+GHost++ Version 14.3
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
@@ -62,6 +62,7 @@ Optimizing Your Bot
 1.) The most common reason for lag in GHost++ games on Windows is due to the way Windows allocates CPU time to programs.
 If you are experiencing extreme lag on Windows, open the task manager (Ctrl+Alt+Delete), find ghost.exe in the process list, and increase the priority by one level.
 Do not set the priority to "realtime" as this does not benefit GHost++ and can cause system instability.
+Note: GHost++ Version 14.3 and newer automatically sets the process priority to "above normal" on startup so this tip is no longer applicable.
 
 2.) The second most common reason is due to the local SQLite database GHost++ uses.
 The local SQLite database GHost++ uses is not intended to be used with large scale bots.
@@ -205,10 +206,21 @@ Now, when you start GHost++:
 8.) You are now ready to play. Your game has been created on the local network and, if configured to do so, on each battle.net server.
 9.) If you make a mistake and want to unhost the game you can use !unhost in either game (the Admin Game or your newly created game).
 
-*** IMPORTANT ***
+Note: MySQL support in the Admin Game was added in GHost++ Version 14.3. Previous versions do not support MySQL database commands in the admin game.
 
-MySQL support has not yet been implemented in the admin game.
-If you are using a MySQL database any commands that modify the database (e.g. adding admins or bans) will not work in the admin game.
+Since Version 14.3 GHost++ can automatically relay battle.net whispers, chat messages, and emotes to you when you use the admin game.
+This feature will only be activated when the admin game is enabled.
+When the bot receives a battle.net whisper it will send it to all logged in users in the admin game as "[W: Realm] [User] Message".
+When the bot receives a battle.net chat message it will send it to all logged in users in the admin game as "[L: Realm] [User] Message".
+When the bot receives a battle.net emote it will send it to all logged in users in the admin game as "[E: Realm] [User] Message".
+Additionally, if you are the game owner and you are connecting to the bot from a local or LAN IP address the bot will send you the same messages in game lobbies and in games.
+You can use the bot's battle.net account to respond to messages with the !w command.
+In the admin game, in game lobbies, and in games, you can type "!w <name> <message>" to force the bot to send a whisper to <name> on ALL connected battle.net realms.
+This means that it's possible someone using the same name as your friend but on a different realm will see your message.
+Unfortunately the bot must send your message to all realms because it doesn't know which realm you want the message to be sent to.
+You can avoid problems with this by configuring your bot to only connect to a single battle.net realm.
+Note that when you use the !w command the bot will hide your message from the other players in the game lobby and in the game.
+Be careful not to mistype the command or it will be relayed to other players!
 
 ================================
 Using GHost++ on Multiple Realms
@@ -220,26 +232,27 @@ Here's how:
 1.) When GHost++ starts up it reads up to 9 sets of battle.net connection information from ghost.cfg.
 2.) A set of battle.net connection information contains the following keys:
  a.) *server (required)
- b.) *cdkeyroc (required)
- c.) *cdkeytft (required)
- d.) *username (required)
- e.) *password (required)
- f.) *firstchannel
- g.) *rootadmin
- h.) *commandtrigger
- i.) *holdfriends
- j.) *holdclan
- k.) *publiccommands
- l.) *bnlsserver
- m.) *bnlsport
- n.) *bnlswardencookie
- o.) *custom_war3version
- p.) *custom_exeversion
- q.) *custom_exeversionhash
- r.) *custom_passwordhashtype
- s.) *custom_maxmessagelength
- t.) *custom_countryabbrev
- u.) *custom_country
+ b.) *serveralias
+ c.) *cdkeyroc (required)
+ d.) *cdkeytft (required)
+ e.) *username (required)
+ f.) *password (required)
+ g.) *firstchannel
+ h.) *rootadmin
+ i.) *commandtrigger
+ j.) *holdfriends
+ k.) *holdclan
+ l.) *publiccommands
+ m.) *bnlsserver
+ n.) *bnlsport
+ o.) *bnlswardencookie
+ p.) *custom_war3version
+ q.) *custom_exeversion
+ r.) *custom_exeversionhash
+ s.) *custom_passwordhashtype
+ t.) *custom_maxmessagelength
+ u.) *custom_countryabbrev
+ v.) *custom_country
 3.) GHost++ will search for battle.net connection information by replacing the "*" in each key above with "bnet_" then "bnet2_" then "bnet3_" and so on until "bnet9_".
  a.) Note that GHost++ doesn't search for "bnet1_" for backwards compatibility reasons.
 4.) If GHost++ doesn't find a *server key it stops searching for any further battle.net connection information.
@@ -611,7 +624,9 @@ Please note that some maps with intro cutscenes do not permit chatting in the fi
 Commands
 ========
 
-In battle.net (via local chat or whisper at any time):
+Parameters in angled brackets <like this> are required and parameters in square brackets [like this] are optional.
+
+*** In battle.net (via local chat or whisper at any time):
 
 !addadmin <name>                add a new admin to the database for this realm
 !addban <name> [reason]         add a new ban to the database for this realm
@@ -659,12 +674,12 @@ In battle.net (via local chat or whisper at any time):
 !stats [name]                   display basic player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
 !statsdota [name]               display DotA player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
 !swap <n1> <n2>                 swap slots
-!unban                          alias to !delban
+!unban <name>                   alias to !delban
 !unhost                         unhost game in lobby
 !version                        display version information (can be used by non admins)
 !wardenstatus                   show warden status information
 
-In game lobby:
+*** In game lobby:
 
 !a                      alias to !abort
 !abort                  abort countdown
@@ -713,9 +728,10 @@ In game lobby:
 !virtualhost <name>     change the virtual host name
 !votecancel             cancel a votekick
 !votekick <name>        start a votekick (it tries to do a partial match, can be used by non admins)
+!w <name> <message>     send a whisper on every connected battle.net realm from the bot's account to the player called <name> (this command is HIDDEN from other players)
 !yes                    register a vote in the votekick (can be used by non admins)
 
-In game:
+*** In game:
 
 !addban <name> <reason> add a new ban to the database (it tries to do a partial match)
 !autosave <on/off>      enable or disable autosaving
@@ -743,16 +759,20 @@ In game:
 !version                display version information (can be used by non admins, sends a private message visible only to the user)
 !votecancel             cancel a votekick
 !votekick <name>        start a votekick (it tries to do a partial match, can be used by non admins)
+!w <name> <message>     send a whisper on every connected battle.net realm from the bot's account to the player called <name> (this command is HIDDEN from other players)
 !yes                    register a vote in the votekick (can be used by non admins)
 
-In admin game lobby:
+*** In admin game lobby:
 
-!addadmin <name> <realm>        add a new admin to the database for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!addadmin <name> [realm]        add a new admin to the database for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
 !autohost <m> <p> <n>           auto host up to <m> games, auto starting when <p> players have joined, with name <n>, use "off" to disable auto hosting
 !autohostmm <m> <p> <a> <b> <n> auto host up to <m> games, auto starting when <p> players have joined, with name <n>, with matchmaking enabled and min score <a>, max score <b>
-!checkadmin <name> <realm>      check if a user is an admin for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
-!countadmins <realm>            display the total number of admins for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
-!deladmin <name> <realm>        remove an admin from the database for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!checkadmin <name> [realm]      check if a user is an admin for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!checkban <name> [realm]        check if a user is banned on the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!countadmins [realm]            display the total number of admins for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!countbans [realm]              display the total number of bans on the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!deladmin <name> [realm]        remove an admin from the database for the specified realm (if only one realm is defined in ghost.cfg it uses that realm instead)
+!delban <name>                  remove a ban from the database for all realms
 !disable                        disable creation of new games
 !downloads <0|1|2>              disable/enable/conditional map downloads
 !enable                         enable creation of new games
@@ -772,7 +792,9 @@ In admin game lobby:
 !quit [force|nice]              alias to !exit
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
-!unhost                         unhost game
+!unban <name>                   alias to !delban
+!unhost                         unhost game in lobby (not the admin game)
+!w <name> <message>             send a whisper on every connected battle.net realm from the bot's account to the player called <name>
 
 ============================
 Compiling GHost++ on Windows
