@@ -266,7 +266,7 @@ string CGamePlayer :: GetNameTerminated( )
 
 	string LowerName = m_Name;
 	transform( LowerName.begin( ), LowerName.end( ), LowerName.begin( ), (int(*)(int))tolower );
-	string :: size_type Start = LowerName.find( "|cff" );
+	string :: size_type Start = LowerName.find( "|c" );
 	string :: size_type End = LowerName.find( "|r" );
 
 	if( Start != string :: npos && ( End == string :: npos || End < Start ) )
