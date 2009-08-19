@@ -3589,6 +3589,7 @@ void CBaseGame :: BalanceSlots( )
 
 	for( unsigned char i = 0; i < 12; i++ )
 	{
+		bool TeamHasPlayers = false;
 		double TeamScore = 0.0;
 
 		for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
@@ -3597,6 +3598,7 @@ void CBaseGame :: BalanceSlots( )
 
 			if( SID < m_Slots.size( ) && m_Slots[SID].GetTeam( ) == i )
 			{
+				TeamHasPlayers = true;
 				double Score = (*j)->GetScore( );
 
 				if( Score < -99999.0 )
@@ -3606,7 +3608,8 @@ void CBaseGame :: BalanceSlots( )
 			}
 		}
 
-		SendAllChat( m_GHost->m_Language->TeamCombinedScore( UTIL_ToString( i ), UTIL_ToString( TeamScore, 2 ) ) );
+		if( TeamHasPlayers )
+			SendAllChat( m_GHost->m_Language->TeamCombinedScore( UTIL_ToString( i + 1 ), UTIL_ToString( TeamScore, 2 ) ) );
 	}
 }
 
