@@ -3580,6 +3580,7 @@ void CBaseGame :: BalanceSlots( )
 			}
 
 			CurrentPID++;
+			CurrentSlot++;
 		}
 	}
 
