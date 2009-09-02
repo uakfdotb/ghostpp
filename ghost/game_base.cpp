@@ -3390,7 +3390,7 @@ void CBaseGame :: ShuffleSlots( )
 
 	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); i++ )
 	{
-		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 )
+		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != 12 )
 			PlayerSlots.push_back( *i );
 	}
 
@@ -3867,7 +3867,7 @@ void CBaseGame :: StartCountDown( bool force )
 
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 			{
-				if( (*i)->GetNumPings( ) < 3 )
+				if( !(*i)->GetReserved( ) && (*i)->GetNumPings( ) < 3 )
 				{
 					if( NotPinged.empty( ) )
 						NotPinged = (*i)->GetName( );
@@ -3980,7 +3980,7 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
-			if( (*i)->GetNumPings( ) < 3 )
+			if( !(*i)->GetReserved( ) && (*i)->GetNumPings( ) < 3 )
 			{
 				if( NotPinged.empty( ) )
 					NotPinged = (*i)->GetName( );
