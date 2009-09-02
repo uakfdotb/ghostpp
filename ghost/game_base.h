@@ -111,7 +111,6 @@ protected:
 	bool m_GameLoading;								// if the game is currently loading or not
 	bool m_GameLoaded;								// if the game has loaded or not
 	bool m_LoadInGame;								// if the load-in-game feature is enabled or not
-	bool m_Desynced;								// if the game has desynced or not
 	bool m_Lagging;									// if the lag screen is active or not
 	bool m_AutoSave;								// if we should auto save the game before someone disconnects
 	bool m_MatchMaking;								// if matchmaking mode is enabled

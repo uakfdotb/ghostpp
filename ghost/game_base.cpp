@@ -105,7 +105,6 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_GameLoading = false;
 	m_GameLoaded = false;
 	m_LoadInGame = m_Map->GetMapLoadInGame( );
-	m_Desynced = false;
 	m_Lagging = false;
 	m_AutoSave = m_GHost->m_AutoSave;
 	m_MatchMaking = false;
@@ -2082,19 +2081,34 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( (*i)->GetCheckSums( )->empty( ) )
+		if( !(*i)->GetDeleteMe( ) && (*i)->GetCheckSums( )->empty( ) )
 			return;
 	}
 
 	// now we check for desyncs since we know that every player has at least one checksum waiting
 
-	uint32_t FirstCheckSum = player->GetCheckSums( )->front( );
+	bool FoundPlayer = false;
+	uint32_t FirstCheckSum = 0;
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( !m_Desynced && (*i)->GetCheckSums( )->front( ) != FirstCheckSum )
+		if( !(*i)->GetDeleteMe( ) )
 		{
-			m_Desynced = true;
+			FoundPlayer = true;
+			FirstCheckSum = (*i)->GetCheckSums( )->front( );
+			break;
+		}
+	}
+
+	if( !FoundPlayer )
+		return;
+
+	bool AddToReplay = true;
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		if( !(*i)->GetDeleteMe( ) && (*i)->GetCheckSums( )->front( ) != FirstCheckSum )
+		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] desync detected" );
 			SendAllChat( m_GHost->m_Language->DesyncDetected( ) );
 
@@ -2105,7 +2119,10 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 			map<uint32_t, vector<unsigned char> > Bins;
 
 			for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
-				Bins[(*j)->GetCheckSums( )->front( )].push_back( (*j)->GetPID( ) );
+			{
+				if( !(*j)->GetDeleteMe( ) )
+					Bins[(*j)->GetCheckSums( )->front( )].push_back( (*j)->GetPID( ) );
+			}
 
 			uint32_t StateNumber = 1;
 			map<uint32_t, vector<unsigned char> > :: iterator LargestBin = Bins.begin( );
@@ -2140,18 +2157,34 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 				StateNumber++;
 			}
 
-			// todotodo: kick the desynced player(s) and don't stop recording the replay
+			FirstCheckSum = (*LargestBin).first;
 
-			/*
+			// todotodo: kick the desynced player(s) and don't stop recording the replay
 
 			if( Tied )
 			{
-				// can't kick
+				// there is a tie, which is unfortunate
+				// the most common way for this to happen is with a desync in a 1v1 situation
+				// this is not really unsolvable since the game shouldn't continue anyway so we just kick both players
+				// in a 2v2 or higher the chance of this happening is very slim
+				// however, we still kick every player because it's not fair to pick one or another group
+				// todotodo: it would be possible to split the game at this point and create a "new" game for each game state
+
+				CONSOLE_Print( "[GAME: " + m_GameName + "] can't kick desynced players because there is a tie, kicking all players instead" );
+				StopPlayers( m_GHost->m_Language->WasDroppedDesync( ) );
+				AddToReplay = false;
 			}
 			else
 			{
+				CONSOLE_Print( "[GAME: " + m_GameName + "] kicking desynced players" );
+
 				for( map<uint32_t, vector<unsigned char> > :: iterator j = Bins.begin( ); j != Bins.end( ); j++ )
 				{
+					// kick players who are NOT in the largest bin
+					// examples: suppose there are 10 players
+					// the most common case will be 9v1 (e.g. one player desynced and the others were unaffected) and this will kick the single outlier
+					// another (very unlikely) possibility is 8v1v1 or 8v2 and this will kick both of the outliers, regardless of whether their game states match
+
 					if( (*j).first != (*LargestBin).first )
 					{
 						for( vector<unsigned char> :: iterator k = (*j).second.begin( ); k != (*j).second.end( ); k++ )
@@ -2161,24 +2194,29 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 							if( Player )
 							{
 								Player->SetDeleteMe( true );
-								Player->SetLeftReason( "was dropped due to desync" );
-								Player->SetLeftCode( PLAYERLEAVE_LOBBY );
+								Player->SetLeftReason( m_GHost->m_Language->WasDroppedDesync( ) );
+								Player->SetLeftCode( PLAYERLEAVE_LOST );
 							}
 						}
 					}
 				}
 			}
 
-			*/
+			// don't continue looking for desyncs, we already found one!
+
+			break;
 		}
 	}
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		(*i)->GetCheckSums( )->pop( );
+	{
+		if( !(*i)->GetDeleteMe( ) )
+			(*i)->GetCheckSums( )->pop( );
+	}
 
-	// add checksum to replay but only if we're not desynced
+	// add checksum to replay
 
-	if( m_Replay && !m_Desynced )
+	if( m_Replay && AddToReplay )
 		m_Replay->AddCheckSum( FirstCheckSum );
 }
 

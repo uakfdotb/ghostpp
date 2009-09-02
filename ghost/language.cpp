@@ -1428,3 +1428,8 @@ string CLanguage :: LocalAdminMessagesDisabled( )
 {
 	return m_CFG->GetString( "lang_0201", "lang_0201" );
 }
+
+string CLanguage :: WasDroppedDesync( )
+{
+	return m_CFG->GetString( "lang_0202", "lang_0202" );
+}

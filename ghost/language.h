@@ -237,6 +237,7 @@ public:
 	string PlayerWasKickedForFurthestScore( string name, string score, string average );
 	string LocalAdminMessagesEnabled( );
 	string LocalAdminMessagesDisabled( );
+	string WasDroppedDesync( );
 };
 
 #endif
