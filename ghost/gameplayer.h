@@ -85,6 +85,7 @@ private:
 	queue<uint32_t> m_CheckSums;				// the last few checksums the player has sent (for detecting desyncs)
 	string m_LeftReason;						// the reason the player left the game
 	string m_SpoofedRealm;						// the realm the player last spoof checked on
+	string m_JoinedRealm;						// the realm the player joined on (probable, can be spoofed)
 	uint32_t m_LeftCode;						// the code to be sent in W3GS_PLAYERLEAVE_OTHERS for why this player left the game
 	uint32_t m_LoginAttempts;					// the number of attempts to login (used with CAdminGame only)
 	uint32_t m_SyncCounter;						// the number of keepalive packets received from this player
@@ -114,8 +115,8 @@ private:
 	bool m_LeftMessageSent;						// if the playerleave message has been sent or not
 
 public:
-	CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nName, BYTEARRAY nInternalIP, bool nReserved );
-	CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nName, BYTEARRAY nInternalIP, bool nReserved );
+	CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
+	CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
 	virtual ~CGamePlayer( );
 
 	unsigned char GetPID( )					{ return m_PID; }

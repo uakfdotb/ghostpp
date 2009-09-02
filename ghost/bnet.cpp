@@ -44,7 +44,7 @@ using namespace boost :: filesystem;
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength, uint32_t nHostCounterID )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -105,6 +105,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_EXEVersionHash = nEXEVersionHash;
 	m_PasswordHashType = nPasswordHashType;
 	m_MaxMessageLength = nMaxMessageLength;
+	m_HostCounterID = nHostCounterID;
 	m_NextConnectTime = GetTime( );
 	m_LastNullTime = 0;
 	m_LastOutPacketTicks = 0;
@@ -2259,6 +2260,15 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 	{
 		BYTEARRAY MapGameType;
 
+		// construct a fixed host counter which will be used to identify players from this realm
+		// the fixed host counter's 4 most significant bits will contain a 4 bit ID (0-15)
+		// the rest of the fixed host counter will contain the 28 least significant bits of the actual host counter
+		// since we're destroying 4 bits of information here the actual host counter should not be greater than 2^28 which is a reasonable assumption
+		// when a player joins a game we can obtain the ID from the received host counter
+		// note: LAN broadcasts use an ID of 0, battle.net refreshes use an ID of 1-10, the rest are unused
+
+		uint32_t FixedHostCounter = ( hostCounter & 0x0FFFFFFF ) | ( m_HostCounterID << 28 );
+
 		// construct the correct SID_STARTADVEX3 packet
 
 		if( saveGame )
@@ -2273,7 +2283,7 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			BYTEARRAY MapHeight;
 			MapHeight.push_back( 0 );
 			MapHeight.push_back( 0 );
-			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), hostCounter ) );
+			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 		}
 		else
 		{
@@ -2281,7 +2291,7 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapGameType.push_back( 32 );
 			MapGameType.push_back( 73 );
 			MapGameType.push_back( 0 );
-			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), hostCounter ) );
+			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 		}
 	}
 }

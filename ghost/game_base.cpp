@@ -420,6 +420,15 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		{
 			BYTEARRAY MapGameType;
 
+			// construct a fixed host counter which will be used to identify players from this "realm" (i.e. LAN)
+			// the fixed host counter's 4 most significant bits will contain a 4 bit ID (0-15)
+			// the rest of the fixed host counter will contain the 28 least significant bits of the actual host counter
+			// since we're destroying 4 bits of information here the actual host counter should not be greater than 2^28 which is a reasonable assumption
+			// when a player joins a game we can obtain the ID from the received host counter
+			// note: LAN broadcasts use an ID of 0, battle.net refreshes use an ID of 1-10, the rest are unused
+
+			uint32_t FixedHostCounter = m_HostCounter & 0x0FFFFFFF;
+
 			// construct the correct W3GS_GAMEINFO packet
 
 			if( m_SaveGame )
@@ -434,7 +443,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				BYTEARRAY MapHeight;
 				MapHeight.push_back( 0 );
 				MapHeight.push_back( 0 );
-				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter ) );
 			}
 			else
 			{
@@ -442,7 +451,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				MapGameType.push_back( 0 );
 				MapGameType.push_back( 0 );
 				MapGameType.push_back( 0 );
-				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter ) );
 			}
 		}
 
@@ -1577,12 +1586,31 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	if( GetNumPlayers( ) >= 11 )
 		DeleteVirtualHost( );
 
+	// identify their joined realm
+	// this is only possible because when we send a game refresh via LAN or battle.net we encode an ID value in the 4 most significant bits of the host counter
+	// the client sends the host counter when it joins so we can extract the ID value here
+	// note: this is not a replacement for spoof checking since it doesn't verify the player's name and it can be spoofed anyway
+
+	uint32_t HostCounterID = joinPlayer->GetHostCounter( ) >> 28;
+	string JoinedRealm;
+
+	// we use an ID value of 0 to denote joining via LAN
+
+	if( HostCounterID != 0 )
+	{
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			if( (*i)->GetHostCounterID( ) == HostCounterID )
+				JoinedRealm = (*i)->GetServer( );
+		}
+	}
+
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
 	// this problem is solved by setting the socket to NULL before deletion and handling the NULL case in the destructor
 	// we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
-	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
+	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
 
 	// consider LAN players to have already spoof checked since they can't
 
@@ -1854,12 +1882,31 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	if( GetNumPlayers( ) >= 11 )
 		DeleteVirtualHost( );
 
+	// identify their joined realm
+	// this is only possible because when we send a game refresh via LAN or battle.net we encode an ID value in the 4 most significant bits of the host counter
+	// the client sends the host counter when it joins so we can extract the ID value here
+	// note: this is not a replacement for spoof checking since it doesn't verify the player's name and it can be spoofed anyway
+
+	uint32_t HostCounterID = joinPlayer->GetHostCounter( ) >> 28;
+	string JoinedRealm;
+
+	// we use an ID value of 0 to denote joining via LAN
+
+	if( HostCounterID != 0 )
+	{
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			if( (*i)->GetHostCounterID( ) == HostCounterID )
+				JoinedRealm = (*i)->GetServer( );
+		}
+	}
+
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
 	// this problem is solved by setting the socket to NULL before deletion and handling the NULL case in the destructor
 	// we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
-	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), false );
+	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), false );
 	Player->SetScore( score );
 	m_Players.push_back( Player );
 	potential->SetSocket( NULL );

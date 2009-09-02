@@ -50,7 +50,11 @@ CIncomingJoinPlayer *CGameProtocol :: RECEIVE_W3GS_REQJOIN( BYTEARRAY data )
 
 	// 2 bytes					-> Header
 	// 2 bytes					-> Length
-	// 15 bytes					-> ???
+	// 4 bytes					-> Host Counter (Game ID)
+	// 4 bytes					-> Entry Key (used in LAN)
+	// 1 byte					-> ???
+	// 2 bytes					-> Listen Port
+	// 4 bytes					-> Peer Key
 	// null terminated string	-> Name
 	// 4 bytes					-> ???
 	// 2 bytes					-> InternalPort (???)
@@ -58,12 +62,13 @@ CIncomingJoinPlayer *CGameProtocol :: RECEIVE_W3GS_REQJOIN( BYTEARRAY data )
 
 	if( ValidateLength( data ) && data.size( ) >= 20 )
 	{
+		uint32_t HostCounter = UTIL_ByteArrayToUInt32( data, false, 4 );
 		BYTEARRAY Name = UTIL_ExtractCString( data, 19 );
 
 		if( !Name.empty( ) && data.size( ) >= Name.size( ) + 30 )
 		{
 			BYTEARRAY InternalIP = BYTEARRAY( data.begin( ) + Name.size( ) + 26, data.begin( ) + Name.size( ) + 30 );
-			return new CIncomingJoinPlayer( string( Name.begin( ), Name.end( ) ), InternalIP );
+			return new CIncomingJoinPlayer( HostCounter, string( Name.begin( ), Name.end( ) ), InternalIP );
 		}
 	}
 
@@ -937,8 +942,9 @@ BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t ra
 // CIncomingJoinPlayer
 //
 
-CIncomingJoinPlayer :: CIncomingJoinPlayer( string nName, BYTEARRAY &nInternalIP )
+CIncomingJoinPlayer :: CIncomingJoinPlayer( uint32_t nHostCounter, string nName, BYTEARRAY &nInternalIP )
 {
+	m_HostCounter = nHostCounter;
 	m_Name = nName;
 	m_InternalIP = nInternalIP;
 }

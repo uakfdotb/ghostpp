@@ -156,13 +156,15 @@ private:
 class CIncomingJoinPlayer
 {
 private:
+	uint32_t m_HostCounter;
 	string m_Name;
 	BYTEARRAY m_InternalIP;
 
 public:
-	CIncomingJoinPlayer( string nName, BYTEARRAY &nInternalIP );
+	CIncomingJoinPlayer( uint32_t nHostCounter, string nName, BYTEARRAY &nInternalIP );
 	~CIncomingJoinPlayer( );
 
+	uint32_t GetHostCounter( )	{ return m_HostCounter; }
 	string GetName( )			{ return m_Name; }
 	BYTEARRAY GetInternalIP( )	{ return m_InternalIP; }
 };

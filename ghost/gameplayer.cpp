@@ -184,11 +184,12 @@ void CPotentialPlayer :: ProcessPackets( )
 // CGamePlayer
 //
 
-CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( nProtocol, nGame, nSocket )
+CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( nProtocol, nGame, nSocket )
 {
 	m_PID = nPID;
 	m_Name = nName;
 	m_InternalIP = nInternalIP;
+	m_JoinedRealm = nJoinedRealm;
 	m_LeftCode = PLAYERLEAVE_LOBBY;
 	m_LoginAttempts = 0;
 	m_SyncCounter = 0;
@@ -217,7 +218,7 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_LeftMessageSent = false;
 }
 
-CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) )
+CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) )
 {
 	// todotodo: properly copy queued packets to the new player, this just discards them
 	// this isn't a big problem because official Warcraft III clients don't send any packets after the join request until they receive a response
@@ -226,6 +227,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_PID = nPID;
 	m_Name = nName;
 	m_InternalIP = nInternalIP;
+	m_JoinedRealm = nJoinedRealm;
 	m_LeftCode = PLAYERLEAVE_LOBBY;
 	m_LoginAttempts = 0;
 	m_SyncCounter = 0;

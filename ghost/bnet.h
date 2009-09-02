@@ -102,6 +102,7 @@ private:
 	BYTEARRAY m_EXEVersionHash;						// custom exe version hash for PvPGN users
 	string m_PasswordHashType;						// password hash type for PvPGN users
 	uint32_t m_MaxMessageLength;					// maximum message length for PvPGN users
+	uint32_t m_HostCounterID;						// the host counter ID to identify players from this realm
 	uint32_t m_NextConnectTime;						// GetTime when we should try connecting to battle.net next (after we get disconnected)
 	uint32_t m_LastNullTime;						// GetTime when the last null packet was sent for detecting disconnects
 	uint32_t m_LastOutPacketTicks;					// GetTicks when the last packet was sent for the m_OutPackets queue
@@ -116,7 +117,7 @@ private:
 	bool m_PublicCommands;							// whether to allow public commands or not
 
 public:
-	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength );
+	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, uint32_t nMaxMessageLength, uint32_t nHostCounterID );
 	~CBNET( );
 
 	bool GetExiting( )					{ return m_Exiting; }
@@ -133,6 +134,7 @@ public:
 	BYTEARRAY GetEXEVersion( )			{ return m_EXEVersion; }
 	BYTEARRAY GetEXEVersionHash( )		{ return m_EXEVersionHash; }
 	string GetPasswordHashType( )		{ return m_PasswordHashType; }
+	uint32_t GetHostCounterID( )		{ return m_HostCounterID; }
 	bool GetLoggedIn( )					{ return m_LoggedIn; }
 	bool GetInChat( )					{ return m_InChat; }
 	bool GetHoldFriends( )				{ return m_HoldFriends; }

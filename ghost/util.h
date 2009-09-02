@@ -53,6 +53,7 @@ string UTIL_ToString( short i );
 string UTIL_ToString( int i );
 string UTIL_ToString( float f, int digits );
 string UTIL_ToString( double d, int digits );
+string UTIL_ToHexString( uint32_t i );
 uint16_t UTIL_ToUInt16( string &s );
 uint32_t UTIL_ToUInt32( string &s );
 int16_t UTIL_ToInt16( string &s );

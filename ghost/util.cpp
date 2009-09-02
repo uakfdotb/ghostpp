@@ -324,6 +324,15 @@ string UTIL_ToString( double d, int digits )
 	return result;
 }
 
+string UTIL_ToHexString( uint32_t i )
+{
+	string result;
+	stringstream SS;
+	SS << std :: hex << i;
+	SS >> result;
+	return result;
+}
+
 // todotodo: these UTIL_ToXXX functions don't fail gracefully, they just return garbage (in the uint case usually just -1 casted to an unsigned type it looks like)
 
 uint16_t UTIL_ToUInt16( string &s )

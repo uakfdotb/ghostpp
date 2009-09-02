@@ -637,7 +637,7 @@ Flags:
 	unsigned char Unknown[]		= { 255,  3,  0,  0 };
 	unsigned char CustomGame[]	= {   0,  0,  0,  0 };
 
-	string HostCounterString = UTIL_ToString( hostCounter );
+	string HostCounterString = UTIL_ToHexString( hostCounter );
 
 	if( HostCounterString.size( ) < 8 )
 		HostCounterString.insert( 0, 8 - HostCounterString.size( ), '0' );
