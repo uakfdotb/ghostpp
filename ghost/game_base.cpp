@@ -1448,7 +1448,8 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 				// let banned players "join" the game with an arbitrary PID then immediately close the connection
 				// this causes them to be kicked back to the chat channel on battle.net
 
-				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), m_Map->GetSlots( ), 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+				vector<CGameSlot> Slots = m_Map->GetSlots( );
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
 				potential->SetDeleteMe( true );
 				return;
 			}
@@ -1478,7 +1479,8 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 				// let banned players "join" the game with an arbitrary PID then immediately close the connection
 				// this causes them to be kicked back to the chat channel on battle.net
 
-				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), m_Map->GetSlots( ), 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+				vector<CGameSlot> Slots = m_Map->GetSlots( );
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
 				potential->SetDeleteMe( true );
 				return;
 			}
