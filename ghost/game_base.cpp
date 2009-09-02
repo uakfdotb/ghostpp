@@ -1599,8 +1599,9 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
 
 	// consider LAN players to have already spoof checked since they can't
+	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
 
-	if( UTIL_IsLanIP( Player->GetExternalIP( ) ) || UTIL_IsLocalIP( Player->GetExternalIP( ), m_GHost->m_LocalAddresses ) )
+	if( JoinedRealm.empty( ) )
 		Player->SetSpoofed( true );
 
 	m_Players.push_back( Player );
@@ -1685,6 +1686,17 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// send a welcome message
 
 	SendWelcomeMessage( Player );
+
+	if( m_GHost->m_RequireSpoofChecks && !m_GHost->m_SpoofChecks )
+	{
+		// tell the player how to spoof check
+
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			if( JoinedRealm == (*i)->GetServer( ) )
+				SendChat( Player, m_GHost->m_Language->SpoofCheckByWhispering( string( (*i)->GetUniqueName( ).begin( ), (*i)->GetUniqueName( ).end( ) ) ) );
+		}
+	}
 
 	// check for multiple IP usage
 
