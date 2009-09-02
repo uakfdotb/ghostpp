@@ -127,6 +127,7 @@ public:
 	queue<uint32_t> *GetCheckSums( )		{ return &m_CheckSums; }
 	string GetLeftReason( )					{ return m_LeftReason; }
 	string GetSpoofedRealm( )				{ return m_SpoofedRealm; }
+	string GetJoinedRealm( )				{ return m_JoinedRealm; }
 	uint32_t GetLeftCode( )					{ return m_LeftCode; }
 	uint32_t GetLoginAttempts( )			{ return m_LoginAttempts; }
 	uint32_t GetSyncCounter( )				{ return m_SyncCounter; }

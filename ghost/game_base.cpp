@@ -3951,22 +3951,24 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 				{
 					SendAllChat( m_GHost->m_Language->PlayersNotYetSpoofChecked( NotSpoofChecked ) );
 
-					/*
-
-					if( m_GHost->m_BNETs.size( ) == 1 )
+					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 					{
-						BYTEARRAY UniqueName = m_GHost->m_BNETs[0]->GetUniqueName( );
+						if( !(*i)->GetSpoofed( ) && !(*i)->GetJoinedRealm( ).empty( ) )
+						{
+							for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
+							{
+								if( (*i)->GetJoinedRealm( ) == (*j)->GetServer( ) )
+								{
+									BYTEARRAY UniqueName = (*j)->GetUniqueName( );
 
-						if( m_GameState == GAME_PUBLIC )
-							SendAllChat( m_GHost->m_Language->ManuallySpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
-						else if( m_GameState == GAME_PRIVATE )
-							SendAllChat( m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
+									if( m_GameState == GAME_PUBLIC )
+										SendChat( *i, m_GHost->m_Language->ManuallySpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
+									else if( m_GameState == GAME_PRIVATE )
+										SendChat( *i, m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
+								}
+							}
+						}
 					}
-
-					*/
-
-					// todotodo: figure something out with multiple realms here
-					// idea: we can send a different host counter to each realm and use that to determine the likely realm the user came from!
 				}
 			}
 		}

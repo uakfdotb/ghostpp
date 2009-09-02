@@ -303,16 +303,19 @@ bool CGamePlayer :: Update( void *fd )
 	// if we send the /whois too early battle.net may not have caught up with where the player is and return erroneous results
 	// when connecting to multiple realms we send a /whois or /w on every realm
 
-	if( m_Game->m_GHost->m_SpoofChecks && !m_Spoofed && !m_WhoisSent && GetTime( ) >= m_JoinTime + 4 )
+	if( m_Game->m_GHost->m_SpoofChecks && !m_Spoofed && !m_WhoisSent && !m_JoinedRealm.empty( ) && GetTime( ) >= m_JoinTime + 4 )
 	{
 		// todotodo: we could get kicked from battle.net for sending a command with invalid characters, do some basic checking
 
 		for( vector<CBNET *> :: iterator i = m_Game->m_GHost->m_BNETs.begin( ); i != m_Game->m_GHost->m_BNETs.end( ); i++ )
 		{
-			if( m_Game->GetGameState( ) == GAME_PUBLIC )
-				(*i)->QueueChatCommand( "/whois " + m_Name );
-			else if( m_Game->GetGameState( ) == GAME_PRIVATE )
-				(*i)->QueueChatCommand( m_Game->m_GHost->m_Language->SpoofCheckByReplying( ), m_Name, true );
+			if( (*i)->GetServer( ) == m_JoinedRealm )
+			{
+				if( m_Game->GetGameState( ) == GAME_PUBLIC )
+					(*i)->QueueChatCommand( "/whois " + m_Name );
+				else if( m_Game->GetGameState( ) == GAME_PRIVATE )
+					(*i)->QueueChatCommand( m_Game->m_GHost->m_Language->SpoofCheckByReplying( ), m_Name, true );
+			}
 		}
 
 		m_WhoisSent = true;

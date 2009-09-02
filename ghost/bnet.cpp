@@ -937,7 +937,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 		if( Event == CBNETProtocol :: EID_WHISPER && m_GHost->m_CurrentGame )
 		{
-			if( Message == "spoofcheck" )
+			if( Message == "s" || Message == "sc" || Message == "spoof" || Message == "check" || Message == "spoofcheck" )
 				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, true );
 			else if( Message.find( "entered a Warcraft III The Frozen Throne game called" ) != string :: npos && Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
 				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
@@ -2133,33 +2133,26 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// this case covers whois results which are used when hosting a public game (we send out a "/whois [player]" for each player)
 		// at all times you can still /w the bot with "spoofcheck" to manually spoof check
 
-		if( m_GHost->m_CurrentGame && m_GHost->m_CurrentGame->GetGameState( ) == GAME_PUBLIC )
+		if( m_GHost->m_CurrentGame && m_GHost->m_CurrentGame->GetPlayerFromName( UserName, true ) )
 		{
-			// we don't need to check if the player is in the game before spamming the chat because the bot only sends out a /whois on players that join the game
-			// however, we DO need to check that we're only connected to one realm because if we're connected to multiple realms we send a /whois on every realm for every player
-			// so we're always guaranteed to get negative results with multiple realms - we're only interested in the positive ones
-
-			if( m_GHost->m_BNETs.size( ) == 1 )
-			{
-				if( Message.find( "is away" ) != string :: npos )
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsAway( UserName ) );
-				else if( Message.find( "is unavailable" ) != string :: npos )
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsUnavailable( UserName ) );
-				else if( Message.find( "is refusing messages" ) != string :: npos )
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsRefusingMessages( UserName ) );
-				else if( Message.find( "is using Warcraft III The Frozen Throne in the channel" ) != string :: npos )
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName ) );
-				else if( Message.find( "is using Warcraft III The Frozen Throne in channel" ) != string :: npos )
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName ) );
-				else if( Message.find( "is using Warcraft III The Frozen Throne in a private channel" ) != string :: npos )
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInPrivateChannel( UserName ) );
-			}
+			if( Message.find( "is away" ) != string :: npos )
+				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsAway( UserName ) );
+			else if( Message.find( "is unavailable" ) != string :: npos )
+				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsUnavailable( UserName ) );
+			else if( Message.find( "is refusing messages" ) != string :: npos )
+				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsRefusingMessages( UserName ) );
+			else if( Message.find( "is using Warcraft III The Frozen Throne in the channel" ) != string :: npos )
+				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName ) );
+			else if( Message.find( "is using Warcraft III The Frozen Throne in channel" ) != string :: npos )
+				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName ) );
+			else if( Message.find( "is using Warcraft III The Frozen Throne in a private channel" ) != string :: npos )
+				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInPrivateChannel( UserName ) );
 
 			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos )
 			{
 				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
 					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, UserName, false );
-				else if( m_GHost->m_BNETs.size( ) == 1 )
+				else
 					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName ) );
 			}
 		}
