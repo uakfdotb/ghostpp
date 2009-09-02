@@ -236,6 +236,8 @@ public:
 	string LocalAdminMessagesEnabled( );
 	string LocalAdminMessagesDisabled( );
 	string WasDroppedDesync( );
+	string WasKickedForHavingLowestScore( string score );
+	string PlayerWasKickedForLowestScore( string name, string score );
 };
 
 #endif

@@ -163,6 +163,8 @@ public:
 	uint32_t m_ReplayWar3Version;			// config value: replay warcraft 3 version (for saving replays)
 	uint32_t m_ReplayBuildNumber;			// config value: replay build number (for saving replays)
 	bool m_TCPNoDelay;						// config value: use Nagle's algorithm or not
+	uint32_t m_MatchMakingMethod;			// config value: the matchmaking method
+	uint32_t m_BalanceMethod;				// config value: the team balancing method
 
 	CGHost( CConfig *CFG );
 	~CGHost( );

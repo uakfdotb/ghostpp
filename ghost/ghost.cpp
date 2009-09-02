@@ -454,6 +454,8 @@ CGHost :: CGHost( CConfig *CFG )
 	m_ReplayWar3Version = CFG->GetInt( "replay_war3version", 24 );
 	m_ReplayBuildNumber = CFG->GetInt( "replay_buildnumber", 6059 );
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
+	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
+	m_BalanceMethod = CFG->GetInt( "bot_balancemethod", 1 );
 
 	// load the battle.net connections
 	// we're just loading the config data and creating the CBNET classes here, the connections are established later (in the Update function)

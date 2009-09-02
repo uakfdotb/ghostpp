@@ -1783,90 +1783,158 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	if( SID == 255 )
 	{
 		// no empty slot found, time to do some matchmaking!
-		// the general idea is that we're going to compute the average score of all players in the game
-		// then we kick the player with the score furthest from that average (or a player without a score)
-		// this ensures that the players' scores will tend to converge as players join the game
 		// note: the database code uses a score of -100000 to denote "no score"
 
-		// calculate the average score
-
-		double AverageScore = 0.0;
-		uint32_t PlayersScored = 0;
-
-		if( score > -99999.0 )
+		if( m_GHost->m_MatchMakingMethod == 0 )
 		{
-			AverageScore = score;
-			PlayersScored = 1;
+			// method 0: don't do any matchmaking
+			// that was easy!
 		}
-
-		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		else if( m_GHost->m_MatchMakingMethod == 1 )
 		{
-			if( (*i)->GetScore( ) > -99999.0 )
+			// method 1: furthest score method
+			// calculate the average score of all players in the game
+			// then kick the player with the score furthest from that average (or a player without a score)
+			// this ensures that the players' scores will tend to converge as players join the game
+
+			double AverageScore = 0.0;
+			uint32_t PlayersScored = 0;
+
+			if( score > -99999.0 )
 			{
-				AverageScore += (*i)->GetScore( );
-				PlayersScored++;
+				AverageScore = score;
+				PlayersScored = 1;
 			}
-		}
 
-		if( PlayersScored > 0 )
-			AverageScore /= PlayersScored;
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+			{
+				if( (*i)->GetScore( ) > -99999.0 )
+				{
+					AverageScore += (*i)->GetScore( );
+					PlayersScored++;
+				}
+			}
 
-		// calculate the furthest player from the average
+			if( PlayersScored > 0 )
+				AverageScore /= PlayersScored;
 
-		CGamePlayer *FurthestPlayer = NULL;
+			// calculate the furthest player from the average
 
-		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		{
-			if( !FurthestPlayer || (*i)->GetScore( ) < -99999.0 || abs( (*i)->GetScore( ) - AverageScore ) > abs( FurthestPlayer->GetScore( ) - AverageScore ) )
-				FurthestPlayer = *i;
-		}
+			CGamePlayer *FurthestPlayer = NULL;
 
-		if( !FurthestPlayer )
-		{
-			// this should be impossible
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+			{
+				if( !FurthestPlayer || (*i)->GetScore( ) < -99999.0 || abs( (*i)->GetScore( ) - AverageScore ) > abs( FurthestPlayer->GetScore( ) - AverageScore ) )
+					FurthestPlayer = *i;
+			}
 
-			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but no furthest player was found (this should be impossible)" );
-			potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
-			potential->SetDeleteMe( true );
-			return;
-		}
+			if( !FurthestPlayer )
+			{
+				// this should be impossible
 
-		// kick the new player if they have the furthest score
+				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but no furthest player was found (this should be impossible)" );
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+				potential->SetDeleteMe( true );
+				return;
+			}
 
-		if( score < -99999.0 || abs( score - AverageScore ) > abs( FurthestPlayer->GetScore( ) - AverageScore ) )
-		{
-			if( score < -99999.0 )
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has the furthest rating [N/A] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+			// kick the new player if they have the furthest score
+
+			if( score < -99999.0 || abs( score - AverageScore ) > abs( FurthestPlayer->GetScore( ) - AverageScore ) )
+			{
+				if( score < -99999.0 )
+					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has the furthest rating [N/A] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+				else
+					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has the furthest rating [" + UTIL_ToString( score, 2 ) + "] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+				potential->SetDeleteMe( true );
+				return;
+			}
+
+			// kick the furthest player
+
+			SID = GetSIDFromPID( FurthestPlayer->GetPID( ) );
+			FurthestPlayer->SetDeleteMe( true );
+
+			if( FurthestPlayer->GetScore( ) < -99999.0 )
+				FurthestPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForHavingFurthestScore( "N/A", UTIL_ToString( AverageScore, 2 ) ) );
 			else
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has the furthest rating [" + UTIL_ToString( score, 2 ) + "] from the average [" + UTIL_ToString( AverageScore, 2 ) + "]" );
+				FurthestPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForHavingFurthestScore( UTIL_ToString( FurthestPlayer->GetScore( ), 2 ), UTIL_ToString( AverageScore, 2 ) ) );
 
-			potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
-			potential->SetDeleteMe( true );
-			return;
+			FurthestPlayer->SetLeftCode( PLAYERLEAVE_LOBBY );
+
+			// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
+			// we don't need to call OpenSlot here because we're about to overwrite the slot data anyway
+
+			SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( FurthestPlayer->GetPID( ), FurthestPlayer->GetLeftCode( ) ) );
+			FurthestPlayer->SetLeftMessageSent( true );
+
+			if( FurthestPlayer->GetScore( ) < -99999.0 )
+				SendAllChat( m_GHost->m_Language->PlayerWasKickedForFurthestScore( FurthestPlayer->GetName( ), "N/A", UTIL_ToString( AverageScore, 2 ) ) );
+			else
+				SendAllChat( m_GHost->m_Language->PlayerWasKickedForFurthestScore( FurthestPlayer->GetName( ), UTIL_ToString( FurthestPlayer->GetScore( ), 2 ), UTIL_ToString( AverageScore, 2 ) ) );
 		}
+		else if( m_GHost->m_MatchMakingMethod == 2 )
+		{
+			// method 2: lowest score method
+			// kick the player with the lowest score (or a player without a score)
 
-		// kick the furthest player
+			CGamePlayer *LowestPlayer = NULL;
 
-		SID = GetSIDFromPID( FurthestPlayer->GetPID( ) );
-		FurthestPlayer->SetDeleteMe( true );
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+			{
+				if( !LowestPlayer || (*i)->GetScore( ) < -99999.0 || (*i)->GetScore( ) < LowestPlayer->GetScore( ) )
+					LowestPlayer = *i;
+			}
 
-		if( FurthestPlayer->GetScore( ) < -99999.0 )
-			FurthestPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForHavingFurthestScore( "N/A", UTIL_ToString( AverageScore, 2 ) ) );
-		else
-			FurthestPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForHavingFurthestScore( UTIL_ToString( FurthestPlayer->GetScore( ), 2 ), UTIL_ToString( AverageScore, 2 ) ) );
+			if( !LowestPlayer )
+			{
+				// this should be impossible
 
-		FurthestPlayer->SetLeftCode( PLAYERLEAVE_LOBBY );
+				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but no lowest player was found (this should be impossible)" );
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+				potential->SetDeleteMe( true );
+				return;
+			}
 
-		// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
-		// we don't need to call OpenSlot here because we're about to overwrite the slot data anyway
+			// kick the new player if they have the lowest score
 
-		SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( FurthestPlayer->GetPID( ), FurthestPlayer->GetLeftCode( ) ) );
-		FurthestPlayer->SetLeftMessageSent( true );
+			if( score < -99999.0 || score < LowestPlayer->GetScore( ) )
+			{
+				if( score < -99999.0 )
+					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has the lowest rating [N/A]" );
+				else
+					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has the lowest rating [" + UTIL_ToString( score, 2 ) + "]" );
 
-		if( FurthestPlayer->GetScore( ) < -99999.0 )
-			SendAllChat( m_GHost->m_Language->PlayerWasKickedForFurthestScore( FurthestPlayer->GetName( ), "N/A", UTIL_ToString( AverageScore, 2 ) ) );
-		else
-			SendAllChat( m_GHost->m_Language->PlayerWasKickedForFurthestScore( FurthestPlayer->GetName( ), UTIL_ToString( FurthestPlayer->GetScore( ), 2 ), UTIL_ToString( AverageScore, 2 ) ) );
+				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+				potential->SetDeleteMe( true );
+				return;
+			}
+
+			// kick the lowest player
+
+			SID = GetSIDFromPID( LowestPlayer->GetPID( ) );
+			LowestPlayer->SetDeleteMe( true );
+
+			if( LowestPlayer->GetScore( ) < -99999.0 )
+				LowestPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForHavingLowestScore( "N/A" ) );
+			else
+				LowestPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForHavingLowestScore( UTIL_ToString( LowestPlayer->GetScore( ), 2 ) ) );
+
+			LowestPlayer->SetLeftCode( PLAYERLEAVE_LOBBY );
+
+			// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
+			// we don't need to call OpenSlot here because we're about to overwrite the slot data anyway
+
+			SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( LowestPlayer->GetPID( ), LowestPlayer->GetLeftCode( ) ) );
+			LowestPlayer->SetLeftMessageSent( true );
+
+			if( LowestPlayer->GetScore( ) < -99999.0 )
+				SendAllChat( m_GHost->m_Language->PlayerWasKickedForLowestScore( LowestPlayer->GetName( ), "N/A" ) );
+			else
+				SendAllChat( m_GHost->m_Language->PlayerWasKickedForLowestScore( LowestPlayer->GetName( ), UTIL_ToString( LowestPlayer->GetScore( ), 2 ) ) );
+		}
 	}
 
 	if( SID >= m_Slots.size( ) )

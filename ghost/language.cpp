@@ -1418,3 +1418,18 @@ string CLanguage :: WasDroppedDesync( )
 {
 	return m_CFG->GetString( "lang_0202", "lang_0202" );
 }
+
+string CLanguage :: WasKickedForHavingLowestScore( string score )
+{
+	string Out = m_CFG->GetString( "lang_0203", "lang_0203" );
+	UTIL_Replace( Out, "$SCORE$", score );
+	return Out;
+}
+
+string CLanguage :: PlayerWasKickedForLowestScore( string name, string score )
+{
+	string Out = m_CFG->GetString( "lang_0204", "lang_0204" );
+	UTIL_Replace( Out, "$NAME$", name );
+	UTIL_Replace( Out, "$SCORE$", score );
+	return Out;
+}
