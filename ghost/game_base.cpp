@@ -569,9 +569,9 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		m_LastAnnounceTime = GetTime( );
 	}
 
-	// kick players who don't spoof check within 20 seconds when matchmaking is enabled
+	// kick players who don't spoof check within 20 seconds when spoof checks are required
 
-	if( !m_CountDownStarted && m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
+	if( !m_CountDownStarted && m_GHost->m_RequireSpoofChecks )
 	{
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
@@ -589,45 +589,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && GetTime( ) >= m_LastAutoStartTime + 10 )
 	{
-		// require spoof checks when using matchmaking
-
-		if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
-		{
-			uint32_t PlayersScored = 0;
-			uint32_t PlayersNotScored = 0;
-			double AverageScore = 0.0;
-			double MinScore = 0.0;
-			double MaxScore = 0.0;
-			bool Found = false;
-
-			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-			{
-				if( (*i)->GetScore( ) < -99999.0 )
-					PlayersNotScored++;
-				else
-				{
-					PlayersScored++;
-					AverageScore += (*i)->GetScore( );
-
-					if( !Found || (*i)->GetScore( ) < MinScore )
-						MinScore = (*i)->GetScore( );
-
-					if( !Found || (*i)->GetScore( ) > MaxScore )
-						MaxScore = (*i)->GetScore( );
-
-					Found = true;
-				}
-			}
-
-			double Spread = MaxScore - MinScore;
-
-			// todotodo: don't start the countdown if the spread is too large
-
-			StartCountDownAuto( true );
-		}
-		else
-			StartCountDownAuto( false );
-
+		StartCountDownAuto( m_GHost->m_RequireSpoofChecks );
 		m_LastAutoStartTime = GetTime( );
 	}
 
@@ -3921,7 +3883,7 @@ void CBaseGame :: StartCountDown( bool force )
 
 			string NotSpoofChecked;
 
-			if( m_GHost->m_SpoofChecks )
+			if( m_GHost->m_RequireSpoofChecks )
 			{
 				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 				{
@@ -4027,44 +3989,41 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 			return;
 		}
 
+		// check if everyone is spoof checked
+
 		string NotSpoofChecked;
 
 		if( requireSpoofChecks )
 		{
-			// check if everyone is spoof checked
-
-			if( m_GHost->m_SpoofChecks )
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 			{
+				if( !(*i)->GetSpoofed( ) )
+				{
+					if( NotSpoofChecked.empty( ) )
+						NotSpoofChecked = (*i)->GetName( );
+					else
+						NotSpoofChecked += ", " + (*i)->GetName( );
+				}
+			}
+
+			if( !NotSpoofChecked.empty( ) )
+			{
+				SendAllChat( m_GHost->m_Language->PlayersNotYetSpoofChecked( NotSpoofChecked ) );
+
 				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 				{
-					if( !(*i)->GetSpoofed( ) )
+					if( !(*i)->GetSpoofed( ) && !(*i)->GetJoinedRealm( ).empty( ) )
 					{
-						if( NotSpoofChecked.empty( ) )
-							NotSpoofChecked = (*i)->GetName( );
-						else
-							NotSpoofChecked += ", " + (*i)->GetName( );
-					}
-				}
-
-				if( !NotSpoofChecked.empty( ) )
-				{
-					SendAllChat( m_GHost->m_Language->PlayersNotYetSpoofChecked( NotSpoofChecked ) );
-
-					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-					{
-						if( !(*i)->GetSpoofed( ) && !(*i)->GetJoinedRealm( ).empty( ) )
+						for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
 						{
-							for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
+							if( (*i)->GetJoinedRealm( ) == (*j)->GetServer( ) )
 							{
-								if( (*i)->GetJoinedRealm( ) == (*j)->GetServer( ) )
-								{
-									BYTEARRAY UniqueName = (*j)->GetUniqueName( );
+								BYTEARRAY UniqueName = (*j)->GetUniqueName( );
 
-									if( m_GameState == GAME_PUBLIC )
-										SendChat( *i, m_GHost->m_Language->ManuallySpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
-									else if( m_GameState == GAME_PRIVATE )
-										SendChat( *i, m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
-								}
+								if( m_GameState == GAME_PUBLIC )
+									SendChat( *i, m_GHost->m_Language->ManuallySpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
+								else if( m_GameState == GAME_PRIVATE )
+									SendChat( *i, m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
 							}
 						}
 					}

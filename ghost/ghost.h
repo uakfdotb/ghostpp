@@ -133,7 +133,8 @@ public:
 	string m_VirtualHostName;				// config value: virtual host name
 	bool m_HideIPAddresses;					// config value: hide IP addresses from players
 	bool m_CheckMultipleIPUsage;			// config value: check for multiple IP address usage
-	bool m_SpoofChecks;						// config value: do/require spoof checks or not
+	bool m_SpoofChecks;						// config value: do automatic spoof checks or not
+	bool m_RequireSpoofChecks;				// config value: require spoof checks or not
 	bool m_RefreshMessages;					// config value: display refresh messages or not (by default)
 	bool m_AutoLock;						// config value: auto lock games when the owner is present
 	bool m_AutoSave;						// config value: auto save before someone disconnects
@@ -164,7 +165,6 @@ public:
 	uint32_t m_ReplayBuildNumber;			// config value: replay build number (for saving replays)
 	bool m_TCPNoDelay;						// config value: use Nagle's algorithm or not
 	uint32_t m_MatchMakingMethod;			// config value: the matchmaking method
-	uint32_t m_BalanceMethod;				// config value: the team balancing method
 
 	CGHost( CConfig *CFG );
 	~CGHost( );

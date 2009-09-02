@@ -1025,6 +1025,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	}
 
 	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
+	m_RequireSpoofChecks = CFG->GetInt( "bot_requirespoofchecks", 1 ) == 1 ? false : true;
 	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
 	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;
 	m_AutoSave = CFG->GetInt( "bot_autosave", 0 ) == 0 ? false : true;
@@ -1054,7 +1055,6 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_UseRegexes = CFG->GetInt( "bot_useregexes", 0 ) == 0 ? false : true;
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
-	m_BalanceMethod = CFG->GetInt( "bot_balancemethod", 1 );
 }
 
 void CGHost :: ExtractScripts( )
