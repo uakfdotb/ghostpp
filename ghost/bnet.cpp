@@ -2334,6 +2334,35 @@ void CBNET :: UnqueuePackets( unsigned char type )
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] unqueued " + UTIL_ToString( Unqueued ) + " packets of type " + UTIL_ToString( type ) );
 }
 
+void CBNET :: UnqueueChatCommand( string chatCommand )
+{
+	// hackhack: this is ugly code
+	// generate the packet that would be sent for this chat command
+	// then search the queue for that exact packet
+
+	BYTEARRAY PacketToUnqueue = m_Protocol->SEND_SID_CHATCOMMAND( chatCommand );
+	queue<BYTEARRAY> Packets;
+	uint32_t Unqueued = 0;
+
+	while( !m_OutPackets.empty( ) )
+	{
+		// todotodo: it's very inefficient to have to copy all these packets while searching the queue
+
+		BYTEARRAY Packet = m_OutPackets.front( );
+		m_OutPackets.pop( );
+
+		if( equal( Packet.begin( ), Packet.end( ), PacketToUnqueue.begin( ) ) )
+			Unqueued++;
+		else
+			Packets.push( Packet );
+	}
+
+	m_OutPackets = Packets;
+
+	if( Unqueued > 0 )
+		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] unqueued " + UTIL_ToString( Unqueued ) + " chat command packets" );
+}
+
 void CBNET :: UnqueueGameRefreshes( )
 {
 	UnqueuePackets( CBNETProtocol :: SID_STARTADVEX3 );

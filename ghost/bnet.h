@@ -164,6 +164,7 @@ public:
 	void QueueGameUncreate( );
 
 	void UnqueuePackets( unsigned char type );
+	void UnqueueChatCommand( string chatCommand );
 	void UnqueueGameRefreshes( );
 
 	// other functions

@@ -1261,6 +1261,22 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] deleting player [" + player->GetName( ) + "]: " + player->GetLeftReason( ) );
 
+	// remove any queued spoofcheck messages for this player
+
+	if( player->GetWhoisSent( ) && !player->GetJoinedRealm( ).empty( ) )
+	{
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			if( (*i)->GetServer( ) == player->GetJoinedRealm( ) )
+			{
+				// hackhack: there must be a better way to do this
+
+				(*i)->UnqueueChatCommand( "/whois " + player->GetName( ) );
+				(*i)->UnqueueChatCommand( "/w " + player->GetName( ) + " " + m_GHost->m_Language->SpoofCheckByReplying( ) );
+			}
+		}
+	}
+
 	// in some cases we're forced to send the left message early so don't send it again
 
 	if( player->GetLeftMessageSent( ) )
