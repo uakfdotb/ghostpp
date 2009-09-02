@@ -3916,28 +3916,7 @@ void CBaseGame :: StartCountDown( bool force )
 				}
 
 				if( !NotSpoofChecked.empty( ) )
-				{
 					SendAllChat( m_GHost->m_Language->PlayersNotYetSpoofChecked( NotSpoofChecked ) );
-
-					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-					{
-						if( !(*i)->GetSpoofed( ) && !(*i)->GetJoinedRealm( ).empty( ) )
-						{
-							for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
-							{
-								if( (*i)->GetJoinedRealm( ) == (*j)->GetServer( ) )
-								{
-									BYTEARRAY UniqueName = (*j)->GetUniqueName( );
-
-									if( m_GameState == GAME_PUBLIC )
-										SendChat( *i, m_GHost->m_Language->ManuallySpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
-									else if( m_GameState == GAME_PRIVATE )
-										SendChat( *i, m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
-								}
-							}
-						}
-					}
-				}
 			}
 
 			// check if everyone has been pinged enough (3 times) that the autokicker would have kicked them by now
@@ -4026,28 +4005,7 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 			}
 
 			if( !NotSpoofChecked.empty( ) )
-			{
 				SendAllChat( m_GHost->m_Language->PlayersNotYetSpoofChecked( NotSpoofChecked ) );
-
-				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-				{
-					if( !(*i)->GetSpoofed( ) && !(*i)->GetJoinedRealm( ).empty( ) )
-					{
-						for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
-						{
-							if( (*i)->GetJoinedRealm( ) == (*j)->GetServer( ) )
-							{
-								BYTEARRAY UniqueName = (*j)->GetUniqueName( );
-
-								if( m_GameState == GAME_PUBLIC )
-									SendChat( *i, m_GHost->m_Language->ManuallySpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
-								else if( m_GameState == GAME_PRIVATE )
-									SendChat( *i, m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
-							}
-						}
-					}
-				}
-			}
 		}
 
 		// check if everyone has been pinged enough (3 times) that the autokicker would have kicked them by now
