@@ -100,6 +100,7 @@
 #endif
 
 time_t gStartTime;
+string gCFGFile;
 string gLogFile;
 CGHost *gGHost = NULL;
 
@@ -165,15 +166,15 @@ void SignalCatcher( int s )
 
 int main( int argc, char **argv )
 {
-	string CFGFile = "ghost.cfg";
+	gCFGFile = "ghost.cfg";
 
 	if( argc > 1 && argv[1] )
-		CFGFile = argv[1];
+		gCFGFile = argv[1];
 
 	// read config file
 
 	CConfig CFG;
-	CFG.Read( CFGFile );
+	CFG.Read( gCFGFile );
 	gLogFile = CFG.GetString( "bot_log", string( ) );
 
 	// print something for logging purposes
@@ -376,6 +377,7 @@ CGHost :: CGHost( CConfig *CFG )
 	}
 #endif
 
+	m_Language = NULL;
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
@@ -390,62 +392,8 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMinimumScore = 0.0;
 	m_AutoHostMaximumScore = 0.0;
 	m_AllGamesFinishedTime = 0;
-	m_LanguageFile = CFG->GetString( "bot_language", "language.cfg" );
-	m_Language = new CLanguage( m_LanguageFile );
-	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
-	m_BindAddress = CFG->GetString( "bot_bindaddress", string( ) );
 	m_HostPort = CFG->GetInt( "bot_hostport", 6112 );
-	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );
-	string BotCommandTrigger = CFG->GetString( "bot_commandtrigger", "!" );
-
-	if( BotCommandTrigger.empty( ) )
-		BotCommandTrigger = "!";
-
-	m_CommandTrigger = BotCommandTrigger[0];
-	m_MapCFGPath = CFG->GetString( "bot_mapcfgpath", string( ) );
-	m_SaveGamePath = CFG->GetString( "bot_savegamepath", string( ) );
-	m_MapPath = CFG->GetString( "bot_mappath", string( ) );
-	m_SaveReplays = CFG->GetInt( "bot_savereplays", 0 ) == 0 ? false : true;
-	m_ReplayPath = CFG->GetString( "bot_replaypath", string( ) );
-	m_VirtualHostName = CFG->GetString( "bot_virtualhostname", "|cFF4080C0GHost" );
-	m_HideIPAddresses = CFG->GetInt( "bot_hideipaddresses", 0 ) == 0 ? false : true;
-	m_CheckMultipleIPUsage = CFG->GetInt( "bot_checkmultipleipusage", 1 ) == 0 ? false : true;
-
-	if( m_VirtualHostName.size( ) > 15 )
-	{
-		m_VirtualHostName = "|cFF4080C0GHost";
-		CONSOLE_Print( "[GHOST] warning - bot_virtualhostname is longer than 15 characters, using default virtual host name" );
-	}
-
-	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
-	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
-	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;
-	m_AutoSave = CFG->GetInt( "bot_autosave", 0 ) == 0 ? false : true;
-	m_AllowDownloads = CFG->GetInt( "bot_allowdownloads", 0 );
-	m_PingDuringDownloads = CFG->GetInt( "bot_pingduringdownloads", 0 ) == 0 ? false : true;
-	m_MaxDownloaders = CFG->GetInt( "bot_maxdownloaders", 3 );
-	m_MaxDownloadSpeed = CFG->GetInt( "bot_maxdownloadspeed", 100 );
-	m_LCPings = CFG->GetInt( "bot_lcpings", 1 ) == 0 ? false : true;
-	m_AutoKickPing = CFG->GetInt( "bot_autokickping", 400 );
-	m_BanMethod = CFG->GetInt( "bot_banmethod", 1 );
-	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
-	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
-	m_Latency = CFG->GetInt( "bot_latency", 100 );
-	m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
-	m_VoteKickAllowed = CFG->GetInt( "bot_votekickallowed", 1 ) == 0 ? false : true;
-	m_VoteKickPercentage = CFG->GetInt( "bot_votekickpercentage", 100 );
-
-	if( m_VoteKickPercentage > 100 )
-	{
-		m_VoteKickPercentage = 100;
-		CONSOLE_Print( "[GHOST] warning - bot_votekickpercentage is greater than 100, using 100 instead" );
-	}
-
 	m_DefaultMap = CFG->GetString( "bot_defaultmap", "map" );
-	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
-	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
-	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );
-	m_UseRegexes = CFG->GetInt( "bot_useregexes", 0 ) == 0 ? false : true;
 	m_AdminGameCreate = CFG->GetInt( "admingame_create", 0 ) == 0 ? false : true;
 	m_AdminGamePort = CFG->GetInt( "admingame_port", 6113 );
 	m_AdminGamePassword = CFG->GetString( "admingame_password", string( ) );
@@ -453,9 +401,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_LANWar3Version = CFG->GetInt( "lan_war3version", 24 );
 	m_ReplayWar3Version = CFG->GetInt( "replay_war3version", 24 );
 	m_ReplayBuildNumber = CFG->GetInt( "replay_buildnumber", 6059 );
-	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
-	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
-	m_BalanceMethod = CFG->GetInt( "bot_balancemethod", 1 );
+	SetConfigs( CFG );
 
 	// load the battle.net connections
 	// we're just loading the config data and creating the CBNET classes here, the connections are established later (in the Update function)
@@ -1037,6 +983,78 @@ void CGHost :: EventGameDeleted( CBaseGame *game )
 		if( (*i)->GetServer( ) == game->GetCreatorServer( ) )
 			(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ), game->GetCreatorName( ), true );
 	}
+}
+
+void CGHost :: ReloadConfigs( )
+{
+	CConfig CFG;
+	CFG.Read( gCFGFile );
+	SetConfigs( &CFG );
+}
+
+void CGHost :: SetConfigs( CConfig *CFG )
+{
+	// this doesn't set EVERY config value since that would potentially require reconfiguring the battle.net connections
+	// it just set the easily reloadable values
+
+	m_LanguageFile = CFG->GetString( "bot_language", "language.cfg" );
+	delete m_Language;
+	m_Language = new CLanguage( m_LanguageFile );
+	m_Warcraft3Path = CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" );
+	m_BindAddress = CFG->GetString( "bot_bindaddress", string( ) );
+	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );
+	string BotCommandTrigger = CFG->GetString( "bot_commandtrigger", "!" );
+
+	if( BotCommandTrigger.empty( ) )
+		BotCommandTrigger = "!";
+
+	m_CommandTrigger = BotCommandTrigger[0];
+	m_MapCFGPath = CFG->GetString( "bot_mapcfgpath", string( ) );
+	m_SaveGamePath = CFG->GetString( "bot_savegamepath", string( ) );
+	m_MapPath = CFG->GetString( "bot_mappath", string( ) );
+	m_SaveReplays = CFG->GetInt( "bot_savereplays", 0 ) == 0 ? false : true;
+	m_ReplayPath = CFG->GetString( "bot_replaypath", string( ) );
+	m_VirtualHostName = CFG->GetString( "bot_virtualhostname", "|cFF4080C0GHost" );
+	m_HideIPAddresses = CFG->GetInt( "bot_hideipaddresses", 0 ) == 0 ? false : true;
+	m_CheckMultipleIPUsage = CFG->GetInt( "bot_checkmultipleipusage", 1 ) == 0 ? false : true;
+
+	if( m_VirtualHostName.size( ) > 15 )
+	{
+		m_VirtualHostName = "|cFF4080C0GHost";
+		CONSOLE_Print( "[GHOST] warning - bot_virtualhostname is longer than 15 characters, using default virtual host name" );
+	}
+
+	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
+	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
+	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;
+	m_AutoSave = CFG->GetInt( "bot_autosave", 0 ) == 0 ? false : true;
+	m_AllowDownloads = CFG->GetInt( "bot_allowdownloads", 0 );
+	m_PingDuringDownloads = CFG->GetInt( "bot_pingduringdownloads", 0 ) == 0 ? false : true;
+	m_MaxDownloaders = CFG->GetInt( "bot_maxdownloaders", 3 );
+	m_MaxDownloadSpeed = CFG->GetInt( "bot_maxdownloadspeed", 100 );
+	m_LCPings = CFG->GetInt( "bot_lcpings", 1 ) == 0 ? false : true;
+	m_AutoKickPing = CFG->GetInt( "bot_autokickping", 400 );
+	m_BanMethod = CFG->GetInt( "bot_banmethod", 1 );
+	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
+	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
+	m_Latency = CFG->GetInt( "bot_latency", 100 );
+	m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
+	m_VoteKickAllowed = CFG->GetInt( "bot_votekickallowed", 1 ) == 0 ? false : true;
+	m_VoteKickPercentage = CFG->GetInt( "bot_votekickpercentage", 100 );
+
+	if( m_VoteKickPercentage > 100 )
+	{
+		m_VoteKickPercentage = 100;
+		CONSOLE_Print( "[GHOST] warning - bot_votekickpercentage is greater than 100, using 100 instead" );
+	}
+
+	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
+	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
+	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );
+	m_UseRegexes = CFG->GetInt( "bot_useregexes", 0 ) == 0 ? false : true;
+	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
+	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
+	m_BalanceMethod = CFG->GetInt( "bot_balancemethod", 1 );
 }
 
 void CGHost :: ExtractScripts( )

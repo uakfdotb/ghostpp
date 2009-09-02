@@ -238,6 +238,7 @@ public:
 	string WasDroppedDesync( );
 	string WasKickedForHavingLowestScore( string score );
 	string PlayerWasKickedForLowestScore( string name, string score );
+	string ReloadingConfigurationFiles( );
 };
 
 #endif

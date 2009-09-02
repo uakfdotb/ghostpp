@@ -1877,6 +1877,21 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
+				// !RELOAD
+				//
+
+				if( Command == "reload" )
+				{
+					if( IsRootAdmin( User ) )
+					{
+						QueueChatCommand( m_GHost->m_Language->ReloadingConfigurationFiles( ), User, Whisper );
+						m_GHost->ReloadConfigs( );
+					}
+					else
+						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+				}
+
+				//
 				// !SAY
 				//
 

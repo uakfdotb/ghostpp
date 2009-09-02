@@ -283,9 +283,9 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 	SendChat( player, "Commands: addadmin, autohost, autohostmm, checkadmin" );
 	SendChat( player, "Commands: checkban, countadmins, countbans, deladmin" );
-	SendChat( player, "Commands: delban, disable, downloads, enable, end" );
-	SendChat( player, "Commands: exit, getgame, getgames, hostsg, load, loadsg" );
-	SendChat( player, "Commands: map, password, priv, privby, pub, pubby, quit" );
+	SendChat( player, "Commands: delban, disable, downloads, enable, end, exit" );
+	SendChat( player, "Commands: getgame, getgames, hostsg, load, loadsg, map" );
+	SendChat( player, "Commands: password, priv, privby, pub, pubby, quit, reload" );
 	SendChat( player, "Commands: say, saygame, saygames, unban, unhost, w" );
 }
 
@@ -1134,6 +1134,16 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				GameName = Payload.substr( GameNameStart + 1 );
 				m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, User, string( ), false );
 			}
+		}
+
+		//
+		// !RELOAD
+		//
+
+		if( Command == "reload" )
+		{
+			SendChat( player, m_GHost->m_Language->ReloadingConfigurationFiles( ) );
+			m_GHost->ReloadConfigs( );
 		}
 
 		//

@@ -1433,3 +1433,8 @@ string CLanguage :: PlayerWasKickedForLowestScore( string name, string score )
 	UTIL_Replace( Out, "$SCORE$", score );
 	return Out;
 }
+
+string CLanguage :: ReloadingConfigurationFiles( )
+{
+	return m_CFG->GetString( "lang_0205", "lang_0205" );
+}
