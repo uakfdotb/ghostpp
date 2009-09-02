@@ -1973,6 +1973,13 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
 	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), false );
+
+	// consider LAN players to have already spoof checked since they can't
+	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
+
+	if( JoinedRealm.empty( ) )
+		Player->SetSpoofed( true );
+
 	Player->SetScore( score );
 	m_Players.push_back( Player );
 	potential->SetSocket( NULL );
