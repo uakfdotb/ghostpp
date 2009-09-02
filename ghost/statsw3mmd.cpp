@@ -238,15 +238,69 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 									else
 										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown flag [" + Tokens[2] + "] found, ignoring" );
 								}
-								else if( Tokens[0] == "DefEvent" )
+								else if( Tokens[0] == "DefEvent" && Tokens.size( ) >= 4 )
 								{
-									// todotodo: parse event definitions so event messages can be displayed in a readable format
-								}
-								else if( Tokens[0] == "Event" )
-								{
-									// todotodo: use event definitions to display event messages in a readable format
+									// Tokens[1] = name
+									// Tokens[2] = # of arguments (n)
+									// Tokens[3..n+3] = arguments
+									// Tokens[n+3] = format
 
-									CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] event [" + KeyString + "]" );
+									if( m_DefEvents.find( Tokens[1] ) != m_DefEvents.end( ) )
+										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] duplicate DefEvent [" + KeyString + "] found, ignoring" );
+									else
+									{
+										uint32_t Arguments = UTIL_ToUInt32( Tokens[2] );
+
+										if( Tokens.size( ) == Arguments + 4 )
+											m_DefEvents[Tokens[1]] = vector<string>( Tokens.begin( ) + 3, Tokens.end( ) );
+									}
+								}
+								else if( Tokens[0] == "Event" && Tokens.size( ) >= 2 )
+								{
+									// Tokens[1] = name
+									// Tokens[2..n+2] = arguments (where n is the # of arguments in the corresponding DefEvent)
+
+									if( m_DefEvents.find( Tokens[1] ) == m_DefEvents.end( ) )
+										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] Event [" + KeyString + "] found without a corresponding DefEvent, ignoring" );
+									else
+									{
+										vector<string> DefEvent = m_DefEvents[Tokens[1]];
+
+										if( !DefEvent.empty( ) )
+										{
+											string Format = DefEvent[DefEvent.size( ) - 1];
+
+											if( Tokens.size( ) - 2 != DefEvent.size( ) - 1 )
+												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] Event [" + KeyString + "] found with " + UTIL_ToString( Tokens.size( ) - 2 ) + " arguments but expected " + UTIL_ToString( DefEvent.size( ) - 1 ) + " arguments, ignoring" );
+											else
+											{
+												// replace the markers in the format string with the arguments
+
+												for( uint32_t i = 0; i < Tokens.size( ) - 2; i++ )
+												{
+													// check if the marker is a PID marker
+
+													if( DefEvent[i].substr( 0, 4 ) == "pid:" )
+													{
+														// replace it with the player's name rather than their PID
+
+														uint32_t PID = UTIL_ToUInt32( Tokens[i + 2] );
+
+														if( m_PIDToName.find( PID ) == m_PIDToName.end( ) )
+															UTIL_Replace( Format, "{" + UTIL_ToString( i ) + "}", "PID:" + Tokens[i + 2] );
+														else
+															UTIL_Replace( Format, "{" + UTIL_ToString( i ) + "}", m_PIDToName[PID] );
+													}
+													else
+														UTIL_Replace( Format, "{" + UTIL_ToString( i ) + "}", Tokens[i + 2] );
+												}
+
+												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] " + Format );
+											}
+										}
+									}
+
+									// CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] event [" + KeyString + "]" );
 								}
 								else if( Tokens[0] == "Blank" )
 								{

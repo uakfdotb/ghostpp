@@ -34,8 +34,6 @@ public:
 	CLanguage( string nCFGFile );
 	~CLanguage( );
 
-	void Replace( string &Text, string Key, string Value );
-
 	string UnableToCreateGameTryAnotherName( string server, string gamename );
 	string UserIsAlreadyAnAdmin( string server, string user );
 	string AddedUserToAdminDatabase( string server, string user );

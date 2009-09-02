@@ -41,6 +41,7 @@ private:
 	map<VarP,int32_t> m_VarPInts;				// pid,varname -> value (e.g. 0,"kills" -> 5)
 	map<VarP,double> m_VarPReals;				// pid,varname -> value (e.g. 0,"x" -> 0.8)
 	map<VarP,string> m_VarPStrings;				// pid,varname -> value (e.g. 0,"hero" -> "heroname")
+	map<string, vector<string> > m_DefEvents;	// event -> vector of arguments + format
 
 public:
 	CStatsW3MMD( CBaseGame *nGame, string nCategory );

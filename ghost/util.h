@@ -77,6 +77,7 @@ BYTEARRAY UTIL_DecodeStatString( BYTEARRAY &data );
 
 bool UTIL_IsLanIP( BYTEARRAY ip );
 bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs );
+void UTIL_Replace( string &Text, string Key, string Value );
 
 // math
 

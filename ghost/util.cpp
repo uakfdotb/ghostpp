@@ -579,6 +579,22 @@ bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs )
 	return false;
 }
 
+void UTIL_Replace( string &Text, string Key, string Value )
+{
+	// don't allow any infinite loops
+
+	if( Value.find( Key ) != string :: npos )
+		return;
+
+	string :: size_type KeyStart = Text.find( Key );
+
+	while( KeyStart != string :: npos )
+	{
+		Text.replace( KeyStart, Key.size( ), Value );
+		KeyStart = Text.find( Key );
+	}
+}
+
 uint32_t UTIL_Factorial( uint32_t x )
 {
 	uint32_t Factorial = 1;
