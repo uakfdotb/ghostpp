@@ -571,7 +571,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// kick players who don't spoof check within 20 seconds when matchmaking is enabled
 
-	if( !m_CountDownStarted && m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+	if( !m_CountDownStarted && m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 	{
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
@@ -591,7 +591,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		// require spoof checks when using matchmaking
 
-		if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+		if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 		{
 			uint32_t PlayersScored = 0;
 			uint32_t PlayersNotScored = 0;
@@ -1486,13 +1486,32 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		}
 	}
 
-	if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM && m_GHost->m_BNETs.size( ) == 1 )
+	// identify their joined realm
+	// this is only possible because when we send a game refresh via LAN or battle.net we encode an ID value in the 4 most significant bits of the host counter
+	// the client sends the host counter when it joins so we can extract the ID value here
+	// note: this is not a replacement for spoof checking since it doesn't verify the player's name and it can be spoofed anyway
+
+	uint32_t HostCounterID = joinPlayer->GetHostCounter( ) >> 28;
+	string JoinedRealm;
+
+	// we use an ID value of 0 to denote joining via LAN
+
+	if( HostCounterID != 0 )
+	{
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			if( (*i)->GetHostCounterID( ) == HostCounterID )
+				JoinedRealm = (*i)->GetServer( );
+		}
+	}
+
+	if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 	{
 		// matchmaking is enabled
 		// start a database query to determine the player's score
 		// when the query is complete we will call EventPlayerJoinedWithScore
 
-		m_ScoreChecks.push_back( m_GHost->m_DB->ThreadedScoreCheck( m_Map->GetMapMatchMakingCategory( ), joinPlayer->GetName( ), m_GHost->m_BNETs[0]->GetServer( ) ) );
+		m_ScoreChecks.push_back( m_GHost->m_DB->ThreadedScoreCheck( m_Map->GetMapMatchMakingCategory( ), joinPlayer->GetName( ), JoinedRealm ) );
 		return;
 	}
 
@@ -1585,25 +1604,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	if( GetNumPlayers( ) >= 11 )
 		DeleteVirtualHost( );
-
-	// identify their joined realm
-	// this is only possible because when we send a game refresh via LAN or battle.net we encode an ID value in the 4 most significant bits of the host counter
-	// the client sends the host counter when it joins so we can extract the ID value here
-	// note: this is not a replacement for spoof checking since it doesn't verify the player's name and it can be spoofed anyway
-
-	uint32_t HostCounterID = joinPlayer->GetHostCounter( ) >> 28;
-	string JoinedRealm;
-
-	// we use an ID value of 0 to denote joining via LAN
-
-	if( HostCounterID != 0 )
-	{
-		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-		{
-			if( (*i)->GetHostCounterID( ) == HostCounterID )
-				JoinedRealm = (*i)->GetServer( );
-		}
-	}
 
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
 	// this problem is solved by setting the socket to NULL before deletion and handling the NULL case in the destructor
@@ -3846,17 +3846,24 @@ void CBaseGame :: StartCountDown( bool force )
 				{
 					SendAllChat( m_GHost->m_Language->PlayersNotYetSpoofChecked( NotSpoofChecked ) );
 
-					if( m_GHost->m_BNETs.size( ) == 1 )
+					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 					{
-						BYTEARRAY UniqueName = m_GHost->m_BNETs[0]->GetUniqueName( );
+						if( !(*i)->GetSpoofed( ) && !(*i)->GetJoinedRealm( ).empty( ) )
+						{
+							for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
+							{
+								if( (*i)->GetJoinedRealm( ) == (*j)->GetServer( ) )
+								{
+									BYTEARRAY UniqueName = (*j)->GetUniqueName( );
 
-						if( m_GameState == GAME_PUBLIC )
-							SendAllChat( m_GHost->m_Language->ManuallySpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
-						else if( m_GameState == GAME_PRIVATE )
-							SendAllChat( m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
+									if( m_GameState == GAME_PUBLIC )
+										SendChat( *i, m_GHost->m_Language->ManuallySpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
+									else if( m_GameState == GAME_PRIVATE )
+										SendChat( *i, m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) ) ) );
+								}
+							}
+						}
 					}
-
-					// todotodo: figure something out with multiple realms here
 				}
 			}
 

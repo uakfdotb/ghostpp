@@ -855,8 +855,6 @@ bool CGHost :: Update( long usecBlock )
 							{
 								if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
 									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
-								else if( m_BNETs.size( ) != 1 )
-									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with one battle.net connection, matchmaking disabled" );
 								else
 								{
 									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found, matchmaking enabled" );
