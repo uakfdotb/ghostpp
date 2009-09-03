@@ -1707,8 +1707,15 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 		{
+			// note: the following (commented out) line of code will crash because calling GetUniqueName( ) twice will result in two different return values
+			// and unfortunately iterators are not valid if compared against different containers
+			// this comment shall serve as warning to not make this mistake again since it has now been made twice before in GHost++
+			// string( (*i)->GetUniqueName( ).begin( ), (*i)->GetUniqueName( ).end( ) )
+
+			BYTEARRAY UniqueName = (*i)->GetUniqueName( );
+
 			if( (*i)->GetServer( ) == JoinedRealm )
-				SendChat( Player, m_GHost->m_Language->SpoofCheckByWhispering( string( (*i)->GetUniqueName( ).begin( ), (*i)->GetUniqueName( ).end( ) ) ) );
+				SendChat( Player, m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) )  ) );
 		}
 	}
 
