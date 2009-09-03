@@ -312,7 +312,12 @@ bool CGamePlayer :: Update( void *fd )
 			if( (*i)->GetServer( ) == m_JoinedRealm )
 			{
 				if( m_Game->GetGameState( ) == GAME_PUBLIC )
-					(*i)->QueueChatCommand( "/whois " + m_Name );
+				{
+					if( (*i)->GetPasswordHashType( ) == "pvpgn" )
+						(*i)->QueueChatCommand( "/whereis " + m_Name );
+					else
+						(*i)->QueueChatCommand( "/whois " + m_Name );
+				}
 				else if( m_Game->GetGameState( ) == GAME_PRIVATE )
 					(*i)->QueueChatCommand( m_Game->m_GHost->m_Language->SpoofCheckByReplying( ), m_Name, true );
 			}

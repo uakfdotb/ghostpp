@@ -1233,7 +1233,11 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 			{
 				// hackhack: there must be a better way to do this
 
-				(*i)->UnqueueChatCommand( "/whois " + player->GetName( ) );
+				if( (*i)->GetPasswordHashType( ) == "pvpgn" )
+					(*i)->UnqueueChatCommand( "/whereis " + player->GetName( ) );
+				else
+					(*i)->UnqueueChatCommand( "/whois " + player->GetName( ) );
+
 				(*i)->UnqueueChatCommand( "/w " + player->GetName( ) + " " + m_GHost->m_Language->SpoofCheckByReplying( ) );
 			}
 		}
