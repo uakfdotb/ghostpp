@@ -1791,10 +1791,7 @@ void CGame :: EventGameStarted( )
 	// so we create a "potential ban" for each player and only store it in the database if requested to by an admin
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-	{
-		if( !(*i)->GetSpoofedRealm( ).empty( ) )
-			m_DBBans.push_back( new CDBBan( (*i)->GetJoinedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ) ) );
-	}
+		m_DBBans.push_back( new CDBBan( (*i)->GetJoinedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ) ) );
 }
 
 bool CGame :: IsGameDataSaved( )

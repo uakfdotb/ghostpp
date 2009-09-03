@@ -1707,7 +1707,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 		{
-			if( JoinedRealm == (*i)->GetServer( ) )
+			if( (*i)->GetServer( ) == JoinedRealm )
 				SendChat( Player, m_GHost->m_Language->SpoofCheckByWhispering( string( (*i)->GetUniqueName( ).begin( ), (*i)->GetUniqueName( ).end( ) ) ) );
 		}
 	}
