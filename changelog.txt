@@ -2,6 +2,16 @@
 GHost++ Changelog
 =================
 
+Version 14.6
+ - the countdown will no longer start if a player left the game less than two seconds ago (use "force" to skip this check)
+ - IP bans are once again properly checked on ALL battle.net realms rather than just one
+ - autokicking players who don't spoofcheck is now only enabled in autohosted games
+ - the bot no longer tries to unqueue spoofchecks if the player already spoofchecked
+ - updated the default replay_buildnumber to match Warcraft III version 1.24b
+ - fixed a bug where the meaning of bot_requirespoofchecks was reversed
+ - fixed a crash bug that would sometimes happen when bot_spoofchecks was enabled
+ - added turkish language config made by HellGuy
+
 Version 14.5
  - added new config value db_mysql_botid to identify which bot the data came from when using MySQL with multiple bots
  - added new config value bot_matchmakingmethod
