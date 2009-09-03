@@ -1405,73 +1405,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		return;
 	}
 
-	// check if the new player's name is banned
-
-	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-	{
-		CDBBan *Ban = (*i)->IsBannedName( joinPlayer->GetName( ) );
-
-		if( Ban )
-		{
-			if( m_GHost->m_BanMethod == 1 || m_GHost->m_BanMethod == 3 )
-			{
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by name" );
-
-				if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
-				{
-					SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBannedByName( joinPlayer->GetName( ) ) );
-					m_IgnoredNames.insert( joinPlayer->GetName( ) );
-				}
-
-				// let banned players "join" the game with an arbitrary PID then immediately close the connection
-				// this causes them to be kicked back to the chat channel on battle.net
-
-				vector<CGameSlot> Slots = m_Map->GetSlots( );
-				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
-				potential->SetDeleteMe( true );
-				return;
-			}
-			else
-			{
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is using a banned name" );
-				SendAllChat( m_GHost->m_Language->HasBannedName( joinPlayer->GetName( ) ) );
-			}
-
-			break;
-		}
-
-		Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ) );
-
-		if( Ban )
-		{
-			if( m_GHost->m_BanMethod == 2 || m_GHost->m_BanMethod == 3 )
-			{
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by IP address" );
-
-				if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
-				{
-					SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBannedByIP( joinPlayer->GetName( ), potential->GetExternalIPString( ), Ban->GetName( ) ) );
-					m_IgnoredNames.insert( joinPlayer->GetName( ) );
-				}
-
-				// let banned players "join" the game with an arbitrary PID then immediately close the connection
-				// this causes them to be kicked back to the chat channel on battle.net
-
-				vector<CGameSlot> Slots = m_Map->GetSlots( );
-				potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
-				potential->SetDeleteMe( true );
-				return;
-			}
-			else
-			{
-				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is using a banned IP address" );
-				SendAllChat( m_GHost->m_Language->HasBannedIP( joinPlayer->GetName( ), potential->GetExternalIPString( ), Ban->GetName( ) ) );
-			}
-
-			break;
-		}
-	}
-
 	// identify their joined realm
 	// this is only possible because when we send a game refresh via LAN or battle.net we encode an ID value in the 4 most significant bits of the host counter
 	// the client sends the host counter when it joins so we can extract the ID value here
@@ -1488,6 +1421,76 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		{
 			if( (*i)->GetHostCounterID( ) == HostCounterID )
 				JoinedRealm = (*i)->GetServer( );
+		}
+	}
+
+	// check if the new player's name is banned
+
+	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+	{
+		if( (*i)->GetServer( ) == JoinedRealm )
+		{
+			CDBBan *Ban = (*i)->IsBannedName( joinPlayer->GetName( ) );
+
+			if( Ban )
+			{
+				if( m_GHost->m_BanMethod == 1 || m_GHost->m_BanMethod == 3 )
+				{
+					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by name" );
+
+					if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
+					{
+						SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBannedByName( joinPlayer->GetName( ) ) );
+						m_IgnoredNames.insert( joinPlayer->GetName( ) );
+					}
+
+					// let banned players "join" the game with an arbitrary PID then immediately close the connection
+					// this causes them to be kicked back to the chat channel on battle.net
+
+					vector<CGameSlot> Slots = m_Map->GetSlots( );
+					potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+					potential->SetDeleteMe( true );
+					return;
+				}
+				else
+				{
+					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is using a banned name" );
+					SendAllChat( m_GHost->m_Language->HasBannedName( joinPlayer->GetName( ) ) );
+				}
+
+				break;
+			}
+
+			Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ) );
+
+			if( Ban )
+			{
+				if( m_GHost->m_BanMethod == 2 || m_GHost->m_BanMethod == 3 )
+				{
+					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by IP address" );
+
+					if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
+					{
+						SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBannedByIP( joinPlayer->GetName( ), potential->GetExternalIPString( ), Ban->GetName( ) ) );
+						m_IgnoredNames.insert( joinPlayer->GetName( ) );
+					}
+
+					// let banned players "join" the game with an arbitrary PID then immediately close the connection
+					// this causes them to be kicked back to the chat channel on battle.net
+
+					vector<CGameSlot> Slots = m_Map->GetSlots( );
+					potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+					potential->SetDeleteMe( true );
+					return;
+				}
+				else
+				{
+					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is using a banned IP address" );
+					SendAllChat( m_GHost->m_Language->HasBannedIP( joinPlayer->GetName( ), potential->GetExternalIPString( ), Ban->GetName( ) ) );
+				}
+
+				break;
+			}
 		}
 	}
 
