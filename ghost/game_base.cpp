@@ -1468,7 +1468,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 			}
 		}
 
-		Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ) );
+		CDBBan *Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ) );
 
 		if( Ban )
 		{
