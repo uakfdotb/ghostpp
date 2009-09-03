@@ -1438,3 +1438,8 @@ string CLanguage :: ReloadingConfigurationFiles( )
 {
 	return m_CFG->GetString( "lang_0205", "lang_0205" );
 }
+
+string CLanguage :: CountDownAbortedSomeoneLeftRecently( )
+{
+	return m_CFG->GetString( "lang_0206", "lang_0206" );
+}

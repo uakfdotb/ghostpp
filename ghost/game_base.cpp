@@ -93,6 +93,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_LastReservedSeen = GetTime( );
 	m_StartedKickVoteTime = 0;
 	m_GameOverTime = 0;
+	m_LastPlayerLeaveTicks = 0;
 	m_MinimumScore = 0.0;
 	m_MaximumScore = 0.0;
 	m_Locked = false;
@@ -1242,6 +1243,8 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 			}
 		}
 	}
+
+	m_LastPlayerLeaveTicks = GetTicks( );
 
 	// in some cases we're forced to send the left message early so don't send it again
 

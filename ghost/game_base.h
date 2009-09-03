@@ -99,6 +99,7 @@ protected:
 	uint32_t m_LastReservedSeen;					// GetTime when the last reserved player was seen in the lobby
 	uint32_t m_StartedKickVoteTime;					// GetTime when the kick vote was started
 	uint32_t m_GameOverTime;						// GetTime when the game was over
+	uint32_t m_LastPlayerLeaveTicks;				// GetTicks when the most recent player left the game
 	double m_MinimumScore;							// the minimum allowed score for matchmaking mode
 	double m_MaximumScore;							// the maximum allowed score for matchmaking mode
 	bool m_Locked;									// if the game owner is the only one allowed to run game commands or not
