@@ -2,6 +2,12 @@
 GHost++ Changelog
 =================
 
+Version 14.7
+ - clarified some comments in ghost.cfg regarding bot_requirespoofchecks
+ - fixed a bug where it was only possible to ban spoofchecked players once the game started
+ - fixed a crash bug when bot_requirespoofchecks was enabled and bot_spoofchecks was disabled
+ - added russian language config made by Jilizart
+
 Version 14.6
  - the countdown will no longer start if a player left the game less than two seconds ago (use "force" to skip this check)
  - IP bans are once again properly checked on ALL battle.net realms rather than just one
