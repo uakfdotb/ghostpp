@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 14.4
+GHost++ Version 14.5
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
@@ -121,7 +121,7 @@ So, how does GHost++ determine whether a user has admin access in the lobby and 
 
 1.) The user must be spoof checked.
  a.) If spoof checking is disabled they must still manually spoof check by whispering the bot.
- b.) GHost++ treats players joining from the local network (LAN) as spoof checked because they cannot spoof check since they aren't connected to battle.net.
+ b.) GHost++ treats players joining from the LAN screen as spoof checked because they cannot spoof check since they aren't connected to battle.net.
 2.) The user must be either a root admin on the realm they spoof checked on, or they must be the game owner, or they must be an admin on the realm they spoof checked on.
 
 If the bot is ignoring you in the lobby and ingame it's most likely because you haven't spoof checked.
@@ -132,14 +132,8 @@ How Bans Work
 
 Each ban is attached to a specific realm.
 When you run the !addban or !ban commands on battle.net, the ban will be attached to the realm you ran the command on.
-When you run the !addban or !ban commands in a game, it works like this:
-
-1.) If the banned user was spoof checked, the ban will be attached to the realm they spoof checked on.
-2.) If the banned user was not spoof checked, a new ban will be created for each defined realm and attached to that realm.
-
+When you run the !addban or !ban commands in a game, the ban will be attached to the realm the player joined from.
 When you run the !delban or !unban commands all bans for that username will be deleted regardless of realm.
-GHost++ considers a user to be banned if it finds a ban for that user on ANY of the defined realms.
-This is because GHost++ doesn't wait for the user to spoof check before kicking them, instead it immediately kicks thems and assumes they came from the banned realm.
 
 Update:
 
@@ -279,7 +273,7 @@ The autohost command takes three arguments: !autohost <m> <p> <n>
  b.) The bot will not auto host any new games while the number of running games is <m> or greater. The running games do not have to be auto hosted games.
 2.) <p> is the number of players required to auto start the game.
  a.) When <p> players have joined the game it will ensure that all players have the map and have been ping checked before starting.
- b.) Spoof checks are not required when auto starting games.
+ b.) If spoof checks are required with bot_requirespoofchecks then it will ensure all players have spoof checked before starting.
 3.) <n> is the game name.
  a.) The bot will automatically add a unique game number to the end of <n> before auto hosting each game.
  b.) For example if you specify "BattleShips Auto" it will create games like "BattleShips Auto #1" and "BattleShips Auto #2" and so on.
@@ -475,18 +469,16 @@ db_mysql_database = YOUR_DB
 db_mysql_user = YOUR_USERNAME
 db_mysql_password = YOUR_PASSWORD
 db_mysql_port = 0
+db_mysql_botid = 1
 
 You can use a remote MySQL server if you wish, just specify the server and port above (the default MySQL port is 3306).
 Please be aware that GHost++ does not cache and retry failed queries so it is possible for GHost++ to lose data when using a remote (or even local) MySQL server.
 Create a new database on your MySQL server then run the most recent "mysql_create_tables.sql" file on it.
 GHost++ won't create or modify your MySQL database schema like it does with SQLite so you are responsible for making sure your database schema is accurate.
 This means you need to keep track of what schema you're using and run the appropriate "mysql_upgrade.sql" file(s) on your database as necessary.
-Note that with MySQL you can configure multiple bots to use the same database although support for this is not 100% complete or configurable.
-
-*** IMPORTANT ***
-
-MySQL support has not yet been implemented in the admin game.
-If you are using a MySQL database any commands that modify the database (e.g. adding admins or bans) will not work in the admin game.
+Note that with MySQL you can configure multiple bots to use the same database.
+It is recommended that you set db_mysql_botid to a unique value on each bot connecting to the same database but it is not necessary.
+The bot ID number is just to help you keep track of which bot the data came from and can be set to the same value on each bot if you wish.
 
 =====================
 Automatic Matchmaking
@@ -499,9 +491,8 @@ To use automatic matchmaking there are several requirements:
 
 1.) You can only use automatic matchmaking with a MySQL database. SQLite databases are not supported.
 2.) You can only use automatic matchmaking with custom (e.g. non-melee) maps.
-3.) You can only use automatic matchmaking with a single battle.net connection. You cannot use GHost++'s multirealm feature with automatic matchmaking.
-4.) You must specify the "map_matchmakingcategory" value in your map config file.
-5.) You must specify the "map_defaultplayerscore" value in your map config file (this is used when balancing the teams).
+3.) You must specify the "map_matchmakingcategory" value in your map config file.
+4.) You must specify the "map_defaultplayerscore" value in your map config file (this is used when balancing the teams).
 
 Here's how it works:
 
@@ -509,12 +500,28 @@ Here's how it works:
 2.) When a player joins the game, GHost++ checks the MySQL database's "scores" table using the map's "map_matchmakingcategory" for the player's score.
  a.) GHost++ will NEVER write to the scores table. GHost++ does NOT contain a scoring algorithm. It is YOUR responsibility to generate the scores table.
  b.) Scores can be any number, positive or negative, but they should always be greater than -99999 as GHost++ assumes any value less than this represents "no score".
-3.) When the player's score is retrieved GHost++ computes the average score of all players currently in the game plus the new player.
-4.) If the game is full the player with the "furthest" score from the average (computed by absolute value) is kicked from the game.
+
+What happens next depends on what your bot_matchmakingmethod config value is set to.
+If bot_matchmakingmethod is 0 (no matchmaking):
+
+3.) No matchmaking is performed. Players are allowed to join the game in a first come first served fashion.
+
+If bot_matchmakingmethod is 1 (furthest score matchmaking):
+
+3.) If the game is full the player with the "furthest" score from the average (computed by absolute value) is kicked from the game.
  a.) The kicked player can be the new player if they have the furthest score.
  b.) A player without a score is considered to have the furthest score and will always be kicked in favour of a player with a score.
- c.) The teams will be automatically rebalanced. For the purpose of balancing, players with no score are considered to have the map_defaultplayerscore.
- d.) Note: The team balancing algorithm cannot be used for 4 teams of 3 players as it is too slow in this case.
+
+If bot_matchmakingmethod is 2 (lowest score matchmaking):
+
+3.) If the game is full the player with the lowest score is kicked from the game.
+ a.) The kicked player can be the new player if they have the lowest score.
+ b.) A player without a score is considered to have the lowest score and will always be kicked in favour of a player with a score.
+
+Then, regardless of bot_matchmakingmethod:
+
+4.) The teams will be automatically rebalanced. For the purpose of balancing, players with no score are considered to have the map_defaultplayerscore.
+ a.) Note: The team balancing algorithm cannot be used for 4 teams of 3 players as it is too slow in this case.
 
 Note that GHost++ does not contain a default scoring algorithm.
 This means that automatic matchmaking DOES NOT work "out of the box".
@@ -554,7 +561,6 @@ For example, when autohosting DotA games it is desirable for the bot to set the 
 Here's how to use it:
 
 1.) Obtain a map that supports the HCL standard.
- a.) At the time of this writing no maps support the HCL standard although DotA will likely support it in the future.
 2.) Set the "HCL Command String" (the data to be passed to the map) by using the !hcl command in the lobby.
  a.) The HCL Command String can only contain one character per player and/or computer player when the game starts.
  b.) It can also only contain characters from a limited set (lowercase letters, numbers, and a small number of special characters).
@@ -671,6 +677,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force|nice]              alias to !exit
+!reload                         reload the main configuration files
 !say <text>                     send <text> to battle.net as a chat command
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games
@@ -799,6 +806,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !pub <name>                     host public game
 !pubby <owner> <name>           host public game by another player (gives <owner> access to admin commands in the game lobby and in the game)
 !quit [force|nice]              alias to !exit
+!reload                         reload the main configuration files
 !say <text>                     send <text> to all connected battle.net realms as a chat command
 !saygame <number> <text>        send <text> to the specified game in progress
 !saygames <text>                send <text> to all games

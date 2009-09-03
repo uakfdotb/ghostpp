@@ -2,6 +2,34 @@
 GHost++ Changelog
 =================
 
+Version 14.5
+ - added new config value db_mysql_botid to identify which bot the data came from when using MySQL with multiple bots
+ - added new config value bot_matchmakingmethod
+ - added new config value bot_requirespoofchecks
+   * modified bot_spoofchecks so it only controls whether automatic spoof checks are done or not
+ - added new command !reload in battle.net and the admin game to reload the main configuration files
+ - banned players are now kicked back to the chat channel rather than told the game is full when they try to join
+ - the !ban and !banlast commands now only ban on the realm the player joined from
+ - players are now only considered banned if they are banned on the realm they joined from
+ - complete ban messages are now printed when a banned player joins the game
+ - added automatic kicking of desynced players
+ - players can now spoofcheck by whispering the bot "s", "sc", "spoof", "check", or "spoofcheck"
+ - the bot now only sends the player spoofcheck message on the realm they joined from rather than all realms (network optimization)
+ - spoofcheck failures are now displayed in the game lobby even when using multiple realms
+ - spoofcheck failures on players who joined then left the game are now hidden
+ - when spoofchecks are disabled but required the bot will tell new players how to spoofcheck
+ - the bot now considers players who joined the game from the LAN screen to be spoofchecked (rather than from a LAN address)
+ - the game will now start even if some reserved players have not been pinged 3 times yet
+ - printed W3MMD Event messages to the server console in a more readable format
+ - removed the 1-realm requirement for !autohostmm
+ - unqueued battle.net spoofcheck messages for players who are no longer in the game (network optimization)
+ - fixed a bug where observers/referees were shuffled when !sp was used
+ - fixed a bug where queued spoof checks would be ignored when the game is changed from public to private 
+ - fixed a bug where colour terminators were sometimes not added correctly when printing !ping and !from responses
+ - fixed a bug with the team balancing algorithm where it wouldn't properly arrange the players according to the best balance
+ - fixed a bug where the bot would spam the chat with up to 12 nonexisting team scores when team balancing was complete
+ - made several small changes to language.cfg to make the messages make more sense
+
 Version 14.4
  - implemented the team balancing algorithm when using !autohostmm
   * the algorithm cannot be used with 4 teams of 3 players as it is too slow in this case
