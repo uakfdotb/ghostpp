@@ -400,7 +400,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AdminGameMap = CFG->GetString( "admingame_map", string( ) );
 	m_LANWar3Version = CFG->GetInt( "lan_war3version", 24 );
 	m_ReplayWar3Version = CFG->GetInt( "replay_war3version", 24 );
-	m_ReplayBuildNumber = CFG->GetInt( "replay_buildnumber", 6059 );
+	m_ReplayBuildNumber = CFG->GetInt( "replay_buildnumber", 6374 );
 	SetConfigs( CFG );
 
 	// load the battle.net connections
