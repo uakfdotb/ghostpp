@@ -939,8 +939,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		{
 			if( Message == "s" || Message == "sc" || Message == "spoof" || Message == "check" || Message == "spoofcheck" )
 				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, true );
-			else if( Message.find( "entered a Warcraft III The Frozen Throne game called" ) != string :: npos && Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
+			else if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
+			{
+				// look for messages like "entered a Warcraft III The Frozen Throne game called XYZ"
+				// we don't look for the English part of the text anymore because we want this to work with multiple languages
+				// it's a pretty safe bet that anyone whispering the bot with a message containing the game name is a valid spoofcheck
+
 				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
+			}
 		}
 
 		// handle bot commands
