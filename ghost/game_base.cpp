@@ -1225,7 +1225,7 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 	// remove any queued spoofcheck messages for this player
 
-	if( player->GetWhoisSent( ) && !player->GetJoinedRealm( ).empty( ) )
+	if( player->GetWhoisSent( ) && !player->GetJoinedRealm( ).empty( ) && player->GetSpoofedRealm( ).empty( ) )
 	{
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 		{
@@ -2289,8 +2289,6 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 			}
 
 			FirstCheckSum = (*LargestBin).first;
-
-			// todotodo: kick the desynced player(s) and don't stop recording the replay
 
 			if( Tied )
 			{

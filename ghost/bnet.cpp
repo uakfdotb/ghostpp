@@ -2351,7 +2351,7 @@ void CBNET :: UnqueueChatCommand( string chatCommand )
 		BYTEARRAY Packet = m_OutPackets.front( );
 		m_OutPackets.pop( );
 
-		if( equal( Packet.begin( ), Packet.end( ), PacketToUnqueue.begin( ) ) )
+		if( Packet == PacketToUnqueue )
 			Unqueued++;
 		else
 			Packets.push( Packet );
