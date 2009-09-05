@@ -884,11 +884,6 @@ void CBNET :: ProcessPackets( )
 					delete *i;
 
 				m_Friends = Friends;
-
-				/* DEBUG_Print( "received " + UTIL_ToString( Friends.size( ) ) + " friends" );
-				for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
-					DEBUG_Print( "friend: " + (*i)->GetAccount( ) ); */
-
 				break;
 
 			case CBNETProtocol :: SID_CLANMEMBERLIST:
@@ -898,11 +893,6 @@ void CBNET :: ProcessPackets( )
 					delete *i;
 
 				m_Clans = Clans;
-
-				/* DEBUG_Print( "received " + UTIL_ToString( Clans.size( ) ) + " clan members" );
-				for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
-					DEBUG_Print( "clan member: " + (*i)->GetName( ) ); */
-
 				break;
 			}
 		}
@@ -2183,8 +2173,17 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			{
 				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
 					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, UserName, false );
+
+				// todotodo: we need to allow players who join the game just before the name changes (due to rehosting) to spoof check properly here
+				// e.g. store the previous game name and permit players to spoof check against that name for some amount of time, or even indefinitely
+				// it's not necessarily true that someone in a "different game" as determined by the current game name is name spoofing
+
+				/*
+
 				else
 					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName ) );
+
+				*/
 			}
 		}
 	}
