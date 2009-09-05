@@ -945,7 +945,17 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// we don't look for the English part of the text anymore because we want this to work with multiple languages
 				// it's a pretty safe bet that anyone whispering the bot with a message containing the game name is a valid spoofcheck
 
-				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
+				if( m_PasswordHashType == "pvpgn" && User == "PvPGN Realm" )
+				{
+					// the equivalent pvpgn message is: [PvPGN Realm] Your friend abc has entered a Warcraft III Frozen Throne game named "xyz".
+
+					vector<string> Tokens = UTIL_Tokenize( Message, ' ' );
+
+					if( Tokens.size( ) >= 3 )
+						m_GHost->m_CurrentGame->AddToSpoofed( m_Server, Tokens[2], false );
+				}
+				else
+					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
 			}
 		}
 
