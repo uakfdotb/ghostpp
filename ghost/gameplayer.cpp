@@ -206,6 +206,7 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_LoggedIn = false;
 	m_Spoofed = false;
 	m_Reserved = nReserved;
+	m_WhoisShouldBeSent = false;
 	m_WhoisSent = false;
 	m_DownloadAllowed = false;
 	m_DownloadStarted = false;
@@ -244,6 +245,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_LoggedIn = false;
 	m_Spoofed = false;
 	m_Reserved = nReserved;
+	m_WhoisShouldBeSent = false;
 	m_WhoisSent = false;
 	m_DownloadAllowed = false;
 	m_DownloadStarted = false;
@@ -301,9 +303,8 @@ bool CGamePlayer :: Update( void *fd )
 {
 	// wait 4 seconds after joining before sending the /whois or /w
 	// if we send the /whois too early battle.net may not have caught up with where the player is and return erroneous results
-	// when connecting to multiple realms we send a /whois or /w on every realm
 
-	if( m_Game->m_GHost->m_SpoofChecks && !m_Spoofed && !m_WhoisSent && !m_JoinedRealm.empty( ) && GetTime( ) >= m_JoinTime + 4 )
+	if( m_WhoisShouldBeSent && !m_Spoofed && !m_WhoisSent && !m_JoinedRealm.empty( ) && GetTime( ) >= m_JoinTime + 4 )
 	{
 		// todotodo: we could get kicked from battle.net for sending a command with invalid characters, do some basic checking
 

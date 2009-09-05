@@ -1024,7 +1024,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] warning - bot_virtualhostname is longer than 15 characters, using default virtual host name" );
 	}
 
-	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 1 ) == 0 ? false : true;
+	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 2 );
 	m_RequireSpoofChecks = CFG->GetInt( "bot_requirespoofchecks", 1 ) == 0 ? false : true;
 	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
 	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;

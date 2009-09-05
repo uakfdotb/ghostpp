@@ -103,6 +103,7 @@ private:
 	bool m_LoggedIn;							// if the player has logged in or not (used with CAdminGame only)
 	bool m_Spoofed;								// if the player has spoof checked or not
 	bool m_Reserved;							// if the player is reserved (VIP) or not
+	bool m_WhoisShouldBeSent;					// if a battle.net /whois should be sent for this player or not
 	bool m_WhoisSent;							// if we've sent a battle.net /whois for this player yet (for spoof checking)
 	bool m_DownloadAllowed;						// if we're allowed to download the map or not (used with permission based map downloads)
 	bool m_DownloadStarted;						// if we've started downloading the map or not
@@ -145,6 +146,7 @@ public:
 	bool GetLoggedIn( )						{ return m_LoggedIn; }
 	bool GetSpoofed( )						{ return m_Spoofed; }
 	bool GetReserved( )						{ return m_Reserved; }
+	bool GetWhoisShouldBeSent( )			{ return m_WhoisShouldBeSent; }
 	bool GetWhoisSent( )					{ return m_WhoisSent; }
 	bool GetDownloadAllowed( )				{ return m_DownloadAllowed; }
 	bool GetDownloadStarted( )				{ return m_DownloadStarted; }
@@ -172,6 +174,7 @@ public:
 	void SetLoggedIn( bool nLoggedIn )										{ m_LoggedIn = nLoggedIn; }
 	void SetSpoofed( bool nSpoofed )										{ m_Spoofed = nSpoofed; }
 	void SetReserved( bool nReserved )										{ m_Reserved = nReserved; }
+	void SetWhoisShouldBeSent( bool nWhoisShouldBeSent )					{ m_WhoisShouldBeSent = nWhoisShouldBeSent; }
 	void SetDownloadAllowed( bool nDownloadAllowed )						{ m_DownloadAllowed = nDownloadAllowed; }
 	void SetDownloadStarted( bool nDownloadStarted )						{ m_DownloadStarted = nDownloadStarted; }
 	void SetDownloadFinished( bool nDownloadFinished )						{ m_DownloadFinished = nDownloadFinished; }

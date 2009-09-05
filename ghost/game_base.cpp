@@ -1618,6 +1618,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	if( JoinedRealm.empty( ) )
 		Player->SetSpoofed( true );
 
+	Player->SetWhoisShouldBeSent( m_GHost->m_SpoofChecks == 1 || ( m_GHost->m_SpoofChecks == 2 && AnyAdminCheck ) );
 	m_Players.push_back( Player );
 	potential->SetSocket( NULL );
 	potential->SetDeleteMe( true );
@@ -1701,10 +1702,11 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	SendWelcomeMessage( Player );
 
-	if( m_GHost->m_RequireSpoofChecks && !m_GHost->m_SpoofChecks )
-	{
-		// tell the player how to spoof check
+	// if spoof checks are required and we won't automatically spoof check this player then tell them how to spoof check
+	// e.g. if automatic spoof checks are disabled, or if automatic spoof checks are done on admins only and this player isn't an admin
 
+	if( m_GHost->m_RequireSpoofChecks && !Player->GetWhoisShouldBeSent( ) )
+	{
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 		{
 			// note: the following (commented out) line of code will crash because calling GetUniqueName( ) twice will result in two different return values
@@ -1798,6 +1800,20 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	// try to find an empty slot
 
 	unsigned char SID = GetEmptySlot( false );
+
+	// check if the player is an admin or root admin on any connected realm for determining reserved status
+	// we can't just use the spoof checked realm like in EventPlayerBotCommand because the player hasn't spoof checked yet
+
+	bool AnyAdminCheck = false;
+
+	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+	{
+		if( (*i)->IsAdmin( joinPlayer->GetName( ) ) || (*i)->IsRootAdmin( joinPlayer->GetName( ) ) )
+		{
+			AnyAdminCheck = true;
+			break;
+		}
+	}
 
 	if( SID == 255 )
 	{
@@ -2001,6 +2017,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	if( JoinedRealm.empty( ) )
 		Player->SetSpoofed( true );
 
+	Player->SetWhoisShouldBeSent( m_GHost->m_SpoofChecks == 1 || ( m_GHost->m_SpoofChecks == 2 && AnyAdminCheck ) );
 	Player->SetScore( score );
 	m_Players.push_back( Player );
 	potential->SetSocket( NULL );
@@ -2057,6 +2074,25 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	// send a welcome message
 
 	SendWelcomeMessage( Player );
+
+	// if spoof checks are required and we won't automatically spoof check this player then tell them how to spoof check
+	// e.g. if automatic spoof checks are disabled, or if automatic spoof checks are done on admins only and this player isn't an admin
+
+	if( m_GHost->m_RequireSpoofChecks && !Player->GetWhoisShouldBeSent( ) )
+	{
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+		{
+			// note: the following (commented out) line of code will crash because calling GetUniqueName( ) twice will result in two different return values
+			// and unfortunately iterators are not valid if compared against different containers
+			// this comment shall serve as warning to not make this mistake again since it has now been made twice before in GHost++
+			// string( (*i)->GetUniqueName( ).begin( ), (*i)->GetUniqueName( ).end( ) )
+
+			BYTEARRAY UniqueName = (*i)->GetUniqueName( );
+
+			if( (*i)->GetServer( ) == JoinedRealm )
+				SendChat( Player, m_GHost->m_Language->SpoofCheckByWhispering( string( UniqueName.begin( ), UniqueName.end( ) )  ) );
+		}
+	}
 
 	if( score < -99999.0 )
 		SendAllChat( m_GHost->m_Language->PlayerHasScore( joinPlayer->GetName( ), "N/A" ) );
