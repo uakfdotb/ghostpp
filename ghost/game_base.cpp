@@ -63,6 +63,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_VirtualHostPID = 255;
 	m_FakePlayerPID = 255;
 	m_GameName = nGameName;
+	m_LastGameName = nGameName;
 	m_VirtualHostName = m_GHost->m_VirtualHostName;
 	m_OwnerName = nOwnerName;
 	m_CreatorName = nCreatorName;
@@ -469,6 +470,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 		string GameName = m_GHost->m_AutoHostGameName + " #" + UTIL_ToString( m_GHost->m_HostCounter );
 		CONSOLE_Print( "[GAME: " + m_GameName + "] automatically trying to rehost as public game [" + GameName + "] due to refresh failure" );
+		m_LastGameName = m_GameName;
 		m_GameName = GameName;
 		m_HostCounter = m_GHost->m_HostCounter++;
 		m_RefreshError = false;

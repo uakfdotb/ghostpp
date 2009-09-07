@@ -1289,6 +1289,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as private game [" + Payload + "]" );
 				SendAllChat( m_GHost->m_Language->TryingToRehostAsPrivateGame( Payload ) );
 				m_GameState = GAME_PRIVATE;
+				m_LastGameName = m_GameName;
 				m_GameName = Payload;
 				m_HostCounter = m_GHost->m_HostCounter++;
 				m_RefreshError = false;
@@ -1325,6 +1326,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]" );
 				SendAllChat( m_GHost->m_Language->TryingToRehostAsPublicGame( Payload ) );
 				m_GameState = GAME_PUBLIC;
+				m_LastGameName = m_GameName;
 				m_GameName = Payload;
 				m_HostCounter = m_GHost->m_HostCounter++;
 				m_RefreshError = false;

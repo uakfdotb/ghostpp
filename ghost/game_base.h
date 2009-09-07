@@ -66,6 +66,7 @@ protected:
 	unsigned char m_VirtualHostPID;					// virtual host's PID
 	unsigned char m_FakePlayerPID;					// the fake player's PID (if present)
 	string m_GameName;								// game name
+	string m_LastGameName;							// last game name (the previous game name before it was rehosted)
 	string m_VirtualHostName;						// virtual host's name
 	string m_OwnerName;								// name of the player who owns this game (should be considered an admin)
 	string m_CreatorName;							// name of the player who created this game
@@ -125,6 +126,7 @@ public:
 	virtual uint16_t GetHostPort( )				{ return m_HostPort; }
 	virtual unsigned char GetGameState( )		{ return m_GameState; }
 	virtual string GetGameName( )				{ return m_GameName; }
+	virtual string GetLastGameName( )			{ return m_LastGameName; }
 	virtual string GetVirtualHostName( )		{ return m_VirtualHostName; }
 	virtual string GetOwnerName( )				{ return m_OwnerName; }
 	virtual string GetCreatorName( )			{ return m_CreatorName; }
