@@ -516,7 +516,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// send more map data
 
-	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) >= m_LastDownloadTicks + 250 )
+	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) >= m_LastDownloadTicks + 125 )
 	{
 		uint32_t Downloaders = 0;
 		uint32_t DownloadCounter = 0;
@@ -549,9 +549,9 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					}
 
 					// limit the download speed if we're sending too much data
-					// we divide by 4 because we run this code every 250ms (i.e. four times per second)
+					// we divide by 8 because we run this code every 125ms (i.e. eight times per second)
 
-					if( m_GHost->m_MaxDownloadSpeed > 0 && DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 / 4 )
+					if( m_GHost->m_MaxDownloadSpeed > 0 && DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 / 8 )
 						break;
 
 					Send( *i, m_Protocol->SEND_W3GS_MAPPART( GetHostPID( ), (*i)->GetPID( ), (*i)->GetLastMapPartSent( ), m_Map->GetMapData( ) ) );
@@ -3195,7 +3195,7 @@ unsigned char CBaseGame :: GetHostPID( )
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
-		if( !(*i)->GetLeftMessageSent( ) && (*i)->GetName( ) == m_OwnerName )
+		if( !(*i)->GetLeftMessageSent( ) && IsOwner( (*i)->GetName( ) ) )
 			return (*i)->GetPID( );
 	}
 
@@ -3567,7 +3567,7 @@ void CBaseGame :: ShuffleSlots( )
 
 	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); i++ )
 	{
-		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 )
+		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != 12 )
 		{
 			Slots.push_back( *CurrentPlayer );
 			CurrentPlayer++;
