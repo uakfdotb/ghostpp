@@ -516,7 +516,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// send more map data
 
-	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) >= m_LastDownloadTicks + 125 )
+	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) >= m_LastDownloadTicks + 100 )
 	{
 		uint32_t Downloaders = 0;
 		uint32_t DownloadCounter = 0;
@@ -530,15 +530,23 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				if( m_GHost->m_MaxDownloaders > 0 && Downloaders > m_GHost->m_MaxDownloaders )
 					break;
 
-				// send up to 50 pieces of the map at once so that the download goes faster
+				// send up to 100 pieces of the map at once so that the download goes faster
 				// if we wait for each MAPPART packet to be acknowledged by the client it'll take a long time to download
 				// this is because we would have to wait the round trip time (the ping time) between sending every 1442 bytes of map data
-				// doing it this way allows us to send at least 70 KB in each round trip interval which is much more reasonable
-				// the theoretical throughput is [70 KB * 1000 / ping] in KB/sec so someone with 100 ping (round trip ping, not LC ping) could download at 700 KB/sec
+				// doing it this way allows us to send at least 140 KB in each round trip interval which is much more reasonable
+				// the theoretical throughput is [140 KB * 1000 / ping] in KB/sec so someone with 100 ping (round trip ping, not LC ping) could download at 1400 KB/sec
+				// note: this creates a queue of map data which clogs up the connection when the client is on a slower connection (e.g. dialup)
+				// in this case any changes to the lobby are delayed by the amount of time it takes to send the queued data (i.e. 140 KB, which could be 30 seconds or more)
+				// for example, players joining and leaving, slot changes, chat messages would all appear to happen much later for the low bandwidth player
+				// note: the throughput is also limited by the number of times this code is executed each second
+				// e.g. if we send the maximum amount (140 KB) 10 times per second the theoretical throughput is 1400 KB/sec
+				// therefore the maximum throughput is 1400 KB/sec regardless of ping and this value slowly diminishes as the player's ping increases
+				// in addition to this, the througput is limited by the configuration value bot_maxdownloadspeed
+				// in summary: the actual throughput is MIN( 140 * 1000 / ping, 1400, bot_maxdownloadspeed ) in KB/sec assuming only one player is downloading the map
 
 				uint32_t MapSize = UTIL_ByteArrayToUInt32( m_Map->GetMapSize( ), false );
 
-				while( (*i)->GetLastMapPartSent( ) < (*i)->GetLastMapPartAcked( ) + 1442 * 50 && (*i)->GetLastMapPartSent( ) < MapSize )
+				while( (*i)->GetLastMapPartSent( ) < (*i)->GetLastMapPartAcked( ) + 1442 * 100 && (*i)->GetLastMapPartSent( ) < MapSize )
 				{
 					if( (*i)->GetLastMapPartSent( ) == 0 )
 					{
@@ -549,9 +557,9 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					}
 
 					// limit the download speed if we're sending too much data
-					// we divide by 8 because we run this code every 125ms (i.e. eight times per second)
+					// we divide by 10 because we run this code every 100ms (i.e. ten times per second)
 
-					if( m_GHost->m_MaxDownloadSpeed > 0 && DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 / 8 )
+					if( m_GHost->m_MaxDownloadSpeed > 0 && DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 / 10 )
 						break;
 
 					Send( *i, m_Protocol->SEND_W3GS_MAPPART( GetHostPID( ), (*i)->GetPID( ), (*i)->GetLastMapPartSent( ), m_Map->GetMapData( ) ) );
@@ -3679,6 +3687,7 @@ void CBaseGame :: BalanceSlots( )
 	}
 
 	// setup the necessary variables for the balancing algorithm
+	// use an array of 13 elements for 12 players because GHost++ allocates PID's from 1-12 (i.e. excluding 0) and we use the PID to index the array
 
 	vector<unsigned char> PlayerIDs;
 	unsigned char TeamSizes[12];
