@@ -36,15 +36,32 @@ protected:
 	bool m_Valid;
 	string m_Compressed;
 	string m_Decompressed;
+	uint32_t m_HeaderSize;
+	uint32_t m_CompressedSize;
+	uint32_t m_HeaderVersion;
+	uint32_t m_DecompressedSize;
+	uint32_t m_NumBlocks;
+	uint32_t m_War3Identifier;
 	uint32_t m_War3Version;
 	uint16_t m_BuildNumber;
+	uint16_t m_Flags;
 	uint32_t m_ReplayLength;
 
 public:
 	CPacked( );
 	virtual ~CPacked( );
 
-	virtual bool GetValid( )	{ return m_Valid; }
+	virtual bool GetValid( )				{ return m_Valid; }
+	virtual uint32_t GetHeaderSize( )		{ return m_HeaderSize; }
+	virtual uint32_t GetCompressedSize( )	{ return m_CompressedSize; }
+	virtual uint32_t GetHeaderVersion( )	{ return m_HeaderVersion; }
+	virtual uint32_t GetDecompressedSize( )	{ return m_DecompressedSize; }
+	virtual uint32_t GetNumBlocks( )		{ return m_NumBlocks; }
+	virtual uint32_t GetWar3Identifier( )	{ return m_War3Identifier; }
+	virtual uint32_t GetWar3Version( )		{ return m_War3Version; }
+	virtual uint16_t GetBuildNumber( )		{ return m_BuildNumber; }
+	virtual uint16_t GetFlags( )			{ return m_Flags; }
+	virtual uint32_t GetReplayLength( )		{ return m_ReplayLength; }
 
 	virtual void Load( string fileName, bool allBlocks );
 	virtual bool Save( string fileName );
