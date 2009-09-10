@@ -18,40 +18,6 @@
 
 */
 
-#ifndef PACKED_H
-#define PACKED_H
+// this file is a dirty hack which allows us to use source files from the main ghost directory without any preprocessor trickery
 
-//
-// CPacked
-//
-
-class CCRC32;
-
-class CPacked
-{
-public:
-	CCRC32 *m_CRC;
-
-protected:
-	bool m_Valid;
-	string m_Compressed;
-	string m_Decompressed;
-	uint32_t m_War3Version;
-	uint16_t m_BuildNumber;
-	uint32_t m_ReplayLength;
-
-public:
-	CPacked( );
-	virtual ~CPacked( );
-
-	virtual bool GetValid( )	{ return m_Valid; }
-
-	virtual void Load( string fileName, bool allBlocks );
-	virtual bool Save( string fileName );
-	virtual bool Extract( string inFileName, string outFileName );
-	virtual bool Pack( string inFileName, string outFileName );
-	virtual void Decompress( bool allBlocks );
-	virtual void Compress( );
-};
-
-#endif
+#include "includes.h"

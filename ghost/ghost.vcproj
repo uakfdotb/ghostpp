@@ -542,6 +542,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\includes.h"
+				>
+			</File>
+			<File
 				RelativePath=".\language.h"
 				>
 			</File>
