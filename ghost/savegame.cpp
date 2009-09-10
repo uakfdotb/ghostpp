@@ -29,7 +29,8 @@
 
 CSaveGame :: CSaveGame( ) : CPacked( )
 {
-
+	m_NumSlots = 0;
+	m_RandomSeed = 0;
 }
 
 CSaveGame :: ~CSaveGame( )
@@ -40,7 +41,10 @@ CSaveGame :: ~CSaveGame( )
 void CSaveGame :: ParseSaveGame( )
 {
 	m_MapPath.clear( );
+	m_GameName.clear( );
+	m_NumSlots = 0;
 	m_Slots.clear( );
+	m_RandomSeed = 0;
 	m_MagicNumber.clear( );
 
 	istringstream ISS( m_Decompressed );
@@ -48,7 +52,7 @@ void CSaveGame :: ParseSaveGame( )
 	// savegame format figured out by Varlock:
 	// string		-> map path
 	// 0 (string?)	-> ??? (no idea what this is)
-	// string		-> original game name
+	// string		-> game name
 	// 0 (string?)	-> ??? (maybe original game password)
 	// string		-> stat string
 	// 4 bytes		-> ??? (seems to be # of slots)
@@ -58,36 +62,33 @@ void CSaveGame :: ParseSaveGame( )
 	// 4 bytes		-> magic number
 
 	string GarbageString;
-	unsigned char NumSlots;
 	uint32_t MagicNumber;
 
 	getline( ISS, m_MapPath, '\0' );		// map path
 	getline( ISS, GarbageString, '\0' );	// ???
-	getline( ISS, GarbageString, '\0' );	// original game name
+	getline( ISS, m_GameName, '\0' );		// game name
 	getline( ISS, GarbageString, '\0' );	// ???
 	getline( ISS, GarbageString, '\0' );	// stat string
 	ISS.seekg( 4, ios :: cur );				// ???
 	ISS.seekg( 4, ios :: cur );				// ???
 	ISS.seekg( 2, ios :: cur );				// ???
-	ISS.read( (char *)&NumSlots, 1 );		// number of slots
+	ISS.read( (char *)&m_NumSlots, 1 );		// number of slots
 
-	if( NumSlots > 12 )
+	if( m_NumSlots > 12 )
 	{
 		CONSOLE_Print( "[SAVEGAME] too many slots in decompressed data" );
 		m_Valid = false;
 		return;
 	}
 
-	CONSOLE_Print( "[SAVEGAME] found " + UTIL_ToString( NumSlots ) + " slots" );
-
-	for( unsigned char i = 0; i < NumSlots; i++ )
+	for( unsigned char i = 0; i < m_NumSlots; i++ )
 	{
 		unsigned char SlotData[9];
 		ISS.read( (char *)SlotData, 9 );	// slot data
 		m_Slots.push_back( CGameSlot( SlotData[0], SlotData[1], SlotData[2], SlotData[3], SlotData[4], SlotData[5], SlotData[6], SlotData[7], SlotData[8] ) );
 	}
 
-	ISS.seekg( 4, ios :: cur );				// GetTicks
+	ISS.read( (char *)&m_RandomSeed, 4 );	// random seed
 	ISS.seekg( 1, ios :: cur );				// GameType
 	ISS.seekg( 1, ios :: cur );				// number of player slots (non observer)
 	ISS.read( (char *)&MagicNumber, 4 );	// magic number
@@ -100,6 +101,4 @@ void CSaveGame :: ParseSaveGame( )
 	}
 
 	m_MagicNumber = UTIL_CreateByteArray( MagicNumber, false );
-	CONSOLE_Print( "[SAVEGAME] found map path [" + m_MapPath + "]" );
-	CONSOLE_Print( "[SAVEGAME] found magic number [" + UTIL_ToString( m_MagicNumber[0] ) + " " + UTIL_ToString( m_MagicNumber[1] ) + " " + UTIL_ToString( m_MagicNumber[2] ) + " " + UTIL_ToString( m_MagicNumber[3] ) + "]" );
 }
