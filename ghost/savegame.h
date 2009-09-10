@@ -37,7 +37,7 @@ private:
 	BYTEARRAY m_MagicNumber;
 
 public:
-	CSaveGame( CGHost *nGHost );
+	CSaveGame( );
 	virtual ~CSaveGame( );
 
 	string GetFileName( )				{ return m_FileName; }

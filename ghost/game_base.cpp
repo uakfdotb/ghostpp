@@ -51,8 +51,8 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Map = new CMap( *nMap );
 	m_SaveGame = nSaveGame;
 
-	if( m_GHost->m_SaveReplays && !m_SaveGame )
-		m_Replay = new CReplay( m_GHost );
+	if( m_GHost->m_SaveReplays )
+		m_Replay = new CReplay( );
 	else
 		m_Replay = NULL;
 
@@ -210,8 +210,12 @@ CBaseGame :: ~CBaseGame( )
 		if( SecString.size( ) == 1 )
 			SecString.insert( 0, "0" );
 
-		m_Replay->BuildReplay( m_GameName, m_StatString );
-		m_Replay->Save( m_GHost->m_ReplayPath + UTIL_FileSafeName( "GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
+		m_Replay->BuildReplay( m_GameName, m_StatString, m_GHost->m_ReplayWar3Version, m_GHost->m_ReplayBuildNumber );
+
+		if( m_SaveGame )
+			m_Replay->Save( m_GHost->m_ReplayPath + UTIL_FileSafeName( "Partial GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
+		else
+			m_Replay->Save( m_GHost->m_ReplayPath + UTIL_FileSafeName( "GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
 	}
 
 	delete m_Socket;
@@ -2891,6 +2895,28 @@ void CBaseGame :: EventGameStarted( )
 		m_Replay->SetRandomSeed( m_RandomSeed );
 		m_Replay->SetSelectMode( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0 );
 		m_Replay->SetStartSpotCount( m_Map->GetMapNumPlayers( ) );
+
+		/*
+		
+		BYTEARRAY MapGameType;
+
+		if( m_SaveGame )
+		{
+			MapGameType.push_back( 0 );
+			MapGameType.push_back( 2 );
+			MapGameType.push_back( 0 );
+			MapGameType.push_back( 0 );
+		}
+		else
+		{
+			MapGameType.push_back( m_Map->GetMapGameType( ) );
+			MapGameType.push_back( 0 );
+			MapGameType.push_back( 0 );
+			MapGameType.push_back( 0 );
+		}
+
+		*/
+
 		m_Replay->SetMapGameType( m_Map->GetMapGameType( ) );
 
 		if( !m_Players.empty( ) )
@@ -2910,7 +2936,12 @@ void CBaseGame :: EventGameStarted( )
 	StatString.push_back( 0 );
 	UTIL_AppendByteArray( StatString, m_Map->GetMapWidth( ) );
 	UTIL_AppendByteArray( StatString, m_Map->GetMapHeight( ) );
-	UTIL_AppendByteArray( StatString, m_Map->GetMapCRC( ) );
+
+	if( m_SaveGame )
+		UTIL_AppendByteArray( StatString, m_SaveGame->GetMagicNumber( ) );
+	else
+		UTIL_AppendByteArray( StatString, m_Map->GetMapCRC( ) );
+
 	UTIL_AppendByteArray( StatString, m_Map->GetMapPath( ) );
 	UTIL_AppendByteArray( StatString, "GHost++" );
 	StatString.push_back( 0 );

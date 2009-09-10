@@ -27,7 +27,7 @@
 // CSaveGame
 //
 
-CSaveGame :: CSaveGame( CGHost *nGHost ) : CPacked( nGHost )
+CSaveGame :: CSaveGame( ) : CPacked( )
 {
 
 }

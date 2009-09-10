@@ -58,7 +58,7 @@ private:
 	string m_HostName;
 
 public:
-	CReplay( CGHost *nGHost );
+	CReplay( );
 	virtual ~CReplay( );
 
 	void AddPlayer( unsigned char nPID, string nName )		{ m_Players.push_back( ReplayPlayer( nPID, nName ) ); }
@@ -75,7 +75,7 @@ public:
 	void AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions );
 	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
 	void AddCheckSum( uint32_t checkSum );
-	void BuildReplay( string gameName, string statString );
+	void BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber );
 };
 
 #endif

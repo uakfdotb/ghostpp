@@ -521,7 +521,7 @@ CGHost :: CGHost( CConfig *CFG )
 	}
 
 	m_AutoHostMap = new CMap( *m_Map );
-	m_SaveGame = new CSaveGame( this );
+	m_SaveGame = new CSaveGame( );
 
 	// load the iptocountry data
 

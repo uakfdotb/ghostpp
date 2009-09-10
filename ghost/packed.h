@@ -28,16 +28,18 @@
 class CPacked
 {
 public:
-	CGHost *m_GHost;
+	CCRC32 *m_CRC;
 
 protected:
 	bool m_Valid;
 	string m_Compressed;
 	string m_Decompressed;
+	uint32_t m_War3Version;
+	uint16_t m_BuildNumber;
 	uint32_t m_ReplayLength;
 
 public:
-	CPacked( CGHost *nGHost );
+	CPacked( );
 	virtual ~CPacked( );
 
 	virtual bool GetValid( )	{ return m_Valid; }

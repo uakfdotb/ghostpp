@@ -66,16 +66,19 @@ int tzuncompress( Bytef *dest, uLongf *destLen, const Bytef *source, uLong sourc
 // CPacked
 //
 
-CPacked :: CPacked( CGHost *nGHost )
+CPacked :: CPacked( )
 {
-	m_GHost = nGHost;
+	m_CRC = new CCRC32( );
+	m_CRC->Initialize( );
 	m_Valid = true;
+	m_War3Version = 0;
+	m_BuildNumber = 0;
 	m_ReplayLength = 0;
 }
 
 CPacked :: ~CPacked( )
 {
-
+	delete m_CRC;
 }
 
 void CPacked :: Load( string fileName, bool allBlocks )
@@ -159,14 +162,18 @@ void CPacked :: Decompress( bool allBlocks )
 	{
 		ISS.seekg( 2, ios :: cur );					// unknown
 		ISS.seekg( 2, ios :: cur );					// version number
+
+		CONSOLE_Print( "[PACKED] header version is too old" );
+		m_Valid = false;
+		return;
 	}
 	else
 	{
 		ISS.seekg( 4, ios :: cur );					// version identifier
-		ISS.seekg( 4, ios :: cur );					// version number
+		ISS.read( (char *)&m_War3Version, 4 );		// version number
 	}
 
-	ISS.seekg( 2, ios :: cur );						// build number
+	ISS.read( (char *)&m_BuildNumber, 2 );			// build number
 	ISS.seekg( 2, ios :: cur );						// flags
 	ISS.read( (char *)&m_ReplayLength, 4 );			// replay length
 	ISS.seekg( 4, ios :: cur );						// CRC
@@ -313,8 +320,6 @@ void CPacked :: Compress( )
 	uint32_t HeaderSize = 68;
 	uint32_t HeaderCompressedSize = HeaderSize + CompressedSize + CompressedBlocks.size( ) * 8;
 	uint32_t HeaderVersion = 1;
-	uint32_t HeaderWar3Version = m_GHost->m_ReplayWar3Version;
-	uint16_t HeaderBuildNumber = m_GHost->m_ReplayBuildNumber;
 	uint16_t HeaderFlags = 32768;
 	BYTEARRAY Header;
 	UTIL_AppendByteArray( Header, "Warcraft III recorded game\x01A" );
@@ -327,8 +332,8 @@ void CPacked :: Compress( )
 	Header.push_back( 'X' );
 	Header.push_back( '3' );
 	Header.push_back( 'W' );
-	UTIL_AppendByteArray( Header, HeaderWar3Version, false );
-	UTIL_AppendByteArray( Header, HeaderBuildNumber, false );
+	UTIL_AppendByteArray( Header, m_War3Version, false );
+	UTIL_AppendByteArray( Header, m_BuildNumber, false );
 	UTIL_AppendByteArray( Header, HeaderFlags, false );
 	UTIL_AppendByteArray( Header, m_ReplayLength, false );
 
@@ -341,7 +346,7 @@ void CPacked :: Compress( )
 	// calculate header CRC
 
 	string HeaderString = string( Header.begin( ), Header.end( ) );
-	uint32_t CRC = m_GHost->m_CRC->FullCRC( (unsigned char *)HeaderString.c_str( ), HeaderString.size( ) );
+	uint32_t CRC = m_CRC->FullCRC( (unsigned char *)HeaderString.c_str( ), HeaderString.size( ) );
 
 	// overwrite the (currently zero) header CRC with the calculated CRC
 
@@ -367,9 +372,9 @@ void CPacked :: Compress( )
 		// calculate block header CRC
 
 		string BlockHeaderString = string( BlockHeader.begin( ), BlockHeader.end( ) );
-		uint32_t CRC1 = m_GHost->m_CRC->FullCRC( (unsigned char *)BlockHeaderString.c_str( ), BlockHeaderString.size( ) );
+		uint32_t CRC1 = m_CRC->FullCRC( (unsigned char *)BlockHeaderString.c_str( ), BlockHeaderString.size( ) );
 		CRC1 = CRC1 ^ ( CRC1 >> 16 );
-		uint32_t CRC2 = m_GHost->m_CRC->FullCRC( (unsigned char *)(*i).c_str( ), (*i).size( ) );
+		uint32_t CRC2 = m_CRC->FullCRC( (unsigned char *)(*i).c_str( ), (*i).size( ) );
 		CRC2 = CRC2 ^ ( CRC2 >> 16 );
 		uint32_t BlockCRC = ( CRC1 & 0xFFFF ) | ( CRC2 << 16 );
 

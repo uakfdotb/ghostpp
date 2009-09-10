@@ -28,7 +28,7 @@
 // CReplay
 //
 
-CReplay :: CReplay( CGHost *nGHost ) : CPacked( nGHost )
+CReplay :: CReplay( ) : CPacked( )
 {
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
@@ -111,8 +111,11 @@ void CReplay :: AddCheckSum( uint32_t checkSum )
 	m_CheckSums.push( checkSum );
 }
 
-void CReplay :: BuildReplay( string gameName, string statString )
+void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
 {
+	m_War3Version = war3Version;
+	m_BuildNumber = buildNumber;
+
 	CONSOLE_Print( "[REPLAY] building replay" );
 
 	uint32_t LanguageID = 0x0012F8B0;
