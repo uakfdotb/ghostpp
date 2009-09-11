@@ -51,27 +51,33 @@ private:
 	string m_StatString;
 	uint32_t m_PlayerCount;
 	unsigned char m_MapGameType;
-
 	vector<ReplayPlayer> m_Players;
 	vector<CGameSlot> m_Slots;
-	queue<BYTEARRAY> m_LoadingBlocks;
-	queue<BYTEARRAY> m_Blocks;
-	queue<uint32_t> m_CheckSums;
 	uint32_t m_RandomSeed;
 	unsigned char m_SelectMode;
 	unsigned char m_StartSpotCount;
+	queue<BYTEARRAY> m_LoadingBlocks;
+	queue<BYTEARRAY> m_Blocks;
+	queue<uint32_t> m_CheckSums;
 
 public:
 	CReplay( );
 	virtual ~CReplay( );
 
-	unsigned char GetHostPID( )			{ return m_HostPID; }
-	string GetHostName( )				{ return m_HostName; }
-	string GetGameName( )				{ return m_GameName; }
-	string GetStatString( )				{ return m_StatString; }
-	uint32_t GetPlayerCount( )			{ return m_PlayerCount; }
-	unsigned char GetMapGameType( )		{ return m_MapGameType; }
-	vector<ReplayPlayer> GetPlayers( )	{ return m_Players; }
+	unsigned char GetHostPID( )				{ return m_HostPID; }
+	string GetHostName( )					{ return m_HostName; }
+	string GetGameName( )					{ return m_GameName; }
+	string GetStatString( )					{ return m_StatString; }
+	uint32_t GetPlayerCount( )				{ return m_PlayerCount; }
+	unsigned char GetMapGameType( )			{ return m_MapGameType; }
+	vector<ReplayPlayer> GetPlayers( )		{ return m_Players; }
+	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
+	uint32_t GetRandomSeed( )				{ return m_RandomSeed; }
+	unsigned char GetSelectMode( )			{ return m_SelectMode; }
+	unsigned char GetStartSpotCount( )		{ return m_StartSpotCount; }
+	queue<BYTEARRAY> *GetLoadingBlocks( )	{ return &m_LoadingBlocks; }
+	queue<BYTEARRAY> *GetBlocks( )			{ return &m_Blocks; }
+	queue<uint32_t> *GetCheckSums( )		{ return &m_CheckSums; }
 
 	void AddPlayer( unsigned char nPID, string nName )		{ m_Players.push_back( ReplayPlayer( nPID, nName ) ); }
 	void SetSlots( vector<CGameSlot> nSlots )				{ m_Slots = nSlots; }

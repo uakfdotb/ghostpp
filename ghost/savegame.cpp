@@ -106,7 +106,7 @@ void CSaveGame :: ParseSaveGame( )
 	READB( ISS, &Garbage1, 1 );				// number of player slots (non observer)
 	READB( ISS, &MagicNumber, 4 );			// magic number
 
-	if( ISS.fail( ) )
+	if( ISS.eof( ) || ISS.fail( ) )
 	{
 		CONSOLE_Print( "[SAVEGAME] failed to parse savegame header" );
 		m_Valid = false;

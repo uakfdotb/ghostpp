@@ -130,6 +130,15 @@ void PrintPR( CReplay *Replay )
 
 		for( vector<ReplayPlayer> :: iterator i = Players.begin( ); i != Players.end( ); i++ )
 			cout << "player info       : " << (int)(*i).first << " -> " << (*i).second << endl;
+
+		// todotodo: slot info
+
+		cout << "random seed       : " << Replay->GetRandomSeed( ) << endl;
+		cout << "select mode       : " << (int)Replay->GetSelectMode( ) << endl;
+		cout << "start spot count  : " << (int)Replay->GetStartSpotCount( ) << endl;
+		cout << "num loading blocks: " << Replay->GetLoadingBlocks( )->size( ) << endl;
+		cout << "num blocks        : " << Replay->GetBlocks( )->size( ) << endl;
+		cout << "num checksums     : " << Replay->GetCheckSums( )->size( ) << endl;
 	}
 	else
 		cout << "replay file is not valid" << endl;

@@ -33,7 +33,6 @@ CReplay :: CReplay( ) : CPacked( )
 	m_HostPID = 0;
 	m_PlayerCount = 0;
 	m_MapGameType = 1;
-
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
 	m_StartSpotCount = 0;
@@ -250,15 +249,14 @@ void CReplay :: ParseReplay( )
 	m_StatString.clear( );
 	m_PlayerCount = 0;
 	m_MapGameType = 1;
-
 	m_Players.clear( );
 	m_Slots.clear( );
-	m_LoadingBlocks = queue<BYTEARRAY>( );
-	m_Blocks = queue<BYTEARRAY>( );
-	m_CheckSums = queue<uint32_t>( );
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
 	m_StartSpotCount = 0;
+	m_LoadingBlocks = queue<BYTEARRAY>( );
+	m_Blocks = queue<BYTEARRAY>( );
+	m_CheckSums = queue<uint32_t>( );
 
 	if( m_Flags != 32768 )
 	{
@@ -270,9 +268,9 @@ void CReplay :: ParseReplay( )
 	istringstream ISS( m_Decompressed );
 
 	unsigned char Garbage1;
-	uint16_t Garbage2;
 	uint32_t Garbage4;
 	string GarbageString;
+	unsigned char GarbageData[65535];
 
 	READB( ISS, &Garbage4, 4 );				// Unknown (4.0)
 
@@ -352,7 +350,6 @@ void CReplay :: ParseReplay( )
 		{
 			unsigned char PlayerID;
 			string PlayerName;
-
 			READB( ISS, &PlayerID, 1 );		// Player PlayerID (4.1)
 
 			if( PlayerID > 15 )
@@ -402,29 +399,202 @@ void CReplay :: ParseReplay( )
 		}
 	}
 
-	if( ISS.fail( ) )
+	uint16_t Size;
+	unsigned char NumSlots;
+	READB( ISS, &Size, 2 );					// Size (4.10)
+	READB( ISS, &NumSlots, 1 );				// NumSlots (4.10)
+
+	if( Size != 7 + NumSlots * 9 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.10 Size is invalid)" );
+		m_Valid = false;
+		return;
+	}
+
+	if( NumSlots == 0 || NumSlots > 12 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.10 NumSlots is invalid)" );
+		m_Valid = false;
+		return;
+	}
+
+	for( int i = 0; i < NumSlots; i++ )
+	{
+		unsigned char SlotData[9];
+		READB( ISS, SlotData, 9 );
+		BYTEARRAY SlotDataBA = UTIL_CreateByteArray( SlotData, 9 );
+		m_Slots.push_back( CGameSlot( SlotDataBA ) );
+	}
+
+	READB( ISS, &m_RandomSeed, 4 );			// RandomSeed (4.10)
+	READB( ISS, &m_SelectMode, 1 );			// SelectMode (4.10)
+	READB( ISS, &m_StartSpotCount, 1 );		// StartSpotCount (4.10)
+
+	if( ISS.eof( ) || ISS.fail( ) )
 	{
 		CONSOLE_Print( "[SAVEGAME] failed to parse replay header" );
 		m_Valid = false;
 		return;
 	}
 
-	/*
+	READB( ISS, &Garbage1, 1 );				// first start block ID (5.0)
 
-	// GameStartRecord (4.10)
+	if( Garbage1 != CReplay :: REPLAY_FIRSTSTARTBLOCK )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (5.0 first start block ID mismatch)" );
+		m_Valid = false;
+		return;
+	}
 
-	Replay.push_back( 25 );															// RecordID (4.10)
-	UTIL_AppendByteArray( Replay, (uint16_t)( 7 + m_Slots.size( ) * 9 ), false );	// Size (4.10)
-	Replay.push_back( m_Slots.size( ) );											// NumSlots (4.10)
+	READB( ISS, &Garbage4, 4 );				// first start block data (5.0)
 
-	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
-		UTIL_AppendByteArray( Replay, m_Slots[i].GetByteArray( ) );
+	if( Garbage4 != 1 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (5.0 first start block data mismatch)" );
+		m_Valid = false;
+		return;
+	}
 
-	UTIL_AppendByteArray( Replay, m_RandomSeed, false );							// RandomSeed (4.10)
-	Replay.push_back( m_SelectMode );												// SelectMode (4.10)
-	Replay.push_back( m_StartSpotCount );											// StartSpotCount (4.10)
+	READB( ISS, &Garbage1, 1 );				// second start block ID (5.0)
 
-	*/
+	if( Garbage1 != CReplay :: REPLAY_SECONDSTARTBLOCK )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (5.0 second start block ID mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	READB( ISS, &Garbage4, 4 );				// second start block data (5.0)
+
+	if( Garbage4 != 1 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (5.0 second start block data mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	while( 1 )
+	{
+		READB( ISS, &Garbage1, 1 );			// third start block ID *or* loading block ID (5.0)
+
+		if( ISS.eof( ) || ISS.fail( ) )
+		{
+			CONSOLE_Print( "[REPLAY] invalid replay (5.0 third start block unexpected end of file found)" );
+			m_Valid = false;
+			return;
+		}
+		if( Garbage1 == CReplay :: REPLAY_LEAVEGAME )
+		{
+			READB( ISS, GarbageData, 13 );
+			BYTEARRAY LoadingBlock;
+			LoadingBlock.push_back( Garbage1 );
+			UTIL_AppendByteArray( LoadingBlock, GarbageData, 13 );
+			m_LoadingBlocks.push( LoadingBlock );
+		}
+		else if( Garbage1 == CReplay :: REPLAY_THIRDSTARTBLOCK )
+			break;
+		else
+		{
+			CONSOLE_Print( "[REPLAY] invalid replay (5.0 third start block ID mismatch)" );
+			m_Valid = false;
+			return;
+		}
+	}
+
+	READB( ISS, &Garbage4, 4 );				// third start block data (5.0)
+
+	if( Garbage4 != 1 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (5.0 third start block data mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	if( ISS.eof( ) || ISS.fail( ) )
+	{
+		CONSOLE_Print( "[SAVEGAME] failed to parse replay start blocks" );
+		m_Valid = false;
+		return;
+	}
+
+	while( 1 )
+	{
+		READB( ISS, &Garbage1, 1 );			// block ID (5.0)
+
+		if( ISS.eof( ) || ISS.fail( ) )
+			break;
+		else if( Garbage1 == CReplay :: REPLAY_LEAVEGAME )
+		{
+			READB( ISS, GarbageData, 13 );
+
+			// reconstruct the block
+
+			BYTEARRAY Block;
+			Block.push_back( CReplay :: REPLAY_LEAVEGAME );
+			UTIL_AppendByteArray( Block, GarbageData, 13 );
+			m_Blocks.push( Block );
+		}
+		else if( Garbage1 == CReplay :: REPLAY_TIMESLOT )
+		{
+			uint16_t BlockSize;
+			READB( ISS, &BlockSize, 2 );
+			READB( ISS, GarbageData, BlockSize );
+
+			// reconstruct the block
+
+			BYTEARRAY Block;
+			Block.push_back( CReplay :: REPLAY_TIMESLOT );
+			UTIL_AppendByteArray( Block, BlockSize, false );
+			UTIL_AppendByteArray( Block, GarbageData, BlockSize );
+			m_Blocks.push( Block );
+		}
+		else if( Garbage1 == CReplay :: REPLAY_CHATMESSAGE )
+		{
+			unsigned char PID;
+			uint16_t BlockSize;
+			READB( ISS, &PID, 1 );
+
+			if( PID > 15 )
+			{
+				CONSOLE_Print( "[REPLAY] invalid replay (5.0 chatmessage pid is invalid)" );
+				m_Valid = false;
+				return;
+			}
+
+			READB( ISS, &BlockSize, 2 );
+			READB( ISS, GarbageData, BlockSize );
+
+			// reconstruct the block
+
+			BYTEARRAY Block;
+			Block.push_back( CReplay :: REPLAY_CHATMESSAGE );
+			Block.push_back( PID );
+			UTIL_AppendByteArray( Block, BlockSize, false );
+			UTIL_AppendByteArray( Block, GarbageData, BlockSize );
+			m_Blocks.push( Block );
+		}
+		else if( Garbage1 == CReplay :: REPLAY_CHECKSUM )
+		{
+			READB( ISS, &Garbage1, 1 );
+
+			if( Garbage1 != 4 )
+			{
+				CONSOLE_Print( "[REPLAY] invalid replay (5.0 checksum unknown mismatch)" );
+				m_Valid = false;
+				return;
+			}
+
+			uint32_t CheckSum;
+			READB( ISS, &CheckSum, 4 );
+			m_CheckSums.push( CheckSum );
+		}
+		else
+		{
+			// it's not necessarily an error if we encounter an unknown block ID since replays can contain extra data
+
+			break;
+		}
+	}
 
 	m_Valid = true;
 }
