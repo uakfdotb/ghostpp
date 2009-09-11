@@ -56,6 +56,8 @@ protected:
 	vector<string> m_Reserved;						// vector of player names with reserved slots (from the !hold command)
 	set<string> m_IgnoredNames;						// set of player names to NOT print ban messages for when joining because they've already been printed
 	set<string> m_IPBlackList;						// set of IP addresses to blacklist from joining (todotodo: convert to uint32's for efficiency)
+	vector<CGameSlot> m_EnforceSlots;				// vector of slots to force players to use (used with saved games)
+	vector<PIDPlayer> m_EnforcePlayers;				// vector of pids to force players to use (used with saved games)
 	CMap *m_Map;									// map data
 	CSaveGame *m_SaveGame;							// savegame data (this is a pointer to global data)
 	CReplay *m_Replay;								// replay
@@ -122,30 +124,34 @@ public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CBaseGame( );
 
-	virtual CSaveGame *GetSaveGame( )			{ return m_SaveGame; }
-	virtual uint16_t GetHostPort( )				{ return m_HostPort; }
-	virtual unsigned char GetGameState( )		{ return m_GameState; }
-	virtual string GetGameName( )				{ return m_GameName; }
-	virtual string GetLastGameName( )			{ return m_LastGameName; }
-	virtual string GetVirtualHostName( )		{ return m_VirtualHostName; }
-	virtual string GetOwnerName( )				{ return m_OwnerName; }
-	virtual string GetCreatorName( )			{ return m_CreatorName; }
-	virtual string GetCreatorServer( )			{ return m_CreatorServer; }
-	virtual uint32_t GetHostCounter( )			{ return m_HostCounter; }
-	virtual uint32_t GetLastLagScreenTime( )	{ return m_LastLagScreenTime; }
-	virtual bool GetLocked( )					{ return m_Locked; }
-	virtual bool GetRefreshMessages( )			{ return m_RefreshMessages; }
-	virtual bool GetCountDownStarted( )			{ return m_CountDownStarted; }
-	virtual bool GetGameLoading( )				{ return m_GameLoading; }
-	virtual bool GetGameLoaded( )				{ return m_GameLoaded; }
-	virtual bool GetLagging( )					{ return m_Lagging; }
+	virtual vector<CGameSlot> GetEnforceSlots( )	{ return m_EnforceSlots; }
+	virtual vector<PIDPlayer> GetEnforcePlayers( )	{ return m_EnforcePlayers; }
+	virtual CSaveGame *GetSaveGame( )				{ return m_SaveGame; }
+	virtual uint16_t GetHostPort( )					{ return m_HostPort; }
+	virtual unsigned char GetGameState( )			{ return m_GameState; }
+	virtual string GetGameName( )					{ return m_GameName; }
+	virtual string GetLastGameName( )				{ return m_LastGameName; }
+	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
+	virtual string GetOwnerName( )					{ return m_OwnerName; }
+	virtual string GetCreatorName( )				{ return m_CreatorName; }
+	virtual string GetCreatorServer( )				{ return m_CreatorServer; }
+	virtual uint32_t GetHostCounter( )				{ return m_HostCounter; }
+	virtual uint32_t GetLastLagScreenTime( )		{ return m_LastLagScreenTime; }
+	virtual bool GetLocked( )						{ return m_Locked; }
+	virtual bool GetRefreshMessages( )				{ return m_RefreshMessages; }
+	virtual bool GetCountDownStarted( )				{ return m_CountDownStarted; }
+	virtual bool GetGameLoading( )					{ return m_GameLoading; }
+	virtual bool GetGameLoaded( )					{ return m_GameLoaded; }
+	virtual bool GetLagging( )						{ return m_Lagging; }
 
-	virtual void SetExiting( bool nExiting )						{ m_Exiting = nExiting; }
-	virtual void SetAutoStartPlayers( uint32_t nAutoStartPlayers )	{ m_AutoStartPlayers = nAutoStartPlayers; }
-	virtual void SetMinimumScore( double nMinimumScore )			{ m_MinimumScore = nMinimumScore; }
-	virtual void SetMaximumScore( double nMaximumScore )			{ m_MaximumScore = nMaximumScore; }
-	virtual void SetRefreshError( bool nRefreshError )				{ m_RefreshError = nRefreshError; }
-	virtual void SetMatchMaking( bool nMatchMaking )				{ m_MatchMaking = nMatchMaking; }
+	virtual void SetEnforceSlots( vector<CGameSlot> nEnforceSlots )		{ m_EnforceSlots = nEnforceSlots; }
+	virtual void SetEnforcePlayers( vector<PIDPlayer> nEnforcePlayers )	{ m_EnforcePlayers = nEnforcePlayers; }
+	virtual void SetExiting( bool nExiting )							{ m_Exiting = nExiting; }
+	virtual void SetAutoStartPlayers( uint32_t nAutoStartPlayers )		{ m_AutoStartPlayers = nAutoStartPlayers; }
+	virtual void SetMinimumScore( double nMinimumScore )				{ m_MinimumScore = nMinimumScore; }
+	virtual void SetMaximumScore( double nMaximumScore )				{ m_MaximumScore = nMaximumScore; }
+	virtual void SetRefreshError( bool nRefreshError )					{ m_RefreshError = nRefreshError; }
+	virtual void SetMatchMaking( bool nMatchMaking )					{ m_MatchMaking = nMatchMaking; }
 
 	virtual uint32_t GetSlotsOccupied( );
 	virtual uint32_t GetSlotsOpen( );

@@ -45,6 +45,7 @@
 using namespace std;
 
 typedef vector<unsigned char> BYTEARRAY;
+typedef pair<unsigned char,string> PIDPlayer;
 
 // time
 

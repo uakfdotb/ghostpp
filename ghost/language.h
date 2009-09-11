@@ -240,6 +240,10 @@ public:
 	string PlayerWasKickedForLowestScore( string name, string score );
 	string ReloadingConfigurationFiles( );
 	string CountDownAbortedSomeoneLeftRecently( );
+	string UnableToCreateGameMustEnforceFirst( string gamename );
+	string UnableToLoadReplaysOutside( );
+	string LoadingReplay( string file );
+	string UnableToLoadReplayDoesntExist( string file );
 };
 
 #endif

@@ -155,6 +155,8 @@ void CSHA1::Final()
 // Get the final hash as a pre-formatted string
 void CSHA1::ReportHash(char *szReport, unsigned char uReportType)
 {
+	/*
+
 	unsigned char i = 0;
 	char szTemp[4];
 
@@ -181,6 +183,8 @@ void CSHA1::ReportHash(char *szReport, unsigned char uReportType)
 		}
 	}
 	else strcpy(szReport, "Error: Unknown report type!");
+
+	*/
 }
 
 // Get the raw message digest

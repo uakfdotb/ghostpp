@@ -114,6 +114,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 
 	if( m_SaveGame )
 	{
+		m_EnforceSlots = m_SaveGame->GetSlots( );
 		m_Slots = m_SaveGame->GetSlots( );
 
 		// the savegame slots contain player entries
@@ -1529,10 +1530,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		return;
 	}
 
-	// try to find an empty slot
-
-	unsigned char SID = GetEmptySlot( false );
-
 	// check if the player is an admin or root admin on any connected realm for determining reserved status
 	// we can't just use the spoof checked realm like in EventPlayerBotCommand because the player hasn't spoof checked yet
 
@@ -1549,20 +1546,99 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	bool Reserved = IsReserved( joinPlayer->GetName( ) ) || AnyAdminCheck || IsOwner( joinPlayer->GetName( ) );
 
-	if( SID == 255 && Reserved )
+	// try to find a slot
+
+	unsigned char SID = 255;
+	unsigned char EnforcePID = 255;
+	unsigned char EnforceSID = 0;
+	CGameSlot EnforceSlot( 255, 0, 0, 0, 0, 0, 0 );
+
+	if( m_SaveGame )
 	{
-		// a reserved player is trying to join the game but it's full, try to find a reserved slot
+		// in a saved game we enforce the player layout and the slot layout
+		// unfortunately we don't know how to extract the player layout from the saved game so we use the data from a replay instead
+		// the !enforcesg command defines the player layout by parsing a replay
 
-		SID = GetEmptySlot( true );
-
-		if( SID != 255 )
+		for( vector<PIDPlayer> :: iterator i = m_EnforcePlayers.begin( ); i != m_EnforcePlayers.end( ); i++ )
 		{
+			if( (*i).second == joinPlayer->GetName( ) )
+				EnforcePID = (*i).first;
+		}
+
+		for( vector<CGameSlot> :: iterator i = m_EnforceSlots.begin( ); i != m_EnforceSlots.end( ); i++ )
+		{
+			if( (*i).GetPID( ) == EnforcePID )
+			{
+				EnforceSlot = *i;
+				break;
+			}
+
+			EnforceSID++;
+		}
+
+		if( EnforcePID == 255 || EnforceSlot.GetPID( ) == 255 || EnforceSID >= m_Slots.size( ) )
+		{
+			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but isn't in the enforced list" );
+			potential->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+			potential->SetDeleteMe( true );
+			return;
+		}
+
+		SID = EnforceSID;
+	}
+	else
+	{
+		// try to find an empty slot
+
+		SID = GetEmptySlot( false );
+
+		if( SID == 255 && Reserved )
+		{
+			// a reserved player is trying to join the game but it's full, try to find a reserved slot
+
+			SID = GetEmptySlot( true );
+
+			if( SID != 255 )
+			{
+				CGamePlayer *KickedPlayer = GetPlayerFromSID( SID );
+
+				if( KickedPlayer )
+				{
+					KickedPlayer->SetDeleteMe( true );
+					KickedPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForReservedPlayer( joinPlayer->GetName( ) ) );
+					KickedPlayer->SetLeftCode( PLAYERLEAVE_LOBBY );
+
+					// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
+					// we don't need to call OpenSlot here because we're about to overwrite the slot data anyway
+
+					SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( KickedPlayer->GetPID( ), KickedPlayer->GetLeftCode( ) ) );
+					KickedPlayer->SetLeftMessageSent( true );
+				}
+			}
+		}
+
+		if( SID == 255 && IsOwner( joinPlayer->GetName( ) ) )
+		{
+			// the owner player is trying to join the game but it's full and we couldn't even find a reserved slot, kick the player in the lowest numbered slot
+			// updated this to try to find a player slot so that we don't end up kicking a computer
+
+			SID = 0;
+
+			for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+			{
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetComputer( ) == 0 )
+				{
+					SID = i;
+					break;
+				}
+			}
+
 			CGamePlayer *KickedPlayer = GetPlayerFromSID( SID );
 
 			if( KickedPlayer )
 			{
 				KickedPlayer->SetDeleteMe( true );
-				KickedPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForReservedPlayer( joinPlayer->GetName( ) ) );
+				KickedPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForOwnerPlayer( joinPlayer->GetName( ) ) );
 				KickedPlayer->SetLeftCode( PLAYERLEAVE_LOBBY );
 
 				// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
@@ -1571,38 +1647,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 				SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( KickedPlayer->GetPID( ), KickedPlayer->GetLeftCode( ) ) );
 				KickedPlayer->SetLeftMessageSent( true );
 			}
-		}
-	}
-
-	if( SID == 255 && IsOwner( joinPlayer->GetName( ) ) )
-	{
-		// the owner player is trying to join the game but it's full and we couldn't even find a reserved slot, kick the player in the lowest numbered slot
-		// updated this to try to find a player slot so that we don't end up kicking a computer
-
-		SID = 0;
-
-		for( unsigned char i = 0; i < m_Slots.size( ); i++ )
-		{
-			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetComputer( ) == 0 )
-			{
-				SID = i;
-				break;
-			}
-		}
-
-		CGamePlayer *KickedPlayer = GetPlayerFromSID( SID );
-
-		if( KickedPlayer )
-		{
-			KickedPlayer->SetDeleteMe( true );
-			KickedPlayer->SetLeftReason( m_GHost->m_Language->WasKickedForOwnerPlayer( joinPlayer->GetName( ) ) );
-			KickedPlayer->SetLeftCode( PLAYERLEAVE_LOBBY );
-
-			// send a playerleave message immediately since it won't normally get sent until the player is deleted which is after we send a playerjoin message
-			// we don't need to call OpenSlot here because we're about to overwrite the slot data anyway
-
-			SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( KickedPlayer->GetPID( ), KickedPlayer->GetLeftCode( ) ) );
-			KickedPlayer->SetLeftMessageSent( true );
 		}
 	}
 
@@ -1616,7 +1660,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if( GetNumPlayers( ) >= 11 )
+	if( GetNumPlayers( ) >= 11 || EnforcePID == m_VirtualHostPID )
 		DeleteVirtualHost( );
 
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
@@ -1624,7 +1668,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
-	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
+	CGamePlayer *Player = new CGamePlayer( potential, m_SaveGame ? EnforcePID : GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
 
 	// consider LAN players to have already spoof checked since they can't
 	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
@@ -1637,31 +1681,36 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	potential->SetSocket( NULL );
 	potential->SetDeleteMe( true );
 
-	if( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
-		m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam( ), m_Slots[SID].GetColour( ), m_Slots[SID].GetRace( ) );
+	if( m_SaveGame )
+		m_Slots[SID] = EnforceSlot;
 	else
 	{
-		m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, 12, 12, SLOTRACE_RANDOM );
-
-		// try to pick a team and colour
-		// make sure there aren't too many other players already
-
-		unsigned char NumOtherPlayers = 0;
-
-		for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+		if( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
+			m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam( ), m_Slots[SID].GetColour( ), m_Slots[SID].GetRace( ) );
+		else
 		{
-			if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != 12 )
-				NumOtherPlayers++;
-		}
+			m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, 12, 12, SLOTRACE_RANDOM );
 
-		if( NumOtherPlayers < m_Map->GetMapNumPlayers( ) )
-		{
-			if( SID < m_Map->GetMapNumPlayers( ) )
-				m_Slots[SID].SetTeam( SID );
-			else
-				m_Slots[SID].SetTeam( 0 );
+			// try to pick a team and colour
+			// make sure there aren't too many other players already
 
-			m_Slots[SID].SetColour( GetNewColour( ) );
+			unsigned char NumOtherPlayers = 0;
+
+			for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+			{
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != 12 )
+					NumOtherPlayers++;
+			}
+
+			if( NumOtherPlayers < m_Map->GetMapNumPlayers( ) )
+			{
+				if( SID < m_Map->GetMapNumPlayers( ) )
+					m_Slots[SID].SetTeam( SID );
+				else
+					m_Slots[SID].SetTeam( 0 );
+
+				m_Slots[SID].SetColour( GetNewColour( ) );
+			}
 		}
 	}
 
@@ -2520,6 +2569,9 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 {
 	// player is requesting a team change
 
+	if( m_SaveGame )
+		return;
+
 	if( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 	{
 		unsigned char oldSID = GetSIDFromPID( player->GetPID( ) );
@@ -2583,6 +2635,9 @@ void CBaseGame :: EventPlayerChangeColour( CGamePlayer *player, unsigned char co
 {
 	// player is requesting a colour change
 
+	if( m_SaveGame )
+		return;
+
 	if( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 		return;
 
@@ -2606,6 +2661,9 @@ void CBaseGame :: EventPlayerChangeRace( CGamePlayer *player, unsigned char race
 {
 	// player is requesting a race change
 
+	if( m_SaveGame )
+		return;
+
 	if( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 		return;
 
@@ -2627,6 +2685,9 @@ void CBaseGame :: EventPlayerChangeRace( CGamePlayer *player, unsigned char race
 void CBaseGame :: EventPlayerChangeHandicap( CGamePlayer *player, unsigned char handicap )
 {
 	// player is requesting a handicap change
+
+	if( m_SaveGame )
+		return;
 
 	if( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 		return;

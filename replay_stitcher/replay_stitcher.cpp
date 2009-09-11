@@ -128,9 +128,9 @@ void PrintPR( CReplay *Replay )
 		cout << "player count      : " << Replay->GetPlayerCount( ) << endl;
 		cout << "map game type     : " << (int)Replay->GetMapGameType( ) << endl;
 
-		vector<ReplayPlayer> Players = Replay->GetPlayers( );
+		vector<PIDPlayer> Players = Replay->GetPlayers( );
 
-		for( vector<ReplayPlayer> :: iterator i = Players.begin( ); i != Players.end( ); i++ )
+		for( vector<PIDPlayer> :: iterator i = Players.begin( ); i != Players.end( ); i++ )
 		{
 			if( (*i).first != Replay->GetHostPID( ) )
 				cout << "player info       : " << (int)(*i).first << " -> " << (*i).second << endl;
@@ -182,12 +182,12 @@ void PrintUsage( )
 	cout << "  -s <source1> <source2> ... <destination>: stitch replays" << endl;
 }
 
-bool operator <( const ReplayPlayer &left, const ReplayPlayer &right )
+bool operator <( const PIDPlayer &left, const PIDPlayer &right )
 {
 	return left.first < right.first;
 }
 
-bool operator ==( const ReplayPlayer &left, const ReplayPlayer &right )
+bool operator ==( const PIDPlayer &left, const PIDPlayer &right )
 {
 	return left.first == right.first && left.second == right.second;
 }
@@ -250,7 +250,7 @@ int main( int argc, char **argv )
 				CReplay *Replay = new CReplay( );
 				Replay->Load( Args[i], true );
 				PrintP( Replay );
-				Replay->ParseReplay( );
+				Replay->ParseReplay( true );
 				PrintPR( Replay );
 				delete Replay;
 				break;
@@ -288,7 +288,7 @@ int main( int argc, char **argv )
 			{
 				CReplay *Replay = new CReplay( );
 				Replay->Load( Args[i], true );
-				Replay->ParseReplay( );
+				Replay->ParseReplay( true );
 				Replays.push_back( Replay );
 			}
 
@@ -341,16 +341,23 @@ int main( int argc, char **argv )
 				Stitched->SetBuildNumber( Replays[0]->GetBuildNumber( ) );
 				Stitched->SetFlags( Replays[0]->GetFlags( ) );
 				Stitched->SetMapGameType( Replays[0]->GetMapGameType( ) );
-				vector<ReplayPlayer> Players = Replays[0]->GetPlayers( );
+				vector<PIDPlayer> Players = Replays[0]->GetPlayers( );
 				sort( Players.begin( ), Players.end( ) );
 
-				for( vector<ReplayPlayer> :: iterator j = Players.begin( ); j != Players.end( ); j++ )
+				for( vector<PIDPlayer> :: iterator j = Players.begin( ); j != Players.end( ); j++ )
 					Stitched->AddPlayer( (*j).first, (*j).second );
 
 				Stitched->SetSlots( Replays[0]->GetSlots( ) );
 				Stitched->SetRandomSeed( Replays[0]->GetRandomSeed( ) );
 				Stitched->SetSelectMode( Replays[0]->GetSelectMode( ) );
 				Stitched->SetStartSpotCount( Replays[0]->GetStartSpotCount( ) );
+				queue<BYTEARRAY> *LoadingBlocks = Replays[0]->GetLoadingBlocks( );
+
+				while( !LoadingBlocks->empty( ) )
+				{
+					Stitched->AddLoadingBlock( LoadingBlocks->front( ) );
+					LoadingBlocks->pop( );
+				}
 
 				for( vector<CReplay *> :: iterator j = Replays.begin( ); j != Replays.end( ); j++ )
 				{
@@ -380,7 +387,7 @@ int main( int argc, char **argv )
 							return 1;
 						}
 
-						vector<ReplayPlayer> Players2 = (*j)->GetPlayers( );
+						vector<PIDPlayer> Players2 = (*j)->GetPlayers( );
 						sort( Players2.begin( ), Players2.end( ) );
 
 						if( Players != Players2 )
@@ -431,7 +438,7 @@ int main( int argc, char **argv )
 						{
 							string LeavingPlayer;
 
-							for( vector<ReplayPlayer> :: iterator k = Players.begin( ); k != Players.end( ); k++ )
+							for( vector<PIDPlayer> :: iterator k = Players.begin( ); k != Players.end( ); k++ )
 							{
 								if( (*k).first == Block[5] )
 									LeavingPlayer = (*k).second;
@@ -472,7 +479,7 @@ int main( int argc, char **argv )
 								{
 									string SavingPlayer;
 
-									for( vector<ReplayPlayer> :: iterator k = Players.begin( ); k != Players.end( ); k++ )
+									for( vector<PIDPlayer> :: iterator k = Players.begin( ); k != Players.end( ); k++ )
 									{
 										if( (*k).first == ActionPID )
 											SavingPlayer = (*k).second;

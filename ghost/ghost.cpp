@@ -1274,6 +1274,18 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 			return;
 		}
+
+		if( m_EnforcePlayers.empty( ) )
+		{
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+			{
+				if( (*i)->GetServer( ) == creatorServer )
+					(*i)->QueueChatCommand( m_Language->UnableToCreateGameMustEnforceFirst( gameName ), creatorName, whisper );
+			}
+
+			if( m_AdminGame )
+				m_AdminGame->SendAllChat( m_Language->UnableToCreateGameMustEnforceFirst( gameName ) );
+		}
 	}
 
 	if( m_CurrentGame )
@@ -1312,6 +1324,12 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		m_CurrentGame = new CGame( this, map, NULL, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
 
 	// todotodo: check if listening failed and report the error to the user
+
+	if( m_SaveGame )
+	{
+		m_CurrentGame->SetEnforcePlayers( m_EnforcePlayers );
+		m_EnforcePlayers.clear( );
+	}
 
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 	{

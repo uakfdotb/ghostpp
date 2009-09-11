@@ -28,6 +28,7 @@
 #include "map.h"
 #include "packed.h"
 #include "savegame.h"
+#include "replay.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "game_base.h"
@@ -283,10 +284,10 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 	SendChat( player, "Commands: addadmin, autohost, autohostmm, checkadmin" );
 	SendChat( player, "Commands: checkban, countadmins, countbans, deladmin" );
-	SendChat( player, "Commands: delban, disable, downloads, enable, end, exit" );
-	SendChat( player, "Commands: getgame, getgames, hostsg, load, loadsg, map" );
-	SendChat( player, "Commands: password, priv, privby, pub, pubby, quit, reload" );
-	SendChat( player, "Commands: say, saygame, saygames, unban, unhost, w" );
+	SendChat( player, "Commands: delban, disable, downloads, enable, end, enforcesg" );
+	SendChat( player, "Commands: exit, getgame, getgames, hostsg, load, loadsg" );
+	SendChat( player, "Commands: map, password, priv, privby, pub, pubby, quit" );
+	SendChat( player, "Commands: reload, say, saygame, saygames, unban, unhost, w" );
 }
 
 void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
@@ -812,6 +813,34 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			}
 			else
 				SendChat( player, m_GHost->m_Language->GameNumberDoesntExist( Payload ) );
+		}
+
+		//
+		// !ENFORCESG
+		//
+
+		if( Command == "enforcesg" && !Payload.empty( ) )
+		{
+			// only load files in the current directory just to be safe
+
+			if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+				SendChat( player, m_GHost->m_Language->UnableToLoadReplaysOutside( ) );
+			else
+			{
+				string File = m_GHost->m_ReplayPath + Payload + ".w3g";
+
+				if( UTIL_FileExists( File ) )
+				{
+					SendChat( player, m_GHost->m_Language->LoadingReplay( File ) );
+					CReplay *Replay = new CReplay( );
+					Replay->Load( File, false );
+					Replay->ParseReplay( false );
+					m_GHost->m_EnforcePlayers = Replay->GetPlayers( );
+					delete Replay;
+				}
+				else
+					SendChat( player, m_GHost->m_Language->UnableToLoadReplayDoesntExist( File ) );
+			}
 		}
 
 		//

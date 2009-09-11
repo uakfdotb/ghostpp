@@ -1443,3 +1443,29 @@ string CLanguage :: CountDownAbortedSomeoneLeftRecently( )
 {
 	return m_CFG->GetString( "lang_0206", "lang_0206" );
 }
+
+string CLanguage :: UnableToCreateGameMustEnforceFirst( string gamename )
+{
+	string Out = m_CFG->GetString( "lang_0207", "lang_0207" );
+	UTIL_Replace( Out, "$GAMENAME$", gamename );
+	return Out;
+}
+
+string CLanguage :: UnableToLoadReplaysOutside( )
+{
+	return m_CFG->GetString( "lang_0208", "lang_0208" );
+}
+
+string CLanguage :: LoadingReplay( string file )
+{
+	string Out = m_CFG->GetString( "lang_0209", "lang_0209" );
+	UTIL_Replace( Out, "$FILE$", file );
+	return Out;
+}
+
+string CLanguage :: UnableToLoadReplayDoesntExist( string file )
+{
+	string Out = m_CFG->GetString( "lang_0210", "lang_0210" );
+	UTIL_Replace( Out, "$FILE$", file );
+	return Out;
+}

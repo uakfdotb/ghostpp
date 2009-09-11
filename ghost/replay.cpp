@@ -117,6 +117,11 @@ void CReplay :: AddBlock( BYTEARRAY &block )
 	m_Blocks.push( block );
 }
 
+void CReplay :: AddLoadingBlock( BYTEARRAY &loadingBlock )
+{
+	m_LoadingBlocks.push( loadingBlock );
+}
+
 void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
 {
 	m_War3Version = war3Version;
@@ -149,7 +154,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 
 	// PlayerList (4.9)
 
-	for( vector<ReplayPlayer> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	for( vector<PIDPlayer> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 	{
 		if( (*i).first != m_HostPID )
 		{
@@ -246,7 +251,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 #define READB( x, y, z )	(x).read( (char *)(y), (z) )
 #define READSTR( x, y )		getline( (x), (y), '\0' )
 
-void CReplay :: ParseReplay( )
+void CReplay :: ParseReplay( bool parseBlocks )
 {
 	m_HostPID = 0;
 	m_HostName.clear( );
@@ -442,6 +447,9 @@ void CReplay :: ParseReplay( )
 		m_Valid = false;
 		return;
 	}
+
+	if( !parseBlocks )
+		return;
 
 	READB( ISS, &Garbage1, 1 );				// first start block ID (5.0)
 

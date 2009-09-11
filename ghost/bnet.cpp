@@ -32,6 +32,7 @@
 #include "map.h"
 #include "packed.h"
 #include "savegame.h"
+#include "replay.h"
 #include "gameprotocol.h"
 #include "game_base.h"
 
@@ -1461,6 +1462,34 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					}
 					else
 						QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( Payload ), User, Whisper );
+				}
+
+				//
+				// !ENFORCESG
+				//
+
+				if( Command == "enforcesg" && !Payload.empty( ) )
+				{
+					// only load files in the current directory just to be safe
+
+					if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+						QueueChatCommand( m_GHost->m_Language->UnableToLoadReplaysOutside( ), User, Whisper );
+					else
+					{
+						string File = m_GHost->m_ReplayPath + Payload + ".w3g";
+
+						if( UTIL_FileExists( File ) )
+						{
+							QueueChatCommand( m_GHost->m_Language->LoadingReplay( File ), User, Whisper );
+							CReplay *Replay = new CReplay( );
+							Replay->Load( File, false );
+							Replay->ParseReplay( false );
+							m_GHost->m_EnforcePlayers = Replay->GetPlayers( );
+							delete Replay;
+						}
+						else
+							QueueChatCommand( m_GHost->m_Language->UnableToLoadReplayDoesntExist( File ), User, Whisper );
+					}
 				}
 
 				//

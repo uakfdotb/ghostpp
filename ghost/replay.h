@@ -27,8 +27,6 @@
 // CReplay
 //
 
-typedef pair<unsigned char,string> ReplayPlayer;
-
 class CIncomingAction;
 
 class CReplay : public CPacked
@@ -51,7 +49,7 @@ private:
 	string m_StatString;
 	uint32_t m_PlayerCount;
 	unsigned char m_MapGameType;
-	vector<ReplayPlayer> m_Players;
+	vector<PIDPlayer> m_Players;
 	vector<CGameSlot> m_Slots;
 	uint32_t m_RandomSeed;
 	unsigned char m_SelectMode;
@@ -70,7 +68,7 @@ public:
 	string GetStatString( )					{ return m_StatString; }
 	uint32_t GetPlayerCount( )				{ return m_PlayerCount; }
 	unsigned char GetMapGameType( )			{ return m_MapGameType; }
-	vector<ReplayPlayer> GetPlayers( )		{ return m_Players; }
+	vector<PIDPlayer> GetPlayers( )			{ return m_Players; }
 	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
 	uint32_t GetRandomSeed( )				{ return m_RandomSeed; }
 	unsigned char GetSelectMode( )			{ return m_SelectMode; }
@@ -79,7 +77,7 @@ public:
 	queue<BYTEARRAY> *GetBlocks( )			{ return &m_Blocks; }
 	queue<uint32_t> *GetCheckSums( )		{ return &m_CheckSums; }
 
-	void AddPlayer( unsigned char nPID, string nName )		{ m_Players.push_back( ReplayPlayer( nPID, nName ) ); }
+	void AddPlayer( unsigned char nPID, string nName )		{ m_Players.push_back( PIDPlayer( nPID, nName ) ); }
 	void SetSlots( vector<CGameSlot> nSlots )				{ m_Slots = nSlots; }
 	void SetRandomSeed( uint32_t nRandomSeed )				{ m_RandomSeed = nRandomSeed; }
 	void SetSelectMode( unsigned char nSelectMode )			{ m_SelectMode = nSelectMode; }
@@ -94,9 +92,10 @@ public:
 	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
 	void AddCheckSum( uint32_t checkSum );
 	void AddBlock( BYTEARRAY &block );
+	void AddLoadingBlock( BYTEARRAY &loadingBlock );
 	void BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber );
 
-	void ParseReplay( );
+	void ParseReplay( bool parseBlocks );
 };
 
 #endif
