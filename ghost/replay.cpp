@@ -30,11 +30,13 @@
 
 CReplay :: CReplay( ) : CPacked( )
 {
+	m_HostPID = 0;
+	m_PlayerCount = 0;
+	m_MapGameType = 1;
+
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
 	m_StartSpotCount = 0;
-	m_MapGameType = 1;
-	m_HostPID = 0;
 }
 
 CReplay :: ~CReplay( )
@@ -115,6 +117,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 {
 	m_War3Version = war3Version;
 	m_BuildNumber = buildNumber;
+	m_Flags = 32768;
 
 	CONSOLE_Print( "[REPLAY] building replay" );
 
@@ -234,4 +237,194 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 	// done
 
 	m_Decompressed = string( Replay.begin( ), Replay.end( ) );
+}
+
+#define READB( x, y, z )	(x).read( (char *)(y), (z) )
+#define READSTR( x, y )		getline( (x), (y), '\0' )
+
+void CReplay :: ParseReplay( )
+{
+	m_HostPID = 0;
+	m_HostName.clear( );
+	m_GameName.clear( );
+	m_StatString.clear( );
+	m_PlayerCount = 0;
+	m_MapGameType = 1;
+
+	m_Players.clear( );
+	m_Slots.clear( );
+	m_LoadingBlocks = queue<BYTEARRAY>( );
+	m_Blocks = queue<BYTEARRAY>( );
+	m_CheckSums = queue<uint32_t>( );
+	m_RandomSeed = 0;
+	m_SelectMode = 0;
+	m_StartSpotCount = 0;
+
+	if( m_Flags != 32768 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (flags mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	istringstream ISS( m_Decompressed );
+
+	unsigned char Garbage1;
+	uint16_t Garbage2;
+	uint32_t Garbage4;
+	string GarbageString;
+
+	READB( ISS, &Garbage4, 4 );				// Unknown (4.0)
+
+	if( Garbage4 != 272 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.0 Unknown mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	READB( ISS, &Garbage1, 1 );				// Host RecordID (4.1)
+
+	if( Garbage1 != 0 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.1 Host RecordID mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	READB( ISS, &m_HostPID, 1 );
+
+	if( m_HostPID > 15 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.1 Host PlayerID is invalid)" );
+		m_Valid = false;
+		return;
+	}
+
+	READSTR( ISS, m_HostName );				// Host PlayerName (4.1)
+	READB( ISS, &Garbage1, 1 );				// Host AdditionalSize (4.1)
+
+	if( Garbage1 != 1 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.1 Host AdditionalSize mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	READB( ISS, &Garbage1, 1 );				// Host AdditionalData (4.1)
+
+	if( Garbage1 != 0 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.1 Host AdditionalData mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	READSTR( ISS, m_GameName );				// GameName (4.2)
+	READSTR( ISS, GarbageString );			// Null (4.0)
+	READSTR( ISS, m_StatString );			// StatString (4.3)
+	READB( ISS, &m_PlayerCount, 4 );		// PlayerCount (4.6)
+
+	if( m_PlayerCount > 12 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.6 PlayerCount is invalid)" );
+		m_Valid = false;
+		return;
+	}
+
+	READB( ISS, &Garbage4, 4 );				// GameType (4.7)
+
+	if( (Garbage4 & 0xFFFFFF00) != 4792320 )
+	{
+		CONSOLE_Print( "[REPLAY] invalid replay (4.7 GameType mismatch)" );
+		m_Valid = false;
+		return;
+	}
+
+	m_MapGameType = Garbage4 & 0x000000FF;
+	READB( ISS, &Garbage4, 4 );				// LanguageID (4.8)
+
+	while( 1 )
+	{
+		READB( ISS, &Garbage1, 1 );			// Player RecordID (4.1)
+
+		if( Garbage1 == 22 )
+		{
+			unsigned char PlayerID;
+			string PlayerName;
+
+			READB( ISS, &PlayerID, 1 );		// Player PlayerID (4.1)
+
+			if( PlayerID > 15 )
+			{
+				CONSOLE_Print( "[REPLAY] invalid replay (4.9 Player PlayerID is invalid)" );
+				m_Valid = false;
+				return;
+			}
+
+			READSTR( ISS, PlayerName );		// Player PlayerName (4.1)
+			READB( ISS, &Garbage1, 1 );		// Player AdditionalSize (4.1)
+
+			if( Garbage1 != 1 )
+			{
+				CONSOLE_Print( "[REPLAY] invalid replay (4.9 Player AdditionalSize mismatch)" );
+				m_Valid = false;
+				return;
+			}
+
+			READB( ISS, &Garbage1, 1 );		// Player AdditionalData (4.1)
+
+			if( Garbage1 != 0 )
+			{
+				CONSOLE_Print( "[REPLAY] invalid replay (4.9 Player AdditionalData mismatch)" );
+				m_Valid = false;
+				return;
+			}
+
+			READB( ISS, &Garbage4, 4 );		// Unknown
+
+			if( Garbage4 != 0 )
+			{
+				CONSOLE_Print( "[REPLAY] invalid replay (4.9 Unknown mismatch)" );
+				m_Valid = false;
+				return;
+			}
+
+			AddPlayer( PlayerID, PlayerName );
+		}
+		else if( Garbage1 == 25 )
+			break;
+		else
+		{
+			CONSOLE_Print( "[REPLAY] invalid replay (4.9 Player RecordID mismatch)" );
+			m_Valid = false;
+			return;
+		}
+	}
+
+	if( ISS.fail( ) )
+	{
+		CONSOLE_Print( "[SAVEGAME] failed to parse replay header" );
+		m_Valid = false;
+		return;
+	}
+
+	/*
+
+	// GameStartRecord (4.10)
+
+	Replay.push_back( 25 );															// RecordID (4.10)
+	UTIL_AppendByteArray( Replay, (uint16_t)( 7 + m_Slots.size( ) * 9 ), false );	// Size (4.10)
+	Replay.push_back( m_Slots.size( ) );											// NumSlots (4.10)
+
+	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+		UTIL_AppendByteArray( Replay, m_Slots[i].GetByteArray( ) );
+
+	UTIL_AppendByteArray( Replay, m_RandomSeed, false );							// RandomSeed (4.10)
+	Replay.push_back( m_SelectMode );												// SelectMode (4.10)
+	Replay.push_back( m_StartSpotCount );											// StartSpotCount (4.10)
+
+	*/
+
+	m_Valid = true;
 }

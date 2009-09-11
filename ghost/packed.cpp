@@ -324,7 +324,6 @@ void CPacked :: Compress( )
 	uint32_t HeaderSize = 68;
 	uint32_t HeaderCompressedSize = HeaderSize + CompressedSize + CompressedBlocks.size( ) * 8;
 	uint32_t HeaderVersion = 1;
-	uint16_t HeaderFlags = 32768;
 	BYTEARRAY Header;
 	UTIL_AppendByteArray( Header, "Warcraft III recorded game\x01A" );
 	UTIL_AppendByteArray( Header, HeaderSize, false );
@@ -338,7 +337,7 @@ void CPacked :: Compress( )
 	Header.push_back( 'W' );
 	UTIL_AppendByteArray( Header, m_War3Version, false );
 	UTIL_AppendByteArray( Header, m_BuildNumber, false );
-	UTIL_AppendByteArray( Header, HeaderFlags, false );
+	UTIL_AppendByteArray( Header, m_Flags, false );
 	UTIL_AppendByteArray( Header, m_ReplayLength, false );
 
 	// append zero header CRC

@@ -45,6 +45,13 @@ public:
 	};
 
 private:
+	unsigned char m_HostPID;
+	string m_HostName;
+	string m_GameName;
+	string m_StatString;
+	uint32_t m_PlayerCount;
+	unsigned char m_MapGameType;
+
 	vector<ReplayPlayer> m_Players;
 	vector<CGameSlot> m_Slots;
 	queue<BYTEARRAY> m_LoadingBlocks;
@@ -53,13 +60,18 @@ private:
 	uint32_t m_RandomSeed;
 	unsigned char m_SelectMode;
 	unsigned char m_StartSpotCount;
-	unsigned char m_MapGameType;
-	unsigned char m_HostPID;
-	string m_HostName;
 
 public:
 	CReplay( );
 	virtual ~CReplay( );
+
+	unsigned char GetHostPID( )			{ return m_HostPID; }
+	string GetHostName( )				{ return m_HostName; }
+	string GetGameName( )				{ return m_GameName; }
+	string GetStatString( )				{ return m_StatString; }
+	uint32_t GetPlayerCount( )			{ return m_PlayerCount; }
+	unsigned char GetMapGameType( )		{ return m_MapGameType; }
+	vector<ReplayPlayer> GetPlayers( )	{ return m_Players; }
 
 	void AddPlayer( unsigned char nPID, string nName )		{ m_Players.push_back( ReplayPlayer( nPID, nName ) ); }
 	void SetSlots( vector<CGameSlot> nSlots )				{ m_Slots = nSlots; }
@@ -76,6 +88,8 @@ public:
 	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
 	void AddCheckSum( uint32_t checkSum );
 	void BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber );
+
+	void ParseReplay( );
 };
 
 #endif

@@ -62,6 +62,79 @@ void PrintP( CPacked *Packed )
 		cout << "packed file is not valid" << endl;
 }
 
+#define READB( x, y, z )	(x).read( (char *)(y), (z) )
+#define READSTR( x, y )		getline( (x), (y), '\0' )
+
+void PrintPR( CReplay *Replay )
+{
+	cout << "=======================" << endl;
+	cout << "REPLAY FILE INFORMATION" << endl;
+	cout << "=======================" << endl;
+
+	if( Replay->GetValid( ) )
+	{
+		cout << "host info         : " << (int)Replay->GetHostPID( ) << " -> " << Replay->GetHostName( ) << endl;
+		cout << "game name         : " << Replay->GetGameName( ) << endl;
+
+		// parse stat string
+
+		string StatString = Replay->GetStatString( );
+		BYTEARRAY Temp = BYTEARRAY( StatString.begin( ), StatString.end( ) );
+		Temp = UTIL_DecodeStatString( Temp );
+		istringstream ISS( string( Temp.begin( ), Temp.end( ) ) );
+
+		unsigned char Garbage1;
+		uint32_t MapGameFlags;
+		uint16_t MapWidth;
+		uint16_t MapHeight;
+		uint32_t MapXORO;
+		string MapPath;
+		string HostName;
+		unsigned char MapSHA1[20];
+		READB( ISS, &MapGameFlags, 4 );
+		READB( ISS, &Garbage1, 1 );
+		READB( ISS, &MapWidth, 2 );
+		READB( ISS, &MapHeight, 2 );
+		READB( ISS, &MapXORO, 4 );
+		READSTR( ISS, MapPath );
+		READSTR( ISS, HostName );
+		READB( ISS, MapSHA1, 20 );
+
+		if( ISS.fail( ) )
+		{
+			cout << "ss map game flags : <error>" << endl;
+			cout << "ss map width      : <error>" << endl;
+			cout << "ss map height     : <error>" << endl;
+			cout << "ss map xoro       : <error>" << endl;
+			cout << "ss map path       : <error>" << endl;
+			cout << "ss host name      : <error>" << endl;
+			cout << "ss map sha1       : <error>" << endl;
+		}
+		else
+		{
+			// todotodo: parse map game flags
+
+			cout << "ss map game flags : " << MapGameFlags << endl;
+			cout << "ss map width      : " << MapWidth << endl;
+			cout << "ss map height     : " << MapHeight << endl;
+			cout << "ss map xoro       : [" << UTIL_ByteArrayToDecString( UTIL_CreateByteArray( MapXORO, false ) ) << "]" << endl;
+			cout << "ss map path       : " << MapPath << endl;
+			cout << "ss host name      : " << HostName << endl;
+			cout << "ss map sha1       : [" << UTIL_ByteArrayToDecString( UTIL_CreateByteArray( MapSHA1, 20 ) ) << "]" << endl;
+		}
+
+		cout << "player count      : " << Replay->GetPlayerCount( ) << endl;
+		cout << "map game type     : " << (int)Replay->GetMapGameType( ) << endl;
+
+		vector<ReplayPlayer> Players = Replay->GetPlayers( );
+
+		for( vector<ReplayPlayer> :: iterator i = Players.begin( ); i != Players.end( ); i++ )
+			cout << "player info       : " << (int)(*i).first << " -> " << (*i).second << endl;
+	}
+	else
+		cout << "replay file is not valid" << endl;
+}
+
 void PrintPS( CSaveGame *SaveGame )
 {
 	cout << "===========================" << endl;
@@ -88,7 +161,7 @@ void PrintUsage( )
 	cout << " OPTIONS:" << endl;
 	cout << "  -d filename: decompress a packed file" << endl;
 	cout << "  -p filename: print basic information from a packed file" << endl;
-	// cout << "  -pr filename: print replay information from a Warcraft 3 replay" << endl;
+	cout << "  -pr filename: print replay information from a Warcraft 3 replay" << endl;
 	cout << "  -ps filename: print saved game information from a Warcraft 3 saved game" << endl;
 }
 
@@ -112,7 +185,7 @@ int main( int argc, char **argv )
 			if( ++i < argc )
 			{
 				CPacked *Packed = new CPacked( );
-				Packed->Extract( Args[i], Args[i] + ".raw" );
+				Packed->Extract( Args[i], Args[i] + ".unpacked" );
 				delete Packed;
 			}
 			else
@@ -136,14 +209,31 @@ int main( int argc, char **argv )
 				return 1;
 			}
 		}
+		else if( Args[i] == "-pr" )
+		{
+			if( ++i < argc )
+			{
+				CReplay *Replay = new CReplay( );
+				Replay->Load( Args[i], true );
+				PrintP( Replay );
+				Replay->ParseReplay( );
+				PrintPR( Replay );
+				delete Replay;
+			}
+			else
+			{
+				PrintUsage( );
+				return 1;
+			}
+		}
 		else if( Args[i] == "-ps" )
 		{
 			if( ++i < argc )
 			{
 				CSaveGame *SaveGame = new CSaveGame( );
 				SaveGame->Load( Args[i], true );
-				SaveGame->ParseSaveGame( );
 				PrintP( SaveGame );
+				SaveGame->ParseSaveGame( );
 				PrintPS( SaveGame );
 				delete SaveGame;
 			}

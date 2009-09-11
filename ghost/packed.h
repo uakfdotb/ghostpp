@@ -63,6 +63,11 @@ public:
 	virtual uint16_t GetFlags( )			{ return m_Flags; }
 	virtual uint32_t GetReplayLength( )		{ return m_ReplayLength; }
 
+	virtual void SetWar3Version( uint32_t nWar3Version )			{ m_War3Version = nWar3Version; }
+	virtual void SetBuildNumber( uint16_t nBuildNumber )			{ m_BuildNumber = nBuildNumber; }
+	virtual void SetFlags( uint16_t nFlags )						{ m_Flags = nFlags; }
+	virtual void SetReplayLength( uint32_t nReplayLength )			{ m_ReplayLength = nReplayLength; }
+
 	virtual void Load( string fileName, bool allBlocks );
 	virtual bool Save( string fileName );
 	virtual bool Extract( string inFileName, string outFileName );
