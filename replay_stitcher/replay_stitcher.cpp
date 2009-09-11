@@ -56,7 +56,9 @@ void PrintP( CPacked *Packed )
 		cout << "game version     : " << Packed->GetWar3Version( ) << endl;
 		cout << "build number     : " << Packed->GetBuildNumber( ) << endl;
 		cout << "flags            : " << Packed->GetFlags( ) << endl;
-		cout << "replay length    : " << Packed->GetReplayLength( ) << " ms (" << Packed->GetReplayLength( ) / 1000 << " seconds)" << endl;
+
+		if( Packed->GetFlags( ) == 32768 )
+			cout << "replay length    : " << Packed->GetReplayLength( ) << " ms (" << UTIL_MSToString( Packed->GetReplayLength( ) ) << ")" << endl;
 	}
 	else
 		cout << "packed file is not valid" << endl;
@@ -129,7 +131,12 @@ void PrintPR( CReplay *Replay )
 		vector<ReplayPlayer> Players = Replay->GetPlayers( );
 
 		for( vector<ReplayPlayer> :: iterator i = Players.begin( ); i != Players.end( ); i++ )
-			cout << "player info       : " << (int)(*i).first << " -> " << (*i).second << endl;
+		{
+			if( (*i).first != Replay->GetHostPID( ) )
+				cout << "player info       : " << (int)(*i).first << " -> " << (*i).second << endl;
+		}
+
+		cout << "num slots         : " << Replay->GetSlots( ).size( ) << endl;
 
 		// todotodo: slot info
 
@@ -168,10 +175,26 @@ void PrintUsage( )
 	cout << "written by Trevor Hogan and included with GHost++ (forum.codelain.com)" << endl;
 	// cout << "release version 1.0" << endl;
 	cout << " OPTIONS:" << endl;
-	cout << "  -d filename: decompress a packed file" << endl;
-	cout << "  -p filename: print basic information from a packed file" << endl;
-	cout << "  -pr filename: print replay information from a Warcraft 3 replay" << endl;
-	cout << "  -ps filename: print saved game information from a Warcraft 3 saved game" << endl;
+	cout << "  -d <filename>: decompress a packed file" << endl;
+	cout << "  -p <filename>: print basic information from a packed file" << endl;
+	cout << "  -pr <filename>: print replay information from a Warcraft 3 replay" << endl;
+	cout << "  -ps <filename>: print saved game information from a Warcraft 3 saved game" << endl;
+	cout << "  -s <filename1> <filename2> ...: stitch replays" << endl;
+}
+
+bool operator <( const ReplayPlayer &left, const ReplayPlayer &right )
+{
+	return left.first < right.first;
+}
+
+bool operator ==( const ReplayPlayer &left, const ReplayPlayer &right )
+{
+	return left.first == right.first && left.second == right.second;
+}
+
+bool operator ==( const CGameSlot &left, const CGameSlot &right )
+{
+	return left.GetByteArray( ) == right.GetByteArray( );
 }
 
 int main( int argc, char **argv )
@@ -245,6 +268,207 @@ int main( int argc, char **argv )
 				SaveGame->ParseSaveGame( );
 				PrintPS( SaveGame );
 				delete SaveGame;
+			}
+			else
+			{
+				PrintUsage( );
+				return 1;
+			}
+		}
+		else if( Args[i] == "-s" )
+		{
+			vector<CReplay *> Replays;
+
+			while( ++i < argc )
+			{
+				CReplay *Replay = new CReplay( );
+				Replay->Load( Args[i], true );
+				Replay->ParseReplay( );
+				Replays.push_back( Replay );
+			}
+
+			if( Replays.size( ) >= 2 )
+			{
+				uint32_t ReplayLength = 0;
+				unsigned char HostPID = Replays[0]->GetHostPID( );
+				string HostName = Replays[0]->GetHostName( );
+				CReplay *Stitched = new CReplay( );
+				Stitched->SetWar3Version( Replays[0]->GetWar3Version( ) );
+				Stitched->SetBuildNumber( Replays[0]->GetBuildNumber( ) );
+				Stitched->SetFlags( Replays[0]->GetFlags( ) );
+				Stitched->SetMapGameType( Replays[0]->GetMapGameType( ) );
+				vector<ReplayPlayer> Players = Replays[0]->GetPlayers( );
+				sort( Players.begin( ), Players.end( ) );
+
+				for( vector<ReplayPlayer> :: iterator i = Players.begin( ); i != Players.end( ); i++ )
+					Stitched->AddPlayer( (*i).first, (*i).second );
+
+				Stitched->SetSlots( Replays[0]->GetSlots( ) );
+				Stitched->SetRandomSeed( Replays[0]->GetRandomSeed( ) );
+				Stitched->SetSelectMode( Replays[0]->GetSelectMode( ) );
+				Stitched->SetStartSpotCount( Replays[0]->GetStartSpotCount( ) );
+
+				for( vector<CReplay *> :: iterator i = Replays.begin( ); i != Replays.end( ); i++ )
+				{
+					if( i != Replays.begin( ) )
+					{
+						if( (*i)->GetWar3Version( ) != Stitched->GetWar3Version( ) )
+						{
+							cout << "*** error: subsequent replay has different game version" << endl;
+							return 1;
+						}
+
+						if( (*i)->GetBuildNumber( ) != Stitched->GetBuildNumber( ) )
+						{
+							cout << "*** error: subsequent replay has different build number" << endl;
+							return 1;
+						}
+
+						if( (*i)->GetFlags( ) != Stitched->GetFlags( ) )
+						{
+							cout << "*** error: subsequent replay has different flags" << endl;
+							return 1;
+						}
+
+						if( (*i)->GetMapGameType( ) != Stitched->GetMapGameType( ) )
+						{
+							cout << "*** error: subsequent replay has different map game type" << endl;
+							return 1;
+						}
+
+						vector<ReplayPlayer> Players2 = (*i)->GetPlayers( );
+						sort( Players2.begin( ), Players2.end( ) );
+
+						if( Players != Players2 )
+						{
+							cout << "*** error: subsequent replay has different player layout" << endl;
+							return 1;
+						}
+
+						if( (*i)->GetSlots( ) != Stitched->GetSlots( ) )
+						{
+							cout << "*** error: subsequent replay has different slot layout" << endl;
+							return 1;
+						}
+
+						if( (*i)->GetSelectMode( ) != Stitched->GetSelectMode( ) )
+						{
+							cout << "*** error: subsequent replay has different select mode" << endl;
+							return 1;
+						}
+
+						if( (*i)->GetStartSpotCount( ) != Stitched->GetStartSpotCount( ) )
+						{
+							cout << "*** error: subsequent replay has different start spot count" << endl;
+							return 1;
+						}
+
+						// todotodo: compare stat strings for game settings, etc
+
+						if( !(*i)->GetLoadingBlocks( )->empty( ) )
+						{
+							cout << "*** error: subsequent replay contains loading blocks" << endl;
+							return 1;
+						}
+					}
+
+					cout << "stitching replay..." << endl;
+					bool SaveGameSelected = false;
+					queue<BYTEARRAY> *Blocks = (*i)->GetBlocks( );
+					queue<uint32_t> *CheckSums = (*i)->GetCheckSums( );
+
+					while( !Blocks->empty( ) )
+					{
+						BYTEARRAY Block = Blocks->front( );
+						Blocks->pop( );
+						Stitched->AddBlock( Block );
+
+						if( Block.size( ) >= 6 && Block[0] == CReplay :: REPLAY_LEAVEGAME )
+						{
+							HostPID = Block[5];
+
+							for( vector<ReplayPlayer> :: iterator j = Players.begin( ); j != Players.end( ); j++ )
+							{
+								if( (*j).first == HostPID )
+									HostName = (*j).second;
+							}
+						}
+						else if( Block.size( ) >= 5 && Block[0] == CReplay :: REPLAY_TIMESLOT )
+						{
+							if( CheckSums->empty( ) )
+							{
+								cout << "*** error: ran out of checksums" << endl;
+								return 1;
+							}
+
+							Stitched->AddCheckSum( CheckSums->front( ) );
+							CheckSums->pop( );
+							ReplayLength += UTIL_ByteArrayToUInt16( Block, false, 3 );
+
+							// extract individual actions
+
+							uint32_t Pos = 5;
+
+							while( Block.size( ) >= Pos + 4 )
+							{
+								unsigned char ActionPID = Block[Pos];
+								uint16_t ActionSize = UTIL_ByteArrayToUInt16( Block, false, Pos + 1 );
+
+								if( Block[Pos + 3] == 6 )
+								{
+									string SavingPlayer;
+
+									for( vector<ReplayPlayer> :: iterator j = Players.begin( ); j != Players.end( ); j++ )
+									{
+										if( (*j).first == ActionPID )
+											SavingPlayer = (*j).second;
+									}
+
+									if( SavingPlayer.empty( ) )
+									{
+										cout << "*** error: found savegame action with invalid pid" << endl;
+										return 1;
+									}
+
+									if( i + 1 != Replays.end( ) )
+									{
+										cout << "===> " << SavingPlayer << " saved the game at " << UTIL_MSToString( ReplayLength ) << ", is this where the next replay started?" << endl;
+										string Input;
+										cin >> Input;
+
+										if( Input == "y" || Input == "Y" )
+										{
+											SaveGameSelected = true;
+											break;
+										}
+									}
+								}
+
+								Pos += ActionSize + 3;
+							}
+						}
+
+						if( SaveGameSelected )
+							break;
+					}
+
+					if( i + 1 != Replays.end( ) && !SaveGameSelected )
+					{
+						cout << "*** error: end of replay found but no savegame action was found or selected" << endl;
+						return 1;
+					}
+				}
+
+				Stitched->SetReplayLength( ReplayLength );
+				Stitched->SetHostPID( HostPID );
+				Stitched->SetHostName( HostName );
+				Stitched->BuildReplay( Replays[0]->GetGameName( ), Replays[0]->GetStatString( ), Replays[0]->GetWar3Version( ), Replays[0]->GetBuildNumber( ) );
+				Stitched->Save( "stitched.w3g" );
+
+				for( vector<CReplay *> :: iterator i = Replays.begin( ); i != Replays.end( ); i++ )
+					delete *i;
+
+				Replays.clear( );
 			}
 			else
 			{

@@ -79,7 +79,7 @@ CGameSlot :: ~CGameSlot( )
 
 }
 
-BYTEARRAY CGameSlot :: GetByteArray( )
+BYTEARRAY CGameSlot :: GetByteArray( ) const
 {
 	BYTEARRAY b;
 	b.push_back( m_PID );

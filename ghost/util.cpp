@@ -380,6 +380,20 @@ double UTIL_ToDouble( string &s )
 	return result;
 }
 
+string UTIL_MSToString( uint32_t ms )
+{
+	string MinString = UTIL_ToString( ( ms / 1000 ) / 60 );
+	string SecString = UTIL_ToString( ( ms / 1000 ) % 60 );
+
+	if( MinString.size( ) == 1 )
+		MinString.insert( 0, "0" );
+
+	if( SecString.size( ) == 1 )
+		SecString.insert( 0, "0" );
+
+	return MinString + "m" + SecString + "s";
+}
+
 bool UTIL_FileExists( string file )
 {
 	struct stat fileinfo;

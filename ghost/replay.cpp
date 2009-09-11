@@ -112,6 +112,11 @@ void CReplay :: AddCheckSum( uint32_t checkSum )
 	m_CheckSums.push( checkSum );
 }
 
+void CReplay :: AddBlock( BYTEARRAY &block )
+{
+	m_Blocks.push( block );
+}
+
 void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
 {
 	m_War3Version = war3Version;
@@ -318,6 +323,7 @@ void CReplay :: ParseReplay( )
 		return;
 	}
 
+	AddPlayer( m_HostPID, m_HostName );
 	READSTR( ISS, m_GameName );				// GameName (4.2)
 	READSTR( ISS, GarbageString );			// Null (4.0)
 	READSTR( ISS, m_StatString );			// StatString (4.3)
@@ -517,6 +523,8 @@ void CReplay :: ParseReplay( )
 		return;
 	}
 
+	uint32_t ActualReplayLength = 0;
+
 	while( 1 )
 	{
 		READB( ISS, &Garbage1, 1 );			// block ID (5.0)
@@ -539,6 +547,9 @@ void CReplay :: ParseReplay( )
 			uint16_t BlockSize;
 			READB( ISS, &BlockSize, 2 );
 			READB( ISS, GarbageData, BlockSize );
+
+			if( BlockSize >= 2 )
+				ActualReplayLength += GarbageData[0] | GarbageData[1] << 8;
 
 			// reconstruct the block
 
@@ -595,6 +606,9 @@ void CReplay :: ParseReplay( )
 			break;
 		}
 	}
+
+	if( m_ReplayLength != ActualReplayLength )
+		CONSOLE_Print( "[REPLAY] warning - replay length mismatch (" + UTIL_ToString( m_ReplayLength ) + "ms/" + UTIL_ToString( ActualReplayLength ) + "ms)" );
 
 	m_Valid = true;
 }

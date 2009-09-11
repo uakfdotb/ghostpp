@@ -93,6 +93,7 @@ public:
 	void AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions );
 	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
 	void AddCheckSum( uint32_t checkSum );
+	void AddBlock( BYTEARRAY &block );
 	void BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber );
 
 	void ParseReplay( );

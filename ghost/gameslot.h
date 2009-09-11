@@ -78,7 +78,7 @@ public:
 	void SetComputerType( unsigned char nComputerType )			{ m_ComputerType = nComputerType; }
 	void SetHandicap( unsigned char nHandicap )					{ m_Handicap = nHandicap; }
 
-	BYTEARRAY GetByteArray( );
+	BYTEARRAY GetByteArray( ) const;
 };
 
 #endif
