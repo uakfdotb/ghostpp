@@ -282,6 +282,7 @@ int main( int argc, char **argv )
 		else if( Args[i] == "-s" )
 		{
 			vector<CReplay *> Replays;
+			vector<uint32_t> SaveGameActions;
 
 			while( ++i < argc - 1 )
 			{
@@ -293,6 +294,45 @@ int main( int argc, char **argv )
 
 			if( Replays.size( ) >= 2 )
 			{
+				// step 1 -> parse replays for savegame actions so that we can tell the user how many savegame actions are left in each replay
+
+				for( vector<CReplay *> :: iterator j = Replays.begin( ); j != Replays.end( ); j++ )
+				{
+					// ouch, copying all the data blocks is pretty expensive just to count the savegame actions
+
+					uint32_t SaveGameAction = 0;
+					queue<BYTEARRAY> Blocks = *(*j)->GetBlocks( );
+
+					while( !Blocks.empty( ) )
+					{
+						BYTEARRAY Block = Blocks.front( );
+						Blocks.pop( );
+
+						if( Block.size( ) >= 5 && Block[0] == CReplay :: REPLAY_TIMESLOT )
+						{
+							// extract individual actions
+
+							uint32_t Pos = 5;
+
+							while( Block.size( ) >= Pos + 4 )
+							{
+								unsigned char ActionPID = Block[Pos];
+								uint16_t ActionSize = UTIL_ByteArrayToUInt16( Block, false, Pos + 1 );
+
+								if( Block[Pos + 3] == 6 )
+									SaveGameAction++;
+
+								Pos += ActionSize + 3;
+							}
+						}
+					}
+
+					SaveGameActions.push_back( SaveGameAction );
+				}
+
+				// step 2 -> stitch replays
+
+				uint32_t ReplayNumber = 0;
 				uint32_t ReplayLength = 0;
 				unsigned char HostPID = Replays[0]->GetHostPID( );
 				string HostName = Replays[0]->GetHostName( );
@@ -389,13 +429,23 @@ int main( int argc, char **argv )
 
 						if( Block.size( ) >= 6 && Block[0] == CReplay :: REPLAY_LEAVEGAME )
 						{
-							HostPID = Block[5];
+							string LeavingPlayer;
 
 							for( vector<ReplayPlayer> :: iterator k = Players.begin( ); k != Players.end( ); k++ )
 							{
-								if( (*k).first == HostPID )
-									HostName = (*k).second;
+								if( (*k).first == Block[5] )
+									LeavingPlayer = (*k).second;
 							}
+
+							if( LeavingPlayer.empty( ) )
+							{
+								cout << "*** error: found leavegame action with invalid pid" << endl;
+								return 1;
+							}
+
+							cout << HostName << " left the game at " << UTIL_MSToString( ReplayLength ) << "." << endl;
+							HostPID = Block[5];
+							HostName = LeavingPlayer;
 						}
 						else if( Block.size( ) >= 5 && Block[0] == CReplay :: REPLAY_TIMESLOT )
 						{
@@ -434,9 +484,11 @@ int main( int argc, char **argv )
 										return 1;
 									}
 
+									SaveGameActions[ReplayNumber]--;
+
 									if( j + 1 != Replays.end( ) )
 									{
-										cout << "===> " << SavingPlayer << " saved the game at " << UTIL_MSToString( ReplayLength ) << ", is this where the next replay started? [y/n] ";
+										cout << "===> " << SavingPlayer << " saved the game at " << UTIL_MSToString( ReplayLength ) << ", is this where the next replay started (" << SaveGameActions[ReplayNumber] << " remain)? [y/n] ";
 										string Input;
 										cin >> Input;
 
@@ -461,6 +513,8 @@ int main( int argc, char **argv )
 						cout << "*** error: end of replay found but no savegame action was found or selected" << endl;
 						return 1;
 					}
+
+					ReplayNumber++;
 				}
 
 				Stitched->SetReplayLength( ReplayLength );
