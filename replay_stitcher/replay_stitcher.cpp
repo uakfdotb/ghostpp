@@ -454,10 +454,10 @@ int main( int argc, char **argv )
 								return 1;
 							}
 
-							cout << HostName << " left the game at " << UTIL_MSToString( ReplayLength ) << "." << endl;
 							HostPID = Block[5];
 							HostName = LeavingPlayer;
 							PlayersStillInGame--;
+							cout << HostName << " left the game at " << UTIL_MSToString( ReplayLength ) << "." << endl;
 						}
 						else if( Block.size( ) >= 5 && Block[0] == CReplay :: REPLAY_TIMESLOT )
 						{
