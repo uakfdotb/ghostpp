@@ -68,6 +68,7 @@ string UTIL_FileRead( string file, uint32_t start, uint32_t length );
 string UTIL_FileRead( string file );
 bool UTIL_FileWrite( string file, unsigned char *data, uint32_t length );
 string UTIL_FileSafeName( string fileName );
+string UTIL_AddPathSeperator( string path );
 
 // stat strings
 

@@ -500,6 +500,23 @@ string UTIL_FileSafeName( string fileName )
 	return fileName;
 }
 
+string UTIL_AddPathSeperator( string path )
+{
+	if( path.empty( ) )
+		return string( );
+
+#ifdef WIN32
+	char Seperator = '\\';
+#else
+	char Seperator = '/';
+#endif
+
+	if( *(path.end( ) - 1) == Seperator )
+		return path;
+	else
+		return path + string( 1, Seperator );
+}
+
 BYTEARRAY UTIL_EncodeStatString( BYTEARRAY &data )
 {
 	unsigned char Mask = 1;
