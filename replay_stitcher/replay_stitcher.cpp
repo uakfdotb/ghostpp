@@ -359,6 +359,8 @@ int main( int argc, char **argv )
 					LoadingBlocks->pop( );
 				}
 
+				uint32_t PlayersStillInGame = Players.size( );
+
 				for( vector<CReplay *> :: iterator j = Replays.begin( ); j != Replays.end( ); j++ )
 				{
 					if( j != Replays.begin( ) )
@@ -424,7 +426,9 @@ int main( int argc, char **argv )
 					}
 
 					cout << "stitching replay..." << endl;
+					uint32_t PlayersDoneSaving = 0;
 					bool SaveGameSelected = false;
+					bool SaveGameCompleted = false;
 					queue<BYTEARRAY> *Blocks = (*j)->GetBlocks( );
 					queue<uint32_t> *CheckSums = (*j)->GetCheckSums( );
 
@@ -453,6 +457,7 @@ int main( int argc, char **argv )
 							cout << HostName << " left the game at " << UTIL_MSToString( ReplayLength ) << "." << endl;
 							HostPID = Block[5];
 							HostName = LeavingPlayer;
+							PlayersStillInGame--;
 						}
 						else if( Block.size( ) >= 5 && Block[0] == CReplay :: REPLAY_TIMESLOT )
 						{
@@ -477,6 +482,8 @@ int main( int argc, char **argv )
 
 								if( Block[Pos + 3] == 6 )
 								{
+									// "savegame started" action
+
 									string SavingPlayer;
 
 									for( vector<PIDPlayer> :: iterator k = Players.begin( ); k != Players.end( ); k++ )
@@ -506,12 +513,24 @@ int main( int argc, char **argv )
 										}
 									}
 								}
+								else if( Block[Pos + 3] == 7 && SaveGameSelected )
+								{
+									// "savegame completed" action
+
+									PlayersDoneSaving++;
+
+									if( PlayersDoneSaving == PlayersStillInGame )
+									{
+										SaveGameCompleted = true;
+										break;
+									}
+								}
 
 								Pos += ActionSize + 3;
 							}
 						}
 
-						if( SaveGameSelected )
+						if( SaveGameCompleted )
 							break;
 					}
 
