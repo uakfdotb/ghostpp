@@ -171,15 +171,22 @@ void PrintPS( CSaveGame *SaveGame )
 
 void PrintUsage( )
 {
-	cout << "replay_stitcher: a Warcraft 3 saved game & replay utility" << endl;
-	cout << "written by Trevor Hogan and included with GHost++ (forum.codelain.com)" << endl;
-	// cout << "release version 1.0" << endl;
+	cout << "replay_stitcher: A Warcraft 3 saved game & replay utility (Version 1.0)" << endl;
+	cout << "Written by Trevor Hogan and included with GHost++ (forum.codelain.com)" << endl;
 	cout << " OPTIONS:" << endl;
 	cout << "  -d <filename>: decompress a packed file to <filename>.unpacked" << endl;
 	cout << "  -p <filename>: print information about a packed file" << endl;
 	cout << "  -pr <filename>: print information about a Warcraft 3 replay" << endl;
 	cout << "  -ps <filename>: print information about a Warcraft 3 saved game" << endl;
 	cout << "  -s <source1> <source2> ... <destination>: stitch replays" << endl;
+	cout << "  -v <version> <build number> <filename>: change the version and build number of a packed file" << endl;
+	cout << " NOTES:" << endl;
+	cout << "  The -v option cannot be used to change between major versions." << endl;
+	cout << " VERSIONS:" << endl;
+	cout << "  Warcraft 3 patch 1.23 : version 23, build number 6058" << endl;
+	cout << "  Warcraft 3 patch 1.24 : version 24, build number 6059" << endl;
+	cout << "  Warcraft 3 patch 1.24b: version 24, build number 6059" << endl;
+
 }
 
 bool operator <( const PIDPlayer &left, const PIDPlayer &right )
@@ -554,6 +561,32 @@ int main( int argc, char **argv )
 
 				Replays.clear( );
 				delete Stitched;
+				break;
+			}
+			else
+			{
+				PrintUsage( );
+				return 1;
+			}
+		}
+		else if( Args[i] == "-v" )
+		{
+			if( ++i < argc - 2 )
+			{
+				CPacked *Packed = new CPacked( );
+				Packed->Load( Args[i + 2], true );
+
+				if( Packed->GetValid( ) )
+				{
+					cout << "changing version to " << UTIL_ToUInt32( Args[i] ) << " and build number to " << UTIL_ToUInt16( Args[i + 1] ) << endl;
+					Packed->SetWar3Version( UTIL_ToUInt32( Args[i] ) );
+					Packed->SetBuildNumber( UTIL_ToUInt16( Args[i + 1] ) );
+					Packed->Save( Args[i + 2] );
+				}
+				else
+					cout << "*** error: packed file is not valid" << endl;
+
+				delete Packed;
 				break;
 			}
 			else
