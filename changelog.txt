@@ -2,6 +2,40 @@
 GHost++ Changelog
 =================
 
+Version 15.0
+ - added support for "replay stitching" (stitching together replays from before and after the game is saved)
+  * see the new readme.replay_stitcher.txt for more information
+ - added new project replay_stitcher
+ - partial (unusable) replays are now created when hosting from a saved game
+ - added player enforcement in saved games
+  * see the "Using Saved Games" section of the readme for more information
+ - added new command in battle.net and admin game !enforcesg
+ - whispers sent by mutual friends when they join your game are now considered valid spoof checks regardless of language
+ - whispers sent by battle.net when mutual friends join your game on PVPGN realms are now considered valid spoof checks
+ - added new config value bnet*_custom_pvpgnrealmname
+ - it is now much less likely for a player to be marked as a name spoofer after rehosting the game under a new name
+ - added support for spoof checking only potential admins instead of every player (bot_spoofchecks = 2)
+ - bot_spoofchecks now defaults to 2
+ - the bot will now tell players how to spoof check in !autohostmm games if necessary
+ - printed a more detailed message to the console/log when there's a path mismatch between a saved game and a map
+ - replay_buildnumber now defaults to 6059 again (the previous 6374 value was incorrect)
+ - increased the hard coded maximum map download speed to 1400 KB/sec in most cases (it depends on player ping)
+ - the bot now automatically adds your system's path seperator to the following config values:
+  * bot_war3path
+  * bot_mapcfgpath
+  * bot_savegamepath
+  * bot_mappath
+  * bot_replaypath
+ - fixed a very old bug where the bot would sometimes pick a random player to talk through instead of the game owner
+ - fixed a crash bug with !sp when observers/referees were present
+ - fixed some compiler warnings with sha1.cpp with Visual C++
+ - update_dota_elo now outputs release exe's to the main ghost directory when compiling with Visual C++
+ - update_w3mmd_elo now outputs release exe's to the main ghost directory when compiling with Visual C++
+ - replay_stitcher now outputs release exe's to the main ghost directory when compiling with Visual C++
+ - added spanish language config made by azglenad
+ - updated russian language config
+ - added some new entries to language.cfg
+
 Version 14.7
  - clarified some comments in ghost.cfg regarding bot_requirespoofchecks
  - fixed a bug where it was only possible to ban spoofchecked players once the game started

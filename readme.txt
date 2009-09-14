@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 14.7
+GHost++ Version 15.0
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
@@ -247,9 +247,10 @@ Here's how:
  q.) *custom_exeversion
  r.) *custom_exeversionhash
  s.) *custom_passwordhashtype
- t.) *custom_maxmessagelength
- u.) *custom_countryabbrev
- v.) *custom_country
+ t.) *custom_pvpgnrealmname
+ u.) *custom_maxmessagelength
+ v.) *custom_countryabbrev
+ w.) *custom_country
 3.) GHost++ will search for battle.net connection information by replacing the "*" in each key above with "bnet_" then "bnet2_" then "bnet3_" and so on until "bnet9_".
  a.) Note that GHost++ doesn't search for "bnet1_" for backwards compatibility reasons.
 4.) If GHost++ doesn't find a *server key it stops searching for any further battle.net connection information.
@@ -303,13 +304,12 @@ Now, when you start GHost++:
 
 1.) Use the map or load command to load the correct map (the map the saved game was created on).
 2.) Use the loadsg command to load the saved game.
-3.) Use the hostsg command to host the saved game. If the saved game was created on a different map it will refuse to host the game.
+3.) Use the enforcesg command to load a replay from the first game.
+ a.) The replay is used to enforce the correct player layout (e.g. which PID and which slot each player was in).
+ b.) This is necessary because the bot doesn't know how to read saved game files in order to find the correct player layout.
+ c.) If you do not have a replay from the first game, you won't be able to create the game.
+4.) Use the hostsg command to host the saved game. If the saved game was created on a different map it will refuse to host the game.
  a.) Saved games are always created as private games and cannot be rehosted.
-4.) GHost++ is not smart enough to know which player belongs in which slot. It is your responsibility to ensure each player is in the correct slot before starting the game.
- a.) The slot numbers are not adjusted to match the number of players.
- b.) This means the slot commands such as close, open, and swap use the original slot numbers.
- c.) It's possible to swap someone into an invisible slot if you aren't careful.
- d.) If you start the game with any players in the wrong slot you may experience glitches in the game.
 5.) Use the start command to start the saved game.
 
 GHost++ also supports autosaving the game just before someone disconnects.
@@ -660,6 +660,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !downloads <0|1|2>              disable/enable/conditional map downloads
 !enable                         enable creation of new games
 !end <number>                   end the specified game in progress (disconnect everyone)
+!enforcesg <filename>           load a replay to be used as a template for the player layout in the next saved game
 !exit [force|nice]              shutdown ghost++, optionally add [force] to skip checks or [nice] to allow running games to finish first
 !getclan                        refresh the internal copy of the clan members list
 !getfriends                     refresh the internal copy of the friends list
@@ -793,6 +794,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !downloads <0|1|2>              disable/enable/conditional map downloads
 !enable                         enable creation of new games
 !end <number>                   end a game in progress (disconnect everyone)
+!enforcesg <filename>           load a replay to be used as a template for the player layout in the next saved game
 !exit [force|nice]              shutdown ghost++, optionally add [force] to skip checks or [nice] to allow running games to finish first
 !getgame <number>               display information on a game in progress
 !getgames                       display information on all games
