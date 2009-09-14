@@ -3473,20 +3473,20 @@ void CBaseGame :: SwapSlots( unsigned char SID1, unsigned char SID2 )
 
 void CBaseGame :: OpenSlot( unsigned char SID, bool kick )
 {
-	if( kick )
-	{
-		CGamePlayer *Player = GetPlayerFromSID( SID );
-
-		if( Player )
-		{
-			Player->SetDeleteMe( true );
-			Player->SetLeftReason( "was kicked when opening a slot" );
-			Player->SetLeftCode( PLAYERLEAVE_LOBBY );
-		}
-	}
-
 	if( SID < m_Slots.size( ) )
 	{
+		if( kick )
+		{
+			CGamePlayer *Player = GetPlayerFromSID( SID );
+
+			if( Player )
+			{
+				Player->SetDeleteMe( true );
+				Player->SetLeftReason( "was kicked when opening a slot" );
+				Player->SetLeftCode( PLAYERLEAVE_LOBBY );
+			}
+		}
+
 		CGameSlot Slot = m_Slots[SID];
 		m_Slots[SID] = CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, Slot.GetTeam( ), Slot.GetColour( ), Slot.GetRace( ) ); 
 		SendAllSlotInfo( );
@@ -3495,20 +3495,20 @@ void CBaseGame :: OpenSlot( unsigned char SID, bool kick )
 
 void CBaseGame :: CloseSlot( unsigned char SID, bool kick )
 {
-	if( kick )
-	{
-		CGamePlayer *Player = GetPlayerFromSID( SID );
-
-		if( Player )
-		{
-			Player->SetDeleteMe( true );
-			Player->SetLeftReason( "was kicked when closing a slot" );
-			Player->SetLeftCode( PLAYERLEAVE_LOBBY );
-		}
-	}
-
 	if( SID < m_Slots.size( ) )
 	{
+		if( kick )
+		{
+			CGamePlayer *Player = GetPlayerFromSID( SID );
+
+			if( Player )
+			{
+				Player->SetDeleteMe( true );
+				Player->SetLeftReason( "was kicked when closing a slot" );
+				Player->SetLeftCode( PLAYERLEAVE_LOBBY );
+			}
+		}
+
 		CGameSlot Slot = m_Slots[SID];
 		m_Slots[SID] = CGameSlot( 0, 255, SLOTSTATUS_CLOSED, 0, Slot.GetTeam( ), Slot.GetColour( ), Slot.GetRace( ) ); 
 		SendAllSlotInfo( );
@@ -3517,20 +3517,20 @@ void CBaseGame :: CloseSlot( unsigned char SID, bool kick )
 
 void CBaseGame :: ComputerSlot( unsigned char SID, unsigned char skill, bool kick )
 {
-	if( kick )
-	{
-		CGamePlayer *Player = GetPlayerFromSID( SID );
-
-		if( Player )
-		{
-			Player->SetDeleteMe( true );
-			Player->SetLeftReason( "was kicked when creating a computer in a slot" );
-			Player->SetLeftCode( PLAYERLEAVE_LOBBY );
-		}
-	}
-
 	if( SID < m_Slots.size( ) && skill < 3 )
 	{
+		if( kick )
+		{
+			CGamePlayer *Player = GetPlayerFromSID( SID );
+
+			if( Player )
+			{
+				Player->SetDeleteMe( true );
+				Player->SetLeftReason( "was kicked when creating a computer in a slot" );
+				Player->SetLeftCode( PLAYERLEAVE_LOBBY );
+			}
+		}
+
 		CGameSlot Slot = m_Slots[SID];
 		m_Slots[SID] = CGameSlot( 0, 100, SLOTSTATUS_OCCUPIED, 1, Slot.GetTeam( ), Slot.GetColour( ), Slot.GetRace( ), skill );
 		SendAllSlotInfo( );
