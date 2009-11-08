@@ -37,7 +37,6 @@
 #include "game_base.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/regex.hpp>
 
 using namespace boost :: filesystem;
 
@@ -1615,7 +1614,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						try
 						{
 							path MapCFGPath( m_GHost->m_MapCFGPath );
-							boost :: regex Regex( Payload );
 							string Pattern = Payload;
 							transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
@@ -1636,17 +1634,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 									string Stem = i->path( ).stem( );
 									transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
 									transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
-									bool Matched = false;
 
-									if( m_GHost->m_UseRegexes )
-									{
-										if( boost :: regex_match( FileName, Regex ) )
-											Matched = true;
-									}
-									else if( FileName.find( Pattern ) != string :: npos )
-										Matched = true;
-
-									if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && Matched )
+									if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != string :: npos )
 									{
 										LastMatch = i->path( );
 										Matches++;
@@ -1656,9 +1645,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										else
 											FoundMapConfigs += ", " + i->filename( );
 
-										// if we aren't using regexes and the pattern matches the filename exactly, with or without extension, stop any further matching
+										// if the pattern matches the filename exactly, with or without extension, stop any further matching
 
-										if( !m_GHost->m_UseRegexes && ( FileName == Pattern || Stem == Pattern ) )
+										if( FileName == Pattern || Stem == Pattern )
 										{
 											Matches = 1;
 											break;
@@ -1736,7 +1725,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						try
 						{
 							path MapPath( m_GHost->m_MapPath );
-							boost :: regex Regex( Payload );
 							string Pattern = Payload;
 							transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
@@ -1757,17 +1745,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 									string Stem = i->path( ).stem( );
 									transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
 									transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
-									bool Matched = false;
 
-									if( m_GHost->m_UseRegexes )
-									{
-										if( boost :: regex_match( FileName, Regex ) )
-											Matched = true;
-									}
-									else if( FileName.find( Pattern ) != string :: npos )
-										Matched = true;
-
-									if( !is_directory( i->status( ) ) && Matched )
+									if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != string :: npos )
 									{
 										LastMatch = i->path( );
 										Matches++;
@@ -1777,9 +1756,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										else
 											FoundMaps += ", " + i->filename( );
 
-										// if we aren't using regexes and the pattern matches the filename exactly, with or without extension, stop any further matching
+										// if the pattern matches the filename exactly, with or without extension, stop any further matching
 
-										if( !m_GHost->m_UseRegexes && ( FileName == Pattern || Stem == Pattern ) )
+										if( FileName == Pattern || Stem == Pattern )
 										{
 											Matches = 1;
 											break;
