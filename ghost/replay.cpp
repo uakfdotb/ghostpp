@@ -343,12 +343,12 @@ void CReplay :: ParseReplay( bool parseBlocks )
 
 	READB( ISS, &Garbage4, 4 );				// GameType (4.7)
 
-	if( (Garbage4 & 0xFFFFFF00) != 4792320 )
+	/* if( (Garbage4 & 0xFFFFFF00) != 4792320 )
 	{
 		CONSOLE_Print( "[REPLAY] invalid replay (4.7 GameType mismatch)" );
 		m_Valid = false;
 		return;
-	}
+	} */
 
 	m_MapGameType = Garbage4 & 0x000000FF;
 	READB( ISS, &Garbage4, 4 );				// LanguageID (4.8)
