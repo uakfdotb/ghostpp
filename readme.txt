@@ -704,6 +704,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !check <name>           check a user's status (leave blank to check your own status)
 !checkban <name>        check if a user is banned on any realm
 !checkme                check your own status (can be used by non admins, sends a private message visible only to the user)
+!clearhcl               clear the HCL command string
 !close <number> ...     close slot
 !closeall               close all open slots
 !comp <slot> <skill>    create a computer in slot <slot> of skill <skill> (skill is 0 for easy, 1 for normal, 2 for insane)
@@ -715,6 +716,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !download <name>        allow a user to start downloading the map (only used with conditional map downloads, it tries to do a partial match)
 !fakeplayer             create or delete a fake player to occupy a slot during the game (the player will not do anything except stay AFK)
 !from                   display the country each player is from
+!hcl <string>           set the HCL command string
 !hold <name> ...        hold a slot for someone
 !kick <name>            kick a player (it tries to do a partial match)
 !latency <number>       set game latency (50-500), leave blank to see current latency
