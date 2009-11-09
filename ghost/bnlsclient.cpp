@@ -99,7 +99,7 @@ bool CBNLSClient :: Update( void *fd, void *send_fd )
 		ExtractPackets( );
 		ProcessPackets( );
 
-		if( GetTime( ) >= m_LastNullTime + 50 )
+		if( GetTime( ) - m_LastNullTime >= 50 )
 		{
 			m_Socket->PutBytes( m_Protocol->SEND_BNLS_NULL( ) );
 			m_LastNullTime = GetTime( );

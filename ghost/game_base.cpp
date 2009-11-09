@@ -425,7 +425,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	// changed this to ping during game loading as well to hopefully fix some problems with people disconnecting during loading
 	// changed this to ping during the game as well
 
-	if( GetTime( ) >= m_LastPingTime + 5 )
+	if( GetTime( ) - m_LastPingTime >= 5 )
 	{
 		// note: we must send pings to players who are downloading the map because Warcraft III disconnects from the lobby if it doesn't receive a ping every ~90 seconds
 		// so if the player takes longer than 90 seconds to download the map they would be disconnected unless we keep sending pings
@@ -509,7 +509,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// refresh every 3 seconds
 
-	if( !m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) >= m_LastRefreshTime + 3 )
+	if( !m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) - m_LastRefreshTime >= 3 )
 	{
 		// send a game refresh packet to each battle.net connection
 
@@ -536,7 +536,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// send more map data
 
-	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) >= m_LastDownloadTicks + 100 )
+	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) - m_LastDownloadTicks >= 100 )
 	{
 		uint32_t Downloaders = 0;
 		uint32_t DownloadCounter = 0;
@@ -594,7 +594,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// announce every m_AnnounceInterval seconds
 
-	if( !m_AnnounceMessage.empty( ) && !m_CountDownStarted && GetTime( ) >= m_LastAnnounceTime + m_AnnounceInterval )
+	if( !m_AnnounceMessage.empty( ) && !m_CountDownStarted && GetTime( ) - m_LastAnnounceTime >= m_AnnounceInterval )
 	{
 		SendAllChat( m_AnnounceMessage );
 		m_LastAnnounceTime = GetTime( );
@@ -606,7 +606,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
-			if( !(*i)->GetSpoofed( ) && GetTime( ) >= (*i)->GetJoinTime( ) + 20 )
+			if( !(*i)->GetSpoofed( ) && GetTime( ) - (*i)->GetJoinTime( ) >= 20 )
 			{
 				(*i)->SetDeleteMe( true );
 				(*i)->SetLeftReason( m_GHost->m_Language->WasKickedForNotSpoofChecking( ) );
@@ -618,7 +618,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// try to auto start every 10 seconds
 
-	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && GetTime( ) >= m_LastAutoStartTime + 10 )
+	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && GetTime( ) - m_LastAutoStartTime >= 10 )
 	{
 		StartCountDownAuto( m_GHost->m_RequireSpoofChecks );
 		m_LastAutoStartTime = GetTime( );
@@ -626,7 +626,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// countdown every 500 ms
 
-	if( m_CountDownStarted && GetTicks( ) >= m_LastCountDownTicks + 500 )
+	if( m_CountDownStarted && GetTicks( ) - m_LastCountDownTicks >= 500 )
 	{
 		if( m_CountDownCounter > 0 )
 		{
@@ -657,7 +657,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 		// check if we've hit the time limit
 
-		if( GetTime( ) >= m_LastReservedSeen + m_GHost->m_LobbyTimeLimit * 60 )
+		if( GetTime( ) - m_LastReservedSeen >= m_GHost->m_LobbyTimeLimit * 60 )
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby time limit hit)" );
 			return true;
@@ -689,7 +689,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		{
 			// reset the "lag" screen (the load-in-game screen) every 30 seconds
 
-			if( m_LoadInGame && GetTime( ) >= m_LastLoadInGameResetTime + 30 )
+			if( m_LoadInGame && GetTime( ) - m_LastLoadInGameResetTime >= 30 )
 			{
 				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 				{
@@ -786,7 +786,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			// we cannot allow the lag screen to stay up for more than ~65 seconds because Warcraft III disconnects if it doesn't receive an action packet at least this often
 			// one (easy) solution is to simply drop all the laggers if they lag for more than 60 seconds, which is what we do here
 
-			if( GetTime( ) >= m_StartedLaggingTime + 60 )
+			if( GetTime( ) - m_StartedLaggingTime >= 60 )
 				StopLaggers( "was automatically dropped after 60 seconds" );
 
 			// check if anyone has stopped lagging normally
@@ -831,12 +831,12 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	// actions are at the heart of every Warcraft 3 game but luckily we don't need to know their contents to relay them
 	// we queue player actions in EventPlayerAction then just resend them in batches to all players here
 
-	if( m_GameLoaded && !m_Lagging && GetTicks( ) >= m_LastActionSentTicks + m_Latency - m_LastActionLateBy )
+	if( m_GameLoaded && !m_Lagging && GetTicks( ) - m_LastActionSentTicks >= m_Latency - m_LastActionLateBy )
 		SendAllActions( );
 
 	// expire the votekick
 
-	if( !m_KickVotePlayer.empty( ) && GetTime( ) >= m_StartedKickVoteTime + 60 )
+	if( !m_KickVotePlayer.empty( ) && GetTime( ) - m_StartedKickVoteTime >= 60 )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] expired" );
 		SendAllChat( m_GHost->m_Language->VoteKickExpired( m_KickVotePlayer ) );
@@ -854,7 +854,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// finish the gameover timer
 
-	if( m_GameOverTime != 0 && GetTime( ) >= m_GameOverTime + 60 )
+	if( m_GameOverTime != 0 && GetTime( ) - m_GameOverTime >= 60 )
 	{
 		bool AlreadyStopped = true;
 
@@ -1378,7 +1378,7 @@ void CBaseGame :: EventPlayerDisconnectTimedOut( CGamePlayer *player )
 	// this is because Warcraft 3 stops sending packets during the lag screen
 	// so when the lag screen finishes we would immediately disconnect everyone if we didn't give them some extra time
 
-	if( GetTime( ) >= m_LastLagScreenTime + 10 )
+	if( GetTime( ) - m_LastLagScreenTime >= 10 )
 	{
 		player->SetDeleteMe( true );
 		player->SetLeftReason( m_GHost->m_Language->HasLostConnectionTimedOut( ) );

@@ -642,7 +642,7 @@ bool CGHost :: Update( long usecBlock )
 					CONSOLE_Print( "[GHOST] all threads finished, exiting nicely" );
 					m_Exiting = true;
 				}
-				else if( GetTime( ) >= m_AllGamesFinishedTime + 60 )
+				else if( GetTime( ) - m_AllGamesFinishedTime >= 60 )
 				{
 					CONSOLE_Print( "[GHOST] waited 60 seconds for threads to finish, exiting anyway" );
 					CONSOLE_Print( "[GHOST] there are " + UTIL_ToString( m_Callables.size( ) ) + " threads still in progress which will be terminated" );
@@ -797,7 +797,7 @@ bool CGHost :: Update( long usecBlock )
 
 	// autohost
 
-	if( !m_AutoHostGameName.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) >= m_LastAutoHostTime + 30 )
+	if( !m_AutoHostGameName.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) - m_LastAutoHostTime >= 30 )
 	{
 		// copy all the checks from CGHost :: CreateGame here because we don't want to spam the chat when there's an error
 		// instead we fail silently and try again soon

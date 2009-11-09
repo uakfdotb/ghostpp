@@ -1462,7 +1462,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					StartCountDown( true );
 				else
 				{
-					if( GetTicks( ) >= m_LastPlayerLeaveTicks + 2000 )
+					if( GetTicks( ) - m_LastPlayerLeaveTicks >= 2000 )
 						StartCountDown( false );
 					else
 						SendAllChat( m_GHost->m_Language->CountDownAbortedSomeoneLeftRecently( ) );
@@ -1648,7 +1648,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STATS
 	//
 
-	if( Command == "stats" && GetTime( ) >= player->GetStatsSentTime( ) + 5 )
+	if( Command == "stats" && GetTime( ) - player->GetStatsSentTime( ) >= 5 )
 	{
 		string StatsUser = User;
 
@@ -1667,7 +1667,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STATSDOTA
 	//
 
-	if( Command == "statsdota" && GetTime( ) >= player->GetStatsDotASentTime( ) + 5 )
+	if( Command == "statsdota" && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
 	{
 		string StatsUser = User;
 

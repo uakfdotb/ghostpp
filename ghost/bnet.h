@@ -104,7 +104,8 @@ private:
 	string m_PVPGNRealmName;						// realm name for PvPGN users (for mutual friend spoofchecks)
 	uint32_t m_MaxMessageLength;					// maximum message length for PvPGN users
 	uint32_t m_HostCounterID;						// the host counter ID to identify players from this realm
-	uint32_t m_NextConnectTime;						// GetTime when we should try connecting to battle.net next (after we get disconnected)
+	uint32_t m_LastDisconnectedTime;				// GetTime when we were last disconnected from battle.net
+	uint32_t m_LastConnectionAttemptTime;			// GetTime when we last attempted to connect to battle.net
 	uint32_t m_LastNullTime;						// GetTime when the last null packet was sent for detecting disconnects
 	uint32_t m_LastOutPacketTicks;					// GetTicks when the last packet was sent for the m_OutPackets queue
 	uint32_t m_LastOutPacketSize;

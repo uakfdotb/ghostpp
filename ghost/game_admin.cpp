@@ -295,9 +295,9 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 
 	for( vector<TempBan> :: iterator i = m_TempBans.begin( ); i != m_TempBans.end( ); )
 	{
-		// remove old tempbans
+		// remove old tempbans (after 5 seconds)
 
-		if( Time >= (*i).second )
+		if( Time - (*i).second >= 5 )
 			i = m_TempBans.erase( i );
 		else
 		{
@@ -1290,7 +1290,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 				// tempban for 5 seconds to prevent bruteforcing
 
-				m_TempBans.push_back( TempBan( player->GetExternalIPString( ), GetTime( ) + 5 ) );
+				m_TempBans.push_back( TempBan( player->GetExternalIPString( ), GetTime( ) ) );
 			}
 		}
 	}
