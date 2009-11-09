@@ -1476,3 +1476,8 @@ string CLanguage :: CommandTrigger( string trigger )
 	UTIL_Replace( Out, "$TRIGGER$", trigger );
 	return Out;
 }
+
+string CLanguage :: CantEndGameOwnerIsStillPlaying( )
+{
+	return m_CFG->GetString( "lang_0212", "lang_0212" );
+}
