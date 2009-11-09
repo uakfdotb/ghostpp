@@ -1469,3 +1469,10 @@ string CLanguage :: UnableToLoadReplayDoesntExist( string file )
 	UTIL_Replace( Out, "$FILE$", file );
 	return Out;
 }
+
+string CLanguage :: CommandTrigger( string trigger )
+{
+	string Out = m_CFG->GetString( "lang_0211", "lang_0211" );
+	UTIL_Replace( Out, "$TRIGGER$", trigger );
+	return Out;
+}

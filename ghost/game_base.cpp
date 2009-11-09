@@ -2546,7 +2546,9 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 
 			string Message = chatPlayer->GetMessage( );
 
-			if( !Message.empty( ) && Message[0] == m_GHost->m_CommandTrigger )
+			if( Message == "?trigger" )
+				SendChat( player, m_GHost->m_Language->CommandTrigger( string( 1, m_GHost->m_CommandTrigger ) ) );
+			else if( !Message.empty( ) && Message[0] == m_GHost->m_CommandTrigger )
 			{
 				// extract the command trigger, the command, and the payload
 				// e.g. "!say hello world" -> command: "say", payload: "hello world"

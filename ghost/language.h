@@ -244,6 +244,7 @@ public:
 	string UnableToLoadReplaysOutside( );
 	string LoadingReplay( string file );
 	string UnableToLoadReplayDoesntExist( string file );
+	string CommandTrigger( string trigger );
 };
 
 #endif

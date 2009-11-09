@@ -952,7 +952,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 		// handle bot commands
 
-		if( !Message.empty( ) && Message[0] == m_CommandTrigger )
+		if( Message == "?trigger" && ( IsAdmin( User ) || IsRootAdmin( User ) || ( m_PublicCommands && m_OutPackets.size( ) <= 3 ) ) )
+			QueueChatCommand( m_GHost->m_Language->CommandTrigger( string( 1, m_CommandTrigger ) ), User, Whisper );
+		else if( !Message.empty( ) && Message[0] == m_CommandTrigger )
 		{
 			// extract the command trigger, the command, and the payload
 			// e.g. "!say hello world" -> command: "say", payload: "hello world"
