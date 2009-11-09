@@ -97,7 +97,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	if( m_CDKeyROC.size( ) != 26 )
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] warning - your ROC CD key is not 26 characters long and is probably invalid" );
 
-	if( m_CDKeyTFT.size( ) != 26 )
+	if( !m_CDKeyTFT.empty( ) && m_CDKeyTFT.size( ) != 26 )
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] warning - your TFT CD key is not 26 characters long and is probably invalid" );
 
 	m_CountryAbbrev = nCountryAbbrev;
@@ -543,7 +543,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] connected" );
 			m_GHost->EventBNETConnected( this );
 			m_Socket->PutBytes( m_Protocol->SEND_PROTOCOL_INITIALIZE_SELECTOR( ) );
-			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version, m_CountryAbbrev, m_Country ) );
+			m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_INFO( m_War3Version, !m_CDKeyTFT.empty( ), m_CountryAbbrev, m_Country ) );
 			m_Socket->DoSend( (fd_set *)send_fd );
 			m_LastNullTime = GetTime( );
 			m_LastOutPacketTicks = GetTicks( );
@@ -751,6 +751,11 @@ void CBNET :: ProcessPackets( )
 							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] using custom exe version hash bnet_custom_exeversionhash = " + UTIL_ToString( m_EXEVersionHash[0] ) + " " + UTIL_ToString( m_EXEVersionHash[1] ) + " " + UTIL_ToString( m_EXEVersionHash[2] ) + " " + UTIL_ToString( m_EXEVersionHash[3] ) );
 							m_BNCSUtil->SetEXEVersionHash( m_EXEVersionHash );
 						}
+
+						if( m_CDKeyTFT.empty( ) )
+							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempting to auth as Warcraft III: Reign of Chaos" );
+						else
+							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempting to auth as Warcraft III: The Frozen Throne" );
 
 						m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_CHECK( m_Protocol->GetClientToken( ), m_BNCSUtil->GetEXEVersion( ), m_BNCSUtil->GetEXEVersionHash( ), m_BNCSUtil->GetKeyInfoROC( ), m_BNCSUtil->GetKeyInfoTFT( ), m_BNCSUtil->GetEXEInfo( ), "GHost" ) );
 

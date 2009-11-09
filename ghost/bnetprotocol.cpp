@@ -766,11 +766,12 @@ BYTEARRAY CBNETProtocol :: SEND_SID_NETGAMEPORT( uint16_t serverPort )
 	return packet;
 }
 
-BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, string countryAbbrev, string country )
+BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, string countryAbbrev, string country )
 {
 	unsigned char ProtocolID[]		= {   0,   0,   0,   0 };
 	unsigned char PlatformID[]		= {  54,  56,  88,  73 };	// "IX86"
-	unsigned char ProductID[]		= {  80,  88,  51,  87 };	// "W3XP"
+	unsigned char ProductID_ROC[]	= {  51,  82,  65,  87 };	// "WAR3"
+	unsigned char ProductID_TFT[]	= {  80,  88,  51,  87 };	// "W3XP"
 	unsigned char Version[]			= { ver,   0,   0,   0 };
 	unsigned char Language[]		= {  83,  85, 110, 101 };	// "enUS"
 	unsigned char LocalIP[]			= { 127,   0,   0,   1 };
@@ -779,21 +780,26 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, string country
 	unsigned char LanguageID[]		= {   9,   4,   0,   0 };	// 0x0409 English (United States)
 
 	BYTEARRAY packet;
-	packet.push_back( BNET_HEADER_CONSTANT );			// BNET header constant
-	packet.push_back( SID_AUTH_INFO );					// SID_AUTH_INFO
-	packet.push_back( 0 );								// packet length will be assigned later
-	packet.push_back( 0 );								// packet length will be assigned later
-	UTIL_AppendByteArray( packet, ProtocolID, 4 );		// Protocol ID
-	UTIL_AppendByteArray( packet, PlatformID, 4 );		// Platform ID
-	UTIL_AppendByteArray( packet, ProductID, 4 );		// Product ID
-	UTIL_AppendByteArray( packet, Version, 4 );			// Version
-	UTIL_AppendByteArray( packet, Language, 4 );		// Language
-	UTIL_AppendByteArray( packet, LocalIP, 4 );			// Local IP for NAT compatibility
-	UTIL_AppendByteArray( packet, TimeZoneBias, 4 );	// Time Zone Bias
-	UTIL_AppendByteArray( packet, LocaleID, 4 );		// Locale ID
-	UTIL_AppendByteArray( packet, LanguageID, 4 );		// Language ID
-	UTIL_AppendByteArrayFast( packet, countryAbbrev );	// Country Abbreviation
-	UTIL_AppendByteArrayFast( packet, country );		// Country
+	packet.push_back( BNET_HEADER_CONSTANT );				// BNET header constant
+	packet.push_back( SID_AUTH_INFO );						// SID_AUTH_INFO
+	packet.push_back( 0 );									// packet length will be assigned later
+	packet.push_back( 0 );									// packet length will be assigned later
+	UTIL_AppendByteArray( packet, ProtocolID, 4 );			// Protocol ID
+	UTIL_AppendByteArray( packet, PlatformID, 4 );			// Platform ID
+
+	if( TFT )
+		UTIL_AppendByteArray( packet, ProductID_TFT, 4 );	// Product ID (TFT)
+	else
+		UTIL_AppendByteArray( packet, ProductID_ROC, 4 );	// Product ID (ROC)
+
+	UTIL_AppendByteArray( packet, Version, 4 );				// Version
+	UTIL_AppendByteArray( packet, Language, 4 );			// Language
+	UTIL_AppendByteArray( packet, LocalIP, 4 );				// Local IP for NAT compatibility
+	UTIL_AppendByteArray( packet, TimeZoneBias, 4 );		// Time Zone Bias
+	UTIL_AppendByteArray( packet, LocaleID, 4 );			// Locale ID
+	UTIL_AppendByteArray( packet, LanguageID, 4 );			// Language ID
+	UTIL_AppendByteArrayFast( packet, countryAbbrev );		// Country Abbreviation
+	UTIL_AppendByteArrayFast( packet, country );			// Country
 	AssignLength( packet );
 	// DEBUG_Print( "SENT SID_AUTH_INFO" );
 	// DEBUG_Print( packet );
@@ -802,12 +808,17 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, string country
 
 BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_CHECK( BYTEARRAY clientToken, BYTEARRAY exeVersion, BYTEARRAY exeVersionHash, BYTEARRAY keyInfoROC, BYTEARRAY keyInfoTFT, string exeInfo, string keyOwnerName )
 {
-	unsigned char NumKeys[]		= { 2, 0, 0, 0 };	// 2
-	unsigned char UsingSpawn[]	= { 0, 0, 0, 0 };	// false
+	uint32_t NumKeys = 0;
+	uint32_t UsingSpawn = 0;
+
+	if( keyInfoTFT.empty( ) )
+		NumKeys = 1;
+	else
+		NumKeys = 2;
 
 	BYTEARRAY packet;
 
-	if( clientToken.size( ) == 4 && exeVersion.size( ) == 4 && exeVersionHash.size( ) == 4 && keyInfoROC.size( ) == 36 && keyInfoTFT.size( ) == 36 )
+	if( clientToken.size( ) == 4 && exeVersion.size( ) == 4 && exeVersionHash.size( ) == 4 && keyInfoROC.size( ) == 36 && ( keyInfoTFT.empty( ) || keyInfoTFT.size( ) == 36 ) )
 	{
 		packet.push_back( BNET_HEADER_CONSTANT );			// BNET header constant
 		packet.push_back( SID_AUTH_CHECK );					// SID_AUTH_CHECK
@@ -816,10 +827,13 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_CHECK( BYTEARRAY clientToken, BYTEARRAY
 		UTIL_AppendByteArrayFast( packet, clientToken );	// Client Token
 		UTIL_AppendByteArrayFast( packet, exeVersion );		// EXE Version
 		UTIL_AppendByteArrayFast( packet, exeVersionHash );	// EXE Version Hash
-		UTIL_AppendByteArray( packet, NumKeys, 4 );			// number of keys in this packet
-		UTIL_AppendByteArray( packet, UsingSpawn, 4 );		// boolean Using Spawn (32 bit)
+		UTIL_AppendByteArray( packet, NumKeys, false );		// number of keys in this packet
+		UTIL_AppendByteArray( packet, UsingSpawn, false );	// boolean Using Spawn (32 bit)
 		UTIL_AppendByteArrayFast( packet, keyInfoROC );		// ROC Key Info
-		UTIL_AppendByteArrayFast( packet, keyInfoTFT );		// TFT Key Info
+
+		if( !keyInfoTFT.empty( ) )
+			UTIL_AppendByteArrayFast( packet, keyInfoTFT );	// TFT Key Info
+
 		UTIL_AppendByteArrayFast( packet, exeInfo );		// EXE Info
 		UTIL_AppendByteArrayFast( packet, keyOwnerName );	// CD Key Owner Name
 		AssignLength( packet );

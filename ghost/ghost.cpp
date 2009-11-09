@@ -452,11 +452,11 @@ CGHost :: CGHost( CConfig *CFG )
 			continue;
 		}
 
-		if( CDKeyTFT.empty( ) )
+		/* if( CDKeyTFT.empty( ) )
 		{
 			CONSOLE_Print( "[GHOST] missing " + Prefix + "cdkeytft, skipping this battle.net connection" );
 			continue;
-		}
+		} */
 
 		if( UserName.empty( ) )
 		{
