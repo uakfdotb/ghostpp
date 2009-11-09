@@ -111,7 +111,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Lagging = false;
 	m_AutoSave = m_GHost->m_AutoSave;
 	m_MatchMaking = false;
-	m_LocalAdminMessages = true;
+	m_LocalAdminMessages = m_GHost->m_LocalAdminMessages;
 
 	if( m_SaveGame )
 	{
