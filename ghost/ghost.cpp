@@ -1046,6 +1046,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 
 	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 2 );
 	m_RequireSpoofChecks = CFG->GetInt( "bot_requirespoofchecks", 0 ) == 0 ? false : true;
+	m_ReserveAdmins = CFG->GetInt( "bot_reserveadmins", 1 ) == 0 ? false : true;
 	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
 	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;
 	m_AutoSave = CFG->GetInt( "bot_autosave", 0 ) == 0 ? false : true;
