@@ -11,6 +11,10 @@ You can also use it to decompress packed files, print information about them, an
 Replay Stitching (-s option)
 ============================
 
+*** IMPORTANT: THIS DOES NOT WORK. IT CREATES DESYNCED REPLAYS. ***
+*** IMPORTANT: THIS DOES NOT WORK. IT CREATES DESYNCED REPLAYS. ***
+*** IMPORTANT: THIS DOES NOT WORK. IT CREATES DESYNCED REPLAYS. ***
+
 The stitching function is used to stitch together replays from before and after a saved game.
 This means you must provide the program with a list of source replays saved from consecutive sessions of the same game.
 But Warcraft 3 does NOT save replays from a new session of the same game, so how do you get any subsequent replays?
