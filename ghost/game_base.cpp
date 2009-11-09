@@ -89,6 +89,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_StartPlayers = 0;
 	m_LastLoadInGameResetTime = 0;
 	m_LastActionSentTicks = 0;
+	m_LastActionLateBy = 0;
 	m_StartedLaggingTime = 0;
 	m_LastLagScreenTime = 0;
 	m_LastReservedSeen = GetTime( );
@@ -248,10 +249,10 @@ uint32_t CBaseGame :: GetNextTimedActionTicks( )
 
 	uint32_t TicksSinceLastUpdate = GetTicks( ) - m_LastActionSentTicks;
 
-	if( TicksSinceLastUpdate > m_Latency )
+	if( TicksSinceLastUpdate > m_Latency - m_LastActionLateBy )
 		return 0;
 	else
-		return m_Latency - TicksSinceLastUpdate;
+		return m_Latency - m_LastActionLateBy - TicksSinceLastUpdate;
 }
 
 uint32_t CBaseGame :: GetSlotsOccupied( )
@@ -830,7 +831,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	// actions are at the heart of every Warcraft 3 game but luckily we don't need to know their contents to relay them
 	// we queue player actions in EventPlayerAction then just resend them in batches to all players here
 
-	if( m_GameLoaded && !m_Lagging && GetTicks( ) >= m_LastActionSentTicks + m_Latency )
+	if( m_GameLoaded && !m_Lagging && GetTicks( ) >= m_LastActionSentTicks + m_Latency - m_LastActionLateBy )
 		SendAllActions( );
 
 	// expire the votekick
@@ -1102,13 +1103,12 @@ void CBaseGame :: SendFakePlayerInfo( CGamePlayer *player )
 
 void CBaseGame :: SendAllActions( )
 {
-	uint16_t SendInterval = GetTicks( ) - m_LastActionSentTicks;
-	m_GameTicks += SendInterval;
+	m_GameTicks += m_Latency;
 
 	// add actions to replay
 
 	if( m_Replay )
-		m_Replay->AddTimeSlot( SendInterval, m_Actions );
+		m_Replay->AddTimeSlot( m_Latency, m_Actions );
 
 	// we aren't allowed to send more than 1460 bytes in a single packet but it's possible we might have more than that many bytes waiting in the queue
 
@@ -1151,7 +1151,7 @@ void CBaseGame :: SendAllActions( )
 			SubActionsLength += Action->GetLength( );
 		}
 
-		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, SendInterval ) );
+		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, m_Latency ) );
 
 		while( !SubActions.empty( ) )
 		{
@@ -1160,7 +1160,21 @@ void CBaseGame :: SendAllActions( )
 		}
 	}
 	else
-		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, SendInterval ) );
+		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, m_Latency ) );
+
+	uint32_t ActualSendInterval = GetTicks( ) - m_LastActionSentTicks;
+	uint32_t ExpectedSendInterval = m_Latency - m_LastActionLateBy;
+	m_LastActionLateBy = ActualSendInterval - ExpectedSendInterval;
+
+	if( m_LastActionLateBy > m_Latency )
+	{
+		// something is going terribly wrong - GHost++ is probably starved of resources
+		// print a message because even though this will take more resources it should provide some information to the administrator for future reference
+		// other solutions - dynamically modify the latency, request higher priority, terminate other games, ???
+
+		CONSOLE_Print( "[GAME: " + m_GameName + "] the last frame was late by " + UTIL_ToString( m_LastActionLateBy ) + " ms, expect a lag spike!" );
+		m_LastActionLateBy = m_Latency;
+	}
 
 	m_LastActionSentTicks = GetTicks( );
 }

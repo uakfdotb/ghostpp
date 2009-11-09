@@ -97,6 +97,7 @@ protected:
 	uint32_t m_StartPlayers;						// number of players when the game started
 	uint32_t m_LastLoadInGameResetTime;				// GetTime when the "lag" screen was last reset when using load-in-game
 	uint32_t m_LastActionSentTicks;					// GetTicks when the last action packet was sent
+	uint32_t m_LastActionLateBy;					// the number of ticks we were late sending the last action packet by
 	uint32_t m_StartedLaggingTime;					// GetTime when the last lag screen started
 	uint32_t m_LastLagScreenTime;					// GetTime when the last lag screen was active (continuously updated)
 	uint32_t m_LastReservedSeen;					// GetTime when the last reserved player was seen in the lobby
