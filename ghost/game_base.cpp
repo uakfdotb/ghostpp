@@ -251,7 +251,7 @@ uint32_t CBaseGame :: GetNextTimedActionTicks( )
 	if( TicksSinceLastUpdate > m_Latency )
 		return 0;
 	else
-		return TicksSinceLastUpdate - m_Latency;
+		return m_Latency - TicksSinceLastUpdate;
 }
 
 uint32_t CBaseGame :: GetSlotsOccupied( )
