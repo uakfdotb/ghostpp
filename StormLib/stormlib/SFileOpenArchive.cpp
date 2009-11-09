@@ -193,15 +193,19 @@ BOOL SFileOpenArchiveEx(
             // If there is the MPQ shunt signature, process it
             if(dwHeaderID == ID_MPQ_SHUNT && ha->pShunt == NULL)
             {
-                // Fill the shunt header
-                ha->ShuntPos = MpqPos;
-                ha->pShunt = &ha->Shunt;
-                memcpy(ha->pShunt, ha->pHeader, sizeof(TMPQShunt));
-                BSWAP_TMPQSHUNT(ha->pShunt);
+                // Ignore the MPQ shunt completely if the caller wants to open the MPQ as V1.0
+                if((dwFlags & MPQ_OPEN_FORCE_MPQ_V1) == 0)
+                {
+                    // Fill the shunt header
+                    ha->ShuntPos = MpqPos;
+                    ha->pShunt = &ha->Shunt;
+                    memcpy(ha->pShunt, ha->pHeader, sizeof(TMPQShunt));
+                    BSWAP_TMPQSHUNT(ha->pShunt);
 
-                // Set the MPQ pos and repeat the search
-                MpqPos.QuadPart = SearchPos.QuadPart + ha->pShunt->dwHeaderPos;
-                continue;
+                    // Set the MPQ pos and repeat the search
+                    MpqPos.QuadPart = SearchPos.QuadPart + ha->pShunt->dwHeaderPos;
+                    continue;
+                }
             }
 
             // There must be MPQ header signature
@@ -241,17 +245,8 @@ BOOL SFileOpenArchiveEx(
 				// Note: the "dwArchiveSize" member in the MPQ header is ignored by Storm.dll
 				// and can contain garbage value ("w3xmaster" protector)
 				// 
-
+                
                 nError = ERROR_NOT_SUPPORTED;
-                break;
-            }
-
-            // If a MPQ shunt already has been found, 
-            // and no MPQ header was at potision pointed by the shunt,
-            // then the archive is corrupt
-            if(ha->pShunt != NULL)
-            {
-                nError = ERROR_BAD_FORMAT;
                 break;
             }
 
@@ -264,6 +259,17 @@ BOOL SFileOpenArchiveEx(
     // Relocate tables position
     if(nError == ERROR_SUCCESS)
     {
+        // W3x Map Protectors use the fact that War3's StormLib ignores the file shunt,
+        // and probably ignores the MPQ format version as well. The trick is to
+        // fake MPQ format 2, with an improper hi-word position of hash table and block table
+        // We can overcome such protectors by forcing opening the archive as MPQ v 1.0
+        if(dwFlags & MPQ_OPEN_FORCE_MPQ_V1)
+        {
+            ha->pHeader->wFormatVersion = MPQ_FORMAT_VERSION_1;
+            ha->pHeader->dwHeaderSize = sizeof(TMPQHeader);
+            ha->pShunt = NULL;
+        }
+
         // Clear the fields not supported in older formats
         if(ha->pHeader->wFormatVersion < MPQ_FORMAT_VERSION_2)
         {
@@ -354,11 +360,11 @@ BOOL SFileOpenArchiveEx(
     }
 
     // Decrypt block table.
-    // Some MPQs don't have Decrypted block table, e.g. cracked Diablo version
+    // Some MPQs don't have the block table decrypted, e.g. cracked Diablo version
     // We have to check if block table is really encrypted
     if(nError == ERROR_SUCCESS)
     {
-        TMPQBlock * pBlockEnd = ha->pBlockTable + ha->pHeader->dwBlockTableSize;
+        TMPQBlock * pBlockEnd = ha->pBlockTable + (dwBytes / sizeof(TMPQBlock));
         TMPQBlock * pBlock = ha->pBlockTable;
         BOOL bBlockTableEncrypted = FALSE;
 
@@ -382,7 +388,7 @@ BOOL SFileOpenArchiveEx(
         {
             DecryptBlockTable((DWORD *)ha->pBlockTable,
                                (BYTE *)"(block table)",
-                                       (ha->pHeader->dwBlockTableSize * 4));
+                                       (dwBytes / sizeof(DWORD)));
         }
     }
 
@@ -411,7 +417,7 @@ BOOL SFileOpenArchiveEx(
         }
     }
 
-    // Verify the both block tables (If the MPQ file is not protected)
+    // Verify both block tables (If the MPQ file is not protected)
     if(nError == ERROR_SUCCESS && (ha->dwFlags & MPQ_FLAG_PROTECTED) == 0)
     {
         TMPQBlockEx * pBlockEx = ha->pExtBlockTable;

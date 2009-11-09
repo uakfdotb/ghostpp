@@ -16,20 +16,24 @@ BOOL WINAPI SFileExtractFile(HANDLE hMpq, const char * szToExtract, const char *
 {
     HANDLE hLocalFile = INVALID_HANDLE_VALUE;
     HANDLE hMpqFile = NULL;
+    DWORD dwSearchScope = 0;
     int nError = ERROR_SUCCESS;
+
+
+    // Open the MPQ file
+    if(nError == ERROR_SUCCESS)
+    {
+        if((DWORD_PTR)szToExtract <= 0x10000)
+            dwSearchScope = SFILE_OPEN_BY_INDEX;
+        if(!SFileOpenFileEx(hMpq, szToExtract, dwSearchScope, &hMpqFile))
+            nError = GetLastError();
+    }
 
     // Create the local file
     if(nError == ERROR_SUCCESS)
     {
         hLocalFile = CreateFile(szExtracted, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 0, NULL);
         if(hLocalFile == INVALID_HANDLE_VALUE)
-            nError = GetLastError();
-    }
-
-    // Open the MPQ file
-    if(nError == ERROR_SUCCESS)
-    {
-        if(!SFileOpenFileEx(hMpq, szToExtract, 0, &hMpqFile))
             nError = GetLastError();
     }
 

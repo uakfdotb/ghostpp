@@ -228,9 +228,11 @@ int Decompress_huff(char * pbOutBuffer, int * pdwOutLength, char * pbInBuffer, i
     TInputStream  is;
 
     // Initialize input stream
-    is.pbInBuffer = (unsigned char *)pbInBuffer;
-    is.BitBuffer  = 0;
-    is.BitCount   = 0;
+//  is.pbInBuffer  = (unsigned char *)pbInBuffer;
+    is.dwBitBuff   = BSWAP_INT32_UNSIGNED(*(unsigned long *)pbInBuffer);
+    pbInBuffer    += sizeof(unsigned long);
+    is.pbInBuffer  = (unsigned char *)pbInBuffer;
+    is.nBits       = 32;
 
     // Initialize the Huffmann tree for compression
     ht.InitTree(false);

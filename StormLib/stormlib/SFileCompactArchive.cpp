@@ -128,7 +128,7 @@ static int CheckIfAllFilesKnown(TMPQArchive * ha, const char * szListFile, DWORD
         {
             // If there is an unresolved entry, try to detect its seed. If it fails,
             // we cannot complete the work
-            if(pHash->dwName1 != (DWORD)-1 && pHash->dwName2 != (DWORD)-1)
+            if(pHash->dwBlockIndex < ha->pHeader->dwBlockTableSize)
             {
                 HANDLE hFile  = NULL;
                 DWORD dwFlags = 0;
@@ -557,6 +557,10 @@ BOOL WINAPI SFileCompactArchive(HANDLE hMPQ, const char * szListFile, BOOL /* bR
 
     // Write the data between the header and between the first file
     // For this, we have to determine where the first file begins
+    // Ladik: While this seems to be useful at first sight,
+    // it makes SFileCompactArchive useless, when there's just one file
+    // in a MPQ that has been rewritten.
+/*
     if(nError == ERROR_SUCCESS)
     {
         LARGE_INTEGER FirstFilePos;
@@ -589,7 +593,7 @@ BOOL WINAPI SFileCompactArchive(HANDLE hMPQ, const char * szListFile, BOOL /* bR
         FirstFilePos.QuadPart -= ha->pHeader->dwHeaderSize;
         nError = CopyNonMpqData(ha->hFile, hFile, FirstFilePos);
     }
-
+*/
     // Now write all file blocks.
     if(nError == ERROR_SUCCESS)
         nError = CopyMpqFiles(hFile, ha, pFileSeeds);

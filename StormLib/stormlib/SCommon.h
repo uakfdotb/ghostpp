@@ -22,6 +22,11 @@
 #define LISTFILE_ENTRY_DELETED   (DWORD_PTR)(-2)
 #define LISTFILE_ENTRY_FREE      (DWORD_PTR)(-1)
 
+// Prevent problems with CRT "min" and "max" functions,
+// as they are not defined on all platforms
+#define STORMLIB_MIN(a, b) ((a < b) ? a : b)
+#define STORMLIB_MAX(a, b) ((a > b) ? a : b)
+
 //-----------------------------------------------------------------------------
 // External variables
 

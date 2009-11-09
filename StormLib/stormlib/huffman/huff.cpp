@@ -133,54 +133,86 @@ void TOutputStream::PutBits(unsigned long dwBuff, unsigned int nPutBits)
  
 //-----------------------------------------------------------------------------
 // TInputStream functions
- 
+
 // Gets one bit from input stream
 unsigned long TInputStream::GetBit()
 {
-    unsigned long dwBit = (dwBitBuff & 1);
- 
-    dwBitBuff >>= 1;
-    if(--nBits == 0)
+    unsigned long dwOneBit = 0;
+
+    // Ensure that the input stream is reloaded, if there are no bits left
+    if(BitCount == 0)
     {
-        dwBitBuff   = BSWAP_INT32_UNSIGNED(*(unsigned long *)pbInBuffer);
-        pbInBuffer += sizeof(unsigned long);
-        nBits       = 32;
+        // Refill the bit buffer
+        BitBuffer = *pbInBuffer++;
+        BitCount = 8;
     }
-    return dwBit;
+
+    // Copy the bit from bit buffer to the variable
+    dwOneBit = (BitBuffer & 0x01);
+    BitBuffer >>= 1;
+    BitCount--;
+
+    return dwOneBit;
 }   
  
-// Gets 7 bits from the stream
+// Gets 7 bits from the stream. DOES NOT remove the bits from input stream
 unsigned long TInputStream::Get7Bits()
 {
-    if(nBits <= 7)
+    unsigned long dwReloadByte = 0;
+
+    // If there is not enough bits to get the value,
+    // we have to add 8 more bits from the input buffer
+    if(BitCount < 7)
     {
-        dwBitBuff  |= BSWAP_INT16_UNSIGNED(*(unsigned short *)pbInBuffer) << nBits;
-        pbInBuffer += sizeof(unsigned short);
-        nBits      += 16;
+        dwReloadByte = *pbInBuffer++;
+        BitBuffer |= dwReloadByte << BitCount;
+        BitCount += 8;
     }
- 
-    // Get 7 bits from input stream
- return (dwBitBuff & 0x7F);
+
+    // Return the first available 7 bits. DO NOT remove them from the input stream
+    return (BitBuffer & 0x7F);
 }
  
 // Gets the whole byte from the input stream.
 unsigned long TInputStream::Get8Bits()
 {
-    unsigned long dwOneByte;
- 
-    if(nBits <= 8)
+    unsigned long dwReloadByte = 0;
+    unsigned long dwOneByte = 0;
+
+    // If there is not enough bits to get the value,
+    // we have to add 8 more bits from the input buffer
+    if(BitCount < 8)
     {
-        dwBitBuff  |= BSWAP_INT16_UNSIGNED(*(unsigned short *)pbInBuffer) << nBits;
-        pbInBuffer += sizeof(unsigned short);
-        nBits      += 16;
+        dwReloadByte = *pbInBuffer++;
+        BitBuffer |= dwReloadByte << BitCount;
+        BitCount += 8;
     }
-   
-    dwOneByte   = (dwBitBuff & 0xFF);
-    dwBitBuff >>= 8;
-    nBits      -= 8;
+
+    // Return the lowest 8 its
+    dwOneByte = (BitBuffer & 0xFF);
+    BitBuffer >>= 8;
+    BitCount -= 8;
     return dwOneByte;
 }
- 
+
+void TInputStream::SkipBits(unsigned int dwBitsToSkip)
+{
+    unsigned long dwReloadByte = 0;
+
+    // If there is not enough bits in the buffer,
+    // we have to add 8 more bits from the input buffer
+    if(BitCount < dwBitsToSkip)
+    {
+        dwReloadByte = *pbInBuffer++;
+        BitBuffer |= dwReloadByte << BitCount;
+        BitCount += 8;
+    }
+
+    // Skip the remaining bits
+    BitBuffer >>= dwBitsToSkip;
+    BitCount -= dwBitsToSkip;
+}
+
 //-----------------------------------------------------------------------------
 // Functions for huffmann tree items
  
@@ -990,13 +1022,11 @@ unsigned int THuffmannTree::DoDecompression(unsigned char * pbOutBuffer, unsigne
         {
             if(qd->nBits > 7)
             {
-                is->dwBitBuff >>= 7;
-                is->nBits -= 7;
+                is->SkipBits(7);
                 pItem1 = qd->pItem;
                 goto _1500E549;
             }
-            is->dwBitBuff >>= qd->nBits;
-            is->nBits -= qd->nBits;
+            is->SkipBits(qd->nBits);
             nDcmpByte = qd->dcmpByte;
         }
         else

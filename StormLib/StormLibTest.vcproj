@@ -1207,10 +1207,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\stormlib\Storm.h"
-				>
-			</File>
-			<File
 				RelativePath=".\stormlib\StormLib.h"
 				>
 			</File>

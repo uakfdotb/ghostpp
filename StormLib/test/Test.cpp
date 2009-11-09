@@ -349,27 +349,42 @@ static int TestBlockCompress(const char * szFileName)
 
 static int TestArchiveOpenAndClose(const char * szMpqName, const char * szFileName)
 {
-    HANDLE hMpq1 = NULL;
+    HANDLE hMpq = NULL;
     HANDLE hFile = NULL;
+    DWORD dwMaxLocales = 0x100;
+    LCID Locales[0x100];
     int nError = ERROR_SUCCESS;
 
     if(nError == ERROR_SUCCESS)
     {
         printf("Opening archive %s ...\n", szMpqName);
-        if(!SFileCreateArchiveEx(szMpqName, OPEN_EXISTING, 0, &hMpq1))
+        if(!SFileCreateArchiveEx(szMpqName, OPEN_EXISTING, 0, &hMpq))
             nError = GetLastError();
     }
 
+    if(nError == ERROR_SUCCESS)
+    {
+//      SFileEnumLocales(hMpq, szFileName, Locales, &dwMaxLocales, 0);
+        SFileExtractFile(hMpq, szFileName, "E:\\Extracted.bin");
+    }
+/*
     if(nError == ERROR_SUCCESS && szFileName != NULL)
     {
-        if(!SFileOpenFileEx(hMpq1, szFileName, 0, &hFile))
+        if(!SFileOpenFileEx(hMpq, szFileName, 0, &hFile))
         {
             nError = GetLastError();
             printf("%s - file integrity error\n", szFileName);
         }
     }
 
-    if(nError == ERROR_SUCCESS && szFileName != NULL)
+    if(nError == ERROR_SUCCESS)
+    {
+        LARGE_INTEGER FileSize;
+
+        FileSize.LowPart = SFileGetFileSize(hFile, (LPDWORD)&FileSize.HighPart);
+    }
+
+    if(nError == ERROR_SUCCESS)
     {
         DWORD dwBytesRead;
         BYTE Buffer[0x1000];
@@ -379,11 +394,44 @@ static int TestArchiveOpenAndClose(const char * szMpqName, const char * szFileNa
 
     if(hFile != NULL)
         SFileCloseFile(hFile);
-    if(hMpq1 != NULL)
-        SFileCloseArchive(hMpq1);
+*/
+    if(hMpq != NULL)
+        SFileCloseArchive(hMpq);
     return nError;
 }
 
+static int TestArchiveOpenAndCloseStorm(const char * szMpqName, const char * szFileName)
+{
+    HANDLE hMpq = NULL;
+    HANDLE hFile = NULL;
+    DWORD dwBytesRead = 0;
+    BYTE Buffer[0x1000];
+    int nError = ERROR_SUCCESS;
+
+    if(nError == ERROR_SUCCESS)
+    {
+        printf("Opening archive %s ...\n", szMpqName);
+        if(!StormOpenArchive(szMpqName, 0, 0, &hMpq))
+            nError = GetLastError();
+    }
+
+    if(nError == ERROR_SUCCESS)
+    {
+        if(!StormOpenFileEx(hMpq, szFileName, 0, &hFile))
+            nError = GetLastError();
+    }
+
+    if(nError == ERROR_SUCCESS)
+    {
+        StormReadFile(hFile, Buffer, sizeof(Buffer), &dwBytesRead, NULL);
+    }
+
+    if(hFile != NULL)
+        StormCloseFile(hFile);
+    if(hMpq != NULL)
+        StormCloseArchive(hMpq);
+    return nError;
+}
 
 static int TestFindFiles(const char * szMpqName)
 {
@@ -411,7 +459,7 @@ static int TestFindFiles(const char * szMpqName)
         DWORD dwExtraDataSize;
         BOOL bFound = TRUE;
 
-        hFind = SFileFindFirstFile(hMpq, "*", &sf, NULL);
+        hFind = SFileFindFirstFile(hMpq, "*", &sf, "c:\\Tools32\\ListFiles\\ListFile.txt");
         while(hFind != NULL && bFound != FALSE)
         {
             if(SFileOpenFileEx(hMpq, sf.cFileName, 0, &hFile))
@@ -836,7 +884,11 @@ void main(int argc, char ** argv)
 
     // Test the archive open and close
     if(nError == ERROR_SUCCESS)
-        nError = TestArchiveOpenAndClose(szMpqName, "war3map.j");
+        nError = TestArchiveOpenAndClose(szMpqName, (char *)1);
+
+    // Test the archive open and close
+//  if(nError == ERROR_SUCCESS)
+//      nError = TestArchiveOpenAndCloseStorm(szMpqName, "war3map.w3d");
 
 //  if(nError == ERROR_SUCCESS)
 //      nError = TestFindFiles(szMpqName);

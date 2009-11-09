@@ -52,6 +52,9 @@
 /* 12.05.08  6.22  Lad  Support for w3xMaster map protector                  */
 /* 05.10.08  6.23  Lad  Support for protectors who set negative values in    */
 /*                      the table of file blocks                             */
+/* 26.05.09  6.24  Lad  Fixed search for multiple lang files with deleted    */
+/*                      entries                                              */
+/* 03.09.09  6.25  Lad  Fixed decompression bug in huffmann decompression    */
 /*****************************************************************************/
 
 #ifndef __STORMLIB_H_
@@ -184,7 +187,7 @@
 #define SIGNATURE_NAME   "(signature)"      // Name of internal signature
 #define ATTRIBUTES_NAME "(attributes)"      // Name of internal attributes file
 
-#define STORMLIB_VERSION      (0x0617)      // Current version of StormLib
+#define STORMLIB_VERSION      (0x0619)      // Current version of StormLib
 
 #define MPQ_FORMAT_VERSION_1        0       // Up to The Burning Crusade
 #define MPQ_FORMAT_VERSION_2        1       // The Burning Crusade and newer 
@@ -192,6 +195,7 @@
 // Flags for SFileOpenArchiveEx
 #define MPQ_OPEN_NO_LISTFILE    0x00000001  // Don't add the internal listfile
 #define MPQ_OPEN_NO_ATTRIBUTES  0x00000002  // Don't open the attributes
+#define MPQ_OPEN_FORCE_MPQ_V1   0x00000004  // Always open the archive as MPQ v 1.00, ignore the "wFormatVersion" variable in the header
 
 // Flags for MPQ attributes
 #define MPQ_ATTRIBUTE_CRC32     0x00000001  // The "(attributes)" contain array of CRC32s
@@ -292,7 +296,7 @@ struct TMPQHash
     // The hash of the file path, using method B.
     DWORD dwName2;
 
-#ifdef PLATFORM_LITTLE_ENDIAN
+#if PLATFORM_LITTLE_ENDIAN
 
     // The language of the file. This is a Windows LANGID data type, and uses the same values.
     // 0 indicates the default language (American English), or that the file is language-neutral.

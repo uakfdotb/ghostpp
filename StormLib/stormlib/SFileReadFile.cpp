@@ -167,10 +167,10 @@ static DWORD WINAPI ReadMPQBlocks(TMPQFile * hf, DWORD dwBlockPos, BYTE * buffer
 
     // Block processing part.
     DWORD blockStart = 0;               // Index of block start in work buffer
-    DWORD blockSize  = min(blockBytes, ha->dwBlockSize);
+    DWORD blockSize  = STORMLIB_MIN(blockBytes, ha->dwBlockSize);
     DWORD index      = blockNum;        // Current block index
 
-    dwBytesRead = 0;                      // Clear read byte counter
+    dwBytesRead = 0;                    // Clear read byte counter
 
     // Walk through all blocks
     for(i = 0; i < nBlocks; i++, index++)
@@ -199,7 +199,10 @@ static DWORD WINAPI ReadMPQBlocks(TMPQFile * hf, DWORD dwBlockPos, BYTE * buffer
                 hf->dwSeed1 = DetectFileSeed2((DWORD *)inputBuffer, 2, 0x00905A4D, 0x00000003);
 
             if(hf->dwSeed1 == 0)
-                return 0;
+            {
+                dwBytesRead = 0;
+                break;
+            }
 
             DecryptMPQBlock((DWORD *)inputBuffer, blockSize, hf->dwSeed1 + index);
             BSWAP_ARRAY32_UNSIGNED((DWORD *)inputBuffer, blockSize / sizeof(DWORD));
@@ -218,7 +221,14 @@ static DWORD WINAPI ReadMPQBlocks(TMPQFile * hf, DWORD dwBlockPos, BYTE * buffer
             // Note that Storm.dll v 1.0.9 distributed with Warcraft III
             // passes the full path name of the opened archive as the new last parameter
             if(hf->pBlock->dwFlags & MPQ_FILE_COMPRESS)
-                SCompDecompress((char *)buffer, &outLength, (char *)inputBuffer, (int)blockSize);
+            {
+                if(!SCompDecompress((char *)buffer, &outLength, (char *)inputBuffer, (int)blockSize))
+                {
+                    dwBytesRead = 0;
+                    break;
+                }
+            }
+
             dwBytesRead += outLength;
             buffer    += outLength;
         }
@@ -258,9 +268,14 @@ static DWORD WINAPI ReadMPQFileSingleUnit(TMPQFile * hf, DWORD dwFilePos, BYTE *
             int outputBufferSize = (int)hf->pBlock->dwFSize;
             int inputBufferSize = (int)hf->pBlock->dwCSize;
 
+            // Allocate buffer in the hf
             hf->pbFileBuffer = ALLOCMEM(BYTE, outputBufferSize);
+            if(hf->pbFileBuffer == NULL)
+                return (DWORD)-1;
+
+            // Allocate temporary buffer for reading the file
             inputBuffer = ALLOCMEM(BYTE, inputBufferSize);
-            if(inputBuffer != NULL && hf->pbFileBuffer != NULL)
+            if(inputBuffer != NULL)
             {
                 // Move file pointer to the begin of the file, move to inner, modified by PeakGao,2008.10.28
                 SetFilePointer(ha->hFile, hf->RawFilePos.LowPart, &hf->RawFilePos.HighPart, FILE_BEGIN);
@@ -277,11 +292,18 @@ static DWORD WINAPI ReadMPQFileSingleUnit(TMPQFile * hf, DWORD dwFilePos, BYTE *
                 // passes the full path name of the opened archive as the new last parameter
                 if(hf->pBlock->dwFlags & MPQ_FILE_COMPRESS)
                     SCompDecompress((char *)hf->pbFileBuffer, &outputBufferSize, (char *)inputBuffer, (int)inputBufferSize);
-            }
 
-            // Free the temporary buffer
-            if(inputBuffer != NULL)
+                // Free the temporary input buffer
                 FREEMEM(inputBuffer);
+
+                // If the decompression failed, don't continue
+                if(outputBufferSize == 0)
+                {
+                    FREEMEM(hf->pbFileBuffer);
+                    hf->pbFileBuffer = NULL;
+                    return (DWORD)-1;
+                }
+            }
         }
 
         // Copy the file data, if any there
@@ -620,6 +642,7 @@ static TID2Ext id2ext[] =
     {0x3032444D, "m2"},                 // WoW ??? .m2
     {0x43424457, "dbc"},                // ??? .dbc
     {0x47585053, "bls"},                // WoW pixel shaders
+    {0xE0FFD8FF, "jpg"},                // JPEG image
     {0, NULL}                           // Terminator 
 };
 
@@ -662,8 +685,7 @@ BOOL WINAPI SFileGetFileName(HANDLE hFile, char * szFileName)
     {
         dwFirstBytes[0] = dwFirstBytes[1] = 0;
         dwFilePos = SFileSetFilePointer(hf, 0, NULL, FILE_CURRENT);   
-        if(!SFileReadFile(hFile, &dwFirstBytes, sizeof(dwFirstBytes), NULL))
-            nError = GetLastError();
+        SFileReadFile(hFile, &dwFirstBytes, sizeof(dwFirstBytes), NULL);
         BSWAP_ARRAY32_UNSIGNED(dwFirstBytes, sizeof(dwFirstBytes) / sizeof(DWORD));
         SFileSetFilePointer(hf, dwFilePos, NULL, FILE_BEGIN);
     }

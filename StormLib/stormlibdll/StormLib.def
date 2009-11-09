@@ -1,3 +1,9 @@
+;
+; Export file for Windows
+; Copyright (c) 2007 Ladislav Zezula
+; ladik@zezula.net
+;
+
 LIBRARY StormLib.dll
 
 EXPORTS

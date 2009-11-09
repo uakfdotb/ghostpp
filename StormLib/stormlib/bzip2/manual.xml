@@ -9,7 +9,7 @@
 <book lang="en" id="userman" xreflabel="bzip2 Manual">
 
  <bookinfo>
-  <title>bzip2 and libbzip2, version 1.0.3</title>
+  <title>bzip2 and libbzip2, version 1.0.5</title>
   <subtitle>A program and library for data compression</subtitle>
   <copyright>
    <year>&bz-lifespan;</year>
@@ -139,7 +139,7 @@ else.</para>
 
  <listitem><para><computeroutput>bzip2</computeroutput>,
   <computeroutput>bunzip2</computeroutput> - a block-sorting file
-  compressor, v1.0.3</para></listitem>
+  compressor, v1.0.4</para></listitem>
 
  <listitem><para><computeroutput>bzcat</computeroutput> -
    decompresses files to stdout</para></listitem>
@@ -625,13 +625,13 @@ errors and exit cleanly, but the details of what the problem is
 sometimes seem rather misleading.</para>
 
 <para>This manual page pertains to version &bz-version; of
-<computeroutput>bzip2</computeroutput>.  Compressed data created
-by this version is entirely forwards and backwards compatible
-with the previous public releases, versions 0.1pl2, 0.9.0 and
-0.9.5, 1.0.0, 1.0.1 and 1.0.2, but with the following exception: 0.9.0
-and above can correctly decompress multiple concatenated
-compressed files.  0.1pl2 cannot do this; it will stop after
-decompressing just the first file in the stream.</para>
+<computeroutput>bzip2</computeroutput>.  Compressed data created by
+this version is entirely forwards and backwards compatible with the
+previous public releases, versions 0.1pl2, 0.9.0 and 0.9.5, 1.0.0,
+1.0.1, 1.0.2 and 1.0.3, but with the following exception: 0.9.0 and
+above can correctly decompress multiple concatenated compressed files.
+0.1pl2 cannot do this; it will stop after decompressing just the first
+file in the stream.</para>
 
 <para><computeroutput>bzip2recover</computeroutput> versions
 prior to 1.0.2 used 32-bit integers to represent bit positions in
@@ -819,8 +819,7 @@ understanding the more general but more complex low-level
 interface.</para>
 
 <para>Yoshioka Tsuneo
-(<computeroutput>QWF00133@niftyserve.or.jp</computeroutput> /
-<computeroutput>tsuneo-y@is.aist-nara.ac.jp</computeroutput>) has
+(<computeroutput>tsuneo@rr.iij4u.or.jp</computeroutput>) has
 contributed some functions to give better
 <computeroutput>zlib</computeroutput> compatibility.  These
 functions are <computeroutput>BZ2_bzopen</computeroutput>,
@@ -1352,7 +1351,7 @@ FINISHING/BZ_FINISH
   output has been removed
     Next state = IDLE; Return value = BZ_STREAM_END
   else
-    Next state = FINISHING; Return value = BZ_FINISHING
+    Next state = FINISHING; Return value = BZ_FINISH_OK
 
 FINISHING/other
   Illegal.
@@ -2222,7 +2221,7 @@ if ( bzerror != BZ_STREAM_END ) {
    BZ2_bzReadClose ( &bzerror, b );
    /* handle error */
 } else {
-   BZ2_bzReadClose ( &bzerror );
+   BZ2_bzReadClose ( &bzerror, b );
 }
 </programlisting>
 
@@ -2537,8 +2536,7 @@ recovered from.</para>
 
 <para>Everything related to Windows has been contributed by
 Yoshioka Tsuneo
-(<computeroutput>QWF00133@niftyserve.or.jp</computeroutput> /
-<computeroutput>tsuneo-y@is.aist-nara.ac.jp</computeroutput>), so
+(<computeroutput>tsuneo@rr.iij4u.or.jp</computeroutput>), so
 you should send your queries to him (but perhaps Cc: me,
 <computeroutput>&bz-email;</computeroutput>).</para>
 

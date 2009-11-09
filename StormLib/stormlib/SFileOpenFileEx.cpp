@@ -123,13 +123,16 @@ int WINAPI SFileEnumLocales(
 
         if(dwSearchScope != SFILE_OPEN_BY_INDEX)
         {
-            while(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex < HASH_ENTRY_DELETED)
+            while(pHash->dwBlockIndex != HASH_ENTRY_FREE)
             {
-                // If the locale is different from previous one, count it.
-                if(pHash->lcLocale != PrevLocale)
+                if(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex != HASH_ENTRY_DELETED)
                 {
-                    PrevLocale = pHash->lcLocale;
-                    dwLocales++;
+                    // If the locale is different from previous one, count it.
+                    if(pHash->lcLocale != PrevLocale)
+                    {
+                        PrevLocale = pHash->lcLocale;
+                        dwLocales++;
+                    }
                 }
 
                 // Move to the next hash
@@ -169,13 +172,16 @@ int WINAPI SFileEnumLocales(
 
         if(dwSearchScope != SFILE_OPEN_BY_INDEX)
         {
-            while(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex < HASH_ENTRY_DELETED)
+            while(pHash->dwBlockIndex != HASH_ENTRY_FREE)
             {
-                // If the locale is different from previous one, count it.
-                if(pHash->lcLocale != PrevLocale)
+                if(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex != HASH_ENTRY_DELETED)
                 {
-                    *plcLocales++ = (LCID)pHash->lcLocale;
-                    PrevLocale = pHash->lcLocale;
+                    // If the locale is different from previous one, count it.
+                    if(pHash->lcLocale != PrevLocale)
+                    {
+                        *plcLocales++ = (LCID)pHash->lcLocale;
+                        PrevLocale = pHash->lcLocale;
+                    }
                 }
 
                 // Move to the next hash

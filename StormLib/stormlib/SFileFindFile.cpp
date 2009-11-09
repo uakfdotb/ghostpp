@@ -149,7 +149,7 @@ static int DoMPQSearch(TMPQSearch * hs, SFILE_FIND_DATA * lpFindFileData)
     {
         pNode = ha->pListFile[dwIndex++];
 
-        // If this entry is free, do nothing
+        // Is this entry occupied ?
         if(pHash->dwBlockIndex < HASH_ENTRY_DELETED && (DWORD_PTR)pNode < LISTFILE_ENTRY_DELETED)
         {
             // Check the file name.

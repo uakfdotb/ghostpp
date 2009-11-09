@@ -9,7 +9,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>net.zezula.StormLib</string>
 	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
+	<string>6.2.4</string>
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleSignature</key>

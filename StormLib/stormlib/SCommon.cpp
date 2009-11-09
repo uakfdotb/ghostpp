@@ -430,7 +430,7 @@ TMPQHash * GetHashEntry(TMPQArchive * ha, const char * szFileName)
     // If filename is given by index, we have to search all hash entries for the right index.
     if(dwIndex <= ha->pHeader->dwBlockTableSize)
     {
-        // Pass all the hash entries and find the 
+        // Pass all the hash entries and find the one with proper block index 
         for(pHash = ha->pHashTable; pHash < pHashEnd; pHash++)
         {
             if(pHash->dwBlockIndex == dwIndex)
@@ -477,13 +477,17 @@ TMPQHash * GetHashEntryEx(TMPQArchive * ha, const char * szFileName, LCID lcLoca
         DWORD dwName2 = pHash->dwName2;
 
         // Parse the entire block of equal files (differing by language ID only)
-        while(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex != HASH_ENTRY_FREE)
+        while(pHash->dwBlockIndex != HASH_ENTRY_FREE)
         {
-            // Remember hash entry for neutral file and for lag-exact file
-            if(pHash->lcLocale == LANG_NEUTRAL)
-                pHashNeutral = pHash;
-            if(pHash->lcLocale == lcLocale)
-                pHashExact = pHash;
+            // There may be an entry deleted amongst various language versions
+            if(pHash->dwName1 == dwName1 && pHash->dwName2 == dwName2 && pHash->dwBlockIndex != HASH_ENTRY_DELETED)
+            {
+                // Remember hash entry for neutral file and for lag-exact file
+                if(pHash->lcLocale == LANG_NEUTRAL)
+                    pHashNeutral = pHash;
+                if(pHash->lcLocale == lcLocale)
+                    pHashExact = pHash;
+            }
 
             // Move to th next hash
             if(++pHash >= pHashEnd)
@@ -502,8 +506,7 @@ TMPQHash * GetHashEntryEx(TMPQArchive * ha, const char * szFileName, LCID lcLoca
     return pHashNeutral;
 }
 
-// Encrypts file name and gets the hash entry
-// Returns the hash pointer, which is always within the allocated array
+// Finds the nearest free hash entry for a file
 TMPQHash * FindFreeHashEntry(TMPQArchive * ha, const char * szFileName)
 {
     TMPQHash * pHashEnd = ha->pHashTable + ha->pHeader->dwHashTableSize;
@@ -517,7 +520,7 @@ TMPQHash * FindFreeHashEntry(TMPQArchive * ha, const char * szFileName)
     // Save the starting hash position
     pHash = pHash0 = ha->pHashTable + dwIndex;
 
-    // Look for the first free hash entry. Can be also a deleted entry
+    // Look for the first free or deleted hash entry.
     while(pHash->dwBlockIndex < HASH_ENTRY_DELETED)
     {
         if(++pHash >= pHashEnd)
@@ -1069,7 +1072,7 @@ int SaveMPQTables(TMPQArchive * ha)
     BYTE * pbBuffer = NULL;
     DWORD dwBytes;
     DWORD dwWritten;
-    DWORD dwBuffSize = max(ha->pHeader->dwHashTableSize, ha->pHeader->dwBlockTableSize);
+    DWORD dwBuffSize = STORMLIB_MAX(ha->pHeader->dwHashTableSize, ha->pHeader->dwBlockTableSize);
     int   nError = ERROR_SUCCESS;
 
     // Allocate buffer for encrypted tables
@@ -1110,7 +1113,7 @@ int SaveMPQTables(TMPQArchive * ha)
         BSWAP_ARRAY32_UNSIGNED((DWORD *)pbBuffer, dwBytes / sizeof(DWORD));
 
         // Set the file pointer to the offset of the hash table and write it
-        SetFilePointer(ha->hFile, ha->HashTablePos.LowPart, (LONG*)&ha->HashTablePos.HighPart, FILE_BEGIN);
+        SetFilePointer(ha->hFile, ha->HashTablePos.LowPart, (PLONG)&ha->HashTablePos.HighPart, FILE_BEGIN);
         WriteFile(ha->hFile, pbBuffer, dwBytes, &dwWritten, NULL);
         if(dwWritten != dwBytes)
             nError = ERROR_DISK_FULL;
