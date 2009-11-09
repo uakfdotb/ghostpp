@@ -73,6 +73,14 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	else
 		m_ServerAlias = m_Server;
 
+	if( nPasswordHashType == "pvpgn" && !nBNLSServer.empty( ) )
+	{
+		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] pvpgn connection found with a configured BNLS server, ignoring BNLS server" );
+		nBNLSServer.clear( );
+		nBNLSPort = 0;
+		nBNLSWardenCookie = 0;
+	}
+
 	m_BNLSServer = nBNLSServer;
 	m_BNLSPort = nBNLSPort;
 	m_BNLSWardenCookie = nBNLSWardenCookie;
