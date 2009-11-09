@@ -1476,15 +1476,16 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 					if( GameNumber < m_GHost->m_Games.size( ) )
 					{
-						QueueChatCommand( m_GHost->m_Language->EndingGame( m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper );
-						CONSOLE_Print( "[GAME: " + m_GHost->m_Games[GameNumber]->GetGameName( ) + "] is over (admin ended game)" );
-
 						// if the game owner is still in the game only allow the root admin to end the game
 
 						if( m_GHost->m_Games[GameNumber]->GetPlayerFromName( m_GHost->m_Games[GameNumber]->GetOwnerName( ), false ) && !IsRootAdmin( User ) )
 							QueueChatCommand( m_GHost->m_Language->CantEndGameOwnerIsStillPlaying( ), User, Whisper );
 						else
+						{
+							QueueChatCommand( m_GHost->m_Language->EndingGame( m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper );
+							CONSOLE_Print( "[GAME: " + m_GHost->m_Games[GameNumber]->GetGameName( ) + "] is over (admin ended game)" );
 							m_GHost->m_Games[GameNumber]->StopPlayers( "was disconnected (admin ended game)" );
+						}
 					}
 					else
 						QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( Payload ), User, Whisper );
