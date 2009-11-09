@@ -393,6 +393,12 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMaximumScore = 0.0;
 	m_AllGamesFinishedTime = 0;
 	m_TFT = CFG->GetInt( "bot_tft", 1 ) == 0 ? false : true;
+
+	if( m_TFT )
+		CONSOLE_Print( "[GHOST] acting as Warcraft III: The Frozen Throne" );
+	else
+		CONSOLE_Print( "[GHOST] acting as Warcraft III: Reign of Chaos" );
+
 	m_HostPort = CFG->GetInt( "bot_hostport", 6112 );
 	m_DefaultMap = CFG->GetString( "bot_defaultmap", "map" );
 	m_AdminGameCreate = CFG->GetInt( "admingame_create", 0 ) == 0 ? false : true;
@@ -1083,7 +1089,7 @@ void CGHost :: ExtractScripts( )
 	string PatchMPQFileName = m_Warcraft3Path + "War3Patch.mpq";
 	HANDLE PatchMPQ;
 
-	if( SFileOpenArchive( PatchMPQFileName.c_str( ), 0, 0, &PatchMPQ ) )
+	if( SFileOpenArchive( PatchMPQFileName.c_str( ), 0, MPQ_OPEN_FORCE_MPQ_V1, &PatchMPQ ) )
 	{
 		CONSOLE_Print( "[GHOST] loading MPQ file [" + PatchMPQFileName + "]" );
 		HANDLE SubFile;
