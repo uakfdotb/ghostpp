@@ -69,11 +69,11 @@ public:
 	virtual void SetReplayLength( uint32_t nReplayLength )			{ m_ReplayLength = nReplayLength; }
 
 	virtual void Load( string fileName, bool allBlocks );
-	virtual bool Save( string fileName );
+	virtual bool Save( bool TFT, string fileName );
 	virtual bool Extract( string inFileName, string outFileName );
-	virtual bool Pack( string inFileName, string outFileName );
+	virtual bool Pack( bool TFT, string inFileName, string outFileName );
 	virtual void Decompress( bool allBlocks );
-	virtual void Compress( );
+	virtual void Compress( bool TFT );
 };
 
 #endif

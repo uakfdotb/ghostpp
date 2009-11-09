@@ -806,19 +806,18 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, stri
 	return packet;
 }
 
-BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_CHECK( BYTEARRAY clientToken, BYTEARRAY exeVersion, BYTEARRAY exeVersionHash, BYTEARRAY keyInfoROC, BYTEARRAY keyInfoTFT, string exeInfo, string keyOwnerName )
+BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_CHECK( bool TFT, BYTEARRAY clientToken, BYTEARRAY exeVersion, BYTEARRAY exeVersionHash, BYTEARRAY keyInfoROC, BYTEARRAY keyInfoTFT, string exeInfo, string keyOwnerName )
 {
 	uint32_t NumKeys = 0;
-	uint32_t UsingSpawn = 0;
 
-	if( keyInfoTFT.empty( ) )
-		NumKeys = 1;
-	else
+	if( TFT )
 		NumKeys = 2;
+	else
+		NumKeys = 1;
 
 	BYTEARRAY packet;
 
-	if( clientToken.size( ) == 4 && exeVersion.size( ) == 4 && exeVersionHash.size( ) == 4 && keyInfoROC.size( ) == 36 && ( keyInfoTFT.empty( ) || keyInfoTFT.size( ) == 36 ) )
+	if( clientToken.size( ) == 4 && exeVersion.size( ) == 4 && exeVersionHash.size( ) == 4 && keyInfoROC.size( ) == 36 && ( !TFT || keyInfoTFT.size( ) == 36 ) )
 	{
 		packet.push_back( BNET_HEADER_CONSTANT );			// BNET header constant
 		packet.push_back( SID_AUTH_CHECK );					// SID_AUTH_CHECK
@@ -828,10 +827,10 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_CHECK( BYTEARRAY clientToken, BYTEARRAY
 		UTIL_AppendByteArrayFast( packet, exeVersion );		// EXE Version
 		UTIL_AppendByteArrayFast( packet, exeVersionHash );	// EXE Version Hash
 		UTIL_AppendByteArray( packet, NumKeys, false );		// number of keys in this packet
-		UTIL_AppendByteArray( packet, UsingSpawn, false );	// boolean Using Spawn (32 bit)
+		UTIL_AppendByteArray( packet, (uint32_t)0, false );	// boolean Using Spawn (32 bit)
 		UTIL_AppendByteArrayFast( packet, keyInfoROC );		// ROC Key Info
 
-		if( !keyInfoTFT.empty( ) )
+		if( TFT )
 			UTIL_AppendByteArrayFast( packet, keyInfoTFT );	// TFT Key Info
 
 		UTIL_AppendByteArrayFast( packet, exeInfo );		// EXE Info

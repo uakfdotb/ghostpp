@@ -77,6 +77,7 @@ public:
 	uint32_t m_AllGamesFinishedTime;		// GetTime when all games finished (used when exiting nicely)
 	string m_LanguageFile;					// config value: language file
 	string m_Warcraft3Path;					// config value: Warcraft 3 path
+	bool m_TFT;								// config value: TFT enabled or not
 	string m_BindAddress;					// config value: the address to host games on
 	uint16_t m_HostPort;					// config value: the port to host games on
 	uint32_t m_MaxGames;					// config value: maximum number of games in progress

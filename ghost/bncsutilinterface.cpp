@@ -48,7 +48,7 @@ void CBNCSUtilInterface :: Reset( string userName, string userPassword )
 	m_NLS = new NLS( userName, userPassword );
 }
 
-bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( string war3Path, string keyROC, string keyTFT, string valueStringFormula, string mpqFileName, BYTEARRAY clientToken, BYTEARRAY serverToken )
+bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( bool TFT, string war3Path, string keyROC, string keyTFT, string valueStringFormula, string mpqFileName, BYTEARRAY clientToken, BYTEARRAY serverToken )
 {
 	// set m_EXEVersion, m_EXEVersionHash, m_EXEInfo, m_InfoROC, m_InfoTFT
 
@@ -77,17 +77,17 @@ bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( string war3Path, string keyROC, 
 		m_EXEVersionHash = UTIL_CreateByteArray( EXEVersionHash, false );
 		m_KeyInfoROC = CreateKeyInfo( keyROC, UTIL_ByteArrayToUInt32( clientToken, false ), UTIL_ByteArrayToUInt32( serverToken, false ) );
 
-		if( !keyTFT.empty( ) )
+		if( TFT )
 			m_KeyInfoTFT = CreateKeyInfo( keyTFT, UTIL_ByteArrayToUInt32( clientToken, false ), UTIL_ByteArrayToUInt32( serverToken, false ) );
 
-		if( m_KeyInfoROC.size( ) == 36 && ( keyTFT.empty( ) || m_KeyInfoTFT.size( ) == 36 ) )
+		if( m_KeyInfoROC.size( ) == 36 && ( !TFT || m_KeyInfoTFT.size( ) == 36 ) )
 			return true;
 		else
 		{
 			if( m_KeyInfoROC.size( ) != 36 )
 				CONSOLE_Print( "[BNCSUI] unable to create ROC key info - invalid ROC key" );
 
-			if( !keyTFT.empty( ) && m_KeyInfoTFT.size( ) != 36 )
+			if( TFT && m_KeyInfoTFT.size( ) != 36 )
 				CONSOLE_Print( "[BNCSUI] unable to create TFT key info - invalid TFT key" );
 		}
 	}

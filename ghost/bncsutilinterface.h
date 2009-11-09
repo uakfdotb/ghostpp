@@ -56,7 +56,7 @@ public:
 
 	void Reset( string userName, string userPassword );
 
-	bool HELP_SID_AUTH_CHECK( string war3Path, string keyROC, string keyTFT, string valueStringFormula, string mpqFileName, BYTEARRAY clientToken, BYTEARRAY serverToken );
+	bool HELP_SID_AUTH_CHECK( bool TFT, string war3Path, string keyROC, string keyTFT, string valueStringFormula, string mpqFileName, BYTEARRAY clientToken, BYTEARRAY serverToken );
 	bool HELP_SID_AUTH_ACCOUNTLOGON( );
 	bool HELP_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY salt, BYTEARRAY serverKey );
 	bool HELP_PvPGNPasswordHash( string userPassword );

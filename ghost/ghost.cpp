@@ -392,6 +392,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMinimumScore = 0.0;
 	m_AutoHostMaximumScore = 0.0;
 	m_AllGamesFinishedTime = 0;
+	m_TFT = CFG->GetInt( "bot_tft", 1 ) == 0 ? false : true;
 	m_HostPort = CFG->GetInt( "bot_hostport", 6112 );
 	m_DefaultMap = CFG->GetString( "bot_defaultmap", "map" );
 	m_AdminGameCreate = CFG->GetInt( "admingame_create", 0 ) == 0 ? false : true;
@@ -452,11 +453,11 @@ CGHost :: CGHost( CConfig *CFG )
 			continue;
 		}
 
-		/* if( CDKeyTFT.empty( ) )
+		if( m_TFT && CDKeyTFT.empty( ) )
 		{
 			CONSOLE_Print( "[GHOST] missing " + Prefix + "cdkeytft, skipping this battle.net connection" );
 			continue;
-		} */
+		}
 
 		if( UserName.empty( ) )
 		{

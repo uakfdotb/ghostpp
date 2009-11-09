@@ -96,9 +96,9 @@ void CPacked :: Load( string fileName, bool allBlocks )
 	Decompress( allBlocks );
 }
 
-bool CPacked :: Save( string fileName )
+bool CPacked :: Save( bool TFT, string fileName )
 {
-	Compress( );
+	Compress( TFT );
 
 	if( m_Valid )
 	{
@@ -122,12 +122,12 @@ bool CPacked :: Extract( string inFileName, string outFileName )
 		return false;
 }
 
-bool CPacked :: Pack( string inFileName, string outFileName )
+bool CPacked :: Pack( bool TFT, string inFileName, string outFileName )
 {
 	m_Valid = true;
 	CONSOLE_Print( "[PACKET] packing data from file [" + inFileName + "] to file [" + outFileName + "]" );
 	m_Decompressed = UTIL_FileRead( inFileName );
-	Compress( );
+	Compress( TFT );
 
 	if( m_Valid )
 		return UTIL_FileWrite( outFileName, (unsigned char *)m_Compressed.c_str( ), m_Compressed.size( ) );
@@ -281,7 +281,7 @@ void CPacked :: Decompress( bool allBlocks )
 	}
 }
 
-void CPacked :: Compress( )
+void CPacked :: Compress( bool TFT )
 {
 	CONSOLE_Print( "[PACKED] compressing data" );
 
@@ -331,10 +331,22 @@ void CPacked :: Compress( )
 	UTIL_AppendByteArray( Header, HeaderVersion, false );
 	UTIL_AppendByteArray( Header, (uint32_t)m_Decompressed.size( ), false );
 	UTIL_AppendByteArray( Header, (uint32_t)CompressedBlocks.size( ), false );
-	Header.push_back( 'P' );
-	Header.push_back( 'X' );
-	Header.push_back( '3' );
-	Header.push_back( 'W' );
+
+	if( TFT )
+	{
+		Header.push_back( '3' );	// "WAR3"
+		Header.push_back( 'R' );
+		Header.push_back( 'A' );
+		Header.push_back( 'W' );
+	}
+	else
+	{
+		Header.push_back( 'P' );	// "W3XP"
+		Header.push_back( 'X' );
+		Header.push_back( '3' );
+		Header.push_back( 'W' );
+	}
+
 	UTIL_AppendByteArray( Header, m_War3Version, false );
 	UTIL_AppendByteArray( Header, m_BuildNumber, false );
 	UTIL_AppendByteArray( Header, m_Flags, false );

@@ -625,32 +625,39 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_STOP_LAG( CGamePlayer *player, bool loadInG
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( unsigned char war3Version )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( bool TFT, unsigned char war3Version )
 {
-	unsigned char ProductID[]	= {          80, 88, 51, 87 };	// "W3XP"
-	unsigned char Version[]		= { war3Version,  0,  0,  0 };
-	unsigned char Unknown[]		= {           0,  0,  0,  0 };
+	unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
+	unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
+	unsigned char Version[]			= { war3Version,  0,  0,  0 };
+	unsigned char Unknown[]			= {           0,  0,  0,  0 };
 
 	BYTEARRAY packet;
-	packet.push_back( W3GS_HEADER_CONSTANT );		// W3GS header constant
-	packet.push_back( W3GS_SEARCHGAME );			// W3GS_SEARCHGAME
-	packet.push_back( 0 );							// packet length will be assigned later
-	packet.push_back( 0 );							// packet length will be assigned later
-	UTIL_AppendByteArray( packet, ProductID, 4 );	// Product ID
-	UTIL_AppendByteArray( packet, Version, 4 );		// Version
-	UTIL_AppendByteArray( packet, Unknown, 4 );		// ???
+	packet.push_back( W3GS_HEADER_CONSTANT );				// W3GS header constant
+	packet.push_back( W3GS_SEARCHGAME );					// W3GS_SEARCHGAME
+	packet.push_back( 0 );									// packet length will be assigned later
+	packet.push_back( 0 );									// packet length will be assigned later
+
+	if( TFT )
+		UTIL_AppendByteArray( packet, ProductID_TFT, 4 );	// Product ID (TFT)
+	else
+		UTIL_AppendByteArray( packet, ProductID_ROC, 4 );	// Product ID (ROC)
+
+	UTIL_AppendByteArray( packet, Version, 4 );				// Version
+	UTIL_AppendByteArray( packet, Unknown, 4 );				// ???
 	AssignLength( packet );
 	// DEBUG_Print( "SENT W3GS_SEARCHGAME" );
 	// DEBUG_Print( packet );
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter )
+BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter )
 {
-	unsigned char ProductID[]	= {          80, 88, 51, 87 };	// "W3XP"
-	unsigned char Version[]		= { war3Version,  0,  0,  0 };
-	unsigned char Unknown1[]	= {           1,  2,  3,  4 };
-	unsigned char Unknown2[]	= {           1,  0,  0,  0 };
+	unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
+	unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
+	unsigned char Version[]			= { war3Version,  0,  0,  0 };
+	unsigned char Unknown1[]		= {           1,  2,  3,  4 };
+	unsigned char Unknown2[]		= {           1,  0,  0,  0 };
 
 	BYTEARRAY packet;
 
@@ -675,7 +682,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char war3Version, BYTEAR
 		packet.push_back( W3GS_GAMEINFO );								// W3GS_GAMEINFO
 		packet.push_back( 0 );											// packet length will be assigned later
 		packet.push_back( 0 );											// packet length will be assigned later
-		UTIL_AppendByteArray( packet, ProductID, 4 );					// Product ID
+
+		if( TFT )
+			UTIL_AppendByteArray( packet, ProductID_TFT, 4 );			// Product ID (TFT)
+		else
+			UTIL_AppendByteArray( packet, ProductID_ROC, 4 );			// Product ID (ROC)
+
 		UTIL_AppendByteArray( packet, Version, 4 );						// Version
 		UTIL_AppendByteArray( packet, hostCounter, false );				// Host Counter
 		UTIL_AppendByteArray( packet, Unknown1, 4 );					// ??? (this varies wildly even between two identical games created one after another)
@@ -699,20 +711,26 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( unsigned char war3Version, BYTEAR
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_CREATEGAME( unsigned char war3Version )
+BYTEARRAY CGameProtocol :: SEND_W3GS_CREATEGAME( bool TFT, unsigned char war3Version )
 {
-	unsigned char ProductID[]	= {          80, 88, 51, 87 };	// "W3XP"
-	unsigned char Version[]		= { war3Version,  0,  0,  0 };
-	unsigned char HostCounter[]	= {           1,  0,  0,  0 };
+	unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
+	unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
+	unsigned char Version[]			= { war3Version,  0,  0,  0 };
+	unsigned char HostCounter[]		= {           1,  0,  0,  0 };
 
 	BYTEARRAY packet;
-	packet.push_back( W3GS_HEADER_CONSTANT );		// W3GS header constant
-	packet.push_back( W3GS_CREATEGAME );			// W3GS_CREATEGAME
-	packet.push_back( 0 );							// packet length will be assigned later
-	packet.push_back( 0 );							// packet length will be assigned later
-	UTIL_AppendByteArray( packet, ProductID, 4 );	// Product ID
-	UTIL_AppendByteArray( packet, Version, 4 );		// Version
-	UTIL_AppendByteArray( packet, HostCounter, 4 );	// Host Counter
+	packet.push_back( W3GS_HEADER_CONSTANT );				// W3GS header constant
+	packet.push_back( W3GS_CREATEGAME );					// W3GS_CREATEGAME
+	packet.push_back( 0 );									// packet length will be assigned later
+	packet.push_back( 0 );									// packet length will be assigned later
+
+	if( TFT )
+		UTIL_AppendByteArray( packet, ProductID_TFT, 4 );	// Product ID (TFT)
+	else
+		UTIL_AppendByteArray( packet, ProductID_ROC, 4 );	// Product ID (ROC)
+
+	UTIL_AppendByteArray( packet, Version, 4 );				// Version
+	UTIL_AppendByteArray( packet, HostCounter, 4 );			// Host Counter
 	AssignLength( packet );
 	// DEBUG_Print( "SENT W3GS_CREATEGAME" );
 	// DEBUG_Print( packet );
