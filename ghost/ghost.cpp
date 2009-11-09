@@ -689,6 +689,17 @@ bool CGHost :: Update( long usecBlock )
 	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); i++ )
 		NumFDs += (*i)->SetFD( &fd, &send_fd, &nfds );
 
+	// before we call select we need to determine how long to block for
+	// previously we just blocked for a maximum of the passed usecBlock microseconds
+	// however, in an effort to make game updates happen closer to the desired latency setting we now use a dynamic block interval
+	// note: we still use the passed usecBlock as a hard maximum
+
+	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); i++ )
+	{
+		if( (*i)->GetNextTimedActionTicks( ) * 1000 < usecBlock )
+			usecBlock = (*i)->GetNextTimedActionTicks( ) * 1000;
+	}
+
 	struct timeval tv;
 	tv.tv_sec = 0;
 	tv.tv_usec = usecBlock;

@@ -240,6 +240,20 @@ CBaseGame :: ~CBaseGame( )
 	}
 }
 
+uint32_t CBaseGame :: GetNextTimedActionTicks( )
+{
+	// return the number of ticks (ms) until the next "timed action", which for our purposes is the next game update
+	// the main GHost++ loop will make sure the next loop update happens at or before this value
+	// note: there's no reason this function couldn't take into account the game's other timers too but they're far less critical
+
+	uint32_t TicksSinceLastUpdate = GetTicks( ) - m_LastActionSentTicks;
+
+	if( TicksSinceLastUpdate > m_Latency )
+		return 0;
+	else
+		return TicksSinceLastUpdate - m_Latency;
+}
+
 uint32_t CBaseGame :: GetSlotsOccupied( )
 {
 	uint32_t NumSlotsOccupied = 0;
