@@ -613,6 +613,13 @@ bool CGHost :: Update( long usecBlock )
 			m_BNETs.clear( );
 		}
 
+		if( m_CurrentGame )
+		{
+			CONSOLE_Print( "[GHOST] deleting current game in preparation for exiting nicely" );
+			delete m_CurrentGame;
+			m_CurrentGame = NULL;
+		}
+
 		if( m_AdminGame )
 		{
 			CONSOLE_Print( "[GHOST] deleting admin game in preparation for exiting nicely" );
@@ -620,7 +627,7 @@ bool CGHost :: Update( long usecBlock )
 			m_AdminGame = NULL;
 		}
 
-		if( !m_CurrentGame && m_Games.empty( ) )
+		if( m_Games.empty( ) )
 		{
 			if( m_AllGamesFinishedTime == 0 )
 			{
@@ -795,7 +802,7 @@ bool CGHost :: Update( long usecBlock )
 		// copy all the checks from CGHost :: CreateGame here because we don't want to spam the chat when there's an error
 		// instead we fail silently and try again soon
 
-		if( m_Enabled && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames )
+		if( !m_ExitingNice && m_Enabled && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames )
 		{
 			if( m_AutoHostMap->GetValid( ) )
 			{
