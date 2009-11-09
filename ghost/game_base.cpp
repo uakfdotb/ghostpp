@@ -2982,6 +2982,9 @@ void CBaseGame :: EventGameStarted( )
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 			m_Replay->AddPlayer( (*i)->GetPID( ), (*i)->GetName( ) );
 
+		if( m_FakePlayerPID != 255 )
+			m_Replay->AddPlayer( m_FakePlayerPID, "FakePlayer" );
+
 		m_Replay->SetSlots( m_Slots );
 		m_Replay->SetRandomSeed( m_RandomSeed );
 		m_Replay->SetSelectMode( m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0 );
