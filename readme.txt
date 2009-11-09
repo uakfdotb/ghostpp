@@ -759,6 +759,8 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !checkme                check your own status (can be used by non admins, sends a private message visible only to the user)
 !drop                   drop all lagging players
 !end                    end the game (disconnect everyone)
+!fppause                force the FakePlayer (if it exists) to pause the game
+!fpresume               force the FakePlayer (if it exists) to resume the game
 !from                   display the country each player is from
 !kick <name>            kick a player (it tries to do a partial match)
 !latency <number>       set game latency (50-500), leave blank to see current latency

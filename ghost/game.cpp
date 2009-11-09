@@ -960,6 +960,30 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !FPPAUSE
+			//
+
+			if( Command == "fppause" && m_FakePlayerPID != 255 && m_GameLoaded )
+			{
+				BYTEARRAY CRC;
+				BYTEARRAY Action;
+				Action.push_back( 1 );
+				m_Actions.push( new CIncomingAction( m_FakePlayerPID, CRC, Action ) );
+			}
+
+			//
+			// !FPRESUME
+			//
+
+			if( Command == "fpresume" && m_FakePlayerPID != 255 && m_GameLoaded )
+			{
+				BYTEARRAY CRC;
+				BYTEARRAY Action;
+				Action.push_back( 2 );
+				m_Actions.push( new CIncomingAction( m_FakePlayerPID, CRC, Action ) );
+			}
+
+			//
 			// !FROM
 			//
 
