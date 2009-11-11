@@ -51,7 +51,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Map = new CMap( *nMap );
 	m_SaveGame = nSaveGame;
 
-	if( m_GHost->m_SaveReplays )
+	if( m_GHost->m_SaveReplays && !m_SaveGame )
 		m_Replay = new CReplay( );
 	else
 		m_Replay = NULL;
@@ -213,11 +213,7 @@ CBaseGame :: ~CBaseGame( )
 			SecString.insert( 0, "0" );
 
 		m_Replay->BuildReplay( m_GameName, m_StatString, m_GHost->m_ReplayWar3Version, m_GHost->m_ReplayBuildNumber );
-
-		if( m_SaveGame )
-			m_Replay->Save( m_GHost->m_TFT, m_GHost->m_ReplayPath + UTIL_FileSafeName( "Partial GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
-		else
-			m_Replay->Save( m_GHost->m_TFT, m_GHost->m_ReplayPath + UTIL_FileSafeName( "GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
+		m_Replay->Save( m_GHost->m_TFT, m_GHost->m_ReplayPath + UTIL_FileSafeName( "GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
 	}
 
 	delete m_Socket;
@@ -1172,7 +1168,7 @@ void CBaseGame :: SendAllActions( )
 		// print a message because even though this will take more resources it should provide some information to the administrator for future reference
 		// other solutions - dynamically modify the latency, request higher priority, terminate other games, ???
 
-		CONSOLE_Print( "[GAME: " + m_GameName + "] the last frame was late by " + UTIL_ToString( m_LastActionLateBy ) + " ms, expect a lag spike!" );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] warning - the latency is " + UTIL_ToString( m_Latency ) + "ms but the last update was late by " + UTIL_ToString( m_LastActionLateBy ) + "ms" );
 		m_LastActionLateBy = m_Latency;
 	}
 
@@ -3056,12 +3052,7 @@ void CBaseGame :: EventGameStarted( )
 	StatString.push_back( 0 );
 	UTIL_AppendByteArray( StatString, m_Map->GetMapWidth( ) );
 	UTIL_AppendByteArray( StatString, m_Map->GetMapHeight( ) );
-
-	if( m_SaveGame )
-		UTIL_AppendByteArray( StatString, m_SaveGame->GetMagicNumber( ) );
-	else
-		UTIL_AppendByteArray( StatString, m_Map->GetMapCRC( ) );
-
+	UTIL_AppendByteArray( StatString, m_Map->GetMapCRC( ) );
 	UTIL_AppendByteArray( StatString, m_Map->GetMapPath( ) );
 	UTIL_AppendByteArray( StatString, "GHost++" );
 	StatString.push_back( 0 );
