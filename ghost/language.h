@@ -245,7 +245,8 @@ public:
 	string LoadingReplay( string file );
 	string UnableToLoadReplayDoesntExist( string file );
 	string CommandTrigger( string trigger );
-	string CantEndGameOwnerIsStillPlaying( );
+	string CantEndGameOwnerIsStillPlaying( string owner );
+	string CantUnhostGameOwnerIsPresent( string owner );
 };
 
 #endif

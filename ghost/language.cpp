@@ -1477,7 +1477,16 @@ string CLanguage :: CommandTrigger( string trigger )
 	return Out;
 }
 
-string CLanguage :: CantEndGameOwnerIsStillPlaying( )
+string CLanguage :: CantEndGameOwnerIsStillPlaying( string owner )
 {
-	return m_CFG->GetString( "lang_0212", "lang_0212" );
+	string Out = m_CFG->GetString( "lang_0212", "lang_0212" );
+	UTIL_Replace( Out, "$OWNER$", owner );
+	return Out;
+}
+
+string CLanguage :: CantUnhostGameOwnerIsPresent( string owner )
+{
+	string Out = m_CFG->GetString( "lang_0213", "lang_0213" );
+	UTIL_Replace( Out, "$OWNER$", owner );
+	return Out;
 }
