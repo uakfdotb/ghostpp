@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 15.0
+GHost++ Version 16.0
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
@@ -12,8 +12,8 @@ The official GHost++ SVN repository is currently located at http://code.google.c
 Overview
 ========
 
-GHost++ is a Warcraft III: The Frozen Throne game hosting bot.
-It can host Warcraft III: The Frozen Throne games on LAN, on battle.net, on PVPGN, and on any combination of these networks at the same time.
+GHost++ is a Warcraft III: Reign of Chaos and Warcraft III: The Frozen Throne game hosting bot.
+It can host Warcraft III games on LAN, on battle.net, on PVPGN, and on any combination of these networks at the same time.
 Since GHost++ is a bot it must have its own CD keys, username, and password for each battle.net server.
 Note that you can use the same set of CD keys on each battle.net server (East, West, Europe, Asia) at the same time.
 This means that to play on your own GHost++ bot you will need one set of CD keys for yourself and one set for your bot.
@@ -155,8 +155,8 @@ You can use the !hold command to add players to the list.
 When a player joins the game the bot considers them to be a reserved player if any one of the following is true:
 
 1.) If it finds the player in the list.
-2.) If the player is a root admin on any defined realm.
-3.) If the player is an admin on any defined realm.
+2.) If the player is a root admin on any defined realm (if bot_reserveadmins = 1).
+3.) If the player is an admin on any defined realm (if bot_reserveadmins = 1).
 4.) If the player is the game owner.
 
 Note that you do not need to be spoof checked to be considered a reserved player because you can't spoof check before joining the game.
@@ -431,31 +431,6 @@ These maps will always be loaded with default options, more specifically:
 This means you cannot use the !map command to load non-custom (e.g. blizzard or melee) maps at this time.
 You will need to create config files for any maps that you want to change these settings for and use the !load command to load them.
 
-===================
-Regular Expressions
-===================
-
-Since Version 13.2 GHost++ supports regular expressions when loading map config files and map files.
-You can control this behaviour with the bot_useregexes config value.
-When regexes are disabled, GHost++ will perform a simple partial match on the given pattern. GHost++ does NOT support wildcards such as "*" or "?".
-When regexes are enabled, GHost++ will perform a regular expression match on the given pattern.
-
-Examples (regexes disabled):
-
-!load dota -> this matches names such as "dota6.59d.cfg" or "mydota.cfg"
-!load war -> this matches names such as "warlock.cfg" or "wormwar.cfg"
-!load dota* -> this does NOT match "dota6.59d.cfg" because GHost++ does not support wildcards
-!load 59d -> this matches names such as "dota6.59d.cfg"
-
-Examples (regexes enabled):
-
-!load dota -> this matches the single name "dota"
-!load dota* -> this does NOT match "dota6.59d.cfg" because regular expressions do not work this way, it matches "dotaaa" and "dotaaaa" instead
-!load dota.* -> this matches names such as "dota6.59d.cfg" or "dota6.60.cfg" but NOT "mydota.cfg"
-!load .*war.* -> this matches names such as "warlock.cfg" or "wormwar.cfg"
-
-You can search the internet for more information on regular expressions if you are interested in learning how they work as they are quite common.
-
 ===========
 Using MySQL
 ===========
@@ -636,6 +611,15 @@ Commands
 ========
 
 Parameters in angled brackets <like this> are required and parameters in square brackets [like this] are optional.
+Note that although the commands are listed with a "!" as the command trigger, the actual command triggers are controlled by the settings in your ghost.cfg file.
+
+*** In battle.net (via local chat or whisper at any time) or in any game lobby or in any game:
+
+?trigger                        tells you what the bot's command trigger is
+
+Note that the "?trigger" command always uses a "?" as the command trigger, regardless of any command trigger settings in your bot.
+If sent via battle.net the bot will only respond to anonymous users if bnet_publiccommands = 1.
+If sent via any game lobby or any game the bot will respond with a private message visible only to the requesting user.
 
 *** In battle.net (via local chat or whisper at any time):
 
@@ -659,7 +643,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !disable                        disable creation of new games
 !downloads <0|1|2>              disable/enable/conditional map downloads
 !enable                         enable creation of new games
-!end <number>                   end the specified game in progress (disconnect everyone)
+!end <number>                   end the specified game in progress (disconnect everyone), only root admins can end games where the game owner is still playing
 !enforcesg <filename>           load a replay to be used as a template for the player layout in the next saved game
 !exit [force|nice]              shutdown ghost++, optionally add [force] to skip checks or [nice] to allow running games to finish first
 !getclan                        refresh the internal copy of the clan members list
@@ -688,7 +672,7 @@ Parameters in angled brackets <like this> are required and parameters in square 
 !statsdota [name]               display DotA player statistics, optionally add [name] to display statistics for another player (can be used by non admins)
 !swap <n1> <n2>                 swap slots
 !unban <name>                   alias to !delban
-!unhost                         unhost game in lobby
+!unhost                         unhost game in lobby, only root admins can unhost games where the game owner is in the lobby
 !version                        display version information (can be used by non admins)
 !wardenstatus                   show warden status information
 
@@ -876,7 +860,7 @@ To install Boost manually:
 
 7. Download and extract Boost 1.38.0 from http://www.boost.org/
 8. su to root.
-9. ./configure --prefix=/usr --with-libraries=date_time,thread,system,filesystem,regex
+9. ./configure --prefix=/usr --with-libraries=date_time,thread,system,filesystem
 10. Edit the newly created Makefile with your favourite text editor. The second line should be "BJAM_CONFIG=". Replace it with "BJAM_CONFIG= --layout=system".
 11. make install
 

@@ -2,6 +2,41 @@
 GHost++ Changelog
 =================
 
+Version 16.0 (November 13, 2009)
+ - added support for logging in to battle.net as Reign of Chaos only instead of The Frozen Throne
+ - added new config value bot_tft
+ - added support for broadcasting LAN games as Reign of Chaos when bot_tft = 0
+ - added support for saving replays as Reign of Chaos when bot_tft = 0
+ - added ghost dynamic configurator with source code written by HardwareBug
+ - updated ip-to-country.csv to the latest version from October 22, 2009
+ - updated StormLib to version 6.25
+ - forced StormLib to open all MPQ's as V1 only (defeats some map protection schemes)
+ - implemented a dynamic select interval to make game updates happen much closer to the desired latency
+ - lowered the minimum latency from 50ms to 20ms when using !latency
+ - printed a message to the console when the bot lags due to CPU starvation
+ - when the bot lags due to CPU starvation the game will no longer play in "fast forward" when it resumes
+ - added ?trigger command
+ - added new command !fppause to force the FakePlayer to pause the game
+ - added new command !fpresume to force the FakePlayer to resume the game
+ - added new config value bot_localadminmessages (defaults to 1)
+ - added new config value bot_reserveadmins (defaults to 1)
+ - bot_requirespoofchecks now defaults to 0
+ - only root admins can !end games from battle.net when the game owner is still playing
+ - only root admins can !unhost games from battle.net when the game owner is in the lobby
+ - when connecting to a pvpgn server the configured BNLS server is now ignored
+ - the bot will now unhost the current lobby after using !quit nice
+ - removed regex support
+ - removed config value bot_useregexes
+ - removed replay_stitcher
+ - stopped saving partial replays when hosting from a saved game
+ - fixed a bug where the bot would continue to autohost unjoinable games after using !quit nice
+ - fixed many timer bugs which would cause strange behaviours when GHost++ ran for extended periods (i.e. several weeks)
+ - fixed a bug where using !comp <slot with player> <number more than 2> would cause strange behaviours in the lobby
+ - fixed a bug where swapping computers would reset their difficulty to "normal" (thanks redlizard)
+ - fixed a bug where replays saved when using a FakePlayer would be corrupted
+ - fixed a bug where a banned player could cause multiple ban messages to be printed when trying to join a full game when bot_banmethod = 0
+ - added german language config (thanks Emmeran)
+
 Version 15.0
  - added support for "replay stitching" (stitching together replays from before and after the game is saved)
   * see the new readme.replay_stitcher.txt for more information
