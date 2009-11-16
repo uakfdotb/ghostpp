@@ -122,7 +122,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastAdminRefreshTime = GetTime( );
 	m_LastBanRefreshTime = GetTime( );
 	m_FloodingCostLimit = 400.0;
-	m_FloodingRecoveryRate = 0.048;
+	m_FloodingRecoveryRate = 0.045;
 	m_FloodingBaseCost = 100.0;
 	m_FloodingMarginalCost = 1.0;
 	m_FloodingCostUsed = 0.0;
@@ -514,7 +514,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 			float CostAfterPacket = CostBeforePacket + m_FloodingBaseCost + m_FloodingMarginalCost * m_OutPackets.front( ).size( );
 
-			// if we're logging in discount the cost (but start with a small "used cost" to be safe)
+			// if we're not yet logged in (i.e. we're still logging in) bypass the flood protection
 
 			if( !m_LoggedIn || CostAfterPacket < m_FloodingCostLimit )
 			{
