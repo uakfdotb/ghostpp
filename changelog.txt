@@ -2,6 +2,9 @@
 GHost++ Changelog
 =================
 
+Version 16.1 (November 16, 2009)
+ - fixed a bug where the bot would use 100% of available CPU time while a game was loading or lagging (introduced in version 16.0)
+
 Version 16.0 (November 13, 2009)
  - added support for logging in to battle.net as Reign of Chaos only instead of The Frozen Throne
  - added new config value bot_tft

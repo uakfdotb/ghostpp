@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 16.0
+GHost++ Version 16.1
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
