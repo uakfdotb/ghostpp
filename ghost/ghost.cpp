@@ -714,6 +714,14 @@ bool CGHost :: Update( long usecBlock )
 			usecBlock = (*i)->GetNextTimedActionTicks( ) * 1000;
 	}
 
+	// always block for at least 1ms just in case something goes wrong
+	// this prevents the bot from sucking up all the available CPU if a game keeps asking for immediate updates
+	// it's a bit ridiculous to include this check since, in theory, the bot is programmed well enough to never make this mistake
+	// however, considering who programmed it, it's worthwhile to do it anyway
+
+	if( usecBlock == 0 )
+		usecBlock = 1000;
+
 	struct timeval tv;
 	tv.tv_sec = 0;
 	tv.tv_usec = usecBlock;
