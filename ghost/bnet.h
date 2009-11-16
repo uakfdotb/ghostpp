@@ -108,9 +108,13 @@ private:
 	uint32_t m_LastConnectionAttemptTime;			// GetTime when we last attempted to connect to battle.net
 	uint32_t m_LastNullTime;						// GetTime when the last null packet was sent for detecting disconnects
 	uint32_t m_LastOutPacketTicks;					// GetTicks when the last packet was sent for the m_OutPackets queue
-	uint32_t m_LastOutPacketSize;
 	uint32_t m_LastAdminRefreshTime;				// GetTime when the admin list was last refreshed from the database
 	uint32_t m_LastBanRefreshTime;					// GetTime when the ban list was last refreshed from the database
+	float m_FloodingCostLimit;						// don't send the next packet if the "used cost" would become higher than this limit
+	float m_FloodingRecoveryRate;					// the reduction in "used cost" per millisecond
+	float m_FloodingBaseCost;						// the increase in "used cost" for the next packet regardless of size
+	float m_FloodingMarginalCost;					// the increase in "used cost" for every byte in the next packet
+	float m_FloodingCostUsed;						// the "used cost" for flood protection
 	bool m_WaitingToConnect;						// if we're waiting to reconnect to battle.net after being disconnected
 	bool m_LoggedIn;								// if we've logged into battle.net or not
 	bool m_InChat;									// if we've entered chat or not (but we're not necessarily in a chat channel yet)

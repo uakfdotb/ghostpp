@@ -119,9 +119,13 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastConnectionAttemptTime = 0;
 	m_LastNullTime = 0;
 	m_LastOutPacketTicks = 0;
-	m_LastOutPacketSize = 0;
 	m_LastAdminRefreshTime = GetTime( );
 	m_LastBanRefreshTime = GetTime( );
+	m_FloodingCostLimit = 400.0;
+	m_FloodingRecoveryRate = 0.048;
+	m_FloodingBaseCost = 100.0;
+	m_FloodingMarginalCost = 1.0;
+	m_FloodingCostUsed = 0.0;
 	m_WaitingToConnect = true;
 	m_LoggedIn = false;
 	m_InChat = false;
@@ -497,27 +501,34 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			}
 		}
 
-		// check if at least one packet is waiting to be sent and if we've waited long enough to prevent flooding
-		// this formula has changed many times but currently we wait 1 second if the last packet was "small", 3.5 seconds if it was "medium", and 4 seconds if it was "big"
-
-		uint32_t WaitTicks = 0;
-
-		if( m_LastOutPacketSize < 10 )
-			WaitTicks = 1000;
-		else if( m_LastOutPacketSize < 100 )
-			WaitTicks = 3500;
-		else
-			WaitTicks = 4000;
-
-		if( !m_OutPackets.empty( ) && GetTicks( ) - m_LastOutPacketTicks >= WaitTicks )
+		if( !m_OutPackets.empty( ) )
 		{
-			if( m_OutPackets.size( ) > 7 )
-				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] packet queue warning - there are " + UTIL_ToString( m_OutPackets.size( ) ) + " packets waiting to be sent" );
+			// calculate the current "used cost" since it's been decaying since the last packet was sent
 
-			m_Socket->PutBytes( m_OutPackets.front( ) );
-			m_LastOutPacketSize = m_OutPackets.front( ).size( );
-			m_OutPackets.pop( );
-			m_LastOutPacketTicks = GetTicks( );
+			float CostBeforePacket = m_FloodingCostUsed - ( GetTicks( ) - m_LastOutPacketTicks ) * m_FloodingRecoveryRate;
+
+			// calculate the "used cost" if we sent the next packet immediately
+
+			float CostAfterPacket = CostBeforePacket + m_FloodingBaseCost + m_FloodingMarginalCost * m_OutPackets.front( ).size( );
+
+			if( CostAfterPacket < m_FloodingCostLimit )
+			{
+				if( m_OutPackets.size( ) > 7 )
+					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] packet queue warning - there are " + UTIL_ToString( m_OutPackets.size( ) ) + " packets waiting to be sent" );
+
+				m_Socket->PutBytes( m_OutPackets.front( ) );
+				m_OutPackets.pop( );
+				m_LastOutPacketTicks = GetTicks( );
+
+				// increase the "used cost"
+
+				m_FloodingCostUsed = CostAfterPacket;
+
+				// don't permit the "used cost" to decay below zero
+
+				if( m_FloodingCostUsed < 0.0 )
+					m_FloodingCostUsed = 0.0;
+			}
 		}
 
 		// send a null packet every 60 seconds to detect disconnects
