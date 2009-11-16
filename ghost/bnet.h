@@ -160,10 +160,9 @@ public:
 
 	// functions to send packets to battle.net
 
-	void SendJoinChannel( string channel );
-	void SendGetFriendsList( );
-	void SendGetClanList( );
 	void QueueEnterChat( );
+	void QueueGetFriendsList( );
+	void QueueGetClanList( );
 	void QueueChatCommand( string chatCommand );
 	void QueueChatCommand( string chatCommand, string user, bool whisper );
 	void QueueGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t hostCounter );

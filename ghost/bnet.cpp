@@ -507,11 +507,16 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 			float CostBeforePacket = m_FloodingCostUsed - ( GetTicks( ) - m_LastOutPacketTicks ) * m_FloodingRecoveryRate;
 
+			if( CostBeforePacket < 0.0 )
+				CostBeforePacket = 0.0;
+
 			// calculate the "used cost" if we sent the next packet immediately
 
 			float CostAfterPacket = CostBeforePacket + m_FloodingBaseCost + m_FloodingMarginalCost * m_OutPackets.front( ).size( );
 
-			if( CostAfterPacket < m_FloodingCostLimit )
+			// if we're logging in discount the cost (but start with a small "used cost" to be safe)
+
+			if( !m_LoggedIn || CostAfterPacket < m_FloodingCostLimit )
 			{
 				if( m_OutPackets.size( ) > 7 )
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] packet queue warning - there are " + UTIL_ToString( m_OutPackets.size( ) ) + " packets waiting to be sent" );
@@ -523,11 +528,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 				// increase the "used cost"
 
 				m_FloodingCostUsed = CostAfterPacket;
-
-				// don't permit the "used cost" to decay below zero
-
-				if( m_FloodingCostUsed < 0.0 )
-					m_FloodingCostUsed = 0.0;
 			}
 		}
 
@@ -872,9 +872,11 @@ void CBNET :: ProcessPackets( )
 					m_LoggedIn = true;
 					m_GHost->EventBNETLoggedIn( this );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_NETGAMEPORT( m_GHost->m_HostPort ) );
-					m_Socket->PutBytes( m_Protocol->SEND_SID_ENTERCHAT( ) );
-					m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
-					m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
+					QueueEnterChat( );
+					QueueGetFriendsList( );
+					QueueGetClanList( );
+					m_LastOutPacketTicks = GetTicks( );
+					m_FloodingCostUsed = 100.0;
 				}
 				else
 				{
@@ -1561,7 +1563,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "getclan" )
 				{
-					SendGetClanList( );
+					QueueGetClanList( );
 					QueueChatCommand( m_GHost->m_Language->UpdatingClanList( ), User, Whisper );
 				}
 
@@ -1571,7 +1573,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Command == "getfriends" )
 				{
-					SendGetFriendsList( );
+					QueueGetFriendsList( );
 					QueueChatCommand( m_GHost->m_Language->UpdatingFriendsList( ), User, Whisper );
 				}
 
@@ -2243,28 +2245,22 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 	}
 }
 
-void CBNET :: SendJoinChannel( string channel )
-{
-	if( m_LoggedIn && m_InChat )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_JOINCHANNEL( channel ) );
-}
-
-void CBNET :: SendGetFriendsList( )
-{
-	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
-}
-
-void CBNET :: SendGetClanList( )
-{
-	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
-}
-
 void CBNET :: QueueEnterChat( )
 {
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_ENTERCHAT( ) );
+}
+
+void CBNET :: QueueGetFriendsList( )
+{
+	if( m_LoggedIn )
+		m_OutPackets.push( m_Protocol->SEND_SID_FRIENDSLIST( ) );
+}
+
+void CBNET :: QueueGetClanList( )
+{
+	if( m_LoggedIn )
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 }
 
 void CBNET :: QueueChatCommand( string chatCommand )
