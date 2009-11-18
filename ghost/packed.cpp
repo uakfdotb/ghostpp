@@ -334,16 +334,16 @@ void CPacked :: Compress( bool TFT )
 
 	if( TFT )
 	{
-		Header.push_back( '3' );	// "WAR3"
-		Header.push_back( 'R' );
-		Header.push_back( 'A' );
+		Header.push_back( 'P' );	// "W3XP"
+		Header.push_back( 'X' );
+		Header.push_back( '3' );
 		Header.push_back( 'W' );
 	}
 	else
 	{
-		Header.push_back( 'P' );	// "W3XP"
-		Header.push_back( 'X' );
-		Header.push_back( '3' );
+		Header.push_back( '3' );	// "WAR3"
+		Header.push_back( 'R' );
+		Header.push_back( 'A' );
 		Header.push_back( 'W' );
 	}
 
