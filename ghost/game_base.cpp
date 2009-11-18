@@ -100,6 +100,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_LastPlayerLeaveTicks = 0;
 	m_MinimumScore = 0.0;
 	m_MaximumScore = 0.0;
+	m_SlotInfoChanged = false;
 	m_Locked = false;
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
 	m_RefreshError = false;
@@ -540,6 +541,12 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) - m_LastDownloadCounterResetTicks >= 1000 )
 	{
+		// hackhack: another timer hijack is in progress here
+		// since the download counter is reset once per second it's a great place to update the slot info if necessary
+
+		if( m_SlotInfoChanged )
+			SendAllSlotInfo( );
+
 		m_DownloadCounter = 0;
 		m_LastDownloadCounterResetTicks = GetTicks( );
 	}
@@ -1079,7 +1086,10 @@ void CBaseGame :: SendLocalAdminChat( string message )
 void CBaseGame :: SendAllSlotInfo( )
 {
 	if( !m_GameLoading && !m_GameLoaded )
+	{
 		SendAll( m_Protocol->SEND_W3GS_SLOTINFO( m_Slots, m_RandomSeed, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+		m_SlotInfoChanged = false;
+	}
 }
 
 void CBaseGame :: SendVirtualHostPlayerInfo( CGamePlayer *player )
@@ -2873,7 +2883,13 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 		if( m_Slots[SID].GetDownloadStatus( ) != NewDownloadStatus )
 		{
 			m_Slots[SID].SetDownloadStatus( NewDownloadStatus );
-			SendAllSlotInfo( );
+
+			// we don't actually send the new slot info here
+			// this is an optimization because it's possible for a player to download a map very quickly
+			// if we send a new slot update for every percentage change in their download status it adds up to a lot of data
+			// instead, we mark the slot info as "out of date" and update it only once in awhile (once per second when this comment was made)
+
+			m_SlotInfoChanged = true;
 		}
 	}
 }
@@ -2969,6 +2985,15 @@ void CBaseGame :: EventGameStarted( )
 		else
 			CONSOLE_Print( "[GAME: " + m_GameName + "] encoding HCL command string [" + m_HCLCommandString + "] failed because there aren't enough occupied slots" );
 	}
+
+	// send a final slot info update if necessary
+	// this typically won't happen because we prevent the !start command from completing while someone is downloading the map
+	// however, if someone uses !start force while a player is downloading the map this could trigger
+	// this is because we only permit slot info updates to be flagged when it's just a change in download status, all others are sent immediately
+	// it might not be necessary but let's clean up the mess anyway
+
+	if( m_SlotInfoChanged )
+		SendAllSlotInfo( );
 
 	m_StartedLoadingTicks = GetTicks( );
 	m_LastLoadInGameResetTime = GetTime( );
