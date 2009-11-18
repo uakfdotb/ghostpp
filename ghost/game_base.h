@@ -87,6 +87,8 @@ protected:
 	uint32_t m_LastPingTime;						// GetTime when the last ping was sent
 	uint32_t m_LastRefreshTime;						// GetTime when the last game refresh was sent
 	uint32_t m_LastDownloadTicks;					// GetTicks when the last map download cycle was performed
+	uint32_t m_DownloadCounter;						// # of map bytes downloaded in the last second
+	uint32_t m_LastDownloadCounterResetTicks;		// GetTicks when the download counter was last reset
 	uint32_t m_LastAnnounceTime;					// GetTime when the last announce message was sent
 	uint32_t m_AnnounceInterval;					// how many seconds to wait between sending the m_AnnounceMessage
 	uint32_t m_LastAutoStartTime;					// the last time we tried to auto start the game

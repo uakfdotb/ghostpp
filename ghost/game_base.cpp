@@ -79,6 +79,8 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_LastPingTime = GetTime( );
 	m_LastRefreshTime = GetTime( );
 	m_LastDownloadTicks = GetTime( );
+	m_DownloadCounter = 0;
+	m_LastDownloadCounterResetTicks = GetTicks( );
 	m_LastAnnounceTime = 0;
 	m_AnnounceInterval = 0;
 	m_LastAutoStartTime = GetTime( );
@@ -536,10 +538,15 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// send more map data
 
+	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) - m_LastDownloadCounterResetTicks >= 1000 )
+	{
+		m_DownloadCounter = 0;
+		m_LastDownloadCounterResetTicks = GetTicks( );
+	}
+
 	if( !m_GameLoading && !m_GameLoaded && GetTicks( ) - m_LastDownloadTicks >= 100 )
 	{
 		uint32_t Downloaders = 0;
-		uint32_t DownloadCounter = 0;
 
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
@@ -577,14 +584,14 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					}
 
 					// limit the download speed if we're sending too much data
-					// we divide by 10 because we run this code every 100ms (i.e. ten times per second)
+					// the download counter is the # of map bytes downloaded in the last second (it's reset once per second)
 
-					if( m_GHost->m_MaxDownloadSpeed > 0 && DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 / 10 )
+					if( m_GHost->m_MaxDownloadSpeed > 0 && m_DownloadCounter > m_GHost->m_MaxDownloadSpeed * 1024 )
 						break;
 
 					Send( *i, m_Protocol->SEND_W3GS_MAPPART( GetHostPID( ), (*i)->GetPID( ), (*i)->GetLastMapPartSent( ), m_Map->GetMapData( ) ) );
 					(*i)->SetLastMapPartSent( (*i)->GetLastMapPartSent( ) + 1442 );
-					DownloadCounter += 1442;
+					m_DownloadCounter += 1442;
 				}
 			}
 		}
