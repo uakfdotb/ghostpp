@@ -2436,7 +2436,24 @@ bool CBNET :: IsRootAdmin( string name )
 	// m_RootAdmin was already transformed to lower case in the constructor
 
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	return name == m_RootAdmin;
+
+	// updated to permit multiple root admins seperated by a space, e.g. "Varlock Kilranin Instinct121"
+	// note: this function gets called frequently so it would be better to parse the root admins just once and store them in a list somewhere
+	// however, it's hardly worth optimizing at this point since the code's already written
+
+	stringstream SS;
+	string s;
+	SS << m_RootAdmin;
+
+	while( !SS.eof( ) )
+	{
+		SS >> s;
+
+		if( name == s )
+			return true;
+	}
+
+	return false;
 }
 
 CDBBan *CBNET :: IsBannedName( string name )
