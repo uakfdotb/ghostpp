@@ -111,6 +111,7 @@ private:
 	uint32_t m_LastOutPacketSize;
 	uint32_t m_LastAdminRefreshTime;				// GetTime when the admin list was last refreshed from the database
 	uint32_t m_LastBanRefreshTime;					// GetTime when the ban list was last refreshed from the database
+	bool m_FirstConnect;							// if we haven't tried to connect to battle.net yet
 	bool m_WaitingToConnect;						// if we're waiting to reconnect to battle.net after being disconnected
 	bool m_LoggedIn;								// if we've logged into battle.net or not
 	bool m_InChat;									// if we've entered chat or not (but we're not necessarily in a chat channel yet)

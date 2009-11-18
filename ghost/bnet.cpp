@@ -122,6 +122,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastOutPacketSize = 0;
 	m_LastAdminRefreshTime = GetTime( );
 	m_LastBanRefreshTime = GetTime( );
+	m_FirstConnect = true;
 	m_WaitingToConnect = true;
 	m_LoggedIn = false;
 	m_InChat = false;
@@ -567,13 +568,11 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 	}
 
-	// hackhack: we use m_LastDisconnectedTime == 0 to denote that this is the first connection attempt
-	// however, it's possible for GetTime to overflow and for m_LastDisconnectedTime to be set to zero legitimately
-
-	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_LastDisconnectedTime == 0 || GetTime( ) - m_LastDisconnectedTime >= 90 ) )
+	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= 90 ) )
 	{
 		// attempt to connect to battle.net
 
+		m_FirstConnect = false;
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] connecting to server [" + m_Server + "] on port 6112" );
 		m_GHost->EventBNETConnecting( this );
 
