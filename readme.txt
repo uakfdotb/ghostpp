@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 16.1
+GHost++ Version 16.2
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
@@ -77,6 +77,10 @@ You can disable anonymous access to !stats and !statsdota by setting the bnet*_p
 4.) Another reason for lag on Windows is that Windows does not handle very large log files efficiently.
 If your ghost.log is too large (several MB) you should delete or rename it. You can do this while the bot is running.
 
+5.) You can also make GHost++ lock the log file.
+This works particularly well on Windows but means you can't edit/move/delete the log file while GHost++ is running.
+Set bot_logmethod = 2 to make the bot lock the log file.
+
 *** Network Tips:
 
 1.) If you are experiencing spikes when the bot is reconnecting to battle.net the most likely reason is due to the DNS resolver.
@@ -98,7 +102,7 @@ There are three types of admins:
 
 1.) Root Admins.
 
-Each battle.net server has a root admin defined in ghost.cfg.
+Each battle.net server has one or more root admins defined in ghost.cfg.
 Root admins have access to every command both in battle.net and in the lobby and ingame.
 In particular this includes !addadmin, !checkadmin, !countadmins, !deladmin, !exit, and !quit among others.
 Root admins are also exempt from command restrictions in locked games and can change the owner of a game using !owner even when the game owner is present.
@@ -209,6 +213,7 @@ When the bot receives a battle.net whisper it will send it to all logged in user
 When the bot receives a battle.net chat message it will send it to all logged in users in the admin game as "[L: Realm] [User] Message".
 When the bot receives a battle.net emote it will send it to all logged in users in the admin game as "[E: Realm] [User] Message".
 If you find these messages too annoying you can turn them off in a regular game by using "!messages off" and back on by using "!messages on".
+You can also configure them on or off by default with the bot_localadminmessages configuration option.
 Additionally, if you are the game owner and you are connecting to the bot from a local or LAN IP address the bot will send you the same messages in game lobbies and in games.
 You can use the bot's battle.net account to respond to messages with the !w command or the !say command.
 In the admin game, in game lobbies, and in games, you can type "!w <name> <message>" to force the bot to send a whisper to <name> on ALL connected battle.net realms.

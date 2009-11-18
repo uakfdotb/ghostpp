@@ -2,6 +2,22 @@
 GHost++ Changelog
 =================
 
+Version 16.2 (November 18, 2009)
+ - added the option to lock the log file for faster logging, particularly on Windows
+ - added new config value bot_logmethod (defaults to 1)
+ - added support for multiple root admins per battle.net server
+ - started using a high performance timer on Windows for timing data
+ - printed the timer resolution on startup on Windows and Linux
+ - map download percentages are now updated once per second rather than continuously (network optimization)
+ - the bot now prints a warning when it sees a map_path with forward slashes instead of back slashes
+ - the bot now invalidates any map config that contains a map_size that doesn't match with the loaded map
+ - printed a warning when the bot detects that you're probably IP banned from battle.net
+ - fixed a bug where entering the wrong password in the admin game would cause the admin game lobby to become "bugged"
+ - fixed a bug where it was possible for the bot to attempt to connect to battle.net multiple times in a row under certain conditions
+ - fixed a bug where it was possible for the bot to print the "all games finished" message multiple times when exiting nicely under certain conditions
+ - fixed a bug where bot_maxdownloadspeed would be rounded off to the nearest ~10 KB/sec
+ - fixed a bug where TFT replays were saved as ROC and ROC replays were saved as TFT
+
 Version 16.1 (November 16, 2009)
  - fixed a bug where the bot would use 100% of available CPU time while a game was loading or lagging (introduced in version 16.0)
 
