@@ -1287,6 +1287,8 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			{
 				player->SetDeleteMe( true );
 				player->SetLeftReason( "was kicked for too many failed login attempts" );
+				player->SetLeftCode( PLAYERLEAVE_LOBBY );
+				OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 
 				// tempban for 5 seconds to prevent bruteforcing
 
