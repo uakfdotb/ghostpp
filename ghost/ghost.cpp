@@ -106,6 +106,8 @@
 
 string gCFGFile;
 string gLogFile;
+uint32_t gLogMethod;
+ofstream *gLog = NULL;
 CGHost *gGHost = NULL;
 
 uint32_t GetTime( )
@@ -173,6 +175,63 @@ void SignalCatcher( int s )
 		exit( 1 );
 }
 
+void CONSOLE_Print( string message )
+{
+	cout << message << endl;
+
+	// logging
+
+	if( !gLogFile.empty( ) )
+	{
+		if( gLogMethod == 1 )
+		{
+			ofstream Log;
+			Log.open( gLogFile.c_str( ), ios :: app );
+
+			if( !Log.fail( ) )
+			{
+				time_t Now = time( NULL );
+				string Time = asctime( localtime( &Now ) );
+
+				// erase the newline
+
+				Time.erase( Time.size( ) - 1 );
+				Log << "[" << Time << "] " << message << endl;
+				Log.close( );
+			}
+		}
+		else if( gLogMethod == 2 )
+		{
+			if( gLog && !gLog->fail( ) )
+			{
+				time_t Now = time( NULL );
+				string Time = asctime( localtime( &Now ) );
+
+				// erase the newline
+
+				Time.erase( Time.size( ) - 1 );
+				*gLog << "[" << Time << "] " << message << endl;
+				gLog->flush( );
+			}
+		}
+	}
+}
+
+void DEBUG_Print( string message )
+{
+	cout << message << endl;
+}
+
+void DEBUG_Print( BYTEARRAY b )
+{
+	cout << "{ ";
+
+	for( unsigned int i = 0; i < b.size( ); i++ )
+		cout << hex << (int)b[i] << " ";
+
+	cout << "}" << endl;
+}
+
 //
 // main
 //
@@ -189,10 +248,42 @@ int main( int argc, char **argv )
 	CConfig CFG;
 	CFG.Read( gCFGFile );
 	gLogFile = CFG.GetString( "bot_log", string( ) );
+	gLogMethod = CFG.GetInt( "bot_logmethod", 1 );
 
-	// print something for logging purposes
+	if( !gLogFile.empty( ) )
+	{
+		if( gLogMethod == 1 )
+		{
+			// log method 1: open, append, and close the log for every message
+			// this works well on Linux but poorly on Windows, particularly as the log file grows in size
+			// the log file can be edited/moved/deleted while GHost++ is running
+		}
+		else if( gLogMethod == 2 )
+		{
+			// log method 2: open the log on startup, flush the log for every message, close the log on shutdown
+			// the log file CANNOT be edited/moved/deleted while GHost++ is running
+
+			gLog = new ofstream( );
+			gLog->open( gLogFile.c_str( ), ios :: app );
+		}
+	}
 
 	CONSOLE_Print( "[GHOST] starting up" );
+
+	if( !gLogFile.empty( ) )
+	{
+		if( gLogMethod == 1 )
+			CONSOLE_Print( "[GHOST] using log method 1, logging is enabled and [" + gLogFile + "] will not be locked" );
+		else if( gLogMethod == 2 )
+		{
+			if( gLog->fail( ) )
+				CONSOLE_Print( "[GHOST] using log method 2 but unable to open [" + gLogFile + "] for appending, logging is disabled" );
+			else
+				CONSOLE_Print( "[GHOST] using log method 2, logging is enabled and [" + gLogFile + "] is now locked" );
+		}
+	}
+	else
+		CONSOLE_Print( "[GHOST] no log file specified, logging is disabled" );
 
 	// catch SIGABRT and SIGINT
 
@@ -283,47 +374,15 @@ int main( int argc, char **argv )
 	WSACleanup( );
 #endif
 
-	return 0;
-}
-
-void CONSOLE_Print( string message )
-{
-	cout << message << endl;
-
-	// logging
-
-	if( !gLogFile.empty( ) )
+	if( gLog )
 	{
-		ofstream Log;
-		Log.open( gLogFile.c_str( ), ios :: app );
+		if( !gLog->fail( ) )
+			gLog->close( );
 
-		if( !Log.fail( ) )
-		{
-			time_t Now = time( NULL );
-			string Time = asctime( localtime( &Now ) );
-
-			// erase the newline
-
-			Time.erase( Time.size( ) - 1 );
-			Log << "[" << Time << "] " << message << endl;
-			Log.close( );
-		}
+		delete gLog;
 	}
-}
 
-void DEBUG_Print( string message )
-{
-	cout << message << endl;
-}
-
-void DEBUG_Print( BYTEARRAY b )
-{
-	cout << "{ ";
-
-	for( unsigned int i = 0; i < b.size( ); i++ )
-		cout << hex << (int)b[i] << " ";
-
-	cout << "}" << endl;
+	return 0;
 }
 
 //
