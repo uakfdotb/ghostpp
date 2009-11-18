@@ -99,20 +99,33 @@
  #include <mach/mach_time.h>
 #endif
 
-time_t gStartTime;
+#ifdef WIN32
+ LARGE_INTEGER gHighPerfStart;
+ LARGE_INTEGER gHighPerfFrequency;
+#endif
+
 string gCFGFile;
 string gLogFile;
 CGHost *gGHost = NULL;
 
 uint32_t GetTime( )
 {
-	return (uint32_t)( ( GetTicks( ) / 1000 ) - gStartTime );
+	return GetTicks( ) / 1000;
 }
 
 uint32_t GetTicks( )
 {
 #ifdef WIN32
-	return GetTickCount( );
+	// don't use GetTickCount anymore because it's not accurate enough (~16ms resolution)
+	// use a high performance timer instead
+	// and make sure to always query the same processor
+	// note: this code is a LOT slower than GetTickCount, it might be better to only call it once per loop and store the result
+
+	LARGE_INTEGER HighPerfStop;
+	DWORD_PTR OldMask = SetThreadAffinityMask( GetCurrentThread( ), 0 );
+	QueryPerformanceCounter( &HighPerfStop );
+	SetThreadAffinityMask( GetCurrentThread( ), OldMask );
+	return (uint32_t)( ( HighPerfStop.QuadPart - gHighPerfStart.QuadPart ) * 1000 / gHighPerfFrequency.QuadPart );
 #elif __APPLE__
 	uint64_t current = mach_absolute_time( );
 	static mach_timebase_info_data_t info = { 0, 0 };
@@ -192,17 +205,41 @@ int main( int argc, char **argv )
 	signal( SIGPIPE, SIG_IGN );
 #endif
 
-	// initialize the start time
+#ifdef WIN32
+	// initialize high performance timer
 
-	gStartTime = 0;
-	gStartTime = GetTime( );
+	DWORD_PTR OldMask = SetThreadAffinityMask( GetCurrentThread( ), 0 );
+	
+	if( !QueryPerformanceFrequency( &gHighPerfFrequency ) )
+	{
+		// without a performance frequency we can't convert the performance counter to a meaningful value
+		// some possible solutions: revert to using GetTickCount or try another type of timer
+		// for now we just exit
+
+		CONSOLE_Print( "[GHOST] error getting Windows high performance timer resolution (error " + UTIL_ToString( GetLastError( ) ) + ")" );
+		return 1;
+	}
+
+	QueryPerformanceCounter( &gHighPerfStart );
+	SetThreadAffinityMask( GetCurrentThread( ), OldMask );
+
+	// print the timer resolution
+
+	CONSOLE_Print( "[GHOST] using Windows high performance timer with resolution " + UTIL_ToString( (double)( 1000000.0 / gHighPerfFrequency.QuadPart ), 2 ) + " microseconds" );
+#elif __APPLE__
+	// not sure how to get the resolution
+#else
+	// print the timer resolution
+
+	struct timespec Resolution;
+
+	if( clock_getres( CLOCK_MONOTONIC, &Resolution ) == -1 )
+		CONSOLE_Print( "[GHOST] error getting monotonic timer resolution" );
+	else
+		CONSOLE_Print( "[GHOST] using monotonic timer with resolution " + UTIL_ToString( (double)( Resolution.tv_nsec / 1000 ), 2 ) + " microseconds" );
+#endif
 
 #ifdef WIN32
-	// increase process priority
-
-	CONSOLE_Print( "[GHOST] setting process priority to \"above normal\"" );
-	SetPriorityClass( GetCurrentProcess( ), ABOVE_NORMAL_PRIORITY_CLASS );
-
 	// initialize winsock
 
 	CONSOLE_Print( "[GHOST] starting winsock" );
@@ -213,6 +250,11 @@ int main( int argc, char **argv )
 		CONSOLE_Print( "[GHOST] error starting winsock" );
 		return 1;
 	}
+
+	// increase process priority
+
+	CONSOLE_Print( "[GHOST] setting process priority to \"above normal\"" );
+	SetPriorityClass( GetCurrentProcess( ), ABOVE_NORMAL_PRIORITY_CLASS );
 #endif
 
 	// initialize ghost
@@ -261,7 +303,7 @@ void CONSOLE_Print( string message )
 			string Time = asctime( localtime( &Now ) );
 
 			// erase the newline
-			
+
 			Time.erase( Time.size( ) - 1 );
 			Log << "[" << Time << "] " << message << endl;
 			Log.close( );
@@ -719,7 +761,7 @@ bool CGHost :: Update( long usecBlock )
 	// it's a bit ridiculous to include this check since, in theory, the bot is programmed well enough to never make this mistake
 	// however, considering who programmed it, it's worthwhile to do it anyway
 
-	if( usecBlock == 0 )
+	if( usecBlock < 1000 )
 		usecBlock = 1000;
 
 	struct timeval tv;
