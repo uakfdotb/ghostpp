@@ -440,6 +440,10 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		// the socket has an error
 
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] disconnected from battle.net due to socket error" );
+
+		if( m_Socket->GetError( ) == ECONNRESET && GetTime( ) - m_LastConnectionAttemptTime <= 15 )
+			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] warning - you are probably temporarily IP banned from battle.net" );
+
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] waiting 90 seconds to reconnect" );
 		m_GHost->EventBNETDisconnected( this );
 		delete m_BNLSClient;
