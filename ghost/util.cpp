@@ -105,16 +105,13 @@ string UTIL_ByteArrayToDecString( BYTEARRAY b )
 
 string UTIL_ByteArrayToHexString( BYTEARRAY b )
 {
-	string result;
+	if( b.empty( ) )
+		return string( );
 
-	for( BYTEARRAY :: iterator i = b.begin( ); i != b.end( ); i++ )
-	{
-		string Next;
-		stringstream SS;
-		SS << *i;
-		SS >> hex >> Next;
-		result += Next;
-	}
+	string result = UTIL_ToHexString( b[0] );
+
+	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); i++ )
+		result += " " + UTIL_ToHexString( *i );
 
 	return result;
 }
