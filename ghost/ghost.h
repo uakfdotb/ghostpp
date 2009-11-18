@@ -74,6 +74,7 @@ public:
 	bool m_AutoHostMatchMaking;
 	double m_AutoHostMinimumScore;
 	double m_AutoHostMaximumScore;
+	bool m_AllGamesFinished;				// if all games finished (used when exiting nicely)
 	uint32_t m_AllGamesFinishedTime;		// GetTime when all games finished (used when exiting nicely)
 	string m_LanguageFile;					// config value: language file
 	string m_Warcraft3Path;					// config value: Warcraft 3 path

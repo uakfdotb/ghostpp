@@ -492,6 +492,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMatchMaking = false;
 	m_AutoHostMinimumScore = 0.0;
 	m_AutoHostMaximumScore = 0.0;
+	m_AllGamesFinished = false;
 	m_AllGamesFinishedTime = 0;
 	m_TFT = CFG->GetInt( "bot_tft", 1 ) == 0 ? false : true;
 
@@ -737,10 +738,11 @@ bool CGHost :: Update( long usecBlock )
 
 		if( m_Games.empty( ) )
 		{
-			if( m_AllGamesFinishedTime == 0 )
+			if( !m_AllGamesFinished )
 			{
 				CONSOLE_Print( "[GHOST] all games finished, waiting 60 seconds for threads to finish" );
 				CONSOLE_Print( "[GHOST] there are " + UTIL_ToString( m_Callables.size( ) ) + " threads in progress" );
+				m_AllGamesFinished = true;
 				m_AllGamesFinishedTime = GetTime( );
 			}
 			else
