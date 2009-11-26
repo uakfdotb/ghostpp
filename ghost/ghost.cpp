@@ -99,11 +99,6 @@
  #include <mach/mach_time.h>
 #endif
 
-#ifdef WIN32
- LARGE_INTEGER gHighPerfStart;
- LARGE_INTEGER gHighPerfFrequency;
-#endif
-
 string gCFGFile;
 string gLogFile;
 uint32_t gLogMethod;
@@ -119,15 +114,10 @@ uint32_t GetTicks( )
 {
 #ifdef WIN32
 	// don't use GetTickCount anymore because it's not accurate enough (~16ms resolution)
-	// use a high performance timer instead
-	// and make sure to always query the same processor
-	// note: this code is a LOT slower than GetTickCount, it might be better to only call it once per loop and store the result
+	// don't use QueryPerformanceCounter anymore because it isn't guaranteed to be strictly increasing on some systems and thus requires "smoothing" code
+	// use timeGetTime instead, which typically has a high resolution (5ms or more) but we request a lower resolution on startup
 
-	LARGE_INTEGER HighPerfStop;
-	DWORD_PTR OldMask = SetThreadAffinityMask( GetCurrentThread( ), 0 );
-	QueryPerformanceCounter( &HighPerfStop );
-	SetThreadAffinityMask( GetCurrentThread( ), OldMask );
-	return (uint32_t)( ( HighPerfStop.QuadPart - gHighPerfStart.QuadPart ) * 1000 / gHighPerfFrequency.QuadPart );
+	return timeGetTime( );
 #elif __APPLE__
 	uint64_t current = mach_absolute_time( );
 	static mach_timebase_info_data_t info = { 0, 0 };
@@ -297,26 +287,28 @@ int main( int argc, char **argv )
 #endif
 
 #ifdef WIN32
-	// initialize high performance timer
+	// initialize timer resolution
+	// attempt to set the resolution as low as possible from 1ms to 5ms
 
-	DWORD_PTR OldMask = SetThreadAffinityMask( GetCurrentThread( ), 0 );
-	
-	if( !QueryPerformanceFrequency( &gHighPerfFrequency ) )
+	unsigned int TimerResolution = 0;
+
+	for( unsigned int i = 1; i <= 5; i++ )
 	{
-		// without a performance frequency we can't convert the performance counter to a meaningful value
-		// some possible solutions: revert to using GetTickCount or try another type of timer
-		// for now we just exit
-
-		CONSOLE_Print( "[GHOST] error getting Windows high performance timer resolution (error " + UTIL_ToString( GetLastError( ) ) + ")" );
-		return 1;
+		if( timeBeginPeriod( i ) == TIMERR_NOERROR )
+		{
+			TimerResolution = i;
+			break;
+		}
+		else if( i < 5 )
+			CONSOLE_Print( "[GHOST] error setting Windows timer resolution to " + UTIL_ToString( i ) + " milliseconds, trying a higher resolution" );
+		else
+		{
+			CONSOLE_Print( "[GHOST] error setting Windows timer resolution" );
+			return 1;
+		}
 	}
 
-	QueryPerformanceCounter( &gHighPerfStart );
-	SetThreadAffinityMask( GetCurrentThread( ), OldMask );
-
-	// print the timer resolution
-
-	CONSOLE_Print( "[GHOST] using Windows high performance timer with resolution " + UTIL_ToString( (double)( 1000000.0 / gHighPerfFrequency.QuadPart ), 2 ) + " microseconds" );
+	CONSOLE_Print( "[GHOST] using Windows timer with resolution " + UTIL_ToString( TimerResolution ) + " milliseconds" );
 #elif __APPLE__
 	// not sure how to get the resolution
 #else
@@ -372,6 +364,10 @@ int main( int argc, char **argv )
 
 	CONSOLE_Print( "[GHOST] shutting down winsock" );
 	WSACleanup( );
+
+	// shutdown timer
+
+	timeEndPeriod( TimerResolution );
 #endif
 
 	if( gLog )

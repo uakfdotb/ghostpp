@@ -1328,6 +1328,9 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 		Action.push_back( 6 );
 		UTIL_AppendByteArray( Action, SaveGameName );
 		m_Actions.push( new CIncomingAction( player->GetPID( ), CRC, Action ) );
+
+		// todotodo: with the new latency system there needs to be a way to send a 0-time action
+
 		SendAllActions( );
 	}
 
