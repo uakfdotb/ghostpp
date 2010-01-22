@@ -685,7 +685,7 @@ If sent via any game lobby or any game the bot will respond with a private messa
 
 !a                      alias to !abort
 !abort                  abort countdown
-!addban <name> <reason> add a new ban to the database (it tries to do a partial match)
+!addban <name> [reason] add a new ban to the database (it tries to do a partial match)
 !announce <sec> <msg>   set the announce message (the bot will print <msg> every <sec> seconds), leave blank or "off" to disable the announce message
 !autostart <players>    auto start the game when the specified number of players have joined, leave blank or "off" to disable auto start
 !autosave <on/off>      enable or disable autosaving
@@ -739,7 +739,7 @@ If sent via any game lobby or any game the bot will respond with a private messa
 
 *** In game:
 
-!addban <name> <reason> add a new ban to the database (it tries to do a partial match)
+!addban <name> [reason] add a new ban to the database (it tries to do a partial match)
 !autosave <on/off>      enable or disable autosaving
 !ban                    alias to !addban
 !banlast <reason>       ban the last leaver
