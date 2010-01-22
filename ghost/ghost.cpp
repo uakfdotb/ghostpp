@@ -1258,7 +1258,7 @@ void CGHost :: ExtractScripts( )
 		SFileCloseArchive( PatchMPQ );
 	}
 	else
-		CONSOLE_Print( "[GHOST] warning - unable to load MPQ file [" + PatchMPQFileName + "]" );
+		CONSOLE_Print( "[GHOST] warning - unable to load MPQ file [" + PatchMPQFileName + "] - error code " + UTIL_ToString( GetLastError( ) ) );
 }
 
 void CGHost :: LoadIPToCountryData( )
