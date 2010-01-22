@@ -575,7 +575,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				// note: the throughput is also limited by the number of times this code is executed each second
 				// e.g. if we send the maximum amount (140 KB) 10 times per second the theoretical throughput is 1400 KB/sec
 				// therefore the maximum throughput is 1400 KB/sec regardless of ping and this value slowly diminishes as the player's ping increases
-				// in addition to this, the througput is limited by the configuration value bot_maxdownloadspeed
+				// in addition to this, the throughput is limited by the configuration value bot_maxdownloadspeed
 				// in summary: the actual throughput is MIN( 140 * 1000 / ping, 1400, bot_maxdownloadspeed ) in KB/sec assuming only one player is downloading the map
 
 				uint32_t MapSize = UTIL_ByteArrayToUInt32( m_Map->GetMapSize( ), false );
