@@ -1,5 +1,5 @@
 ====================
-GHost++ Version 16.2
+GHost++ Version 17.0
 ====================
 
 GHost++ is a port of the original GHost project to C++. It was ported by Trevor Hogan.
@@ -708,7 +708,7 @@ If sent via any game lobby or any game the bot will respond with a private messa
 !hcl <string>           set the HCL command string
 !hold <name> ...        hold a slot for someone
 !kick <name>            kick a player (it tries to do a partial match)
-!latency <number>       set game latency (50-500), leave blank to see current latency
+!latency <number>       set game latency (20-500), leave blank to see current latency
 !lock                   lock the game so only the game owner can run commands
 !messages <on/off>      enable or disable local admin messages for this game (battle.net messages relayed to local admins in game)
 !mute <name>            mute a player (it tries to do a partial match)
@@ -752,7 +752,7 @@ If sent via any game lobby or any game the bot will respond with a private messa
 !fpresume               force the FakePlayer (if it exists) to resume the game
 !from                   display the country each player is from
 !kick <name>            kick a player (it tries to do a partial match)
-!latency <number>       set game latency (50-500), leave blank to see current latency
+!latency <number>       set game latency (20-500), leave blank to see current latency
 !lock                   lock the game so only the game owner can run commands
 !messages <on/off>      enable or disable local admin messages for this game (battle.net messages relayed to local admins in game)
 !mute <name>            mute a player (it tries to do a partial match)

@@ -2,6 +2,17 @@
 GHost++ Changelog
 =================
 
+Version 17.0 (February 25, 2010)
+ - added support for connections from reconnect tools such as GProxy++
+ - added new config value bot_reconnect
+ - added new config value bot_reconnectport
+ - added new config value bot_reconnectwaittime
+ - switched to another timing method on Windows to avoid "timer jitter" which caused occasional lag spikes
+ - players who are lagging are now detected based on an absolute count rather than a relative count of packets
+  * previously a player was considered lagging if they fell behind relative to another player
+  * a player is now considered lagging if they fall behind relative to the server itself
+ - changed "forum.codelain.com" to "www.codelain.com" in multiple places
+
 Version 16.2 (November 18, 2009)
  - added the option to lock the log file for faster logging, particularly on Windows
  - added new config value bot_logmethod (defaults to 1)
