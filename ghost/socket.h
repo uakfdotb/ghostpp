@@ -131,6 +131,7 @@ class CTCPSocket : public CSocket
 {
 protected:
 	bool m_Connected;
+	string m_LogFile;
 
 private:
 	string m_RecvBuffer;
@@ -148,12 +149,15 @@ public:
 	virtual string *GetBytes( )					{ return &m_RecvBuffer; }
 	virtual void PutBytes( string bytes );
 	virtual void PutBytes( BYTEARRAY bytes );
+	virtual void ClearRecvBuffer( )				{ m_RecvBuffer.clear( ); }
+	virtual void ClearSendBuffer( )				{ m_SendBuffer.clear( ); }
 	virtual uint32_t GetLastRecv( )				{ return m_LastRecv; }
 	virtual uint32_t GetLastSend( )				{ return m_LastSend; }
 	virtual void DoRecv( fd_set *fd );
 	virtual void DoSend( fd_set *send_fd );
 	virtual void Disconnect( );
 	virtual void SetNoDelay( bool noDelay );
+	virtual void SetLogFile( string nLogFile )	{ m_LogFile = nLogFile; }
 };
 
 //

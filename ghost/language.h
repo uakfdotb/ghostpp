@@ -247,6 +247,13 @@ public:
 	string CommandTrigger( string trigger );
 	string CantEndGameOwnerIsStillPlaying( string owner );
 	string CantUnhostGameOwnerIsPresent( string owner );
+	string WasAutomaticallyDroppedAfterSeconds( string seconds );
+	string HasLostConnectionTimedOutGProxy( );
+	string HasLostConnectionSocketErrorGProxy( string error );
+	string HasLostConnectionClosedByRemoteHostGProxy( );
+	string WaitForReconnectSecondsRemain( string seconds );
+	string WasUnrecoverablyDroppedFromGProxy( );
+	string PlayerReconnectedWithGProxy( string name );
 };
 
 #endif

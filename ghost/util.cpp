@@ -111,7 +111,12 @@ string UTIL_ByteArrayToHexString( BYTEARRAY b )
 	string result = UTIL_ToHexString( b[0] );
 
 	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); i++ )
-		result += " " + UTIL_ToHexString( *i );
+	{
+		if( *i < 16 )
+			result += " 0" + UTIL_ToHexString( *i );
+		else
+			result += " " + UTIL_ToHexString( *i );
+	}
 
 	return result;
 }

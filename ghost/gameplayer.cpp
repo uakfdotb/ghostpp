@@ -27,6 +27,7 @@
 #include "map.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
+#include "gpsprotocol.h"
 #include "game_base.h"
 
 //
@@ -107,9 +108,7 @@ void CPotentialPlayer :: ExtractPackets( )
 
 	while( Bytes.size( ) >= 4 )
 	{
-		// byte 0 is always 247
-
-		if( Bytes[0] == W3GS_HEADER_CONSTANT )
+		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT )
 		{
 			// bytes 2 and 3 contain the length of the packet
 
@@ -119,7 +118,7 @@ void CPotentialPlayer :: ExtractPackets( )
 			{
 				if( Bytes.size( ) >= Length )
 				{
-					m_Packets.push( new CCommandPacket( W3GS_HEADER_CONSTANT, Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
+					m_Packets.push( new CCommandPacket( Bytes[0], Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
 					*RecvBuffer = RecvBuffer->substr( Length );
 					Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
 				}
@@ -180,6 +179,12 @@ void CPotentialPlayer :: ProcessPackets( )
 	}
 }
 
+void CPotentialPlayer :: Send( BYTEARRAY data )
+{
+	if( m_Socket )
+		m_Socket->PutBytes( data );
+}
+
 //
 // CGamePlayer
 //
@@ -190,6 +195,8 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_Name = nName;
 	m_InternalIP = nInternalIP;
 	m_JoinedRealm = nJoinedRealm;
+	m_TotalPacketsSent = 0;
+	m_TotalPacketsReceived = 0;
 	m_LeftCode = PLAYERLEAVE_LOBBY;
 	m_LoginAttempts = 0;
 	m_SyncCounter = 0;
@@ -202,6 +209,7 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_StartedLaggingTicks = 0;
 	m_StatsSentTime = 0;
 	m_StatsDotASentTime = 0;
+	m_LastGProxyWaitNoticeSentTime = 0;
 	m_Score = -100000.0;
 	m_LoggedIn = false;
 	m_Spoofed = false;
@@ -217,6 +225,10 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_KickVote = false;
 	m_Muted = false;
 	m_LeftMessageSent = false;
+	m_GProxy = false;
+	m_GProxyDisconnectNoticeSent = false;
+	m_GProxyReconnectKey = GetTicks( );
+	m_LastGProxyAckTime = 0;
 }
 
 CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) )
@@ -229,6 +241,14 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_Name = nName;
 	m_InternalIP = nInternalIP;
 	m_JoinedRealm = nJoinedRealm;
+	m_TotalPacketsSent = 0;
+
+	// hackhack: we initialize this to 1 because the CPotentialPlayer must have received a W3GS_REQJOIN before this class was created
+	// to fix this we could move the packet counters to CPotentialPlayer and copy them here
+	// note: we must make sure we never send a packet to a CPotentialPlayer otherwise the send counter will be incorrect too! what a mess this is...
+	// that said, the packet counters are only used for managing GProxy++ reconnections
+
+	m_TotalPacketsReceived = 1;
 	m_LeftCode = PLAYERLEAVE_LOBBY;
 	m_LoginAttempts = 0;
 	m_SyncCounter = 0;
@@ -241,6 +261,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_StartedLaggingTicks = 0;
 	m_StatsSentTime = 0;
 	m_StatsDotASentTime = 0;
+	m_LastGProxyWaitNoticeSentTime = 0;
 	m_Score = -100000.0;
 	m_LoggedIn = false;
 	m_Spoofed = false;
@@ -256,6 +277,10 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_KickVote = false;
 	m_Muted = false;
 	m_LeftMessageSent = false;
+	m_GProxy = false;
+	m_GProxyDisconnectNoticeSent = false;
+	m_GProxyReconnectKey = GetTicks( );
+	m_LastGProxyAckTime = 0;
 }
 
 CGamePlayer :: ~CGamePlayer( )
@@ -335,29 +360,93 @@ bool CGamePlayer :: Update( void *fd )
 	if( m_Socket && GetTime( ) - m_Socket->GetLastRecv( ) >= 30 )
 		m_Game->EventPlayerDisconnectTimedOut( this );
 
+	// GProxy++ acks
+
+	if( m_GProxy && GetTime( ) - m_LastGProxyAckTime >= 10 )
+	{
+		if( m_Socket )
+			m_Socket->PutBytes( m_Game->m_GHost->m_GPSProtocol->SEND_GPSS_ACK( m_TotalPacketsReceived ) );
+
+		m_LastGProxyAckTime = GetTime( );
+	}
+
 	// base class update
 
-	bool Deleting = CPotentialPlayer :: Update( fd );
+	CPotentialPlayer :: Update( fd );
+	bool Deleting;
 
-	if( Deleting )
+	if( m_GProxy && m_Game->GetGameLoaded( ) )
+		Deleting = m_DeleteMe || m_Error;
+	else
+		Deleting = m_DeleteMe || m_Error || m_Socket->HasError( ) || !m_Socket->GetConnected( );
+
+	// try to find out why we're requesting deletion
+	// in cases other than the ones covered here m_LeftReason should have been set when m_DeleteMe was set
+
+	if( m_Error )
+		m_Game->EventPlayerDisconnectPlayerError( this );
+
+	if( m_Socket )
 	{
-		// try to find out why we're requesting deletion
-		// in cases other than the ones covered here m_LeftReason should have been set when m_DeleteMe was set
+		if( m_Socket->HasError( ) )
+			m_Game->EventPlayerDisconnectSocketError( this );
 
-		if( m_Error )
-			m_Game->EventPlayerDisconnectPlayerError( this );
-
-		if( m_Socket )
-		{
-			if( m_Socket->HasError( ) )
-				m_Game->EventPlayerDisconnectSocketError( this );
-
-			if( !m_Socket->GetConnected( ) )
-				m_Game->EventPlayerDisconnectConnectionClosed( this );
-		}
+		if( !m_Socket->GetConnected( ) )
+			m_Game->EventPlayerDisconnectConnectionClosed( this );
 	}
 
 	return Deleting;
+}
+
+void CGamePlayer :: ExtractPackets( )
+{
+	if( !m_Socket )
+		return;
+
+	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets queue
+
+	string *RecvBuffer = m_Socket->GetBytes( );
+	BYTEARRAY Bytes = UTIL_CreateByteArray( (unsigned char *)RecvBuffer->c_str( ), RecvBuffer->size( ) );
+
+	// a packet is at least 4 bytes so loop as long as the buffer contains 4 bytes
+
+	while( Bytes.size( ) >= 4 )
+	{
+		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT )
+		{
+			// bytes 2 and 3 contain the length of the packet
+
+			uint16_t Length = UTIL_ByteArrayToUInt16( Bytes, false, 2 );
+
+			if( Length >= 4 )
+			{
+				if( Bytes.size( ) >= Length )
+				{
+					m_Packets.push( new CCommandPacket( Bytes[0], Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
+
+					if( Bytes[0] == W3GS_HEADER_CONSTANT )
+						m_TotalPacketsReceived++;
+
+					*RecvBuffer = RecvBuffer->substr( Length );
+					Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
+				}
+				else
+					return;
+			}
+			else
+			{
+				m_Error = true;
+				m_ErrorString = "received invalid packet from player (bad length)";
+				return;
+			}
+		}
+		else
+		{
+			m_Error = true;
+			m_ErrorString = "received invalid packet from player (bad header constant)";
+			return;
+		}
+	}
 }
 
 void CGamePlayer :: ProcessPackets( )
@@ -384,9 +473,7 @@ void CGamePlayer :: ProcessPackets( )
 			switch( Packet->GetID( ) )
 			{
 			case CGameProtocol :: W3GS_LEAVEGAME:
-				if( m_Protocol->RECEIVE_W3GS_LEAVEGAME( Packet->GetData( ) ) )
-					m_Game->EventPlayerLeft( this );
-
+				m_Game->EventPlayerLeft( this, m_Protocol->RECEIVE_W3GS_LEAVEGAME( Packet->GetData( ) ) );
 				break;
 
 			case CGameProtocol :: W3GS_GAMELOADED_SELF:
@@ -483,7 +570,102 @@ void CGamePlayer :: ProcessPackets( )
 				break;
 			}
 		}
+		else if( Packet->GetPacketType( ) == GPS_HEADER_CONSTANT )
+		{
+			BYTEARRAY Data = Packet->GetData( );
+
+			if( Packet->GetID( ) == CGPSProtocol :: GPS_INIT )
+			{
+				if( m_Game->m_GHost->m_Reconnect )
+				{
+					m_GProxy = true;
+					m_Socket->PutBytes( m_Game->m_GHost->m_GPSProtocol->SEND_GPSS_INIT( m_Game->m_GHost->m_ReconnectPort, m_PID, m_GProxyReconnectKey, m_Game->GetGProxyEmptyActions( ) ) );
+					CONSOLE_Print( "[GAME: " + m_Game->GetGameName( ) + "] player [" + m_Name + "] is using GProxy++" );
+				}
+				else
+				{
+					// todotodo: send notice that we're not permitting reconnects
+					// note: GProxy++ should never send a GPS_INIT message if bot_reconnect = 0 because we don't advertise the game with invalid map dimensions
+					// but it would be nice to cover this case anyway
+				}
+			}
+			else if( Packet->GetID( ) == CGPSProtocol :: GPS_RECONNECT )
+			{
+				// this is handled in ghost.cpp
+			}
+			else if( Packet->GetID( ) == CGPSProtocol :: GPS_ACK && Data.size( ) == 8 )
+			{
+				uint32_t LastPacket = UTIL_ByteArrayToUInt32( Data, false, 4 );
+				uint32_t PacketsAlreadyUnqueued = m_TotalPacketsSent - m_GProxyBuffer.size( );
+
+				if( LastPacket > PacketsAlreadyUnqueued )
+				{
+					uint32_t PacketsToUnqueue = LastPacket - PacketsAlreadyUnqueued;
+
+					if( PacketsToUnqueue > m_GProxyBuffer.size( ) )
+						PacketsToUnqueue = m_GProxyBuffer.size( );
+
+					while( PacketsToUnqueue > 0 )
+					{
+						m_GProxyBuffer.pop( );
+						PacketsToUnqueue--;
+					}
+				}
+			}
+		}
 
 		delete Packet;
 	}
+}
+
+void CGamePlayer :: Send( BYTEARRAY data )
+{
+	// must start counting packet total from beginning of connection
+	// but we can avoid buffering packets until we know the client is using GProxy++ since that'll be determined before the game starts
+	// this prevents us from buffering packets for non-GProxy++ clients
+
+	m_TotalPacketsSent++;
+
+	if( m_GProxy && m_Game->GetGameLoaded( ) )
+		m_GProxyBuffer.push( data );
+
+	CPotentialPlayer :: Send( data );
+}
+
+void CGamePlayer :: EventGProxyReconnect( CTCPSocket *NewSocket, uint32_t LastPacket )
+{
+	delete m_Socket;
+	m_Socket = NewSocket;
+	m_Socket->PutBytes( m_Game->m_GHost->m_GPSProtocol->SEND_GPSS_RECONNECT( m_TotalPacketsReceived ) );
+
+	uint32_t PacketsAlreadyUnqueued = m_TotalPacketsSent - m_GProxyBuffer.size( );
+
+	if( LastPacket > PacketsAlreadyUnqueued )
+	{
+		uint32_t PacketsToUnqueue = LastPacket - PacketsAlreadyUnqueued;
+
+		if( PacketsToUnqueue > m_GProxyBuffer.size( ) )
+			PacketsToUnqueue = m_GProxyBuffer.size( );
+
+		while( PacketsToUnqueue > 0 )
+		{
+			m_GProxyBuffer.pop( );
+			PacketsToUnqueue--;
+		}
+	}
+
+	// send remaining packets from buffer, preserve buffer
+
+	queue<BYTEARRAY> TempBuffer;
+
+	while( !m_GProxyBuffer.empty( ) )
+	{
+		m_Socket->PutBytes( m_GProxyBuffer.front( ) );
+		TempBuffer.push( m_GProxyBuffer.front( ) );
+		m_GProxyBuffer.pop( );
+	}
+
+	m_GProxyBuffer = TempBuffer;
+	m_GProxyDisconnectNoticeSent = false;
+	m_Game->SendAllChat( m_Game->m_GHost->m_Language->PlayerReconnectedWithGProxy( m_Name ) );
 }

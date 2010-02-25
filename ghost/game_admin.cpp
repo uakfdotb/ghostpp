@@ -279,7 +279,7 @@ void CAdminGame :: SendAdminChat( string message )
 
 void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 {
-	SendChat( player, "GHost++ Admin Game                    http://forum.codelain.com/" );
+	SendChat( player, "GHost++ Admin Game                     http://www.codelain.com/" );
 	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 	SendChat( player, "Commands: addadmin, autohost, autohostmm, checkadmin" );
 	SendChat( player, "Commands: checkban, countadmins, countbans, deladmin" );

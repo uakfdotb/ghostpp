@@ -412,6 +412,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gpsprotocol.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\language.cpp"
 				>
 			</File>
@@ -539,6 +543,10 @@
 			</File>
 			<File
 				RelativePath=".\ghostdbsqlite.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gpsprotocol.h"
 				>
 			</File>
 			<File

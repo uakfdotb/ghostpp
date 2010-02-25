@@ -204,6 +204,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 
 	m_ReplayLength = 0;
 	uint32_t TimeSlotsDiscarded = 0;
+	bool EndOfTimeSlots = false;
 
 	while( !m_Blocks.empty( ) )
 	{
@@ -212,7 +213,12 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 
 		if( Block.size( ) >= 5 && Block[0] == REPLAY_TIMESLOT )
 		{
-			if( m_CheckSums.empty( ) )
+			uint16_t TimeIncrement = UTIL_ByteArrayToUInt16( Block, false, 3 );
+
+			if( TimeIncrement != 0 && m_CheckSums.empty( ) )
+				EndOfTimeSlots = true;
+
+			if( EndOfTimeSlots )
 			{
 				TimeSlotsDiscarded++;
 				continue;
@@ -223,18 +229,25 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 			UTIL_AppendByteArrayFast( Replay, Block );
 
 			// append checksum
+			// todotodo: after experimenting, Strilanc discovered that checksums are NOT required in replays
+			// we could optimize saving of replays by building a complete stream without waiting for checksums as the game progresses
+			// alternatively, we could build that stream as the checksums were added if we wanted to keep them
+			// rather than building it in one go right now, which might take a few hundred ms and cause a spike in other games
 
-			BYTEARRAY CheckSum;
-			CheckSum.reserve( 6 );
-			CheckSum.push_back( REPLAY_CHECKSUM );
-			CheckSum.push_back( 4 );
-			UTIL_AppendByteArray( CheckSum, m_CheckSums.front( ), false );
-			m_CheckSums.pop( );
-			UTIL_AppendByteArrayFast( Replay, CheckSum );
+			if( TimeIncrement != 0 )
+			{
+				BYTEARRAY CheckSum;
+				CheckSum.reserve( 6 );
+				CheckSum.push_back( REPLAY_CHECKSUM );
+				CheckSum.push_back( 4 );
+				UTIL_AppendByteArray( CheckSum, m_CheckSums.front( ), false );
+				m_CheckSums.pop( );
+				UTIL_AppendByteArrayFast( Replay, CheckSum );
+			}
 
 			// accumulate replay length
 
-			m_ReplayLength += UTIL_ByteArrayToUInt16( Block, false, 3 );
+			m_ReplayLength += TimeIncrement;
 		}
 		else
 			UTIL_AppendByteArrayFast( Replay, Block );

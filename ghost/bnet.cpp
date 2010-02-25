@@ -2339,13 +2339,20 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapGameType.push_back( 10 );
 			MapGameType.push_back( 0 );
 			MapGameType.push_back( 0 );
+
+			// use an invalid map width/height to indicate reconnectable games
+
 			BYTEARRAY MapWidth;
-			MapWidth.push_back( 0 );
-			MapWidth.push_back( 0 );
+			MapWidth.push_back( 192 );
+			MapWidth.push_back( 7 );
 			BYTEARRAY MapHeight;
-			MapHeight.push_back( 0 );
-			MapHeight.push_back( 0 );
-			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+			MapHeight.push_back( 192 );
+			MapHeight.push_back( 7 );
+
+			if( m_GHost->m_Reconnect )
+				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+			else
+				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 		}
 		else
 		{
@@ -2353,7 +2360,20 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapGameType.push_back( 32 );
 			MapGameType.push_back( 73 );
 			MapGameType.push_back( 0 );
-			m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+
+			// use an invalid map width/height to indicate reconnectable games
+
+			BYTEARRAY MapWidth;
+			MapWidth.push_back( 192 );
+			MapWidth.push_back( 7 );
+			BYTEARRAY MapHeight;
+			MapHeight.push_back( 192 );
+			MapHeight.push_back( 7 );
+
+			if( m_GHost->m_Reconnect )
+				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+			else
+				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, MapGameType, map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 		}
 	}
 }

@@ -67,6 +67,7 @@ protected:
 	unsigned char m_GameState;						// game state, public or private
 	unsigned char m_VirtualHostPID;					// virtual host's PID
 	unsigned char m_FakePlayerPID;					// the fake player's PID (if present)
+	unsigned char m_GProxyEmptyActions;
 	string m_GameName;								// game name
 	string m_LastGameName;							// last game name (the previous game name before it was rehosted)
 	string m_VirtualHostName;						// virtual host's name
@@ -81,7 +82,7 @@ protected:
 	uint32_t m_HostCounter;							// a unique game number
 	uint32_t m_Latency;								// the number of ms to wait between sending action packets (we queue any received during this time)
 	uint32_t m_SyncLimit;							// the maximum number of packets a player can fall out of sync before starting the lag screen
-	uint32_t m_MaxSyncCounter;						// the largest number of keepalives received from any one player (for determining if anyone is lagging)
+	uint32_t m_SyncCounter;							// the number of actions sent so far (for determining if anyone is lagging)
 	uint32_t m_GameTicks;							// ingame ticks
 	uint32_t m_CreationTime;						// GetTime when the game was created
 	uint32_t m_LastPingTime;						// GetTime when the last ping was sent
@@ -97,7 +98,7 @@ protected:
 	uint32_t m_CountDownCounter;					// the countdown is finished when this reaches zero
 	uint32_t m_StartedLoadingTicks;					// GetTicks when the game started loading
 	uint32_t m_StartPlayers;						// number of players when the game started
-	uint32_t m_LastLoadInGameResetTime;				// GetTime when the "lag" screen was last reset when using load-in-game
+	uint32_t m_LastLagScreenResetTime;				// GetTime when the "lag" screen was last reset
 	uint32_t m_LastActionSentTicks;					// GetTicks when the last action packet was sent
 	uint32_t m_LastActionLateBy;					// the number of ticks we were late sending the last action packet by
 	uint32_t m_StartedLaggingTime;					// GetTime when the last lag screen started
@@ -133,6 +134,7 @@ public:
 	virtual CSaveGame *GetSaveGame( )				{ return m_SaveGame; }
 	virtual uint16_t GetHostPort( )					{ return m_HostPort; }
 	virtual unsigned char GetGameState( )			{ return m_GameState; }
+	virtual unsigned char GetGProxyEmptyActions( )	{ return m_GProxyEmptyActions; }
 	virtual string GetGameName( )					{ return m_GameName; }
 	virtual string GetLastGameName( )				{ return m_LastGameName; }
 	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
@@ -206,7 +208,7 @@ public:
 	virtual void EventPlayerDisconnectConnectionClosed( CGamePlayer *player );
 	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
 	virtual void EventPlayerJoinedWithScore( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score );
-	virtual void EventPlayerLeft( CGamePlayer *player );
+	virtual void EventPlayerLeft( CGamePlayer *player, uint32_t reason );
 	virtual void EventPlayerLoaded( CGamePlayer *player );
 	virtual void EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
 	virtual void EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum );

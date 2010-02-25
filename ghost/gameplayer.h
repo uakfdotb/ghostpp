@@ -69,6 +69,10 @@ public:
 	virtual bool Update( void *fd );
 	virtual void ExtractPackets( );
 	virtual void ProcessPackets( );
+
+	// other functions
+
+	virtual void Send( BYTEARRAY data );
 };
 
 //
@@ -86,6 +90,8 @@ private:
 	string m_LeftReason;						// the reason the player left the game
 	string m_SpoofedRealm;						// the realm the player last spoof checked on
 	string m_JoinedRealm;						// the realm the player joined on (probable, can be spoofed)
+	uint32_t m_TotalPacketsSent;
+	uint32_t m_TotalPacketsReceived;
 	uint32_t m_LeftCode;						// the code to be sent in W3GS_PLAYERLEAVE_OTHERS for why this player left the game
 	uint32_t m_LoginAttempts;					// the number of attempts to login (used with CAdminGame only)
 	uint32_t m_SyncCounter;						// the number of keepalive packets received from this player
@@ -98,6 +104,7 @@ private:
 	uint32_t m_StartedLaggingTicks;				// GetTicks when the player started lagging
 	uint32_t m_StatsSentTime;					// GetTime when we sent this player's stats to the chat (to prevent players from spamming !stats)
 	uint32_t m_StatsDotASentTime;				// GetTime when we sent this player's dota stats to the chat (to prevent players from spamming !statsdota)
+	uint32_t m_LastGProxyWaitNoticeSentTime;
 	BYTEARRAY m_LoadInGameData;					// queued data to be sent when the player finishes loading when using "load in game"
 	double m_Score;								// the player's generic "score" for the matchmaking algorithm
 	bool m_LoggedIn;							// if the player has logged in or not (used with CAdminGame only)
@@ -114,75 +121,86 @@ private:
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_Muted;								// if the player is muted or not
 	bool m_LeftMessageSent;						// if the playerleave message has been sent or not
+	bool m_GProxy;								// if the player is using GProxy++
+	bool m_GProxyDisconnectNoticeSent;			// if a disconnection notice has been sent or not when using GProxy++
+	queue<BYTEARRAY> m_GProxyBuffer;
+	uint32_t m_GProxyReconnectKey;
+	uint32_t m_LastGProxyAckTime;
 
 public:
 	CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
 	CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
 	virtual ~CGamePlayer( );
 
-	unsigned char GetPID( )					{ return m_PID; }
-	string GetName( )						{ return m_Name; }
-	BYTEARRAY GetInternalIP( )				{ return m_InternalIP; }
-	unsigned int GetNumPings( )				{ return m_Pings.size( ); }
-	unsigned int GetNumCheckSums( )			{ return m_CheckSums.size( ); }
-	queue<uint32_t> *GetCheckSums( )		{ return &m_CheckSums; }
-	string GetLeftReason( )					{ return m_LeftReason; }
-	string GetSpoofedRealm( )				{ return m_SpoofedRealm; }
-	string GetJoinedRealm( )				{ return m_JoinedRealm; }
-	uint32_t GetLeftCode( )					{ return m_LeftCode; }
-	uint32_t GetLoginAttempts( )			{ return m_LoginAttempts; }
-	uint32_t GetSyncCounter( )				{ return m_SyncCounter; }
-	uint32_t GetJoinTime( )					{ return m_JoinTime; }
-	uint32_t GetLastMapPartSent( )			{ return m_LastMapPartSent; }
-	uint32_t GetLastMapPartAcked( )			{ return m_LastMapPartAcked; }
-	uint32_t GetStartedDownloadingTicks( )	{ return m_StartedDownloadingTicks; }
-	uint32_t GetFinishedDownloadingTime( )	{ return m_FinishedDownloadingTime; }
-	uint32_t GetFinishedLoadingTicks( )		{ return m_FinishedLoadingTicks; }
-	uint32_t GetStartedLaggingTicks( )		{ return m_StartedLaggingTicks; }
-	uint32_t GetStatsSentTime( )			{ return m_StatsSentTime; }
-	uint32_t GetStatsDotASentTime( )		{ return m_StatsDotASentTime; }
-	BYTEARRAY *GetLoadInGameData( )			{ return &m_LoadInGameData; }
-	double GetScore( )						{ return m_Score; }
-	bool GetLoggedIn( )						{ return m_LoggedIn; }
-	bool GetSpoofed( )						{ return m_Spoofed; }
-	bool GetReserved( )						{ return m_Reserved; }
-	bool GetWhoisShouldBeSent( )			{ return m_WhoisShouldBeSent; }
-	bool GetWhoisSent( )					{ return m_WhoisSent; }
-	bool GetDownloadAllowed( )				{ return m_DownloadAllowed; }
-	bool GetDownloadStarted( )				{ return m_DownloadStarted; }
-	bool GetDownloadFinished( )				{ return m_DownloadFinished; }
-	bool GetFinishedLoading( )				{ return m_FinishedLoading; }
-	bool GetLagging( )						{ return m_Lagging; }
-	bool GetDropVote( )						{ return m_DropVote; }
-	bool GetKickVote( )						{ return m_KickVote; }
-	bool GetMuted( )						{ return m_Muted; }
-	bool GetLeftMessageSent( )				{ return m_LeftMessageSent; }
+	unsigned char GetPID( )						{ return m_PID; }
+	string GetName( )							{ return m_Name; }
+	BYTEARRAY GetInternalIP( )					{ return m_InternalIP; }
+	unsigned int GetNumPings( )					{ return m_Pings.size( ); }
+	unsigned int GetNumCheckSums( )				{ return m_CheckSums.size( ); }
+	queue<uint32_t> *GetCheckSums( )			{ return &m_CheckSums; }
+	string GetLeftReason( )						{ return m_LeftReason; }
+	string GetSpoofedRealm( )					{ return m_SpoofedRealm; }
+	string GetJoinedRealm( )					{ return m_JoinedRealm; }
+	uint32_t GetLeftCode( )						{ return m_LeftCode; }
+	uint32_t GetLoginAttempts( )				{ return m_LoginAttempts; }
+	uint32_t GetSyncCounter( )					{ return m_SyncCounter; }
+	uint32_t GetJoinTime( )						{ return m_JoinTime; }
+	uint32_t GetLastMapPartSent( )				{ return m_LastMapPartSent; }
+	uint32_t GetLastMapPartAcked( )				{ return m_LastMapPartAcked; }
+	uint32_t GetStartedDownloadingTicks( )		{ return m_StartedDownloadingTicks; }
+	uint32_t GetFinishedDownloadingTime( )		{ return m_FinishedDownloadingTime; }
+	uint32_t GetFinishedLoadingTicks( )			{ return m_FinishedLoadingTicks; }
+	uint32_t GetStartedLaggingTicks( )			{ return m_StartedLaggingTicks; }
+	uint32_t GetStatsSentTime( )				{ return m_StatsSentTime; }
+	uint32_t GetStatsDotASentTime( )			{ return m_StatsDotASentTime; }
+	uint32_t GetLastGProxyWaitNoticeSentTime( )	{ return m_LastGProxyWaitNoticeSentTime; }
+	BYTEARRAY *GetLoadInGameData( )				{ return &m_LoadInGameData; }
+	double GetScore( )							{ return m_Score; }
+	bool GetLoggedIn( )							{ return m_LoggedIn; }
+	bool GetSpoofed( )							{ return m_Spoofed; }
+	bool GetReserved( )							{ return m_Reserved; }
+	bool GetWhoisShouldBeSent( )				{ return m_WhoisShouldBeSent; }
+	bool GetWhoisSent( )						{ return m_WhoisSent; }
+	bool GetDownloadAllowed( )					{ return m_DownloadAllowed; }
+	bool GetDownloadStarted( )					{ return m_DownloadStarted; }
+	bool GetDownloadFinished( )					{ return m_DownloadFinished; }
+	bool GetFinishedLoading( )					{ return m_FinishedLoading; }
+	bool GetLagging( )							{ return m_Lagging; }
+	bool GetDropVote( )							{ return m_DropVote; }
+	bool GetKickVote( )							{ return m_KickVote; }
+	bool GetMuted( )							{ return m_Muted; }
+	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
+	bool GetGProxy( )							{ return m_GProxy; }
+	bool GetGProxyDisconnectNoticeSent( )		{ return m_GProxyDisconnectNoticeSent; }
+	uint32_t GetGProxyReconnectKey( )			{ return m_GProxyReconnectKey; }
 
-	void SetLeftReason( string nLeftReason )								{ m_LeftReason = nLeftReason; }
-	void SetSpoofedRealm( string nSpoofedRealm )							{ m_SpoofedRealm = nSpoofedRealm; }
-	void SetLeftCode( uint32_t nLeftCode )									{ m_LeftCode = nLeftCode; }
-	void SetLoginAttempts( uint32_t nLoginAttempts )						{ m_LoginAttempts = nLoginAttempts; }
-	void SetSyncCounter( uint32_t nSyncCounter )							{ m_SyncCounter = nSyncCounter; }
-	void SetLastMapPartSent( uint32_t nLastMapPartSent )					{ m_LastMapPartSent = nLastMapPartSent; }
-	void SetLastMapPartAcked( uint32_t nLastMapPartAcked )					{ m_LastMapPartAcked = nLastMapPartAcked; }
-	void SetStartedDownloadingTicks( uint32_t nStartedDownloadingTicks )	{ m_StartedDownloadingTicks = nStartedDownloadingTicks; }
-	void SetFinishedDownloadingTime( uint32_t nFinishedDownloadingTime )	{ m_FinishedDownloadingTime = nFinishedDownloadingTime; }
-	void SetStartedLaggingTicks( uint32_t nStartedLaggingTicks )			{ m_StartedLaggingTicks = nStartedLaggingTicks; }
-	void SetStatsSentTime( uint32_t nStatsSentTime )						{ m_StatsSentTime = nStatsSentTime; }
-	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )				{ m_StatsDotASentTime = nStatsDotASentTime; }
-	void SetScore( double nScore )											{ m_Score = nScore; }
-	void SetLoggedIn( bool nLoggedIn )										{ m_LoggedIn = nLoggedIn; }
-	void SetSpoofed( bool nSpoofed )										{ m_Spoofed = nSpoofed; }
-	void SetReserved( bool nReserved )										{ m_Reserved = nReserved; }
-	void SetWhoisShouldBeSent( bool nWhoisShouldBeSent )					{ m_WhoisShouldBeSent = nWhoisShouldBeSent; }
-	void SetDownloadAllowed( bool nDownloadAllowed )						{ m_DownloadAllowed = nDownloadAllowed; }
-	void SetDownloadStarted( bool nDownloadStarted )						{ m_DownloadStarted = nDownloadStarted; }
-	void SetDownloadFinished( bool nDownloadFinished )						{ m_DownloadFinished = nDownloadFinished; }
-	void SetLagging( bool nLagging )										{ m_Lagging = nLagging; }
-	void SetDropVote( bool nDropVote )										{ m_DropVote = nDropVote; }
-	void SetKickVote( bool nKickVote )										{ m_KickVote = nKickVote; }
-	void SetMuted( bool nMuted )											{ m_Muted = nMuted; }
-	void SetLeftMessageSent( bool nLeftMessageSent )						{ m_LeftMessageSent = nLeftMessageSent; }
+	void SetLeftReason( string nLeftReason )										{ m_LeftReason = nLeftReason; }
+	void SetSpoofedRealm( string nSpoofedRealm )									{ m_SpoofedRealm = nSpoofedRealm; }
+	void SetLeftCode( uint32_t nLeftCode )											{ m_LeftCode = nLeftCode; }
+	void SetLoginAttempts( uint32_t nLoginAttempts )								{ m_LoginAttempts = nLoginAttempts; }
+	void SetSyncCounter( uint32_t nSyncCounter )									{ m_SyncCounter = nSyncCounter; }
+	void SetLastMapPartSent( uint32_t nLastMapPartSent )							{ m_LastMapPartSent = nLastMapPartSent; }
+	void SetLastMapPartAcked( uint32_t nLastMapPartAcked )							{ m_LastMapPartAcked = nLastMapPartAcked; }
+	void SetStartedDownloadingTicks( uint32_t nStartedDownloadingTicks )			{ m_StartedDownloadingTicks = nStartedDownloadingTicks; }
+	void SetFinishedDownloadingTime( uint32_t nFinishedDownloadingTime )			{ m_FinishedDownloadingTime = nFinishedDownloadingTime; }
+	void SetStartedLaggingTicks( uint32_t nStartedLaggingTicks )					{ m_StartedLaggingTicks = nStartedLaggingTicks; }
+	void SetStatsSentTime( uint32_t nStatsSentTime )								{ m_StatsSentTime = nStatsSentTime; }
+	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )						{ m_StatsDotASentTime = nStatsDotASentTime; }
+	void SetLastGProxyWaitNoticeSentTime( uint32_t nLastGProxyWaitNoticeSentTime )	{ m_LastGProxyWaitNoticeSentTime = nLastGProxyWaitNoticeSentTime; }
+	void SetScore( double nScore )													{ m_Score = nScore; }
+	void SetLoggedIn( bool nLoggedIn )												{ m_LoggedIn = nLoggedIn; }
+	void SetSpoofed( bool nSpoofed )												{ m_Spoofed = nSpoofed; }
+	void SetReserved( bool nReserved )												{ m_Reserved = nReserved; }
+	void SetWhoisShouldBeSent( bool nWhoisShouldBeSent )							{ m_WhoisShouldBeSent = nWhoisShouldBeSent; }
+	void SetDownloadAllowed( bool nDownloadAllowed )								{ m_DownloadAllowed = nDownloadAllowed; }
+	void SetDownloadStarted( bool nDownloadStarted )								{ m_DownloadStarted = nDownloadStarted; }
+	void SetDownloadFinished( bool nDownloadFinished )								{ m_DownloadFinished = nDownloadFinished; }
+	void SetLagging( bool nLagging )												{ m_Lagging = nLagging; }
+	void SetDropVote( bool nDropVote )												{ m_DropVote = nDropVote; }
+	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
+	void SetMuted( bool nMuted )													{ m_Muted = nMuted; }
+	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
+	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
 
 	string GetNameTerminated( );
 	uint32_t GetPing( bool LCPing );
@@ -190,7 +208,13 @@ public:
 	// processing functions
 
 	virtual bool Update( void *fd );
+	virtual void ExtractPackets( );
 	virtual void ProcessPackets( );
+
+	// other functions
+
+	virtual void Send( BYTEARRAY data );
+	virtual void EventGProxyReconnect( CTCPSocket *NewSocket, uint32_t LastPacket );
 };
 
 #endif

@@ -216,6 +216,18 @@ void CTCPSocket :: Reset( )
 #else
 	fcntl( m_Socket, F_SETFL, fcntl( m_Socket, F_GETFL ) | O_NONBLOCK );
 #endif
+
+	if( !m_LogFile.empty( ) )
+	{
+		ofstream Log;
+		Log.open( m_LogFile.c_str( ), ios :: app );
+
+		if( !Log.fail( ) )
+		{
+			Log << "----------RESET----------" << endl;
+			Log.close( );
+		}
+	}
 }
 
 void CTCPSocket :: PutBytes( string bytes )
@@ -260,6 +272,18 @@ void CTCPSocket :: DoRecv( fd_set *fd )
 		{
 			// success! add the received data to the buffer
 
+			if( !m_LogFile.empty( ) )
+			{
+				ofstream Log;
+				Log.open( m_LogFile.c_str( ), ios :: app );
+
+				if( !Log.fail( ) )
+				{
+					Log << "					RECEIVE <<< " << UTIL_ByteArrayToHexString( UTIL_CreateByteArray( (unsigned char *)buffer, c ) ) << endl;
+					Log.close( );
+				}
+			}
+
 			m_RecvBuffer += string( buffer, c );
 			m_LastRecv = GetTime( );
 		}
@@ -289,6 +313,18 @@ void CTCPSocket :: DoSend( fd_set *send_fd )
 		else if( s > 0 )
 		{
 			// success! only some of the data may have been sent, remove it from the buffer
+
+			if( !m_LogFile.empty( ) )
+			{
+				ofstream Log;
+				Log.open( m_LogFile.c_str( ), ios :: app );
+
+				if( !Log.fail( ) )
+				{
+					Log << "SEND >>> " << UTIL_ByteArrayToHexString( BYTEARRAY( m_SendBuffer.begin( ), m_SendBuffer.begin( ) + s ) ) << endl;
+					Log.close( );
+				}
+			}
 
 			m_SendBuffer = m_SendBuffer.substr( s );
 			m_LastSend = GetTime( );

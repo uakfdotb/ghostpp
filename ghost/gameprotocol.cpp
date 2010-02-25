@@ -75,18 +75,19 @@ CIncomingJoinPlayer *CGameProtocol :: RECEIVE_W3GS_REQJOIN( BYTEARRAY data )
 	return NULL;
 }
 
-bool CGameProtocol :: RECEIVE_W3GS_LEAVEGAME( BYTEARRAY data )
+uint32_t CGameProtocol :: RECEIVE_W3GS_LEAVEGAME( BYTEARRAY data )
 {
 	// DEBUG_Print( "RECEIVED W3GS_LEAVEGAME" );
 	// DEBUG_Print( data );
 
 	// 2 bytes					-> Header
 	// 2 bytes					-> Length
+	// 4 bytes					-> Reason
 
-	if( ValidateLength( data ) )
-		return true;
+	if( ValidateLength( data ) && data.size( ) >= 8 )
+		return UTIL_ByteArrayToUInt32( data, false, 4 );
 
-	return false;
+	return 0;
 }
 
 bool CGameProtocol :: RECEIVE_W3GS_GAMELOADED_SELF( BYTEARRAY data )

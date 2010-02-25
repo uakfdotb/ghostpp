@@ -28,6 +28,9 @@
 //
 
 class CUDPSocket;
+class CTCPServer;
+class CTCPSocket;
+class CGPSProtocol;
 class CCRC32;
 class CSHA1;
 class CBNET;
@@ -44,6 +47,9 @@ class CGHost
 {
 public:
 	CUDPSocket *m_UDPSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
+	CTCPServer *m_ReconnectSocket;			// listening socket for GProxy++ reliable reconnects
+	vector<CTCPSocket *> m_ReconnectSockets;// vector of sockets attempting to reconnect (connected but not identified yet)
+	CGPSProtocol *m_GPSProtocol;
 	CCRC32 *m_CRC;							// for calculating CRC's
 	CSHA1 *m_SHA;							// for calculating SHA1's
 	vector<CBNET *> m_BNETs;				// all our battle.net connections (there can be more than one)
@@ -81,6 +87,9 @@ public:
 	bool m_TFT;								// config value: TFT enabled or not
 	string m_BindAddress;					// config value: the address to host games on
 	uint16_t m_HostPort;					// config value: the port to host games on
+	bool m_Reconnect;						// config value: GProxy++ reliable reconnects enabled or not
+	uint16_t m_ReconnectPort;				// config value: the port to listen for GProxy++ reliable reconnects on
+	uint32_t m_ReconnectWaitTime;			// config value: the maximum number of minutes to wait for a GProxy++ reliable reconnect
 	uint32_t m_MaxGames;					// config value: maximum number of games in progress
 	char m_CommandTrigger;					// config value: the command trigger inside games
 	string m_MapCFGPath;					// config value: map cfg path
