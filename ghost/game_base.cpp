@@ -775,10 +775,14 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 							// empty actions are used to extend the time a player can use when reconnecting
 
 							for( unsigned char j = 0; j < m_GProxyEmptyActions; j++ )
+							{
 								UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
+								(*i)->SetLoadInGamePackets( (*i)->GetLoadInGamePackets( ) + 1 );
+							}
 						}
 
 						UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
+						(*i)->SetLoadInGamePackets( (*i)->GetLoadInGamePackets( ) + 1 );
 					}
 				}
 
@@ -1076,27 +1080,27 @@ void CBaseGame :: UpdatePost( void *send_fd )
 	}
 }
 
-void CBaseGame :: Send( CGamePlayer *player, BYTEARRAY data )
+void CBaseGame :: Send( CGamePlayer *player, BYTEARRAY data, uint32_t numPackets )
 {
 	if( player )
-		player->Send( data );
+		player->Send( data, numPackets );
 }
 
-void CBaseGame :: Send( unsigned char PID, BYTEARRAY data )
+void CBaseGame :: Send( unsigned char PID, BYTEARRAY data, uint32_t numPackets )
 {
-	Send( GetPlayerFromPID( PID ), data );
+	Send( GetPlayerFromPID( PID ), data, numPackets );
 }
 
-void CBaseGame :: Send( BYTEARRAY PIDs, BYTEARRAY data )
+void CBaseGame :: Send( BYTEARRAY PIDs, BYTEARRAY data, uint32_t numPackets )
 {
 	for( unsigned int i = 0; i < PIDs.size( ); i++ )
-		Send( PIDs[i], data );
+		Send( PIDs[i], data, numPackets );
 }
 
-void CBaseGame :: SendAll( BYTEARRAY data )
+void CBaseGame :: SendAll( BYTEARRAY data, uint32_t numPackets )
 {
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		(*i)->Send( data );
+		(*i)->Send( data, numPackets );
 }
 
 void CBaseGame :: SendChat( unsigned char fromPID, CGamePlayer *player, string message )
@@ -1509,7 +1513,10 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 				Send( *i, m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
 			}
 			else
+			{
 				UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
+				(*i)->SetLoadInGamePackets( (*i)->GetLoadInGamePackets( ) + 1 );
+			}
 		}
 	}
 	else
@@ -2564,8 +2571,9 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 		// see the Update function for more information about why we do this
 		// this includes player loaded messages, game updates, and player leave messages
 
-		Send( player, *player->GetLoadInGameData( ) );
+		Send( player, *player->GetLoadInGameData( ), player->GetLoadInGamePackets( ) );
 		player->GetLoadInGameData( )->clear( );
+		player->SetLoadInGamePackets( 0 );
 
 		// start the lag screen for the new player
 
@@ -3347,7 +3355,10 @@ void CBaseGame :: EventGameStarted( )
 			UTIL_AppendByteArray( Buffer, m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( (*i)->GetPID( ) ) );
 
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
 			UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), Buffer );
+			(*i)->SetLoadInGamePackets( (*i)->GetLoadInGamePackets( ) + m_Players.size( ) );
+		}
 	}
 
 	// move the game to the games in progress vector
@@ -3610,6 +3621,11 @@ unsigned char CBaseGame :: GetHostPID( )
 
 	if( m_VirtualHostPID != 255 )
 		return m_VirtualHostPID;
+
+	// try to find the fakeplayer next
+
+	if( m_FakePlayerPID != 255 )
+		return m_FakePlayerPID;
 
 	// try to find the owner player next
 
