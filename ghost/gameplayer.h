@@ -72,7 +72,7 @@ public:
 
 	// other functions
 
-	virtual void Send( BYTEARRAY data, uint32_t numPackets = 1 );
+	virtual void Send( BYTEARRAY data );
 };
 
 //
@@ -105,8 +105,7 @@ private:
 	uint32_t m_StatsSentTime;					// GetTime when we sent this player's stats to the chat (to prevent players from spamming !stats)
 	uint32_t m_StatsDotASentTime;				// GetTime when we sent this player's dota stats to the chat (to prevent players from spamming !statsdota)
 	uint32_t m_LastGProxyWaitNoticeSentTime;
-	BYTEARRAY m_LoadInGameData;					// queued data to be sent when the player finishes loading when using "load in game"
-	uint32_t m_LoadInGamePackets;				// # of packets currently in the LoadInGameData buffer
+	queue<BYTEARRAY> m_LoadInGameData;			// queued data to be sent when the player finishes loading when using "load in game"
 	double m_Score;								// the player's generic "score" for the matchmaking algorithm
 	bool m_LoggedIn;							// if the player has logged in or not (used with CAdminGame only)
 	bool m_Spoofed;								// if the player has spoof checked or not
@@ -155,8 +154,7 @@ public:
 	uint32_t GetStatsSentTime( )				{ return m_StatsSentTime; }
 	uint32_t GetStatsDotASentTime( )			{ return m_StatsDotASentTime; }
 	uint32_t GetLastGProxyWaitNoticeSentTime( )	{ return m_LastGProxyWaitNoticeSentTime; }
-	BYTEARRAY *GetLoadInGameData( )				{ return &m_LoadInGameData; }
-	uint32_t GetLoadInGamePackets( )			{ return m_LoadInGamePackets; }
+	queue<BYTEARRAY> *GetLoadInGameData( )		{ return &m_LoadInGameData; }
 	double GetScore( )							{ return m_Score; }
 	bool GetLoggedIn( )							{ return m_LoggedIn; }
 	bool GetSpoofed( )							{ return m_Spoofed; }
@@ -189,7 +187,6 @@ public:
 	void SetStatsSentTime( uint32_t nStatsSentTime )								{ m_StatsSentTime = nStatsSentTime; }
 	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )						{ m_StatsDotASentTime = nStatsDotASentTime; }
 	void SetLastGProxyWaitNoticeSentTime( uint32_t nLastGProxyWaitNoticeSentTime )	{ m_LastGProxyWaitNoticeSentTime = nLastGProxyWaitNoticeSentTime; }
-	void SetLoadInGamePackets( uint32_t nLoadInGamePackets )						{ m_LoadInGamePackets = nLoadInGamePackets; }
 	void SetScore( double nScore )													{ m_Score = nScore; }
 	void SetLoggedIn( bool nLoggedIn )												{ m_LoggedIn = nLoggedIn; }
 	void SetSpoofed( bool nSpoofed )												{ m_Spoofed = nSpoofed; }
@@ -208,6 +205,8 @@ public:
 	string GetNameTerminated( );
 	uint32_t GetPing( bool LCPing );
 
+	void AddLoadInGameData( BYTEARRAY nLoadInGameData )								{ m_LoadInGameData.push( nLoadInGameData ); }
+
 	// processing functions
 
 	virtual bool Update( void *fd );
@@ -216,7 +215,7 @@ public:
 
 	// other functions
 
-	virtual void Send( BYTEARRAY data, uint32_t numPackets = 1 );
+	virtual void Send( BYTEARRAY data );
 	virtual void EventGProxyReconnect( CTCPSocket *NewSocket, uint32_t LastPacket );
 };
 

@@ -775,14 +775,10 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 							// empty actions are used to extend the time a player can use when reconnecting
 
 							for( unsigned char j = 0; j < m_GProxyEmptyActions; j++ )
-							{
-								UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
-								(*i)->SetLoadInGamePackets( (*i)->GetLoadInGamePackets( ) + 1 );
-							}
+								(*i)->AddLoadInGameData( m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
 						}
 
-						UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
-						(*i)->SetLoadInGamePackets( (*i)->GetLoadInGamePackets( ) + 1 );
+						(*i)->AddLoadInGameData( m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
 					}
 				}
 
@@ -1080,27 +1076,27 @@ void CBaseGame :: UpdatePost( void *send_fd )
 	}
 }
 
-void CBaseGame :: Send( CGamePlayer *player, BYTEARRAY data, uint32_t numPackets )
+void CBaseGame :: Send( CGamePlayer *player, BYTEARRAY data )
 {
 	if( player )
-		player->Send( data, numPackets );
+		player->Send( data );
 }
 
-void CBaseGame :: Send( unsigned char PID, BYTEARRAY data, uint32_t numPackets )
+void CBaseGame :: Send( unsigned char PID, BYTEARRAY data )
 {
-	Send( GetPlayerFromPID( PID ), data, numPackets );
+	Send( GetPlayerFromPID( PID ), data );
 }
 
-void CBaseGame :: Send( BYTEARRAY PIDs, BYTEARRAY data, uint32_t numPackets )
+void CBaseGame :: Send( BYTEARRAY PIDs, BYTEARRAY data )
 {
 	for( unsigned int i = 0; i < PIDs.size( ); i++ )
-		Send( PIDs[i], data, numPackets );
+		Send( PIDs[i], data );
 }
 
-void CBaseGame :: SendAll( BYTEARRAY data, uint32_t numPackets )
+void CBaseGame :: SendAll( BYTEARRAY data )
 {
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		(*i)->Send( data, numPackets );
+		(*i)->Send( data );
 }
 
 void CBaseGame :: SendChat( unsigned char fromPID, CGamePlayer *player, string message )
@@ -1513,10 +1509,7 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 				Send( *i, m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
 			}
 			else
-			{
-				UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
-				(*i)->SetLoadInGamePackets( (*i)->GetLoadInGamePackets( ) + 1 );
-			}
+				(*i)->AddLoadInGameData( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) );
 		}
 	}
 	else
@@ -2571,9 +2564,13 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 		// see the Update function for more information about why we do this
 		// this includes player loaded messages, game updates, and player leave messages
 
-		Send( player, *player->GetLoadInGameData( ), player->GetLoadInGamePackets( ) );
-		player->GetLoadInGameData( )->clear( );
-		player->SetLoadInGamePackets( 0 );
+		queue<BYTEARRAY> *LoadInGameData = player->GetLoadInGameData( );
+
+		while( !LoadInGameData->empty( ) )
+		{
+			Send( player, LoadInGameData->front( ) );
+			LoadInGameData->pop( );
+		}
 
 		// start the lag screen for the new player
 
@@ -3349,15 +3346,10 @@ void CBaseGame :: EventGameStarted( )
 		// this ensures that every player receives the same set of player loaded messages in the same order, even if someone leaves during loading
 		// if someone leaves during loading we buffer the leave message to ensure it gets sent in the correct position but the player loaded message wouldn't get sent if we didn't buffer it now
 
-		BYTEARRAY Buffer;
-
-		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-			UTIL_AppendByteArray( Buffer, m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( (*i)->GetPID( ) ) );
-
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
-			UTIL_AppendByteArray( *(*i)->GetLoadInGameData( ), Buffer );
-			(*i)->SetLoadInGamePackets( (*i)->GetLoadInGamePackets( ) + m_Players.size( ) );
+			for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
+				(*j)->AddLoadInGameData( m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( (*i)->GetPID( ) ) );
 		}
 	}
 

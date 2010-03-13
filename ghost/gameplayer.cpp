@@ -179,7 +179,7 @@ void CPotentialPlayer :: ProcessPackets( )
 	}
 }
 
-void CPotentialPlayer :: Send( BYTEARRAY data, uint32_t numPackets )
+void CPotentialPlayer :: Send( BYTEARRAY data )
 {
 	if( m_Socket )
 		m_Socket->PutBytes( data );
@@ -210,7 +210,6 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_StatsSentTime = 0;
 	m_StatsDotASentTime = 0;
 	m_LastGProxyWaitNoticeSentTime = 0;
-	m_LoadInGamePackets = 0;
 	m_Score = -100000.0;
 	m_LoggedIn = false;
 	m_Spoofed = false;
@@ -263,7 +262,6 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_StatsSentTime = 0;
 	m_StatsDotASentTime = 0;
 	m_LastGProxyWaitNoticeSentTime = 0;
-	m_LoadInGamePackets = 0;
 	m_Score = -100000.0;
 	m_LoggedIn = false;
 	m_Spoofed = false;
@@ -620,13 +618,13 @@ void CGamePlayer :: ProcessPackets( )
 	}
 }
 
-void CGamePlayer :: Send( BYTEARRAY data, uint32_t numPackets )
+void CGamePlayer :: Send( BYTEARRAY data )
 {
 	// must start counting packet total from beginning of connection
 	// but we can avoid buffering packets until we know the client is using GProxy++ since that'll be determined before the game starts
 	// this prevents us from buffering packets for non-GProxy++ clients
 
-	m_TotalPacketsSent += numPackets;
+	m_TotalPacketsSent++;
 
 	if( m_GProxy && m_Game->GetGameLoaded( ) )
 		m_GProxyBuffer.push( data );
