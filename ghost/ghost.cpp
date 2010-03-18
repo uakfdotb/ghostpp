@@ -533,6 +533,20 @@ CGHost :: CGHost( CConfig *CFG )
 		string CDKeyTFT = CFG->GetString( Prefix + "cdkeytft", string( ) );
 		string CountryAbbrev = CFG->GetString( Prefix + "countryabbrev", "USA" );
 		string Country = CFG->GetString( Prefix + "country", "United States" );
+		string Locale = CFG->GetString( Prefix + "locale", "system" );
+		uint32_t LocaleID;
+
+		if( Locale == "system" )
+		{
+#ifdef WIN32
+			LocaleID = GetUserDefaultLangID( );
+#else
+			LocaleID = 1033;
+#endif
+		}
+		else
+			LocaleID = UTIL_ToUInt32( Locale );
+
 		string UserName = CFG->GetString( Prefix + "username", string( ) );
 		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
 		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );
@@ -583,7 +597,17 @@ CGHost :: CGHost( CConfig *CFG )
 		}
 
 		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
-		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, i ) );
+
+		if( Locale == "system" )
+		{
+#ifdef WIN32
+			CONSOLE_Print( "[GHOST] using system locale of " + UTIL_ToString( LocaleID ) );
+#else
+			CONSOLE_Print( "[GHOST] unable to get system locale, using default locale of 1033" );
+#endif
+		}
+
+		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, i ) );
 	}
 
 	if( m_BNETs.empty( ) )

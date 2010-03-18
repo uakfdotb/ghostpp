@@ -766,7 +766,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_NETGAMEPORT( uint16_t serverPort )
 	return packet;
 }
 
-BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, string countryAbbrev, string country )
+BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, uint32_t localeID, string countryAbbrev, string country )
 {
 	unsigned char ProtocolID[]		= {   0,   0,   0,   0 };
 	unsigned char PlatformID[]		= {  54,  56,  88,  73 };	// "IX86"
@@ -776,8 +776,6 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, stri
 	unsigned char Language[]		= {  83,  85, 110, 101 };	// "enUS"
 	unsigned char LocalIP[]			= { 127,   0,   0,   1 };
 	unsigned char TimeZoneBias[]	= {  44,   1,   0,   0 };	// 300 minutes (GMT -0500)
-	unsigned char LocaleID[]		= {   9,   4,   0,   0 };	// 0x0409 English (United States)
-	unsigned char LanguageID[]		= {   9,   4,   0,   0 };	// 0x0409 English (United States)
 
 	BYTEARRAY packet;
 	packet.push_back( BNET_HEADER_CONSTANT );				// BNET header constant
@@ -793,11 +791,11 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, stri
 		UTIL_AppendByteArray( packet, ProductID_ROC, 4 );	// Product ID (ROC)
 
 	UTIL_AppendByteArray( packet, Version, 4 );				// Version
-	UTIL_AppendByteArray( packet, Language, 4 );			// Language
+	UTIL_AppendByteArray( packet, Language, 4 );			// Language (hardcoded as enUS to ensure battle.net sends the bot messages in English)
 	UTIL_AppendByteArray( packet, LocalIP, 4 );				// Local IP for NAT compatibility
 	UTIL_AppendByteArray( packet, TimeZoneBias, 4 );		// Time Zone Bias
-	UTIL_AppendByteArray( packet, LocaleID, 4 );			// Locale ID
-	UTIL_AppendByteArray( packet, LanguageID, 4 );			// Language ID
+	UTIL_AppendByteArray( packet, localeID, false );		// Locale ID
+	UTIL_AppendByteArray( packet, localeID, false );		// Language ID (copying the locale ID should be sufficient since we don't care about sublanguages)
 	UTIL_AppendByteArrayFast( packet, countryAbbrev );		// Country Abbreviation
 	UTIL_AppendByteArrayFast( packet, country );			// Country
 	AssignLength( packet );
