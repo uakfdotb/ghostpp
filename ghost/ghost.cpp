@@ -1312,6 +1312,7 @@ void CGHost :: EventGameDeleted( CBaseGame *game )
 void CGHost :: ReloadConfigs( )
 {
 	CConfig CFG;
+	CFG.Read( "default.cfg" );
 	CFG.Read( gCFGFile );
 	SetConfigs( &CFG );
 }
