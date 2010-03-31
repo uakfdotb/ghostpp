@@ -1265,19 +1265,12 @@ void CBaseGame :: SendAllActions( )
 					Send( *i, m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) );
 			}
 		}
-	}
 
-	// add actions to replay
-
-	if( m_Replay )
-	{
-		if( UsingGProxy )
+		if( m_Replay )
 		{
 			for( unsigned char i = 0; i < m_GProxyEmptyActions; i++ )
 				m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) );
 		}
-
-		m_Replay->AddTimeSlot( m_Latency, m_Actions );
 	}
 
 	// Warcraft III doesn't seem to respond to empty actions
@@ -1315,6 +1308,9 @@ void CBaseGame :: SendAllActions( )
 
 				SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION2( SubActions ) );
 
+				if( m_Replay )
+					m_Replay->AddTimeSlot2( SubActions );
+
 				while( !SubActions.empty( ) )
 				{
 					delete SubActions.front( );
@@ -1330,6 +1326,9 @@ void CBaseGame :: SendAllActions( )
 
 		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, m_Latency ) );
 
+		if( m_Replay )
+			m_Replay->AddTimeSlot( m_Latency, SubActions );
+
 		while( !SubActions.empty( ) )
 		{
 			delete SubActions.front( );
@@ -1337,7 +1336,12 @@ void CBaseGame :: SendAllActions( )
 		}
 	}
 	else
+	{
 		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, m_Latency ) );
+
+		if( m_Replay )
+			m_Replay->AddTimeSlot( m_Latency, m_Actions );
+	}
 
 	uint32_t ActualSendInterval = GetTicks( ) - m_LastActionSentTicks;
 	uint32_t ExpectedSendInterval = m_Latency - m_LastActionLateBy;
