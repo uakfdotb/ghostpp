@@ -308,11 +308,11 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_PING_FROM_HOST( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
 {
 	unsigned char Zeros[] = { 0, 0, 0, 0 };
 
-	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, gameType, playerSlots );
+	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, layoutStyle, playerSlots );
 	BYTEARRAY packet;
 
 	if( port.size( ) == 2 && externalIP.size( ) == 4 )
@@ -439,9 +439,9 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMELOADED_OTHERS( unsigned char PID )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
 {
-	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, gameType, playerSlots );
+	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, layoutStyle, playerSlots );
 	BYTEARRAY packet;
 	packet.push_back( W3GS_HEADER_CONSTANT );									// W3GS header constant
 	packet.push_back( W3GS_SLOTINFO );											// W3GS_SLOTINFO
@@ -943,7 +943,7 @@ bool CGameProtocol :: ValidateLength( BYTEARRAY &content )
 	return false;
 }
 
-BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char gameType, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
 {
 	BYTEARRAY SlotInfo;
 	SlotInfo.push_back( (unsigned char)slots.size( ) );		// number of slots
@@ -952,7 +952,7 @@ BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t ra
 		UTIL_AppendByteArray( SlotInfo, slots[i].GetByteArray( ) );
 
 	UTIL_AppendByteArray( SlotInfo, randomSeed, false );	// random seed
-	SlotInfo.push_back( gameType );							// GameType (seems to be 0 for regular game, 3 for custom game)
+	SlotInfo.push_back( layoutStyle );						// LayoutStyle (0 = melee, 1 = custom forces, 3 = custom forces + fixed player settings)
 	SlotInfo.push_back( playerSlots );						// number of player slots (non observer)
 	return SlotInfo;
 }

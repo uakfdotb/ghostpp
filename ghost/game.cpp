@@ -722,7 +722,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
 
-							if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM && Colour < 12 && SID < m_Slots.size( ) )
+							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Colour < 12 && SID < m_Slots.size( ) )
 							{
 								if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 									ColourSlot( SID, Colour );
@@ -763,7 +763,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
 
-							if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM && ( Handicap == 50 || Handicap == 60 || Handicap == 70 || Handicap == 80 || Handicap == 90 || Handicap == 100 ) && SID < m_Slots.size( ) )
+							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && ( Handicap == 50 || Handicap == 60 || Handicap == 70 || Handicap == 80 || Handicap == 90 || Handicap == 100 ) && SID < m_Slots.size( ) )
 							{
 								if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 								{
@@ -808,33 +808,33 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						transform( Race.begin( ), Race.end( ), Race.begin( ), (int(*)(int))tolower );
 						unsigned char SID = (unsigned char)( Slot - 1 );
 
-						if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM && !( m_Map->GetMapFlags( ) & MAPFLAG_RANDOMRACES ) && SID < m_Slots.size( ) )
+						if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && !( m_Map->GetMapFlags( ) & MAPFLAG_RANDOMRACES ) && SID < m_Slots.size( ) )
 						{
 							if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 							{
 								if( Race == "human" )
 								{
-									m_Slots[SID].SetRace( SLOTRACE_HUMAN );
+									m_Slots[SID].SetRace( SLOTRACE_HUMAN | SLOTRACE_SELECTABLE );
 									SendAllSlotInfo( );
 								}
 								else if( Race == "orc" )
 								{
-									m_Slots[SID].SetRace( SLOTRACE_ORC );
+									m_Slots[SID].SetRace( SLOTRACE_ORC | SLOTRACE_SELECTABLE );
 									SendAllSlotInfo( );
 								}
 								else if( Race == "night elf" )
 								{
-									m_Slots[SID].SetRace( SLOTRACE_NIGHTELF );
+									m_Slots[SID].SetRace( SLOTRACE_NIGHTELF | SLOTRACE_SELECTABLE );
 									SendAllSlotInfo( );
 								}
 								else if( Race == "undead" )
 								{
-									m_Slots[SID].SetRace( SLOTRACE_UNDEAD );
+									m_Slots[SID].SetRace( SLOTRACE_UNDEAD | SLOTRACE_SELECTABLE );
 									SendAllSlotInfo( );
 								}
 								else if( Race == "random" )
 								{
-									m_Slots[SID].SetRace( SLOTRACE_RANDOM );
+									m_Slots[SID].SetRace( SLOTRACE_RANDOM | SLOTRACE_SELECTABLE );
 									SendAllSlotInfo( );
 								}
 								else
@@ -876,7 +876,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
 
-							if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM && Team < 12 && SID < m_Slots.size( ) )
+							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Team < 12 && SID < m_Slots.size( ) )
 							{
 								if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 								{

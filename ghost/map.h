@@ -41,6 +41,18 @@
 #define MAPFLAG_RANDOMHERO		8
 #define MAPFLAG_RANDOMRACES		16
 
+#define MAPOPT_HIDEMINIMAP				1 << 0
+#define MAPOPT_MODIFYALLYPRIORITIES		1 << 1
+#define MAPOPT_MELEE					1 << 2		// the bot cares about this one...
+#define MAPOPT_REVEALTERRAIN			1 << 4
+#define MAPOPT_FIXEDPLAYERSETTINGS		1 << 5		// and this one...
+#define MAPOPT_CUSTOMFORCES				1 << 6		// and this one, the rest don't affect the bot's logic
+#define MAPOPT_CUSTOMTECHTREE			1 << 7
+#define MAPOPT_CUSTOMABILITIES			1 << 8
+#define MAPOPT_CUSTOMUPGRADES			1 << 9
+#define MAPOPT_WATERWAVESONCLIFFSHORES	1 << 11
+#define MAPOPT_WATERWAVESONSLOPESHORES	1 << 12
+
 #include "gameslot.h"
 
 //
@@ -65,6 +77,7 @@ private:
 	unsigned char m_MapObservers;
 	unsigned char m_MapFlags;
 	unsigned char m_MapGameType;
+	uint32_t m_MapOptions;
 	BYTEARRAY m_MapWidth;						// config value: map width (2 bytes)
 	BYTEARRAY m_MapHeight;						// config value: map height (2 bytes)
 	string m_MapType;							// config value: map type (for stats class)
@@ -97,6 +110,8 @@ public:
 	unsigned char GetMapFlags( )			{ return m_MapFlags; }
 	BYTEARRAY GetMapGameFlags( );
 	unsigned char GetMapGameType( )			{ return m_MapGameType; }
+	uint32_t GetMapOptions( )				{ return m_MapOptions; }
+	unsigned char GetMapLayoutStyle( );
 	BYTEARRAY GetMapWidth( )				{ return m_MapWidth; }
 	BYTEARRAY GetMapHeight( )				{ return m_MapHeight; }
 	string GetMapType( )					{ return m_MapType; }

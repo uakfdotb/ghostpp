@@ -30,7 +30,7 @@
 #define SLOTRACE_NIGHTELF	4
 #define SLOTRACE_UNDEAD		8
 #define SLOTRACE_RANDOM		32
-#define SLOTRACE_FIXED		64
+#define SLOTRACE_SELECTABLE	64
 
 #define SLOTCOMP_EASY		0
 #define SLOTCOMP_NORMAL		1
@@ -49,7 +49,7 @@ private:
 	unsigned char m_Computer;			// computer (0 = no, 1 = yes)
 	unsigned char m_Team;				// team
 	unsigned char m_Colour;				// colour
-	unsigned char m_Race;				// race (1 = human, 2 = orc, 4 = night elf, 8 = undead, 32 = random, 64 = fixed)
+	unsigned char m_Race;				// race (1 = human, 2 = orc, 4 = night elf, 8 = undead, 32 = random, 64 = selectable)
 	unsigned char m_ComputerType;		// computer type (0 = easy, 1 = human or normal comp, 2 = hard comp)
 	unsigned char m_Handicap;			// handicap
 
