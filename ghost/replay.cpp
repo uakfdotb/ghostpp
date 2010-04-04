@@ -52,7 +52,7 @@ void CReplay :: AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t resul
 	Block.push_back( PID );
 	UTIL_AppendByteArray( Block, result, false );
 	UTIL_AppendByteArray( Block, (uint32_t)1, false );
-	m_Blocks.push( Block );
+	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
 }
 
 void CReplay :: AddLeaveGameDuringLoading( uint32_t reason, unsigned char PID, uint32_t result )
@@ -87,7 +87,7 @@ void CReplay :: AddTimeSlot2( queue<CIncomingAction *> actions )
 	BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 3 ), false );
 	Block[1] = LengthBytes[0];
 	Block[2] = LengthBytes[1];
-	m_Blocks.push( Block );
+	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
 }
 
 void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions )
@@ -111,11 +111,8 @@ void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> ac
 	BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 3 ), false );
 	Block[1] = LengthBytes[0];
 	Block[2] = LengthBytes[1];
-	m_Blocks.push( Block );
-
-	// incrementally build the replay as more blocks are added
-
-	BuildMoreBlocks( );
+	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
+	m_ReplayLength += timeIncrement;
 }
 
 void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message )
@@ -133,37 +130,12 @@ void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t
 	BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 4 ), false );
 	Block[2] = LengthBytes[0];
 	Block[3] = LengthBytes[1];
-	m_Blocks.push( Block );
-}
-
-void CReplay :: AddBlock( BYTEARRAY &block )
-{
-	m_Blocks.push( block );
+	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
 }
 
 void CReplay :: AddLoadingBlock( BYTEARRAY &loadingBlock )
 {
 	m_LoadingBlocks.push( loadingBlock );
-}
-
-void CReplay :: BuildMoreBlocks( )
-{
-	if( m_CompiledBlocks.empty( ) )
-		m_ReplayLength = 0;
-
-	while( !m_Blocks.empty( ) )
-	{
-		BYTEARRAY Block = m_Blocks.front( );
-		m_Blocks.pop( );
-
-		if( Block.size( ) >= 5 && Block[0] == REPLAY_TIMESLOT )
-		{
-			uint16_t TimeIncrement = UTIL_ByteArrayToUInt16( Block, false, 3 );
-			m_ReplayLength += TimeIncrement;
-		}
-
-		m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
-	}
 }
 
 void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
@@ -241,12 +213,6 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 
 	Replay.push_back( REPLAY_THIRDSTARTBLOCK );
 	UTIL_AppendByteArray( Replay, (uint32_t)1, false );
-
-	// finalize the replay
-	// although we do this every time a timeslot is added it's possible some leavegames or chat messages or etc have been added since the last timeslot
-	// therefore it's required
-
-	BuildMoreBlocks( );
 
 	// done
 
