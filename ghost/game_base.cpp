@@ -2808,6 +2808,12 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					if( m_MuteAll )
 						Relay = false;
 				}
+				else if( ExtraFlags[0] == 2 )
+				{
+					// this is an ingame [Obs/Ref] message, print it to the console
+
+					CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [Obs/Ref] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+				}
 
 				if( Relay )
 				{
