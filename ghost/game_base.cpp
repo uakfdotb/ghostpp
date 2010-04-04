@@ -2771,8 +2771,8 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 
 	// add checksum to replay
 
-	if( m_Replay && AddToReplay )
-		m_Replay->AddCheckSum( FirstCheckSum );
+	/* if( m_Replay && AddToReplay )
+		m_Replay->AddCheckSum( FirstCheckSum ); */
 }
 
 void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlayer *chatPlayer )

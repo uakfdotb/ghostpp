@@ -36,6 +36,7 @@ CReplay :: CReplay( ) : CPacked( )
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
 	m_StartSpotCount = 0;
+	m_CompiledBlocks.reserve( 262144 );
 }
 
 CReplay :: ~CReplay( )
@@ -111,6 +112,10 @@ void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> ac
 	Block[1] = LengthBytes[0];
 	Block[2] = LengthBytes[1];
 	m_Blocks.push( Block );
+
+	// incrementally build the replay as more blocks are added
+
+	BuildMoreBlocks( );
 }
 
 void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message )
@@ -131,11 +136,6 @@ void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t
 	m_Blocks.push( Block );
 }
 
-void CReplay :: AddCheckSum( uint32_t checkSum )
-{
-	m_CheckSums.push( checkSum );
-}
-
 void CReplay :: AddBlock( BYTEARRAY &block )
 {
 	m_Blocks.push( block );
@@ -144,6 +144,26 @@ void CReplay :: AddBlock( BYTEARRAY &block )
 void CReplay :: AddLoadingBlock( BYTEARRAY &loadingBlock )
 {
 	m_LoadingBlocks.push( loadingBlock );
+}
+
+void CReplay :: BuildMoreBlocks( )
+{
+	if( m_CompiledBlocks.empty( ) )
+		m_ReplayLength = 0;
+
+	while( !m_Blocks.empty( ) )
+	{
+		BYTEARRAY Block = m_Blocks.front( );
+		m_Blocks.pop( );
+
+		if( Block.size( ) >= 5 && Block[0] == REPLAY_TIMESLOT )
+		{
+			uint16_t TimeIncrement = UTIL_ByteArrayToUInt16( Block, false, 3 );
+			m_ReplayLength += TimeIncrement;
+		}
+
+		m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
+	}
 }
 
 void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
@@ -222,67 +242,16 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 	Replay.push_back( REPLAY_THIRDSTARTBLOCK );
 	UTIL_AppendByteArray( Replay, (uint32_t)1, false );
 
-	// initialize replay length to zero
-	// we'll accumulate the replay length as we iterate through the timeslots
-	// this is necessary because we might be discarding some timeslots due to not enough checksums and the replay length needs to be accurate
+	// finalize the replay
+	// although we do this every time a timeslot is added it's possible some leavegames or chat messages or etc have been added since the last timeslot
+	// therefore it's required
 
-	m_ReplayLength = 0;
-	uint32_t TimeSlotsDiscarded = 0;
-	bool EndOfTimeSlots = false;
-
-	while( !m_Blocks.empty( ) )
-	{
-		BYTEARRAY Block = m_Blocks.front( );
-		m_Blocks.pop( );
-
-		if( Block.size( ) >= 5 && Block[0] == REPLAY_TIMESLOT )
-		{
-			uint16_t TimeIncrement = UTIL_ByteArrayToUInt16( Block, false, 3 );
-
-			if( TimeIncrement != 0 && m_CheckSums.empty( ) )
-				EndOfTimeSlots = true;
-
-			if( EndOfTimeSlots )
-			{
-				TimeSlotsDiscarded++;
-				continue;
-			}
-
-			// append timeslot
-
-			UTIL_AppendByteArrayFast( Replay, Block );
-
-			// append checksum
-			// todotodo: after experimenting, Strilanc discovered that checksums are NOT required in replays
-			// we could optimize saving of replays by building a complete stream without waiting for checksums as the game progresses
-			// alternatively, we could build that stream as the checksums were added if we wanted to keep them
-			// rather than building it in one go right now, which might take a few hundred ms and cause a spike in other games
-
-			if( TimeIncrement != 0 )
-			{
-				BYTEARRAY CheckSum;
-				CheckSum.reserve( 6 );
-				CheckSum.push_back( REPLAY_CHECKSUM );
-				CheckSum.push_back( 4 );
-				UTIL_AppendByteArray( CheckSum, m_CheckSums.front( ), false );
-				m_CheckSums.pop( );
-				UTIL_AppendByteArrayFast( Replay, CheckSum );
-			}
-
-			// accumulate replay length
-
-			m_ReplayLength += TimeIncrement;
-		}
-		else
-			UTIL_AppendByteArrayFast( Replay, Block );
-	}
-
-	if( TimeSlotsDiscarded > 0 )
-		CONSOLE_Print( "[REPLAY] ran out of checksums, discarded " + UTIL_ToString( TimeSlotsDiscarded ) + " timeslots" );
+	BuildMoreBlocks( );
 
 	// done
 
 	m_Decompressed = string( Replay.begin( ), Replay.end( ) );
+	m_Decompressed += m_CompiledBlocks;
 }
 
 #define READB( x, y, z )	(x).read( (char *)(y), (z) )

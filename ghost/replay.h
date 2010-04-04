@@ -58,7 +58,7 @@ private:
 	unsigned char m_StartSpotCount;
 	queue<BYTEARRAY> m_LoadingBlocks;
 	queue<BYTEARRAY> m_Blocks;
-	queue<uint32_t> m_CheckSums;
+	string m_CompiledBlocks;
 
 public:
 	CReplay( );
@@ -77,7 +77,6 @@ public:
 	unsigned char GetStartSpotCount( )		{ return m_StartSpotCount; }
 	queue<BYTEARRAY> *GetLoadingBlocks( )	{ return &m_LoadingBlocks; }
 	queue<BYTEARRAY> *GetBlocks( )			{ return &m_Blocks; }
-	queue<uint32_t> *GetCheckSums( )		{ return &m_CheckSums; }
 
 	void AddPlayer( unsigned char nPID, string nName )		{ m_Players.push_back( PIDPlayer( nPID, nName ) ); }
 	void SetSlots( vector<CGameSlot> nSlots )				{ m_Slots = nSlots; }
@@ -93,9 +92,9 @@ public:
 	void AddTimeSlot2( queue<CIncomingAction *> actions );
 	void AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions );
 	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
-	void AddCheckSum( uint32_t checkSum );
 	void AddBlock( BYTEARRAY &block );
 	void AddLoadingBlock( BYTEARRAY &loadingBlock );
+	void BuildMoreBlocks( );
 	void BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber );
 
 	void ParseReplay( bool parseBlocks );
