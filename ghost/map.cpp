@@ -570,7 +570,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								getline( ISS, GarbageString, '\0' );	// team name
 							}
 
-							MapOptions = RawMapFlags;
+							// the bot only cares about the following options: melee, fixed player settings, custom forces
+							// let's not confuse the user by displaying erroneous map options so zero them out now
+
+							MapOptions = RawMapFlags & ( MAPOPT_MELEE | MAPOPT_FIXEDPLAYERSETTINGS | MAPOPT_CUSTOMFORCES );
 							CONSOLE_Print( "[MAP] calculated map_options = " + UTIL_ToString( MapOptions ) );
 							MapWidth = UTIL_CreateByteArray( (uint16_t)RawMapWidth, false );
 							CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ByteArrayToDecString( MapWidth ) );
