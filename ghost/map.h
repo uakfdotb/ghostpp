@@ -53,6 +53,36 @@
 #define MAPOPT_WATERWAVESONCLIFFSHORES	1 << 11
 #define MAPOPT_WATERWAVESONSLOPESHORES	1 << 12
 
+#define MAPFILTER_MAKER_USER			1
+#define MAPFILTER_MAKER_BLIZZARD		2
+
+#define MAPFILTER_TYPE_MELEE			1
+#define MAPFILTER_TYPE_SCENARIO			2
+
+#define MAPFILTER_SIZE_SMALL			1
+#define MAPFILTER_SIZE_MEDIUM			2
+#define MAPFILTER_SIZE_LARGE			4
+
+#define MAPFILTER_OBS_FULL				1
+#define MAPFILTER_OBS_ONDEATH			2
+#define MAPFILTER_OBS_NONE				4
+
+#define MAPGAMETYPE_UNKNOWN0			1			// always set except for saved games?
+// AuthenticatedMakerBlizzard = 1 << 3
+// OfficialMeleeGame = 1 << 5
+#define MAPGAMETYPE_SAVEDGAME			1 << 9
+#define MAPGAMETYPE_PRIVATEGAME			1 << 11
+#define MAPGAMETYPE_MAKERUSER			1 << 13
+#define MAPGAMETYPE_MAKERBLIZZARD		1 << 14
+#define MAPGAMETYPE_TYPEMELEE			1 << 15
+#define MAPGAMETYPE_TYPESCENARIO		1 << 16
+#define MAPGAMETYPE_SIZESMALL			1 << 17
+#define MAPGAMETYPE_SIZEMEDIUM			1 << 18
+#define MAPGAMETYPE_SIZELARGE			1 << 19
+#define MAPGAMETYPE_OBSFULL				1 << 20
+#define MAPGAMETYPE_OBSONDEATH			1 << 21
+#define MAPGAMETYPE_OBSNONE				1 << 22
+
 #include "gameslot.h"
 
 //
@@ -76,7 +106,10 @@ private:
 	unsigned char m_MapVisibility;
 	unsigned char m_MapObservers;
 	unsigned char m_MapFlags;
-	unsigned char m_MapGameType;
+	unsigned char m_MapFilterMaker;
+	unsigned char m_MapFilterType;
+	unsigned char m_MapFilterSize;
+	unsigned char m_MapFilterObs;
 	uint32_t m_MapOptions;
 	BYTEARRAY m_MapWidth;						// config value: map width (2 bytes)
 	BYTEARRAY m_MapHeight;						// config value: map height (2 bytes)
@@ -109,7 +142,7 @@ public:
 	unsigned char GetMapObservers( )		{ return m_MapObservers; }
 	unsigned char GetMapFlags( )			{ return m_MapFlags; }
 	BYTEARRAY GetMapGameFlags( );
-	unsigned char GetMapGameType( )			{ return m_MapGameType; }
+	uint32_t GetMapGameType( );
 	uint32_t GetMapOptions( )				{ return m_MapOptions; }
 	unsigned char GetMapLayoutStyle( );
 	BYTEARRAY GetMapWidth( )				{ return m_MapWidth; }

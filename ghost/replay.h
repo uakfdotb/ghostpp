@@ -50,11 +50,11 @@ private:
 	string m_GameName;
 	string m_StatString;
 	uint32_t m_PlayerCount;
-	unsigned char m_MapGameType;
+	uint32_t m_MapGameType;
 	vector<PIDPlayer> m_Players;
 	vector<CGameSlot> m_Slots;
 	uint32_t m_RandomSeed;
-	unsigned char m_SelectMode;
+	unsigned char m_SelectMode;				// also known as the "layout style" elsewhere in this project
 	unsigned char m_StartSpotCount;
 	queue<BYTEARRAY> m_LoadingBlocks;
 	queue<BYTEARRAY> m_Blocks;
@@ -70,7 +70,7 @@ public:
 	string GetGameName( )					{ return m_GameName; }
 	string GetStatString( )					{ return m_StatString; }
 	uint32_t GetPlayerCount( )				{ return m_PlayerCount; }
-	unsigned char GetMapGameType( )			{ return m_MapGameType; }
+	uint32_t GetMapGameType( )				{ return m_MapGameType; }
 	vector<PIDPlayer> GetPlayers( )			{ return m_Players; }
 	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
 	uint32_t GetRandomSeed( )				{ return m_RandomSeed; }
@@ -85,7 +85,7 @@ public:
 	void SetRandomSeed( uint32_t nRandomSeed )				{ m_RandomSeed = nRandomSeed; }
 	void SetSelectMode( unsigned char nSelectMode )			{ m_SelectMode = nSelectMode; }
 	void SetStartSpotCount( unsigned char nStartSpotCount )	{ m_StartSpotCount = nStartSpotCount; }
-	void SetMapGameType( unsigned char nMapGameType )		{ m_MapGameType = nMapGameType; }
+	void SetMapGameType( uint32_t nMapGameType )			{ m_MapGameType = nMapGameType; }
 	void SetHostPID( unsigned char nHostPID )				{ m_HostPID = nHostPID; }
 	void SetHostName( string nHostName )					{ m_HostName = nHostName; }
 

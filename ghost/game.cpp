@@ -1434,31 +1434,26 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					// so if we try to send accurate numbers it'll always be off by one and results in Warcraft 3 assuming the game is full when it still needs one more player
 					// the easiest solution is to simply send 12 for both so the game will always show up as (1/12) players
 
-					BYTEARRAY MapGameType;
-
-					// construct the correct W3GS_GAMEINFO packet
-
 					if( m_SaveGame )
 					{
-						MapGameType.push_back( 0 );
-						MapGameType.push_back( 2 );
-						MapGameType.push_back( 0 );
-						MapGameType.push_back( 0 );
+						// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
+
+						uint32_t MapGameType = MAPGAMETYPE_SAVEDGAME;
 						BYTEARRAY MapWidth;
 						MapWidth.push_back( 0 );
 						MapWidth.push_back( 0 );
 						BYTEARRAY MapHeight;
 						MapHeight.push_back( 0 );
 						MapHeight.push_back( 0 );
-						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
 					}
 					else
 					{
-						MapGameType.push_back( m_Map->GetMapGameType( ) );
-						MapGameType.push_back( 0 );
-						MapGameType.push_back( 0 );
-						MapGameType.push_back( 0 );
-						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
+						// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
+						// note: we do not use m_Map->GetMapGameType because none of the filters are set when broadcasting to LAN (also as you might expect)
+
+						uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
 					}
 				}
 			}

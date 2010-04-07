@@ -460,8 +460,6 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 		if( !m_CountDownStarted )
 		{
-			BYTEARRAY MapGameType;
-
 			// construct a fixed host counter which will be used to identify players from this "realm" (i.e. LAN)
 			// the fixed host counter's 4 most significant bits will contain a 4 bit ID (0-15)
 			// the rest of the fixed host counter will contain the 28 least significant bits of the actual host counter
@@ -471,29 +469,26 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			uint32_t FixedHostCounter = m_HostCounter & 0x0FFFFFFF;
 
-			// construct the correct W3GS_GAMEINFO packet
-
 			if( m_SaveGame )
 			{
-				MapGameType.push_back( 0 );
-				MapGameType.push_back( 2 );
-				MapGameType.push_back( 0 );
-				MapGameType.push_back( 0 );
+				// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
+
+				uint32_t MapGameType = MAPGAMETYPE_SAVEDGAME;
 				BYTEARRAY MapWidth;
 				MapWidth.push_back( 0 );
 				MapWidth.push_back( 0 );
 				BYTEARRAY MapHeight;
 				MapHeight.push_back( 0 );
 				MapHeight.push_back( 0 );
-				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter ) );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter ) );
 			}
 			else
 			{
-				MapGameType.push_back( m_Map->GetMapGameType( ) );
-				MapGameType.push_back( 0 );
-				MapGameType.push_back( 0 );
-				MapGameType.push_back( 0 );
-				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter ) );
+				// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
+				// note: we do not use m_Map->GetMapGameType because none of the filters are set when broadcasting to LAN (also as you might expect)
+
+				uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter ) );
 			}
 		}
 
@@ -3300,28 +3295,25 @@ void CBaseGame :: EventGameStarted( )
 		m_Replay->SetSelectMode( m_Map->GetMapLayoutStyle( ) );
 		m_Replay->SetStartSpotCount( m_Map->GetMapNumPlayers( ) );
 
-		/*
-		
-		BYTEARRAY MapGameType;
-
 		if( m_SaveGame )
 		{
-			MapGameType.push_back( 0 );
-			MapGameType.push_back( 2 );
-			MapGameType.push_back( 0 );
-			MapGameType.push_back( 0 );
+			uint32_t MapGameType = MAPGAMETYPE_SAVEDGAME;
+
+			if( m_GameState == GAME_PRIVATE )
+				MapGameType |= MAPGAMETYPE_PRIVATEGAME;
+
+			m_Replay->SetMapGameType( MapGameType );
 		}
 		else
 		{
-			MapGameType.push_back( m_Map->GetMapGameType( ) );
-			MapGameType.push_back( 0 );
-			MapGameType.push_back( 0 );
-			MapGameType.push_back( 0 );
+			uint32_t MapGameType = m_Map->GetMapGameType( );
+			MapGameType |= MAPGAMETYPE_UNKNOWN0;
+
+			if( m_GameState == GAME_PRIVATE )
+				MapGameType |= MAPGAMETYPE_PRIVATEGAME;
+
+			m_Replay->SetMapGameType( MapGameType );
 		}
-
-		*/
-
-		m_Replay->SetMapGameType( m_Map->GetMapGameType( ) );
 
 		if( !m_Players.empty( ) )
 		{

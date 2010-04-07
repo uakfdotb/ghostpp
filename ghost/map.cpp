@@ -49,7 +49,10 @@ CMap :: CMap( CGHost *nGHost )
 	m_MapVisibility = MAPVIS_DEFAULT;
 	m_MapObservers = MAPOBS_NONE;
 	m_MapFlags = MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS;
-	m_MapGameType = 9;
+	m_MapFilterMaker = MAPFILTER_MAKER_BLIZZARD;
+	m_MapFilterType = MAPFILTER_TYPE_MELEE;
+	m_MapFilterSize = MAPFILTER_SIZE_LARGE;
+	m_MapFilterObs = MAPFILTER_OBS_NONE;
 	m_MapOptions = MAPOPT_MELEE;
 	m_MapWidth = UTIL_ExtractNumbers( "172 0", 2 );
 	m_MapHeight = UTIL_ExtractNumbers( "172 0", 2 );
@@ -153,6 +156,81 @@ BYTEARRAY CMap :: GetMapGameFlags( )
 		GameFlags |= 0x04000000;
 
 	return UTIL_CreateByteArray( GameFlags, false );
+}
+
+uint32_t CMap :: GetMapGameType( )
+{
+	/* spec stolen from Strilanc as follows:
+
+    Public Enum GameTypes As UInteger
+        None = 0
+        Unknown0 = 1 << 0 '[always seems to be set?]
+
+        '''<summary>Setting this bit causes wc3 to check the map and disc if it is not signed by Blizzard</summary>
+        AuthenticatedMakerBlizzard = 1 << 3
+        OfficialMeleeGame = 1 << 5
+
+		SavedGame = 1 << 9
+        PrivateGame = 1 << 11
+
+        MakerUser = 1 << 13
+        MakerBlizzard = 1 << 14
+        TypeMelee = 1 << 15
+        TypeScenario = 1 << 16
+        SizeSmall = 1 << 17
+        SizeMedium = 1 << 18
+        SizeLarge = 1 << 19
+        ObsFull = 1 << 20
+        ObsOnDeath = 1 << 21
+        ObsNone = 1 << 22
+
+        MaskObs = ObsFull Or ObsOnDeath Or ObsNone
+        MaskMaker = MakerBlizzard Or MakerUser
+        MaskType = TypeMelee Or TypeScenario
+        MaskSize = SizeLarge Or SizeMedium Or SizeSmall
+        MaskFilterable = MaskObs Or MaskMaker Or MaskType Or MaskSize
+    End Enum
+
+	*/
+
+	// note: we allow "conflicting" flags to be set at the same time (who knows if this is a good idea)
+	// we also don't set any flags this class is unaware of such as Unknown0, SavedGame, and PrivateGame
+
+	uint32_t GameType = 0;
+
+	// maker
+
+	if( m_MapFilterMaker & MAPFILTER_MAKER_USER )
+		GameType |= MAPGAMETYPE_MAKERUSER;
+	if( m_MapFilterMaker & MAPFILTER_MAKER_BLIZZARD )
+		GameType |= MAPGAMETYPE_MAKERBLIZZARD;
+
+	// type
+
+	if( m_MapFilterType & MAPFILTER_TYPE_MELEE )
+		GameType |= MAPGAMETYPE_TYPEMELEE;
+	if( m_MapFilterType & MAPFILTER_TYPE_SCENARIO )
+		GameType |= MAPGAMETYPE_TYPESCENARIO;
+
+	// size
+
+	if( m_MapFilterSize & MAPFILTER_SIZE_SMALL )
+		GameType |= MAPGAMETYPE_SIZESMALL;
+	if( m_MapFilterSize & MAPFILTER_SIZE_MEDIUM )
+		GameType |= MAPGAMETYPE_SIZEMEDIUM;
+	if( m_MapFilterSize & MAPFILTER_SIZE_LARGE )
+		GameType |= MAPGAMETYPE_SIZELARGE;
+
+	// obs
+
+	if( m_MapFilterObs & MAPFILTER_OBS_FULL )
+		GameType |= MAPGAMETYPE_OBSFULL;
+	if( m_MapFilterObs & MAPFILTER_OBS_ONDEATH )
+		GameType |= MAPGAMETYPE_OBSONDEATH;
+	if( m_MapFilterObs & MAPFILTER_OBS_NONE )
+		GameType |= MAPGAMETYPE_OBSNONE;
+
+	return GameType;
 }
 
 unsigned char CMap :: GetMapLayoutStyle( )
@@ -683,7 +761,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapVisibility = CFG->GetInt( "map_visibility", MAPVIS_DEFAULT );
 	m_MapObservers = CFG->GetInt( "map_observers", MAPOBS_NONE );
 	m_MapFlags = CFG->GetInt( "map_flags", MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS );
-	m_MapGameType = CFG->GetInt( "map_gametype", 1 );
+	m_MapFilterMaker = CFG->GetInt( "map_filter_maker", MAPFILTER_MAKER_USER );
+	m_MapFilterType = CFG->GetInt( "map_filter_type", 0 );
+	m_MapFilterSize = CFG->GetInt( "map_filter_size", MAPFILTER_SIZE_LARGE );
+	m_MapFilterObs = CFG->GetInt( "map_filter_obs", MAPFILTER_OBS_NONE );
 
 	// todotodo: it might be possible for MapOptions to legitimately be zero so this is not a valid way of checking if it wasn't parsed out earlier
 
@@ -861,12 +942,7 @@ void CMap :: CheckValid( )
 	}
 
 	// todotodo: m_MapFlags
-
-	if( m_MapGameType != 1 && m_MapGameType != 2 && m_MapGameType != 9 )
-	{
-		m_Valid = false;
-		CONSOLE_Print( "[MAP] invalid map_gametype detected" );
-	}
+	// todotodo: m_MapFilterMaker, m_MapFilterType, m_MapFilterSize, m_MapFilterObs
 
 	if( m_MapWidth.size( ) != 2 )
 	{
