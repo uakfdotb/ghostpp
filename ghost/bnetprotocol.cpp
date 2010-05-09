@@ -312,9 +312,9 @@ bool CBNETProtocol :: RECEIVE_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY data )
 
 	if( ValidateLength( data ) && data.size( ) >= 8 )
 	{
-		BYTEARRAY Status = BYTEARRAY( data.begin( ) + 4, data.begin( ) + 8 );
+		uint32_t Status = UTIL_ByteArrayToUInt32( BYTEARRAY( data.begin( ) + 4, data.begin( ) + 8 ), false );
 
-		if( UTIL_ByteArrayToUInt32( Status, false ) == 0 )
+		if( Status == 0 || Status == 0xE )
 			return true;
 	}
 
