@@ -131,8 +131,6 @@ static DWORD WINAPI ReadMPQBlocks(TMPQFile * hf, DWORD dwBlockPos, BYTE * buffer
             }
         }
 
-printf("%s, %u %u %u %u\n", hf->szFileName, dwToRead, hf->pBlock->dwFilePos, hf->pdwBlockPos[0], hf->pdwBlockPos[1]);
-
         // Update hf's variables
         hf->bBlockPosLoaded = TRUE;
     }
@@ -187,7 +185,6 @@ printf("%s, %u %u %u %u\n", hf->szFileName, dwToRead, hf->pBlock->dwFilePos, hf-
         if(hf->pBlock->dwFlags & MPQ_FILE_COMPRESSED)
             blockSize = hf->pdwBlockPos[index+1] - hf->pdwBlockPos[index];
 
-            printf("%X: %X %X %X %X\n", index, inputBuffer[0], inputBuffer[1], inputBuffer[2], inputBuffer[3]);
         // If block is encrypted, we have to decrypt it.
         if(hf->pBlock->dwFlags & MPQ_FILE_ENCRYPTED)
         {

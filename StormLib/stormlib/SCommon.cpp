@@ -446,7 +446,6 @@ TMPQHash * GetHashEntry(TMPQArchive * ha, const char * szFileName)
     dwName1 = DecryptName1(szFileName);
     dwName2 = DecryptName2(szFileName);
     pHash   = pHash0 = ha->pHashTable + dwIndex;
-        printf("gethashentryex: %s %u %u %u\n", szFileName, dwIndex, ha->pHeader->dwHashTableSize, dwName2);
     
     // Look for hash index
     while(pHash->dwBlockIndex != HASH_ENTRY_FREE)
