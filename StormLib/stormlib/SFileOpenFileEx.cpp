@@ -304,6 +304,7 @@ BOOL WINAPI SFileOpenFileEx(HANDLE hMPQ, const char * szFileName, DWORD dwSearch
         }
         else
         {
+printf("looking for %s, %u\n", szFileName, lcLocale);
             // If we have to open a disk file
             if(dwSearchScope == SFILE_OPEN_LOCAL_FILE)
                 return OpenLocalFile(szFileName, phFile);
@@ -311,9 +312,12 @@ BOOL WINAPI SFileOpenFileEx(HANDLE hMPQ, const char * szFileName, DWORD dwSearch
             nHandleSize = sizeof(TMPQFile) + strlen(szFileName);
             if((pHash = GetHashEntryEx(ha, szFileName, lcLocale)) != NULL)
             {
+            printf("%s: %u\n", szFileName, pHash->dwBlockIndex);
                 dwHashIndex  = (DWORD)(pHash - ha->pHashTable);
                 dwBlockIndex = pHash->dwBlockIndex;
             }
+            else
+            printf("%s: handle is NULL\n", szFileName);
         }
     }
 
