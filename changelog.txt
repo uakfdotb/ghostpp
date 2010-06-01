@@ -2,6 +2,37 @@
 GHost++ Changelog
 =================
 
+Version 17.1 (June 1, 2010)
+ - the bot now sends chat messages from the fake player if one exists
+ - added new config value bnet*_locale
+ - renamed ghost.cfg to default.cfg
+  * the bot now loads default.cfg first then loads ghost.cfg (or the file specified on the command line) and overrides default.cfg with any values in ghost.cfg
+  * added reloading of default.cfg before reloading the main config file (e.g. when using the !reload command)
+ - added printing of Observer/Referee messages to the console and log file
+ - added new map config value map_options
+  * added support for custom maps that allow selectable teams, colours, and races
+  * changed the meaning of SLOTRACE_FIXED to SLOTRACE_SELECTABLE as the previous meaning was incorrect
+  * fixed the bot's logic for changing teams, colours, and races to take the map options into account
+  * note: these changes may "break" existing map configs since previously the bot would assume a map was "custom" by default and now it assumes a map has selectable teams, colours, and races by default
+ - fixed the "GameType" value being set incorrectly (using Strilanc's specification, thanks again!)
+  * you can now specify the map filters that should apply to the games your bot creates
+  * removed map config value map_gametype (its functionality has been replaced by map_options in a previous revision)
+  * added map config value map_filter_maker
+  * added map config value map_filter_type
+  * added map config value map_filter_size
+  * added map config value map_filter_obs
+ - matchmaking can only be used on maps with fixed player settings rather than only on custom maps now
+ - some optimizations that should reduce the time required to save replays
+  * removed some unnecessary data from replays (player checksums)
+  * the bot now builds a (mostly) complete replay in memory as the game progresses (rather than building the replay at the end of the game)
+ - spaces in (and after) cdkeys are now ignored
+ - fixed a bug where GHost++ would occasionally generate broken replays (anytime a "pretick" or w3gs_incoming_action2 was generated)
+ - fixed a bug where GProxy++ users would desync upon reconnection when load-in-game was enabled
+ - fixed a bug with the previous revision that didn't really fix the GProxy++ desync issue when using load-in-game
+ - fixed a bug which didn't allow accounts to log on if they hadn't registered an email address
+ - fixed a bug which allowed rehosting a game with a name over 31 characters (this causes a ban from Battle.net)
+ - fixed a bug which allowed a map_path longer than 49 characters (this causes a disconnect from Battle.net)
+ 
 Version 17.0 (February 25, 2010)
  - added support for connections from reconnect tools such as GProxy++
  - added new config value bot_reconnect
