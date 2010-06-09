@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="RichTextBox1.Text" xml:space="preserve">
+    <value>= Info =
+release: 16.4.2010
+autor: HardwareBug
+
+= FAQ =
+1. A setting has a wrong edit tool(a TextBox, NumericUpDown or a CheckBox).
+    What should i do? a.k.a. An edit box accept only numbers, NO letters!
+   -&gt; open the ghost.cfg/default.cfg with a text editor and edit the description
+       of the setting! Add or remove some keywords form it (they are listed below,
+       at "the edit tool select system")
+
+2. The ghost.cfg/default.cfg has a new setting but I cant find it in
+     the ghost configurator. Whats wrong? 
+     -&gt; the configurator shows only settings starting with: "bot_", "admingame_",
+         "db_", "bnet", "udp_", "tcp_", "lan_", "autohost_" and "replay_".
+         If the prefix of your setting is not included it won't be showed,
+         maybe check for an update of the configurator.
+
+3. I customized the virtualhostname but ghost doesn't change it, whats wrong?
+    -&gt; this setting has a max length of 15 characters, if a colored name is used it
+        has a max length of 5 characters (because 10 characters are used for
+        the color code) IF you want a name longer than 5 charaters you must
+        disable the color (with the checkbox next to the color button).
+
+= Some error codes from the configurator =
+#002 - Too many settings in the cfg file!
+            -&gt; not all settings will be displayed in the configurator,
+                 there may be an update for the ghost configurator!
+#003 - An "=" is missing!
+            -&gt; add an "=" in the ghost.cfg/default.cfg in the mentioned line
+                after a setting eg. "bot_port" --&gt; "bot_port ="
+#005 - Only numbers after the setting "bnet" are allowed!
+            -&gt; edit in the ghost.cfg/default.cfg the mentioned line
+                to "bnet" and a number between 2-10 =&gt; eg. "bnet4_server ="
+#006 - An "#" is missing!
+            -&gt; add an "#" in the ghost.cfg/default.cfg at the start of
+                the mentioned line  eg. "my description" =&gt; "#my description"
+
+= The edit tool select system =
+At start up the application decides what each setting requires,
+depending on keywords in the description and the name of the setting.
+
+Keywords for a:
+NumericUpDown: "port", "max", "Numeric", "method", "higher", "set to",
+                             "percent" or "number" in the description 
+                             OR "max" or "port" in the name of the setting
+Checkbox: "1" or "0" as value of the setting
+Textbox with a directory browser: "directory" or "path" in the description
+Textbox with a color editor: "color" in the description
+-&gt; the application checks the settings in the same order as them are listed here,
+    eg. if a keyword for a NumericUpDown was found in a description the other
+    keywords would not be checked OR if no keywords in a description
+    and the setting was found the setting get a simple textbox!
+
+= Keyboard shortcuts =
+1. &lt;ctrl + z&gt; resets the value of a selected Textbox or
+                   NumericUpDown to its defaults.
+2 &lt;ctrl + shift&gt; sets the value of a selected Textbox or NumericUpDown
+                        to the value of bnet server 1.
+
+= Some default settings =
+-Bot-
+ language = language.cfg
+ latency = 100
+ synclimit = 50
+
+-Battle.net-
+ bnlswardencookie = 1
+ custom_war3version = 24
+
+-Replay-
+ war3version = 24
+ buildnumber = 6059
+
+-Lan-
+ war3version = 24
+
+-Database-
+ type = sqlite3
+ sqlite3_file = ghost.dbs</value>
+  </data>
+  <metadata name="CBoxInfoTimer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <metadata name="DefaultTip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>148, 17</value>
+  </metadata>
+</root>
