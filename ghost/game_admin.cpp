@@ -49,6 +49,7 @@ CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint
 	m_VirtualHostName = "|cFFC04040Admin";
 	m_MuteLobby = true;
 	m_Password = nPassword;
+	m_EntryKey = 0;
 }
 
 CAdminGame :: ~CAdminGame( )
