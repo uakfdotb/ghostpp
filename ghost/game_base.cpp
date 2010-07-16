@@ -2011,7 +2011,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		m_Slots[SID] = EnforceSlot;
 	else
 	{
-		if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
+		if( m_Map->GetMapOptions( ) & MAPOPT_CUSTOMFORCES )
 			m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam( ), m_Slots[SID].GetColour( ), m_Slots[SID].GetRace( ) );
 		else
 		{
