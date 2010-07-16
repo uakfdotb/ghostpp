@@ -1434,6 +1434,15 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					CONSOLE_Print( "[GAME: " + m_GameName + "] bad inputs to sendlan command" );
 				else
 				{
+					// construct a fixed host counter which will be used to identify players from this "realm" (i.e. LAN)
+					// the fixed host counter's 4 most significant bits will contain a 4 bit ID (0-15)
+					// the rest of the fixed host counter will contain the 28 least significant bits of the actual host counter
+					// since we're destroying 4 bits of information here the actual host counter should not be greater than 2^28 which is a reasonable assumption
+					// when a player joins a game we can obtain the ID from the received host counter
+					// note: LAN broadcasts use an ID of 0, battle.net refreshes use an ID of 1-10, the rest are unused
+
+					uint32_t FixedHostCounter = m_HostCounter & 0x0FFFFFFF;
+
 					// we send 12 for SlotsTotal because this determines how many PID's Warcraft 3 allocates
 					// we need to make sure Warcraft 3 allocates at least SlotsTotal + 1 but at most 12 PID's
 					// this is because we need an extra PID for the virtual host player (but we always delete the virtual host player when the 12th person joins)
@@ -1454,7 +1463,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						BYTEARRAY MapHeight;
 						MapHeight.push_back( 0 );
 						MapHeight.push_back( 0 );
-						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey ) );
 					}
 					else
 					{
@@ -1462,7 +1471,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						// note: we do not use m_Map->GetMapGameType because none of the filters are set when broadcasting to LAN (also as you might expect)
 
 						uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
-						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey ) );
 					}
 				}
 			}

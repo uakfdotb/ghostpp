@@ -88,6 +88,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_HCLCommandString = m_Map->GetMapDefaultHCL( );
 	m_RandomSeed = GetTicks( );
 	m_HostCounter = m_GHost->m_HostCounter++;
+	m_EntryKey = rand( );
 	m_Latency = m_GHost->m_Latency;
 	m_SyncLimit = m_GHost->m_SyncLimit;
 	m_SyncCounter = 0;
@@ -469,6 +470,15 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			uint32_t FixedHostCounter = m_HostCounter & 0x0FFFFFFF;
 
+			// we send 12 for SlotsTotal because this determines how many PID's Warcraft 3 allocates
+			// we need to make sure Warcraft 3 allocates at least SlotsTotal + 1 but at most 12 PID's
+			// this is because we need an extra PID for the virtual host player (but we always delete the virtual host player when the 12th person joins)
+			// however, we can't send 13 for SlotsTotal because this causes Warcraft 3 to crash when sharing control of units
+			// nor can we send SlotsTotal because then Warcraft 3 crashes when playing maps with less than 12 PID's (because of the virtual host player taking an extra PID)
+			// we also send 12 for SlotsOpen because Warcraft 3 assumes there's always at least one player in the game (the host)
+			// so if we try to send accurate numbers it'll always be off by one and results in Warcraft 3 assuming the game is full when it still needs one more player
+			// the easiest solution is to simply send 12 for both so the game will always show up as (1/12) players
+
 			if( m_SaveGame )
 			{
 				// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
@@ -480,7 +490,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				BYTEARRAY MapHeight;
 				MapHeight.push_back( 0 );
 				MapHeight.push_back( 0 );
-				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter ) );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey ) );
 			}
 			else
 			{
@@ -488,7 +498,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				// note: we do not use m_Map->GetMapGameType because none of the filters are set when broadcasting to LAN (also as you might expect)
 
 				uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
-				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter ) );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey ) );
 			}
 		}
 
@@ -1710,7 +1720,24 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	// we use an ID value of 0 to denote joining via LAN
 
-	if( HostCounterID != 0 )
+	if( HostCounterID == 0 )
+	{
+		// the player is pretending to join via LAN, which they might or might not be (i.e. it could be spoofed)
+		// however, we've been broadcasting a random entry key to the LAN
+		// if the player is really on the LAN they'll know the entry key, otherwise they won't
+		// or they're very lucky since it's a 32 bit number
+
+		if( joinPlayer->GetEntryKey( ) != m_EntryKey )
+		{
+			// oops!
+
+			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game over LAN but used an incorrect entry key" );
+			potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_WRONGPASSWORD ) );
+			potential->SetDeleteMe( true );
+			return;
+		}
+	}
+	else
 	{
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 		{

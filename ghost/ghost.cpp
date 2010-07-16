@@ -231,6 +231,8 @@ void DEBUG_Print( BYTEARRAY b )
 
 int main( int argc, char **argv )
 {
+	srand( time( NULL ) );
+
 	gCFGFile = "ghost.cfg";
 
 	if( argc > 1 && argv[1] )

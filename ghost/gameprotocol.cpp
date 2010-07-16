@@ -63,12 +63,13 @@ CIncomingJoinPlayer *CGameProtocol :: RECEIVE_W3GS_REQJOIN( BYTEARRAY data )
 	if( ValidateLength( data ) && data.size( ) >= 20 )
 	{
 		uint32_t HostCounter = UTIL_ByteArrayToUInt32( data, false, 4 );
+		uint32_t EntryKey = UTIL_ByteArrayToUInt32( data, false, 8 );
 		BYTEARRAY Name = UTIL_ExtractCString( data, 19 );
 
 		if( !Name.empty( ) && data.size( ) >= Name.size( ) + 30 )
 		{
 			BYTEARRAY InternalIP = BYTEARRAY( data.begin( ) + Name.size( ) + 26, data.begin( ) + Name.size( ) + 30 );
-			return new CIncomingJoinPlayer( HostCounter, string( Name.begin( ), Name.end( ) ), InternalIP );
+			return new CIncomingJoinPlayer( HostCounter, EntryKey, string( Name.begin( ), Name.end( ) ), InternalIP );
 		}
 	}
 
@@ -652,12 +653,11 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( bool TFT, unsigned char war3Ver
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter )
+BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter, uint32_t entryKey )
 {
 	unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
 	unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
 	unsigned char Version[]			= { war3Version,  0,  0,  0 };
-	unsigned char Unknown1[]		= {           1,  2,  3,  4 };
 	unsigned char Unknown2[]		= {           1,  0,  0,  0 };
 
 	BYTEARRAY packet;
@@ -691,7 +691,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Versi
 
 		UTIL_AppendByteArray( packet, Version, 4 );						// Version
 		UTIL_AppendByteArray( packet, hostCounter, false );				// Host Counter
-		UTIL_AppendByteArray( packet, Unknown1, 4 );					// ??? (this varies wildly even between two identical games created one after another)
+		UTIL_AppendByteArray( packet, entryKey, false );				// Entry Key
 		UTIL_AppendByteArrayFast( packet, gameName );					// Game Name
 		packet.push_back( 0 );											// ??? (maybe game password)
 		UTIL_AppendByteArrayFast( packet, StatString );					// Stat String
@@ -961,9 +961,10 @@ BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t ra
 // CIncomingJoinPlayer
 //
 
-CIncomingJoinPlayer :: CIncomingJoinPlayer( uint32_t nHostCounter, string nName, BYTEARRAY &nInternalIP )
+CIncomingJoinPlayer :: CIncomingJoinPlayer( uint32_t nHostCounter, uint32_t nEntryKey, string nName, BYTEARRAY &nInternalIP )
 {
 	m_HostCounter = nHostCounter;
+	m_EntryKey = nEntryKey;
 	m_Name = nName;
 	m_InternalIP = nInternalIP;
 }
