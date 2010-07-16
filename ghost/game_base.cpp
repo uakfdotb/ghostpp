@@ -3992,7 +3992,7 @@ void CBaseGame :: ShuffleSlots( )
 
 	// now we shuffle PlayerSlots
 
-	if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
+	if( m_Map->GetMapOptions( ) & MAPOPT_CUSTOMFORCES )
 	{
 		// rather than rolling our own probably broken shuffle algorithm we use random_shuffle because it's guaranteed to do it properly
 		// so in order to let random_shuffle do all the work we need a vector to operate on
