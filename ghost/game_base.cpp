@@ -2919,7 +2919,7 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 	if( m_SaveGame )
 		return;
 
-	if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
+	if( m_Map->GetMapOptions( ) & MAPOPT_CUSTOMFORCES )
 	{
 		unsigned char oldSID = GetSIDFromPID( player->GetPID( ) );
 		unsigned char newSID = GetEmptySlot( team, player->GetPID( ) );
@@ -3814,14 +3814,20 @@ void CBaseGame :: SwapSlots( unsigned char SID1, unsigned char SID2 )
 
 		if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
 		{
-			// don't swap the team, colour, or race
-
-			m_Slots[SID1] = CGameSlot( Slot2.GetPID( ), Slot2.GetDownloadStatus( ), Slot2.GetSlotStatus( ), Slot2.GetComputer( ), Slot1.GetTeam( ), Slot1.GetColour( ), Slot1.GetRace( ), Slot2.GetComputerType( ), Slot2.GetHandicap( ) );
-			m_Slots[SID2] = CGameSlot( Slot1.GetPID( ), Slot1.GetDownloadStatus( ), Slot1.GetSlotStatus( ), Slot1.GetComputer( ), Slot2.GetTeam( ), Slot2.GetColour( ), Slot2.GetRace( ), Slot1.GetComputerType( ), Slot1.GetHandicap( ) );
+			// don't swap the team, colour, race, or handicap
+			m_Slots[SID1] = CGameSlot( Slot2.GetPID( ), Slot2.GetDownloadStatus( ), Slot2.GetSlotStatus( ), Slot2.GetComputer( ), Slot1.GetTeam( ), Slot1.GetColour( ), Slot1.GetRace( ), Slot2.GetComputerType( ), Slot1.GetHandicap( ) );
+			m_Slots[SID2] = CGameSlot( Slot1.GetPID( ), Slot1.GetDownloadStatus( ), Slot1.GetSlotStatus( ), Slot1.GetComputer( ), Slot2.GetTeam( ), Slot2.GetColour( ), Slot2.GetRace( ), Slot1.GetComputerType( ), Slot2.GetHandicap( ) );
 		}
 		else
 		{
 			// swap everything
+
+			if( m_Map->GetMapOptions( ) & MAPOPT_CUSTOMFORCES )
+			{
+				// except if custom forces is set, then we don't swap teams...
+				Slot1.SetTeam( m_Slots[SID2].GetTeam( ) );
+				Slot2.SetTeam( m_Slots[SID1].GetTeam( ) );
+			}
 
 			m_Slots[SID1] = Slot2;
 			m_Slots[SID2] = Slot1;
