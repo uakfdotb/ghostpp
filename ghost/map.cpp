@@ -883,7 +883,7 @@ void CMap :: CheckValid( )
 {
 	// todotodo: should this code fix any errors it sees rather than just warning the user?
 
-	if( m_MapPath.empty( ) || m_MapPath.length( ) >= 50 )
+	if( m_MapPath.empty( ) || m_MapPath.length( ) > 53 )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_path detected" );
