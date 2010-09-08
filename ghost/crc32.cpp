@@ -3,7 +3,7 @@
 
 void CCRC32 :: Initialize( )
 {
-	for( int iCodes = 0; iCodes <= 0xFF; iCodes++ )
+        for( int iCodes = 0; iCodes <= 0xFF; ++iCodes )
 	{
 		ulTable[iCodes] = Reflect( iCodes, 8 ) << 24;
 
@@ -18,7 +18,7 @@ uint32_t CCRC32 :: Reflect( uint32_t ulReflect, char cChar )
 {
 	uint32_t ulValue = 0;
 
-	for( int iPos = 1; iPos < ( cChar + 1 ); iPos++ )
+        for( int iPos = 1; iPos < ( cChar + 1 ); ++iPos )
 	{
 		if( ulReflect & 1 )
 			ulValue |= 1 << ( cChar - iPos );

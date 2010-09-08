@@ -25,11 +25,9 @@
 // CCommandPacket
 //
 
-CCommandPacket :: CCommandPacket( unsigned char nPacketType, int nID, BYTEARRAY nData )
+CCommandPacket :: CCommandPacket( unsigned char nPacketType, int nID, BYTEARRAY nData ) : m_PacketType( nPacketType ), m_ID( nID ), m_Data( nData )
 {
-	m_PacketType = nPacketType;
-	m_ID = nID;
-	m_Data = nData;
+
 }
 
 CCommandPacket :: ~CCommandPacket( )

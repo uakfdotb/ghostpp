@@ -60,7 +60,7 @@ int CSQLITE3 :: Step( void *Statement )
 	{
 		m_Row.clear( );
 
-		for( int i = 0; i < sqlite3_column_count( (sqlite3_stmt *)Statement ); i++ )
+                for( int i = 0; i < sqlite3_column_count( (sqlite3_stmt *)Statement ); ++i )
 		{
 			char *ColumnText = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, i );
 
@@ -1344,7 +1344,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints 
 	bool Success = true;
 	sqlite3_stmt *Statement = NULL;
 
-	for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); i++ )
+        for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); ++i )
 	{
 		if( !Statement )
 			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_int ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
@@ -1389,7 +1389,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals 
 	bool Success = true;
 	sqlite3_stmt *Statement = NULL;
 
-	for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); i++ )
+        for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); ++i )
 	{
 		if( !Statement )
 			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_real ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
@@ -1434,7 +1434,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_string
 	bool Success = true;
 	sqlite3_stmt *Statement = NULL;
 
-	for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); i++ )
+        for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); ++i )
 	{
 		if( !Statement )
 			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_string ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );

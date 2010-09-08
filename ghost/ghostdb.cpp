@@ -27,9 +27,9 @@
 // CGHostDB
 //
 
-CGHostDB :: CGHostDB( CConfig *CFG )
+CGHostDB :: CGHostDB( CConfig *CFG ) : m_HasError( false )
 {
-	m_HasError = false;
+
 }
 
 CGHostDB :: ~CGHostDB( )
@@ -421,15 +421,9 @@ CCallableW3MMDVarAdd :: ~CCallableW3MMDVarAdd( )
 // CDBBan
 //
 
-CDBBan :: CDBBan( string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason )
+CDBBan :: CDBBan( string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason ) : m_Server( nServer ), m_Name( nName ), m_IP( nIP ), m_Date( nDate ), m_GameName( nGameName ), m_Admin( nAdmin ), m_Reason( nReason )
 {
-	m_Server = nServer;
-	m_Name = nName;
-	m_IP = nIP;
-	m_Date = nDate;
-	m_GameName = nGameName;
-	m_Admin = nAdmin;
-	m_Reason = nReason;
+
 }
 
 CDBBan :: ~CDBBan( )
@@ -441,15 +435,9 @@ CDBBan :: ~CDBBan( )
 // CDBGame
 //
 
-CDBGame :: CDBGame( uint32_t nID, string nServer, string nMap, string nDateTime, string nGameName, string nOwnerName, uint32_t nDuration )
+CDBGame :: CDBGame( uint32_t nID, string nServer, string nMap, string nDateTime, string nGameName, string nOwnerName, uint32_t nDuration ) : m_ID( nID ), m_Server( nServer ), m_Map( nMap ), m_DateTime( nDateTime ), m_GameName( nGameName ), m_OwnerName( nOwnerName ), m_Duration( nDuration )
 {
-	m_ID = nID;
-	m_Server = nServer;
-	m_Map = nMap;
-	m_DateTime = nDateTime;
-	m_GameName = nGameName;
-	m_OwnerName = nOwnerName;
-	m_Duration = nDuration;
+
 }
 
 CDBGame :: ~CDBGame( )
@@ -462,19 +450,9 @@ CDBGame :: ~CDBGame( )
 //
 
 CDBGamePlayer :: CDBGamePlayer( uint32_t nID, uint32_t nGameID, string nName, string nIP, uint32_t nSpoofed, string nSpoofedRealm, uint32_t nReserved, uint32_t nLoadingTime, uint32_t nLeft, string nLeftReason, uint32_t nTeam, uint32_t nColour )
+    : m_ID( nID ), m_GameID( nGameID ), m_Name( nName ), m_IP( nIP ), m_Spoofed( nSpoofed ), m_SpoofedRealm( nSpoofedRealm ), m_Reserved( nReserved ), m_LoadingTime( nLoadingTime ), m_Left( nLeft ), m_LeftReason( nLeftReason ), m_Team( nTeam ), m_Colour( nColour )
 {
-	m_ID = nID;
-	m_GameID = nGameID;
-	m_Name = nName;
-	m_IP = nIP;
-	m_Spoofed = nSpoofed;
-	m_SpoofedRealm = nSpoofedRealm;
-	m_Reserved = nReserved;
-	m_LoadingTime = nLoadingTime;
-	m_Left = nLeft;
-	m_LeftReason = nLeftReason;
-	m_Team = nTeam;
-	m_Colour = nColour;
+
 }
 
 CDBGamePlayer :: ~CDBGamePlayer( )
@@ -487,21 +465,9 @@ CDBGamePlayer :: ~CDBGamePlayer( )
 //
 
 CDBGamePlayerSummary :: CDBGamePlayerSummary( string nServer, string nName, string nFirstGameDateTime, string nLastGameDateTime, uint32_t nTotalGames, uint32_t nMinLoadingTime, uint32_t nAvgLoadingTime, uint32_t nMaxLoadingTime, uint32_t nMinLeftPercent, uint32_t nAvgLeftPercent, uint32_t nMaxLeftPercent, uint32_t nMinDuration, uint32_t nAvgDuration, uint32_t nMaxDuration )
+    : m_Server( nServer ), m_Name( nName ), m_FirstGameDateTime( nFirstGameDateTime ), m_TotalGames( nTotalGames ), m_MinLoadingTime( nMinLoadingTime ), m_AvgLoadingTime( nAvgLoadingTime ), m_MaxLoadingTime( nMaxLoadingTime ), m_MinLeftPercent( nMinLeftPercent ), m_AvgLeftPercent( nAvgLeftPercent ), m_MaxLeftPercent( nMaxLeftPercent ), m_MinDuration( nMinDuration ), m_AvgDuration( nAvgDuration ), m_MaxDuration( nMaxDuration )
 {
-	m_Server = nServer;
-	m_Name = nName;
-	m_FirstGameDateTime = nFirstGameDateTime;
-	m_LastGameDateTime = nLastGameDateTime;
-	m_TotalGames = nTotalGames;
-	m_MinLoadingTime = nMinLoadingTime;
-	m_AvgLoadingTime = nAvgLoadingTime;
-	m_MaxLoadingTime = nMaxLoadingTime;
-	m_MinLeftPercent = nMinLeftPercent;
-	m_AvgLeftPercent = nAvgLeftPercent;
-	m_MaxLeftPercent = nMaxLeftPercent;
-	m_MinDuration = nMinDuration;
-	m_AvgDuration = nAvgDuration;
-	m_MaxDuration = nMaxDuration;
+
 }
 
 CDBGamePlayerSummary :: ~CDBGamePlayerSummary( )
@@ -513,13 +479,9 @@ CDBGamePlayerSummary :: ~CDBGamePlayerSummary( )
 // CDBDotAGame
 //
 
-CDBDotAGame :: CDBDotAGame( uint32_t nID, uint32_t nGameID, uint32_t nWinner, uint32_t nMin, uint32_t nSec )
+CDBDotAGame :: CDBDotAGame( uint32_t nID, uint32_t nGameID, uint32_t nWinner, uint32_t nMin, uint32_t nSec ) : m_ID( nID ), m_GameID( nGameID ), m_Winner( nWinner ), m_Min( nMin ), m_Sec( nSec )
 {
-	m_ID = nID;
-	m_GameID = nGameID;
-	m_Winner = nWinner;
-	m_Min = nMin;
-	m_Sec = nSec;
+
 }
 
 CDBDotAGame :: ~CDBDotAGame( )
@@ -531,47 +493,20 @@ CDBDotAGame :: ~CDBDotAGame( )
 // CDBDotAPlayer
 //
 
-CDBDotAPlayer :: CDBDotAPlayer( )
+CDBDotAPlayer :: CDBDotAPlayer( ) : m_ID( 0 ), m_GameID( 0 ), m_Colour( 0 ), m_Kills( 0 ), m_Deaths( 0 ), m_CreepKills( 0 ), m_CreepDenies( 0 ), m_Assists( 0 ), m_Gold( 0 ), m_NeutralKills( 0 ), m_NewColour( 0 ), m_TowerKills( 0 ), m_RaxKills( 0 ), m_CourierKills( 0 )
 {
-	m_ID = 0;
-	m_GameID = 0;
-	m_Colour = 0;
-	m_Kills = 0;
-	m_Deaths = 0;
-	m_CreepKills = 0;
-	m_CreepDenies = 0;
-	m_Assists = 0;
-	m_Gold = 0;
-	m_NeutralKills = 0;
-	m_NewColour = 0;
-	m_TowerKills = 0;
-	m_RaxKills = 0;
-	m_CourierKills = 0;
+
 }
 
 CDBDotAPlayer :: CDBDotAPlayer( uint32_t nID, uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero, uint32_t nNewColour, uint32_t nTowerKills, uint32_t nRaxKills, uint32_t nCourierKills )
+    : m_ID( nID ), m_GameID( nGameID ), m_Colour( nColour ), m_Kills( nKills ), m_Deaths( nDeaths ), m_CreepKills( nCreepKills ), m_CreepDenies( nCreepDenies ), m_Assists( nAssists ), m_Gold( nGold ), m_NeutralKills( nNeutralKills ), m_Hero( nHero ), m_NewColour( nNewColour ), m_TowerKills( nTowerKills ), m_RaxKills( nRaxKills ), m_CourierKills( nCourierKills )
 {
-	m_ID = nID;
-	m_GameID = nGameID;
-	m_Colour = nColour;
-	m_Kills = nKills;
-	m_Deaths = nDeaths;
-	m_CreepKills = nCreepKills;
-	m_CreepDenies = nCreepDenies;
-	m_Assists = nAssists;
-	m_Gold = nGold;
-	m_NeutralKills = nNeutralKills;
 	m_Items[0] = nItem1;
 	m_Items[1] = nItem2;
 	m_Items[2] = nItem3;
 	m_Items[3] = nItem4;
 	m_Items[4] = nItem5;
 	m_Items[5] = nItem6;
-	m_Hero = nHero;
-	m_NewColour = nNewColour;
-	m_TowerKills = nTowerKills;
-	m_RaxKills = nRaxKills;
-	m_CourierKills = nCourierKills;
 }
 
 CDBDotAPlayer :: ~CDBDotAPlayer( )
@@ -597,7 +532,7 @@ void CDBDotAPlayer :: SetItem( unsigned int i, string item )
 // CDBDotAPlayerSummary
 //
 
-CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills )
+CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills ) : m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_TotalWins( nTotalWins ), m_TotalLosses( nTotalLosses ), m_TotalKills( nTotalKills ), m_TotalDeaths( nTotalDeaths ), m_TotalCreepKills( nTotalCreepKills ), m_TotalCreepDenies( nTotalCreepDenies ), m_TotalAssists( nTotalAssists ), m_TotalNeutralKills( nTotalNeutralKills ), m_TotalTowerKills( nTotalTowerKills ), m_TotalRaxKills( nTotalRaxKills ), m_TotalCourierKills( nTotalCourierKills )
 {
 	m_Server = nServer;
 	m_Name = nName;

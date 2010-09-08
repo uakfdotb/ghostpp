@@ -46,34 +46,34 @@ using namespace boost :: filesystem;
 
 CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, string( ), string( ), string( ) )
 {
-	m_VirtualHostName = "|cFFC04040Admin";
-	m_MuteLobby = true;
-	m_Password = nPassword;
-	m_EntryKey = 0;
+        m_VirtualHostName = "|cFFC04040Admin";
+        m_MuteLobby = true;
+        m_Password = nPassword;
+        m_EntryKey = 0;
 }
 
 CAdminGame :: ~CAdminGame( )
 {
-	for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); i++ )
+        for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); i++ )
+        for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); i++ )
+        for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); i++ )
+        for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
 	/*
 
-	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); i++ )
+        for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
 	*/
 
-	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); i++ )
+        for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 }
 
@@ -106,7 +106,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminCounts.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); )
@@ -115,7 +115,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
+                                for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
 						(*j)->AddAdmin( i->second->GetUser( ) );
@@ -137,7 +137,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminAdds.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); )
@@ -146,7 +146,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
+                                for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
 						(*j)->RemoveAdmin( i->second->GetUser( ) );
@@ -168,7 +168,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminRemoves.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); )
@@ -194,7 +194,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			i = m_PairedBanCounts.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	/*
@@ -205,7 +205,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
+                                for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
 						(*j)->AddBan( i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
@@ -227,7 +227,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			i = m_PairedBanAdds.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	*/
@@ -238,7 +238,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
+                                for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
 						(*j)->RemoveBan( i->second->GetUser( ) );
@@ -260,7 +260,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			i = m_PairedBanRemoves.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	// reset the last reserved seen timer since the admin game should never be considered abandoned
@@ -271,7 +271,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 
 void CAdminGame :: SendAdminChat( string message )
 {
-	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+        for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 	{
 		if( (*i)->GetLoggedIn( ) )
 			SendChat( *i, message );
@@ -312,7 +312,7 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 				return;
 			}
 
-			i++;
+                        ++i;
 		}
 	}
 
@@ -367,7 +367,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				string Servers;
 				bool FoundServer = false;
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+                                for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				{
 					if( Servers.empty( ) )
 						Servers = (*i)->GetServer( );
@@ -396,7 +396,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !AUTOHOST
 		//
 
-		if( Command == "autohost" )
+                else if( Command == "autohost" )
 		{
 			if( Payload.empty( ) || Payload == "off" )
 			{
@@ -465,7 +465,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !AUTOHOSTMM
 		//
 
-		if( Command == "autohostmm" )
+                else if( Command == "autohostmm" )
 		{
 			if( Payload.empty( ) || Payload == "off" )
 			{
@@ -550,7 +550,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !CHECKADMIN
 		//
 
-		if( Command == "checkadmin" && !Payload.empty( ) )
+                else if( Command == "checkadmin" && !Payload.empty( ) )
 		{
 			// extract the name and the server
 			// e.g. "Varlock useast.battle.net" -> name: "Varlock", server: "useast.battle.net"
@@ -576,7 +576,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				string Servers;
 				bool FoundServer = false;
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+                                for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				{
 					if( Servers.empty( ) )
 						Servers = (*i)->GetServer( );
@@ -605,7 +605,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !CHECKBAN
 		//
 
-		if( Command == "checkban" && !Payload.empty( ) )
+                else if( Command == "checkban" && !Payload.empty( ) )
 		{
 			// extract the name and the server
 			// e.g. "Varlock useast.battle.net" -> name: "Varlock", server: "useast.battle.net"
@@ -631,7 +631,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				string Servers;
 				bool FoundServer = false;
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+                                for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				{
 					if( Servers.empty( ) )
 						Servers = (*i)->GetServer( );
@@ -661,7 +661,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !COUNTADMINS
 		//
 
-		if( Command == "countadmins" )
+                else if( Command == "countadmins" )
 		{
 			string Server = Payload;
 
@@ -676,7 +676,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !COUNTBANS
 		//
 
-		if( Command == "countbans" )
+                else if( Command == "countbans" )
 		{
 			string Server = Payload;
 
@@ -691,7 +691,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !DELADMIN
 		//
 
-		if( Command == "deladmin" && !Payload.empty( ) )
+                else if( Command == "deladmin" && !Payload.empty( ) )
 		{
 			// extract the name and the server
 			// e.g. "Varlock useast.battle.net" -> name: "Varlock", server: "useast.battle.net"
@@ -717,7 +717,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				string Servers;
 				bool FoundServer = false;
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+                                for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				{
 					if( Servers.empty( ) )
 						Servers = (*i)->GetServer( );
@@ -747,14 +747,14 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !UNBAN
 		//
 
-		if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
+                else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
 			m_PairedBanRemoves.push_back( PairedBanRemove( player->GetName( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
 
 		//
 		// !DISABLE
 		//
 
-		if( Command == "disable" )
+                else if( Command == "disable" )
 		{
 			SendChat( player, m_GHost->m_Language->BotDisabled( ) );
 			m_GHost->m_Enabled = false;
@@ -764,7 +764,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !DOWNLOADS
 		//
 
-		if( Command == "downloads" && !Payload.empty( ) )
+                else if( Command == "downloads" && !Payload.empty( ) )
 		{
 			uint32_t Downloads = UTIL_ToUInt32( Payload );
 
@@ -789,7 +789,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !ENABLE
 		//
 
-		if( Command == "enable" )
+                else if( Command == "enable" )
 		{
 			SendChat( player, m_GHost->m_Language->BotEnabled( ) );
 			m_GHost->m_Enabled = true;
@@ -799,7 +799,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !END
 		//
 
-		if( Command == "end" && !Payload.empty( ) )
+                else if( Command == "end" && !Payload.empty( ) )
 		{
 			// todotodo: what if a game ends just as you're typing this command and the numbering changes?
 
@@ -819,7 +819,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !ENFORCESG
 		//
 
-		if( Command == "enforcesg" && !Payload.empty( ) )
+                else if( Command == "enforcesg" && !Payload.empty( ) )
 		{
 			// only load files in the current directory just to be safe
 
@@ -848,7 +848,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !QUIT
 		//
 
-		if( Command == "exit" || Command == "quit" )
+                else if( Command == "exit" || Command == "quit" )
 		{
 			if( Payload == "nice" )
 				m_GHost->m_ExitingNice = true;
@@ -867,7 +867,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !GETGAME
 		//
 
-		if( Command == "getgame" && !Payload.empty( ) )
+                else if( Command == "getgame" && !Payload.empty( ) )
 		{
 			uint32_t GameNumber = UTIL_ToUInt32( Payload ) - 1;
 
@@ -881,7 +881,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !GETGAMES
 		//
 
-		if( Command == "getgames" )
+                else if( Command == "getgames" )
 		{
 			if( m_GHost->m_CurrentGame )
 				SendChat( player, m_GHost->m_Language->GameIsInTheLobby( m_GHost->m_CurrentGame->GetDescription( ), UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ) );
@@ -893,14 +893,14 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !HOSTSG
 		//
 
-		if( Command == "hostsg" && !Payload.empty( ) )
+                else if( Command == "hostsg" && !Payload.empty( ) )
 			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, string( ), false );
 
 		//
 		// !LOAD (load config file)
 		//
 
-		if( Command == "load" )
+                else if( Command == "load" )
 		{
 			if( Payload.empty( ) )
 				SendChat( player, m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ) );
@@ -925,7 +925,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 						path LastMatch;
 						uint32_t Matches = 0;
 
-						for( directory_iterator i( MapCFGPath ); i != EndIterator; i++ )
+                                                for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
 						{
 							string FileName = i->filename( );
 							string Stem = i->path( ).stem( );
@@ -935,7 +935,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != string :: npos )
 							{
 								LastMatch = i->path( );
-								Matches++;
+                                                                ++Matches;
 
 								if( FoundMapConfigs.empty( ) )
 									FoundMapConfigs = i->filename( );
@@ -978,7 +978,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !LOADSG
 		//
 
-		if( Command == "loadsg" && !Payload.empty( ) )
+                else if( Command == "loadsg" && !Payload.empty( ) )
 		{
 			// only load files in the current directory just to be safe
 
@@ -1011,7 +1011,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !MAP (load map file)
 		//
 
-		if( Command == "map" )
+                else if( Command == "map" )
 		{
 			if( Payload.empty( ) )
 				SendChat( player, m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ) );
@@ -1036,7 +1036,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 						path LastMatch;
 						uint32_t Matches = 0;
 
-						for( directory_iterator i( MapPath ); i != EndIterator; i++ )
+                                                for( directory_iterator i( MapPath ); i != EndIterator; ++i )
 						{
 							string FileName = i->filename( );
 							string Stem = i->path( ).stem( );
@@ -1046,7 +1046,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != string :: npos )
 							{
 								LastMatch = i->path( );
-								Matches++;
+                                                                ++Matches;
 
 								if( FoundMaps.empty( ) )
 									FoundMaps = i->filename( );
@@ -1093,14 +1093,14 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !PRIV (host private game)
 		//
 
-		if( Command == "priv" && !Payload.empty( ) )
+                else if( Command == "priv" && !Payload.empty( ) )
 			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, Payload, User, User, string( ), false );
 
 		//
 		// !PRIVBY (host private game by other player)
 		//
 
-		if( Command == "privby" && !Payload.empty( ) )
+                else if( Command == "privby" && !Payload.empty( ) )
 		{
 			// extract the owner and the game name
 			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
@@ -1121,7 +1121,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !PUB (host public game)
 		//
 
-		if( Command == "pub" && !Payload.empty( ) )
+                else if( Command == "pub" && !Payload.empty( ) )
 			m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, Payload, User, User, string( ), false );
 
 		//
@@ -1149,7 +1149,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !RELOAD
 		//
 
-		if( Command == "reload" )
+                else if( Command == "reload" )
 		{
 			SendChat( player, m_GHost->m_Language->ReloadingConfigurationFiles( ) );
 			m_GHost->ReloadConfigs( );
@@ -1159,9 +1159,9 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !SAY
 		//
 
-		if( Command == "say" && !Payload.empty( ) )
+                else if( Command == "say" && !Payload.empty( ) )
 		{
-			for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+                        for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				(*i)->QueueChatCommand( Payload );
 		}
 
@@ -1169,7 +1169,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !SAYGAME
 		//
 
-		if( Command == "saygame" && !Payload.empty( ) )
+                else if( Command == "saygame" && !Payload.empty( ) )
 		{
 			// extract the game number and the message
 			// e.g. "3 hello everyone" -> game number: "3", message: "hello everyone"
@@ -1206,12 +1206,12 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !SAYGAMES
 		//
 
-		if( Command == "saygames" && !Payload.empty( ) )
+                else if( Command == "saygames" && !Payload.empty( ) )
 		{
 			if( m_GHost->m_CurrentGame )
 				m_GHost->m_CurrentGame->SendAllChat( Payload );
 
-			for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); i++ )
+                        for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
 				(*i)->SendAllChat( "ADMIN: " + Payload );
 		}
 
@@ -1219,7 +1219,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !UNHOST
 		//
 
-		if( Command == "unhost" )
+                else if( Command == "unhost" )
 		{
 			if( m_GHost->m_CurrentGame )
 			{
@@ -1239,7 +1239,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		// !W
 		//
 
-		if( Command == "w" && !Payload.empty( ) )
+                else if( Command == "w" && !Payload.empty( ) )
 		{
 			// extract the name and the message
 			// e.g. "Varlock hello there!" -> name: "Varlock", message: "hello there!"
@@ -1253,7 +1253,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				Name = Payload.substr( 0, MessageStart );
 				Message = Payload.substr( MessageStart + 1 );
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
+                                for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 					(*i)->QueueChatCommand( Message, Name, true );
 			}
 		}

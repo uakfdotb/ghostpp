@@ -30,13 +30,10 @@
 // CStatsW3MMD
 //
 
-CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame, string nCategory ) : CStats( nGame )
+CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame, string nCategory ) : CStats( nGame ), m_Category( nCategory ), m_NextValueID( 0 ), m_NextCheckID( 0 )
 {
 	CONSOLE_Print( "[STATSW3MMD] using Warcraft 3 Map Meta Data stats parser version 1" );
 	CONSOLE_Print( "[STATSW3MMD] using map_statsw3mmdcategory [" + nCategory + "]" );
-	m_Category = nCategory;
-	m_NextValueID = 0;
-	m_NextCheckID = 0;
 }
 
 CStatsW3MMD :: ~CStatsW3MMD( )
@@ -276,7 +273,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 											{
 												// replace the markers in the format string with the arguments
 
-												for( uint32_t i = 0; i < Tokens.size( ) - 2; i++ )
+                                                                                                for( uint32_t i = 0; i < Tokens.size( ) - 2; ++i )
 												{
 													// check if the marker is a PID marker
 
@@ -314,7 +311,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 									CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown message type [" + Tokens[0] + "] found, ignoring" );
 							}
 
-							m_NextValueID++;
+                                                        ++m_NextValueID;
 						}
 						else if( MissionKeyString.size( ) > 4 && MissionKeyString.substr( 0, 4 ) == "chk:" )
 						{
@@ -323,7 +320,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 
 							// todotodo: cheat detection
 
-							m_NextCheckID++;
+                                                        ++m_NextCheckID;
 						}
 						else
 							CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown mission key [" + MissionKeyString + "] found, ignoring" );
@@ -331,16 +328,16 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 						i += 15 + MissionKey.size( ) + Key.size( );
 					}
 					else
-						i++;
+                                                ++i;
 				}
 				else
-					i++;
+                                        ++i;
 			}
 			else
-				i++;
+                                ++i;
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	return false;
@@ -355,7 +352,7 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		// todotodo: there's no reason to create a new callable for each entry in this map
 		// rewrite ThreadedW3MMDPlayerAdd to act more like ThreadedW3MMDVarAdd
 
-		for( map<uint32_t,string> :: iterator i = m_PIDToName.begin( ); i != m_PIDToName.end( ); i++ )
+                for( map<uint32_t,string> :: iterator i = m_PIDToName.begin( ); i != m_PIDToName.end( ); ++i )
 		{
 			string Flags = m_Flags[i->first];
 			uint32_t Leaver = 0;
@@ -409,7 +406,7 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 	string Token;
 	bool Escaping = false;
 
-	for( string :: iterator i = key.begin( ); i != key.end( ); i++ )
+        for( string :: iterator i = key.begin( ); i != key.end( ); ++i )
 	{
 		if( Escaping )
 		{

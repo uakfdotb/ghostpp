@@ -109,7 +109,7 @@ void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 		if( m_IdleConnections.size( ) > 30 )
 		{
 			mysql_close( (MYSQL *)MySQLCallable->GetConnection( ) );
-			m_NumConnections--;
+                        --m_NumConnections;
 		}
 		else
 			m_IdleConnections.push( MySQLCallable->GetConnection( ) );
@@ -117,7 +117,7 @@ void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 		if( m_OutstandingCallables == 0 )
 			CONSOLE_Print( "[MYSQL] recovered a mysql callable with zero outstanding" );
 		else
-			m_OutstandingCallables--;
+                        --m_OutstandingCallables;
 
 		if( !MySQLCallable->GetError( ).empty( ) )
 			CONSOLE_Print( "[MYSQL] error --- " + MySQLCallable->GetError( ) );
@@ -154,11 +154,11 @@ CCallableAdminCount *CGHostDBMySQL :: ThreadedAdminCount( string server )
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableAdminCount *Callable = new CMySQLCallableAdminCount( server, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -167,11 +167,11 @@ CCallableAdminCheck *CGHostDBMySQL :: ThreadedAdminCheck( string server, string 
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableAdminCheck *Callable = new CMySQLCallableAdminCheck( server, user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -180,11 +180,11 @@ CCallableAdminAdd *CGHostDBMySQL :: ThreadedAdminAdd( string server, string user
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableAdminAdd *Callable = new CMySQLCallableAdminAdd( server, user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -193,11 +193,11 @@ CCallableAdminRemove *CGHostDBMySQL :: ThreadedAdminRemove( string server, strin
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableAdminRemove *Callable = new CMySQLCallableAdminRemove( server, user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -206,11 +206,11 @@ CCallableAdminList *CGHostDBMySQL :: ThreadedAdminList( string server )
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableAdminList *Callable = new CMySQLCallableAdminList( server, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -219,11 +219,11 @@ CCallableBanCount *CGHostDBMySQL :: ThreadedBanCount( string server )
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableBanCount *Callable = new CMySQLCallableBanCount( server, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -232,11 +232,11 @@ CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( string server, string user
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableBanCheck *Callable = new CMySQLCallableBanCheck( server, user, ip, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -245,11 +245,11 @@ CCallableBanAdd *CGHostDBMySQL :: ThreadedBanAdd( string server, string user, st
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableBanAdd *Callable = new CMySQLCallableBanAdd( server, user, ip, gamename, admin, reason, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -258,11 +258,11 @@ CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string server, string us
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( server, user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -271,11 +271,11 @@ CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string user )
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( string( ), user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -284,11 +284,11 @@ CCallableBanList *CGHostDBMySQL :: ThreadedBanList( string server )
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableBanList *Callable = new CMySQLCallableBanList( server, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -297,11 +297,11 @@ CCallableGameAdd *CGHostDBMySQL :: ThreadedGameAdd( string server, string map, s
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableGameAdd *Callable = new CMySQLCallableGameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -310,11 +310,11 @@ CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid,
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableGamePlayerAdd *Callable = new CMySQLCallableGamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -323,11 +323,11 @@ CCallableGamePlayerSummaryCheck *CGHostDBMySQL :: ThreadedGamePlayerSummaryCheck
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableGamePlayerSummaryCheck *Callable = new CMySQLCallableGamePlayerSummaryCheck( name, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -336,11 +336,11 @@ CCallableDotAGameAdd *CGHostDBMySQL :: ThreadedDotAGameAdd( uint32_t gameid, uin
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableDotAGameAdd *Callable = new CMySQLCallableDotAGameAdd( gameid, winner, min, sec, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -349,11 +349,11 @@ CCallableDotAPlayerAdd *CGHostDBMySQL :: ThreadedDotAPlayerAdd( uint32_t gameid,
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableDotAPlayerAdd *Callable = new CMySQLCallableDotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -362,11 +362,11 @@ CCallableDotAPlayerSummaryCheck *CGHostDBMySQL :: ThreadedDotAPlayerSummaryCheck
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableDotAPlayerSummaryCheck *Callable = new CMySQLCallableDotAPlayerSummaryCheck( name, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -375,11 +375,11 @@ CCallableDownloadAdd *CGHostDBMySQL :: ThreadedDownloadAdd( string map, uint32_t
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableDownloadAdd *Callable = new CMySQLCallableDownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -388,11 +388,11 @@ CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, strin
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableScoreCheck *Callable = new CMySQLCallableScoreCheck( category, name, server, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -401,11 +401,11 @@ CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string categor
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableW3MMDPlayerAdd *Callable = new CMySQLCallableW3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -414,11 +414,11 @@ CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_ints, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -427,11 +427,11 @@ CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_reals, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -440,11 +440,11 @@ CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
-		m_NumConnections++;
+                ++m_NumConnections;
 
 	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_strings, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
-	m_OutstandingCallables++;
+        ++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -485,7 +485,7 @@ vector<string> MySQLFetchRow( MYSQL_RES *res )
 		unsigned long *Lengths;
 		Lengths = mysql_fetch_lengths( res );
 
-		for( unsigned int i = 0; i < mysql_num_fields( res ); i++ )
+                for( unsigned int i = 0; i < mysql_num_fields( res ); ++i )
 		{
 			if( Row[i] )
 				Result.push_back( string( Row[i], Lengths[i] ) );
@@ -1066,7 +1066,7 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 	bool Success = false;
 	string Query;
 
-	for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); i++ )
+        for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); ++i )
 	{
 		string EscVarName = MySQLEscapeString( conn, i->first.second );
 
@@ -1092,7 +1092,7 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 	bool Success = false;
 	string Query;
 
-	for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); i++ )
+        for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); ++i )
 	{
 		string EscVarName = MySQLEscapeString( conn, i->first.second );
 
@@ -1118,7 +1118,7 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 	bool Success = false;
 	string Query;
 
-	for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); i++ )
+        for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); ++i )
 	{
 		string EscVarName = MySQLEscapeString( conn, i->first.second );
 		string EscValueString = MySQLEscapeString( conn, i->second );

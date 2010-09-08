@@ -31,21 +31,17 @@
 // CStatsDOTA
 //
 
-CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame )
+CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame ), m_Winner( 0 ), m_Min( 0 ), m_Sec( 0 )
 {
 	CONSOLE_Print( "[STATSDOTA] using dota stats" );
 
-	for( unsigned int i = 0; i < 12; i++ )
+        for( unsigned int i = 0; i < 12; ++i )
 		m_Players[i] = NULL;
-
-	m_Winner = 0;
-	m_Min = 0;
-	m_Sec = 0;
 }
 
 CStatsDOTA :: ~CStatsDOTA( )
 {
-	for( unsigned int i = 0; i < 12; i++ )
+        for( unsigned int i = 0; i < 12; ++i )
 	{
 		if( m_Players[i] )
 			delete m_Players[i];
@@ -359,16 +355,16 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 						i += 12 + Data.size( ) + Key.size( );
 					}
 					else
-						i++;
+                                                ++i;
 				}
 				else
-					i++;
+                                        ++i;
 			}
 			else
-				i++;
+                                ++i;
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	return m_Winner != 0;
@@ -392,7 +388,7 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		// check for invalid colours and duplicates
 		// this can only happen if DotA sends us garbage in the "id" value but we should check anyway
 
-		for( unsigned int i = 0; i < 12; i++ )
+                for( unsigned int i = 0; i < 12; ++i )
 		{
 			if( m_Players[i] )
 			{
@@ -405,7 +401,7 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 					return;
 				}
 
-				for( unsigned int j = i + 1; j < 12; j++ )
+                                for( unsigned int j = i + 1; j < 12; ++j )
 				{
 					if( m_Players[j] && Colour == m_Players[j]->GetNewColour( ) )
 					{
@@ -419,12 +415,12 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 
 		// save the dotaplayers
 
-		for( unsigned int i = 0; i < 12; i++ )
+                for( unsigned int i = 0; i < 12; ++i )
 		{
 			if( m_Players[i] )
 			{
 				GHost->m_Callables.push_back( DB->ThreadedDotAPlayerAdd( GameID, m_Players[i]->GetColour( ), m_Players[i]->GetKills( ), m_Players[i]->GetDeaths( ), m_Players[i]->GetCreepKills( ), m_Players[i]->GetCreepDenies( ), m_Players[i]->GetAssists( ), m_Players[i]->GetGold( ), m_Players[i]->GetNeutralKills( ), m_Players[i]->GetItem( 0 ), m_Players[i]->GetItem( 1 ), m_Players[i]->GetItem( 2 ), m_Players[i]->GetItem( 3 ), m_Players[i]->GetItem( 4 ), m_Players[i]->GetItem( 5 ), m_Players[i]->GetHero( ), m_Players[i]->GetNewColour( ), m_Players[i]->GetTowerKills( ), m_Players[i]->GetRaxKills( ), m_Players[i]->GetCourierKills( ) ) );
-				Players++;
+                                ++Players;
 			}
 		}
 

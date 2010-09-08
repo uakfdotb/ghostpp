@@ -148,34 +148,34 @@ CBNET :: ~CBNET( )
 
 	delete m_BNCSUtil;
 
-	for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
+        for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 		delete *i;
 
-	for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
+        for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 		delete *i;
 
-	for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); i++ )
+        for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); i++ )
+        for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); i++ )
+        for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); i++ )
+        for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); i++ )
+        for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); i++ )
+        for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); i++ )
+        for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); i++ )
+        for( vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
 	if( m_CallableAdminList )
@@ -184,7 +184,7 @@ CBNET :: ~CBNET( )
 	if( m_CallableBanList )
 		m_GHost->m_Callables.push_back( m_CallableBanList );
 
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
+        for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 		delete *i;
 }
 
@@ -200,7 +200,7 @@ unsigned int CBNET :: SetFD( void *fd, void *send_fd, int *nfds )
 	if( !m_Socket->HasError( ) && m_Socket->GetConnected( ) )
 	{
 		m_Socket->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
-		NumFDs++;
+                ++NumFDs;
 
 		if( m_BNLSClient )
 			NumFDs += m_BNLSClient->SetFD( fd, send_fd, nfds );
@@ -233,7 +233,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminCounts.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); )
@@ -253,7 +253,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminAdds.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); )
@@ -273,7 +273,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminRemoves.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); )
@@ -294,7 +294,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedBanCounts.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); )
@@ -314,7 +314,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedBanAdds.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); )
@@ -334,7 +334,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedBanRemoves.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); )
@@ -353,7 +353,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedGPSChecks.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	for( vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); )
@@ -397,7 +397,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedDPSChecks.erase( i );
 		}
 		else
-			i++;
+                        ++i;
 	}
 
 	// refresh the admin list every 5 minutes
@@ -424,7 +424,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	{
 		// CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
 
-		for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
+                for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 			delete *i;
 
 		m_Bans = m_CallableBanList->GetResult( );
@@ -905,7 +905,7 @@ void CBNET :: ProcessPackets( )
 			case CBNETProtocol :: SID_FRIENDSLIST:
 				Friends = m_Protocol->RECEIVE_SID_FRIENDSLIST( Packet->GetData( ) );
 
-				for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
+                                for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 					delete *i;
 
 				m_Friends = Friends;
@@ -914,7 +914,7 @@ void CBNET :: ProcessPackets( )
 			case CBNETProtocol :: SID_CLANMEMBERLIST:
 				vector<CIncomingClanList *> Clans = m_Protocol->RECEIVE_SID_CLANMEMBERLIST( Packet->GetData( ) );
 
-				for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
+                                for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 					delete *i;
 
 				m_Clans = Clans;
@@ -1027,7 +1027,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !BAN
 				//
 
-				if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) )
+                                else if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) )
 				{
 					// extract the victim and the reason
 					// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -1057,7 +1057,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !ANNOUNCE
 				//
 
-				if( Command == "announce" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+                                else if( Command == "announce" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
 				{
 					if( Payload.empty( ) || Payload == "off" )
 					{
@@ -1100,7 +1100,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !AUTOHOST
 				//
 
-				if( Command == "autohost" )
+                                else if( Command == "autohost" )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1174,7 +1174,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !AUTOHOSTMM
 				//
 
-				if( Command == "autohostmm" )
+                                else if( Command == "autohostmm" )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1264,7 +1264,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !AUTOSTART
 				//
 
-				if( Command == "autostart" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+                                else if( Command == "autostart" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
 				{
 					if( Payload.empty( ) || Payload == "off" )
 					{
@@ -1287,14 +1287,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !CHANNEL (change channel)
 				//
 
-				if( Command == "channel" && !Payload.empty( ) )
+                                else if( Command == "channel" && !Payload.empty( ) )
 					QueueChatCommand( "/join " + Payload );
 
 				//
 				// !CHECKADMIN
 				//
 
-				if( Command == "checkadmin" && !Payload.empty( ) )
+                                else if( Command == "checkadmin" && !Payload.empty( ) )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1311,7 +1311,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !CHECKBAN
 				//
 
-				if( Command == "checkban" && !Payload.empty( ) )
+                                else if( Command == "checkban" && !Payload.empty( ) )
 				{
 					CDBBan *Ban = IsBannedName( Payload );
 
@@ -1325,7 +1325,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !CLOSE (close slot)
 				//
 
-				if( Command == "close" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+                                else if( Command == "close" && !Payload.empty( ) && m_GHost->m_CurrentGame )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 					{
@@ -1356,7 +1356,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !CLOSEALL
 				//
 
-				if( Command == "closeall" && m_GHost->m_CurrentGame )
+                                else if( Command == "closeall" && m_GHost->m_CurrentGame )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 						m_GHost->m_CurrentGame->CloseAllSlots( );
@@ -1368,7 +1368,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !COUNTADMINS
 				//
 
-				if( Command == "countadmins" )
+                                else if( Command == "countadmins" )
 				{
 					if( IsRootAdmin( User ) )
 						m_PairedAdminCounts.push_back( PairedAdminCount( Whisper ? User : string( ), m_GHost->m_DB->ThreadedAdminCount( m_Server ) ) );
@@ -1380,21 +1380,21 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !COUNTBANS
 				//
 
-				if( Command == "countbans" )
+                                else if( Command == "countbans" )
 					m_PairedBanCounts.push_back( PairedBanCount( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanCount( m_Server ) ) );
 
 				//
 				// !DBSTATUS
 				//
 
-				if( Command == "dbstatus" )
+                                else if( Command == "dbstatus" )
 					QueueChatCommand( m_GHost->m_DB->GetStatus( ), User, Whisper );
 
 				//
 				// !DELADMIN
 				//
 
-				if( Command == "deladmin" && !Payload.empty( ) )
+                                else if( Command == "deladmin" && !Payload.empty( ) )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1412,14 +1412,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !UNBAN
 				//
 
-				if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
+                                else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
 					m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
 
 				//
 				// !DISABLE
 				//
 
-				if( Command == "disable" )
+                                else if( Command == "disable" )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1434,7 +1434,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !DOWNLOADS
 				//
 
-				if( Command == "downloads" && !Payload.empty( ) )
+                                else if( Command == "downloads" && !Payload.empty( ) )
 				{
 					uint32_t Downloads = UTIL_ToUInt32( Payload );
 
@@ -1459,7 +1459,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !ENABLE
 				//
 
-				if( Command == "enable" )
+                                else if( Command == "enable" )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1474,7 +1474,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !END
 				//
 
-				if( Command == "end" && !Payload.empty( ) )
+                                else if( Command == "end" && !Payload.empty( ) )
 				{
 					// todotodo: what if a game ends just as you're typing this command and the numbering changes?
 
@@ -1501,7 +1501,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !ENFORCESG
 				//
 
-				if( Command == "enforcesg" && !Payload.empty( ) )
+                                else if( Command == "enforcesg" && !Payload.empty( ) )
 				{
 					// only load files in the current directory just to be safe
 
@@ -1530,7 +1530,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !QUIT
 				//
 
-				if( Command == "exit" || Command == "quit" )
+                                else if( Command == "exit" || Command == "quit" )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1554,7 +1554,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !GETCLAN
 				//
 
-				if( Command == "getclan" )
+                                else if( Command == "getclan" )
 				{
 					SendGetClanList( );
 					QueueChatCommand( m_GHost->m_Language->UpdatingClanList( ), User, Whisper );
@@ -1564,7 +1564,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !GETFRIENDS
 				//
 
-				if( Command == "getfriends" )
+                                else if( Command == "getfriends" )
 				{
 					SendGetFriendsList( );
 					QueueChatCommand( m_GHost->m_Language->UpdatingFriendsList( ), User, Whisper );
@@ -1574,7 +1574,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !GETGAME
 				//
 
-				if( Command == "getgame" && !Payload.empty( ) )
+                                else if( Command == "getgame" && !Payload.empty( ) )
 				{
 					uint32_t GameNumber = UTIL_ToUInt32( Payload ) - 1;
 
@@ -1588,7 +1588,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !GETGAMES
 				//
 
-				if( Command == "getgames" )
+                                else if( Command == "getgames" )
 				{
 					if( m_GHost->m_CurrentGame )
 						QueueChatCommand( m_GHost->m_Language->GameIsInTheLobby( m_GHost->m_CurrentGame->GetDescription( ), UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
@@ -1600,7 +1600,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !HOLD (hold a slot for someone)
 				//
 
-				if( Command == "hold" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+                                else if( Command == "hold" && !Payload.empty( ) && m_GHost->m_CurrentGame )
 				{
 					// hold as many players as specified, e.g. "Varlock Kilranin" holds players "Varlock" and "Kilranin"
 
@@ -1629,14 +1629,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !HOSTSG
 				//
 
-				if( Command == "hostsg" && !Payload.empty( ) )
+                                else if( Command == "hostsg" && !Payload.empty( ) )
 					m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
 
 				//
 				// !LOAD (load config file)
 				//
 
-				if( Command == "load" )
+                                else if( Command == "load" )
 				{
 					if( Payload.empty( ) )
 						QueueChatCommand( m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ), User, Whisper );
@@ -1661,7 +1661,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 								path LastMatch;
 								uint32_t Matches = 0;
 
-								for( directory_iterator i( MapCFGPath ); i != EndIterator; i++ )
+                                                                for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
 								{
 									string FileName = i->filename( );
 									string Stem = i->path( ).stem( );
@@ -1671,7 +1671,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 									if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != string :: npos )
 									{
 										LastMatch = i->path( );
-										Matches++;
+                                                                                ++Matches;
 
 										if( FoundMapConfigs.empty( ) )
 											FoundMapConfigs = i->filename( );
@@ -1714,7 +1714,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !LOADSG
 				//
 
-				if( Command == "loadsg" && !Payload.empty( ) )
+                                else if( Command == "loadsg" && !Payload.empty( ) )
 				{
 					// only load files in the current directory just to be safe
 
@@ -1747,7 +1747,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !MAP (load map file)
 				//
 
-				if( Command == "map" )
+                                else if( Command == "map" )
 				{
 					if( Payload.empty( ) )
 						QueueChatCommand( m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ), User, Whisper );
@@ -1772,7 +1772,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 								path LastMatch;
 								uint32_t Matches = 0;
 
-								for( directory_iterator i( MapPath ); i != EndIterator; i++ )
+                                                                for( directory_iterator i( MapPath ); i != EndIterator; ++i )
 								{
 									string FileName = i->filename( );
 									string Stem = i->path( ).stem( );
@@ -1782,7 +1782,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 									if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != string :: npos )
 									{
 										LastMatch = i->path( );
-										Matches++;
+                                                                                ++Matches;
 
 										if( FoundMaps.empty( ) )
 											FoundMaps = i->filename( );
@@ -1829,7 +1829,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !OPEN (open slot)
 				//
 
-				if( Command == "open" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+                                else if( Command == "open" && !Payload.empty( ) && m_GHost->m_CurrentGame )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 					{
@@ -1860,7 +1860,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !OPENALL
 				//
 
-				if( Command == "openall" && m_GHost->m_CurrentGame )
+                                else if( Command == "openall" && m_GHost->m_CurrentGame )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 						m_GHost->m_CurrentGame->OpenAllSlots( );
@@ -1872,14 +1872,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !PRIV (host private game)
 				//
 
-				if( Command == "priv" && !Payload.empty( ) )
+                                else if( Command == "priv" && !Payload.empty( ) )
 					m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, Payload, User, User, m_Server, Whisper );
 
 				//
 				// !PRIVBY (host private game by other player)
 				//
 
-				if( Command == "privby" && !Payload.empty( ) )
+                                else if( Command == "privby" && !Payload.empty( ) )
 				{
 					// extract the owner and the game name
 					// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
@@ -1900,14 +1900,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !PUB (host public game)
 				//
 
-				if( Command == "pub" && !Payload.empty( ) )
+                                else if( Command == "pub" && !Payload.empty( ) )
 					m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, Payload, User, User, m_Server, Whisper );
 
 				//
 				// !PUBBY (host public game by other player)
 				//
 
-				if( Command == "pubby" && !Payload.empty( ) )
+                                else if( Command == "pubby" && !Payload.empty( ) )
 				{
 					// extract the owner and the game name
 					// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
@@ -1928,7 +1928,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !RELOAD
 				//
 
-				if( Command == "reload" )
+                                else if( Command == "reload" )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1943,14 +1943,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !SAY
 				//
 
-				if( Command == "say" && !Payload.empty( ) )
+                                else if( Command == "say" && !Payload.empty( ) )
 					QueueChatCommand( Payload );
 
 				//
 				// !SAYGAME
 				//
 
-				if( Command == "saygame" && !Payload.empty( ) )
+                                else if( Command == "saygame" && !Payload.empty( ) )
 				{
 					if( IsRootAdmin( User ) )
 					{
@@ -1992,14 +1992,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !SAYGAMES
 				//
 
-				if( Command == "saygames" && !Payload.empty( ) )
+                                else if( Command == "saygames" && !Payload.empty( ) )
 				{
 					if( IsRootAdmin( User ) )
 					{
 						if( m_GHost->m_CurrentGame )
 							m_GHost->m_CurrentGame->SendAllChat( Payload );
 
-						for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); i++ )
+                                                for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
 							(*i)->SendAllChat( "ADMIN: " + Payload );
 					}
 					else
@@ -2010,7 +2010,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !SP
 				//
 
-				if( Command == "sp" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+                                else if( Command == "sp" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 					{
@@ -2025,7 +2025,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !START
 				//
 
-				if( Command == "start" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) && m_GHost->m_CurrentGame->GetNumHumanPlayers( ) > 0 )
+                                else if( Command == "start" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) && m_GHost->m_CurrentGame->GetNumHumanPlayers( ) > 0 )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 					{
@@ -2045,7 +2045,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !SWAP (swap slots)
 				//
 
-				if( Command == "swap" && !Payload.empty( ) && m_GHost->m_CurrentGame )
+                                else if( Command == "swap" && !Payload.empty( ) && m_GHost->m_CurrentGame )
 				{
 					if( !m_GHost->m_CurrentGame->GetLocked( ) )
 					{
@@ -2080,7 +2080,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !UNHOST
 				//
 
-				if( Command == "unhost" )
+                                else if( Command == "unhost" )
 				{
 					if( m_GHost->m_CurrentGame )
 					{
@@ -2105,7 +2105,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !WARDENSTATUS
 				//
 
-				if( Command == "wardenstatus" )
+                                else if( Command == "wardenstatus" )
 				{
 					if( m_BNLSClient )
 						QueueChatCommand( "WARDEN STATUS --- " + UTIL_ToString( m_BNLSClient->GetTotalWardenIn( ) ) + " requests received, " + UTIL_ToString( m_BNLSClient->GetTotalWardenOut( ) ) + " responses sent.", User, Whisper );
@@ -2148,7 +2148,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !STATSDOTA
 				//
 
-				if( Command == "statsdota" )
+                                else if( Command == "statsdota" )
 				{
 					string StatsUser = User;
 
@@ -2165,7 +2165,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !VERSION
 				//
 
-				if( Command == "version" )
+                                else if( Command == "version" )
 				{
 					if( IsAdmin( User ) || IsRootAdmin( User ) )
 						QueueChatCommand( m_GHost->m_Language->VersionAdmin( m_GHost->m_Version ), User, Whisper );
@@ -2399,7 +2399,7 @@ void CBNET :: UnqueuePackets( unsigned char type )
 		m_OutPackets.pop( );
 
 		if( Packet.size( ) >= 2 && Packet[1] == type )
-			Unqueued++;
+                        ++Unqueued;
 		else
 			Packets.push( Packet );
 	}
@@ -2428,7 +2428,7 @@ void CBNET :: UnqueueChatCommand( string chatCommand )
 		m_OutPackets.pop( );
 
 		if( Packet == PacketToUnqueue )
-			Unqueued++;
+                        ++Unqueued;
 		else
 			Packets.push( Packet );
 	}
@@ -2448,7 +2448,7 @@ bool CBNET :: IsAdmin( string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
-	for( vector<string> :: iterator i = m_Admins.begin( ); i != m_Admins.end( ); i++ )
+        for( vector<string> :: iterator i = m_Admins.begin( ); i != m_Admins.end( ); ++i )
 	{
 		if( *i == name )
 			return true;
@@ -2488,7 +2488,7 @@ CDBBan *CBNET :: IsBannedName( string name )
 
 	// todotodo: optimize this - maybe use a map?
 
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
+        for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetName( ) == name )
 			return *i;
@@ -2501,7 +2501,7 @@ CDBBan *CBNET :: IsBannedIP( string ip )
 {
 	// todotodo: optimize this - maybe use a map?
 
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
+        for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetIP( ) == ip )
 			return *i;
@@ -2531,7 +2531,7 @@ void CBNET :: RemoveAdmin( string name )
 		if( *i == name )
 			i = m_Admins.erase( i );
 		else
-			i++;
+                        ++i;
 	}
 }
 
@@ -2544,7 +2544,7 @@ void CBNET :: RemoveBan( string name )
 		if( (*i)->GetName( ) == name )
 			i = m_Bans.erase( i );
 		else
-			i++;
+                        ++i;
 	}
 }
 
@@ -2552,7 +2552,7 @@ void CBNET :: HoldFriends( CBaseGame *game )
 {
 	if( game )
 	{
-		for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
+                for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 			game->AddToReserved( (*i)->GetAccount( ) );
 	}
 }
@@ -2561,7 +2561,7 @@ void CBNET :: HoldClan( CBaseGame *game )
 {
 	if( game )
 	{
-		for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
+                for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 			game->AddToReserved( (*i)->GetName( ) );
 	}
 }

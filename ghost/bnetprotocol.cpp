@@ -974,12 +974,9 @@ bool CBNETProtocol :: ValidateLength( BYTEARRAY &content )
 // CIncomingGameHost
 //
 
-CIncomingGameHost :: CIncomingGameHost( BYTEARRAY &nIP, uint16_t nPort, string nGameName, BYTEARRAY &nHostCounter )
+CIncomingGameHost :: CIncomingGameHost( BYTEARRAY &nIP, uint16_t nPort, string nGameName, BYTEARRAY &nHostCounter ) : m_IP( nIP ), m_Port( nPort ), m_GameName( nGameName ), m_HostCounter( nHostCounter )
 {
-	m_IP = nIP;
-	m_Port = nPort;
-	m_GameName = nGameName;
-	m_HostCounter = nHostCounter;
+
 }
 
 CIncomingGameHost :: ~CIncomingGameHost( )
@@ -993,7 +990,7 @@ string CIncomingGameHost :: GetIPString( )
 
 	if( m_IP.size( ) >= 4 )
 	{
-		for( unsigned int i = 0; i < 4; i++ )
+                for( unsigned int i = 0; i < 4; ++i )
 		{
 			Result += UTIL_ToString( (unsigned int)m_IP[i] );
 
@@ -1009,12 +1006,9 @@ string CIncomingGameHost :: GetIPString( )
 // CIncomingChatEvent
 //
 
-CIncomingChatEvent :: CIncomingChatEvent( CBNETProtocol :: IncomingChatEvent nChatEvent, uint32_t nPing, string nUser, string nMessage )
+CIncomingChatEvent :: CIncomingChatEvent( CBNETProtocol :: IncomingChatEvent nChatEvent, int32_t nPing, string nUser, string nMessage ) : m_ChatEvent( nChatEvent ), m_Ping( nPing ), m_User( nUser ), m_Message( nMessage )
 {
-	m_ChatEvent = nChatEvent;
-	m_Ping = nPing;
-	m_User = nUser;
-	m_Message = nMessage;
+
 }
 
 CIncomingChatEvent :: ~CIncomingChatEvent( )
@@ -1026,12 +1020,9 @@ CIncomingChatEvent :: ~CIncomingChatEvent( )
 // CIncomingFriendList
 //
 
-CIncomingFriendList :: CIncomingFriendList( string nAccount, unsigned char nStatus, unsigned char nArea, string nLocation )
+CIncomingFriendList :: CIncomingFriendList( string nAccount, unsigned char nStatus, unsigned char nArea, string nLocation ) : m_Account( nAccount ), m_Status( nStatus ), m_Area( nArea ), m_Location( nLocation )
 {
-	m_Account = nAccount;
-	m_Status = nStatus;
-	m_Area = nArea;
-	m_Location = nLocation;
+
 }
 
 CIncomingFriendList :: ~CIncomingFriendList( )
@@ -1100,11 +1091,9 @@ string CIncomingFriendList :: ExtractLocation( string location )
 // CIncomingClanList
 //
 
-CIncomingClanList :: CIncomingClanList( string nName, unsigned char nRank, unsigned char nStatus )
+CIncomingClanList :: CIncomingClanList( string nName, unsigned char nRank, unsigned char nStatus ) : m_Name( nName ), m_Rank( nRank ), m_Status( nStatus )
 {
-	m_Name = nName;
-	m_Rank = nRank;
-	m_Status = nStatus;
+
 }
 
 CIncomingClanList :: ~CIncomingClanList( )

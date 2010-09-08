@@ -29,9 +29,9 @@
 // CGameProtocol
 //
 
-CGameProtocol :: CGameProtocol( CGHost *nGHost )
+CGameProtocol :: CGameProtocol( CGHost *nGHost ) : m_GHost( nGHost )
 {
-	m_GHost = nGHost;
+
 }
 
 CGameProtocol :: ~CGameProtocol( )
@@ -560,12 +560,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, b
 		if( loadInGame )
 		{
 			if( !(*i)->GetFinishedLoading( ) )
-				NumLaggers++;
+                                ++NumLaggers;
 		}
 		else
 		{
 			if( (*i)->GetLagging( ) )
-				NumLaggers++;
+                                ++NumLaggers;
 		}
 	}
 
@@ -948,7 +948,7 @@ BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t ra
 	BYTEARRAY SlotInfo;
 	SlotInfo.push_back( (unsigned char)slots.size( ) );		// number of slots
 
-	for( unsigned int i = 0; i < slots.size( ); i++ )
+        for( unsigned int i = 0; i < slots.size( ); ++i )
 		UTIL_AppendByteArray( SlotInfo, slots[i].GetByteArray( ) );
 
 	UTIL_AppendByteArray( SlotInfo, randomSeed, false );	// random seed
@@ -961,12 +961,9 @@ BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t ra
 // CIncomingJoinPlayer
 //
 
-CIncomingJoinPlayer :: CIncomingJoinPlayer( uint32_t nHostCounter, uint32_t nEntryKey, string nName, BYTEARRAY &nInternalIP )
+CIncomingJoinPlayer :: CIncomingJoinPlayer( uint32_t nHostCounter, uint32_t nEntryKey, string nName, BYTEARRAY &nInternalIP ) : m_HostCounter( nHostCounter ), m_EntryKey( nEntryKey ), m_Name( nName ), m_InternalIP( nInternalIP )
 {
-	m_HostCounter = nHostCounter;
-	m_EntryKey = nEntryKey;
-	m_Name = nName;
-	m_InternalIP = nInternalIP;
+
 }
 
 CIncomingJoinPlayer :: ~CIncomingJoinPlayer( )
@@ -978,11 +975,9 @@ CIncomingJoinPlayer :: ~CIncomingJoinPlayer( )
 // CIncomingAction
 //
 
-CIncomingAction :: CIncomingAction( unsigned char nPID, BYTEARRAY &nCRC, BYTEARRAY &nAction )
+CIncomingAction :: CIncomingAction( unsigned char nPID, BYTEARRAY &nCRC, BYTEARRAY &nAction ) : m_PID( nPID ), m_CRC( nCRC ), m_Action( nAction )
 {
-	m_PID = nPID;
-	m_CRC = nCRC;
-	m_Action = nAction;
+
 }
 
 CIncomingAction :: ~CIncomingAction( )
@@ -994,26 +989,17 @@ CIncomingAction :: ~CIncomingAction( )
 // CIncomingChatPlayer
 //
 
-CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage )
+CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage ) : m_Type( CTH_MESSAGE ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage )
 {
-	m_Type = CTH_MESSAGE;
-	m_FromPID = nFromPID;
-	m_ToPIDs = nToPIDs;
-	m_Flag = nFlag;
-	m_Message = nMessage;
+
 }
 
-CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage, BYTEARRAY &nExtraFlags )
+CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage, BYTEARRAY &nExtraFlags ) : m_Type( CTH_MESSAGEEXTRA ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage ), m_ExtraFlags( nExtraFlags )
 {
-	m_Type = CTH_MESSAGEEXTRA;
-	m_FromPID = nFromPID;
-	m_ToPIDs = nToPIDs;
-	m_Flag = nFlag;
-	m_Message = nMessage;
-	m_ExtraFlags = nExtraFlags;
+
 }
 
-CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, unsigned char nByte )
+CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, unsigned char nByte ) : m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Byte( nByte )
 {
 	if( nFlag == 17 )
 		m_Type = CTH_TEAMCHANGE;
@@ -1023,11 +1009,6 @@ CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &n
 		m_Type = CTH_RACECHANGE;
 	else if( nFlag == 20 )
 		m_Type = CTH_HANDICAPCHANGE;
-
-	m_FromPID = nFromPID;
-	m_ToPIDs = nToPIDs;
-	m_Flag = nFlag;
-	m_Byte = nByte;
 }
 
 CIncomingChatPlayer :: ~CIncomingChatPlayer( )
@@ -1039,10 +1020,9 @@ CIncomingChatPlayer :: ~CIncomingChatPlayer( )
 // CIncomingMapSize
 //
 
-CIncomingMapSize :: CIncomingMapSize( unsigned char nSizeFlag, uint32_t nMapSize )
+CIncomingMapSize :: CIncomingMapSize( unsigned char nSizeFlag, uint32_t nMapSize ) : m_SizeFlag( nSizeFlag ), m_MapSize( nMapSize )
 {
-	m_SizeFlag = nSizeFlag;
-	m_MapSize = nMapSize;
+
 }
 
 CIncomingMapSize :: ~CIncomingMapSize( )

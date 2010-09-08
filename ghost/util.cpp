@@ -97,7 +97,7 @@ string UTIL_ByteArrayToDecString( BYTEARRAY b )
 
 	string result = UTIL_ToString( b[0] );
 
-	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); i++ )
+        for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); ++i )
 		result += " " + UTIL_ToString( *i );
 
 	return result;
@@ -110,7 +110,7 @@ string UTIL_ByteArrayToHexString( BYTEARRAY b )
 
 	string result = UTIL_ToHexString( b[0] );
 
-	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); i++ )
+        for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); ++i )
 	{
 		if( *i < 16 )
 			result += " 0" + UTIL_ToHexString( *i );
@@ -173,7 +173,7 @@ BYTEARRAY UTIL_ExtractCString( BYTEARRAY &b, unsigned int start )
 
 	if( start < b.size( ) )
 	{
-		for( unsigned int i = start; i < b.size( ); i++ )
+                for( unsigned int i = start; i < b.size( ); ++i )
 		{
 			if( b[i] == 0 )
 				return BYTEARRAY( b.begin( ) + start, b.begin( ) + i );
@@ -218,7 +218,7 @@ BYTEARRAY UTIL_ExtractNumbers( string s, unsigned int count )
 	stringstream SS;
 	SS << s;
 
-	for( unsigned int i = 0; i < count; i++ )
+        for( unsigned int i = 0; i < count; ++i )
 	{
 		if( SS.eof( ) )
 			break;
@@ -524,7 +524,7 @@ BYTEARRAY UTIL_EncodeStatString( BYTEARRAY &data )
 	unsigned char Mask = 1;
 	BYTEARRAY Result;
 
-	for( unsigned int i = 0; i < data.size( ); i++ )
+        for( unsigned int i = 0; i < data.size( ); ++i )
 	{
 		if( ( data[i] % 2 ) == 0 )
 			Result.push_back( data[i] + 1 );
@@ -549,7 +549,7 @@ BYTEARRAY UTIL_DecodeStatString( BYTEARRAY &data )
 	unsigned char Mask;
 	BYTEARRAY Result;
 
-	for( unsigned int i = 0; i < data.size( ); i++ )
+        for( unsigned int i = 0; i < data.size( ); ++i )
 	{
 		if( ( i % 8 ) == 0 )
 			Mask = data[i];
@@ -600,7 +600,7 @@ bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs )
 	if( ip.size( ) != 4 )
 		return false;
 
-	for( vector<BYTEARRAY> :: iterator i = localIPs.begin( ); i != localIPs.end( ); i++ )
+        for( vector<BYTEARRAY> :: iterator i = localIPs.begin( ); i != localIPs.end( ); ++i )
 	{
 		if( (*i).size( ) != 4 )
 			continue;
@@ -633,7 +633,7 @@ vector<string> UTIL_Tokenize( string s, char delim )
 	vector<string> Tokens;
 	string Token;
 
-	for( string :: iterator i = s.begin( ); i != s.end( ); i++ )
+        for( string :: iterator i = s.begin( ); i != s.end( ); ++i )
 	{
 		if( *i == delim )
 		{
@@ -657,7 +657,7 @@ uint32_t UTIL_Factorial( uint32_t x )
 {
 	uint32_t Factorial = 1;
 
-	for( uint32_t i = 2; i <= x; i++ )
+        for( uint32_t i = 2; i <= x; ++i )
 		Factorial *= i;
 
 	return Factorial;
