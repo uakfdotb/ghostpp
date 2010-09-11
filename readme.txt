@@ -6,7 +6,7 @@ GHost++ is a port of the original GHost project to C++. It was ported by Trevor 
 It contains many enhancements and fixes that were not present in the original GHost.
 You can compile and run GHost++ on Windows, Linux, and OS X with this release although the code should be mostly portable to other operating systems with only very minor changes.
 The official GHost++ forums are currently located at http://codelain.com/forum/
-The official GHost++ Wiki is currently located at hhttp://codelain.com/wiki/
+The official GHost++ Wiki is currently located at http://codelain.com/wiki/
 The official GHost++ SVN repository is currently located at http://code.google.com/p/ghostplusplus/
 
 ========
