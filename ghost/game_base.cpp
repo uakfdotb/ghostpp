@@ -3067,7 +3067,7 @@ void CBaseGame :: EventPlayerDropRequest( CGamePlayer *player )
                 for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		{
 			if( (*i)->GetDropVote( ) )
-                                Votes;
+                                ++Votes;
 		}
 
 		if( (float)Votes / m_Players.size( ) > 0.49 )
