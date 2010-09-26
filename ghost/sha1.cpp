@@ -165,7 +165,7 @@ void CSHA1::ReportHash(char *szReport, unsigned char uReportType)
 		sprintf(szTemp, "%02x", m_digest[0]);
 		strcat(szReport, szTemp);
 
-		for(i = 1; i < 20; i++)
+		for(i = 1; i < 20; ++i)
 		{
 			sprintf(szTemp, "%02x", m_digest[i]);
 			strcat(szReport, szTemp);
@@ -176,7 +176,7 @@ void CSHA1::ReportHash(char *szReport, unsigned char uReportType)
 		sprintf(szTemp, "%u", m_digest[0]);
 		strcat(szReport, szTemp);
 
-		for(i = 1; i < 20; i++)
+		for(i = 1; i < 20; ++i)
 		{
 			sprintf(szTemp, " %u", m_digest[i]);
 			strcat(szReport, szTemp);

@@ -36,10 +36,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace std;
 
 
-CSVParser::CSVParser()
+CSVParser::CSVParser() : m_sData( "" ), m_nPos( 0 )
 {
-  m_sData = "";
-  m_nPos = 0;
+
 }
 
 void CSVParser::SkipSpaces(void)
@@ -69,7 +68,7 @@ CSVParser & CSVParser::operator >>(int & nOut)
   while (m_nPos < m_sData.length() && m_sData[m_nPos] != ',')
     sTmp += m_sData[m_nPos++];
 
-  m_nPos++; // skip past comma
+  ++m_nPos; // skip past comma
   nOut = atoi(sTmp.c_str());
   return *this;
 }
@@ -81,7 +80,7 @@ CSVParser & CSVParser::operator >>(double & nOut)
   while (m_nPos < m_sData.length() && m_sData[m_nPos] != ',')
     sTmp += m_sData[m_nPos++];
 
-  m_nPos++; // skip past comma
+  ++m_nPos; // skip past comma
   nOut = atof(sTmp.c_str());
   return *this;
 }
@@ -95,7 +94,7 @@ CSVParser & CSVParser::operator >>(string & sOut)
   // Jump past first " if necessary
   if (m_nPos < m_sData.length() && m_sData[m_nPos] == '"') {
     bQuotes = true;
-    m_nPos++; 
+    ++m_nPos; 
   }
   
   while (m_nPos < m_sData.length()) {
@@ -112,11 +111,11 @@ CSVParser & CSVParser::operator >>(string & sOut)
 
   // Jump past last " if necessary
   if (bQuotes && m_nPos < m_sData.length() && m_sData[m_nPos] == '"')
-    m_nPos++; 
+    ++m_nPos; 
 
   // Jump past , if necessary
   if (m_nPos < m_sData.length() && m_sData[m_nPos] == ',')
-    m_nPos++; 
+    ++m_nPos; 
 
   return *this;
 }

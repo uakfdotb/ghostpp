@@ -58,9 +58,8 @@ CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapPath( 
 	m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 11, 11, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE ) );
 }
 
-CMap :: CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile )
+CMap :: CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile ) : m_GHost( nGHost )
 {
-	m_GHost = nGHost;
 	Load( CFG, nCFGFile );
 }
 

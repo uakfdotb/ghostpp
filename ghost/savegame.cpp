@@ -27,10 +27,9 @@
 // CSaveGame
 //
 
-CSaveGame :: CSaveGame( ) : CPacked( )
+CSaveGame :: CSaveGame( ) : CPacked( ), m_NumSlots( 0 ), m_RandomSeed( 0 )
 {
-	m_NumSlots = 0;
-	m_RandomSeed = 0;
+
 }
 
 CSaveGame :: ~CSaveGame( )
