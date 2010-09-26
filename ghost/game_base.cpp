@@ -581,7 +581,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		{
 			if( (*i)->GetDownloadStarted( ) && !(*i)->GetDownloadFinished( ) )
 			{
-				Downloaders++;
+				++Downloaders;
 
 				if( m_GHost->m_MaxDownloaders > 0 && Downloaders > m_GHost->m_MaxDownloaders )
 					break;
@@ -671,7 +671,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			// doing it this way ensures it's always "5 4 3 2 1" but each interval might not be *exactly* the same length
 
 			SendAllChat( UTIL_ToString( m_CountDownCounter ) + ". . ." );
-			m_CountDownCounter--;
+			--m_CountDownCounter;
 		}
 		else if( !m_GameLoading && !m_GameLoaded )
 			EventGameStarted( );
