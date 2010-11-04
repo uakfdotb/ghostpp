@@ -43,33 +43,20 @@
 // CBaseGame
 //
 
-CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer )
+CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_FakePlayerPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages )
 {
-	m_GHost = nGHost;
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
 	m_Map = new CMap( *nMap );
-	m_SaveGame = nSaveGame;
 
 	if( m_GHost->m_SaveReplays && !m_SaveGame )
-		m_Replay = new CReplay( );
-	else
-		m_Replay = NULL;
-
-	m_Exiting = false;
-	m_Saving = false;
-	m_HostPort = nHostPort;
-	m_GameState = nGameState;
-	m_VirtualHostPID = 255;
-	m_FakePlayerPID = 255;
+		m_Replay = new CReplay( );	
 
 	// wait time of 1 minute  = 0 empty actions required
 	// wait time of 2 minutes = 1 empty action required
 	// etc...
 
-	if( m_GHost->m_ReconnectWaitTime == 0 )
-		m_GProxyEmptyActions = 0;
-	else
+	if( m_GHost->m_ReconnectWaitTime != 0 )
 	{
 		m_GProxyEmptyActions = m_GHost->m_ReconnectWaitTime - 1;
 
@@ -78,61 +65,6 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 		if( m_GProxyEmptyActions > 9 )
 			m_GProxyEmptyActions = 9;
 	}
-
-	m_GameName = nGameName;
-	m_LastGameName = nGameName;
-	m_VirtualHostName = m_GHost->m_VirtualHostName;
-	m_OwnerName = nOwnerName;
-	m_CreatorName = nCreatorName;
-	m_CreatorServer = nCreatorServer;
-	m_HCLCommandString = m_Map->GetMapDefaultHCL( );
-	m_RandomSeed = GetTicks( );
-	m_HostCounter = m_GHost->m_HostCounter++;
-	m_EntryKey = rand( );
-	m_Latency = m_GHost->m_Latency;
-	m_SyncLimit = m_GHost->m_SyncLimit;
-	m_SyncCounter = 0;
-	m_GameTicks = 0;
-	m_CreationTime = GetTime( );
-	m_LastPingTime = GetTime( );
-	m_LastRefreshTime = GetTime( );
-	m_LastDownloadTicks = GetTime( );
-	m_DownloadCounter = 0;
-	m_LastDownloadCounterResetTicks = GetTicks( );
-	m_LastAnnounceTime = 0;
-	m_AnnounceInterval = 0;
-	m_LastAutoStartTime = GetTime( );
-	m_AutoStartPlayers = 0;
-	m_LastCountDownTicks = 0;
-	m_CountDownCounter = 0;
-	m_StartedLoadingTicks = 0;
-	m_StartPlayers = 0;
-	m_LastLagScreenResetTime = 0;
-	m_LastActionSentTicks = 0;
-	m_LastActionLateBy = 0;
-	m_StartedLaggingTime = 0;
-	m_LastLagScreenTime = 0;
-	m_LastReservedSeen = GetTime( );
-	m_StartedKickVoteTime = 0;
-	m_GameOverTime = 0;
-	m_LastPlayerLeaveTicks = 0;
-	m_MinimumScore = 0.0;
-	m_MaximumScore = 0.0;
-	m_SlotInfoChanged = false;
-	m_Locked = false;
-	m_RefreshMessages = m_GHost->m_RefreshMessages;
-	m_RefreshError = false;
-	m_RefreshRehosted = false;
-	m_MuteAll = false;
-	m_MuteLobby = false;
-	m_CountDownStarted = false;
-	m_GameLoading = false;
-	m_GameLoaded = false;
-	m_LoadInGame = m_Map->GetMapLoadInGame( );
-	m_Lagging = false;
-	m_AutoSave = m_GHost->m_AutoSave;
-	m_MatchMaking = false;
-	m_LocalAdminMessages = m_GHost->m_LocalAdminMessages;
 
 	if( m_SaveGame )
 	{
