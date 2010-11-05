@@ -29,17 +29,10 @@
 // CBNLSClient
 //
 
-CBNLSClient :: CBNLSClient( string nServer, uint16_t nPort, uint32_t nWardenCookie )
+CBNLSClient :: CBNLSClient( string nServer, uint16_t nPort, uint32_t nWardenCookie ) : m_WasConnected( false ), m_Server( nServer ), m_Port( nPort ), m_LastNullTime( 0 ), m_WardenCookie( nWardenCookie ), m_TotalWardenIn( 0 ), m_TotalWardenOut( 0 )
 {
 	m_Socket = new CTCPClient( );
 	m_Protocol = new CBNLSProtocol( );
-	m_WasConnected = false;
-	m_Server = nServer;
-	m_Port = nPort;
-	m_LastNullTime = 0;
-	m_WardenCookie = nWardenCookie;
-	m_TotalWardenIn = 0;
-	m_TotalWardenOut = 0;
 }
 
 CBNLSClient :: ~CBNLSClient( )
@@ -62,7 +55,7 @@ BYTEARRAY CBNLSClient :: GetWardenResponse( )
 	{
 		WardenResponse = m_WardenResponses.front( );
 		m_WardenResponses.pop( );
-		m_TotalWardenOut++;
+		++m_TotalWardenOut;
 	}
 
 	return WardenResponse;
@@ -189,5 +182,5 @@ void CBNLSClient :: QueueWardenSeed( uint32_t seed )
 void CBNLSClient :: QueueWardenRaw( BYTEARRAY wardenRaw )
 {
 	m_OutPackets.push( m_Protocol->SEND_BNLS_WARDEN_RAW( m_WardenCookie, wardenRaw ) );
-	m_TotalWardenIn++;
+	++m_TotalWardenIn;
 }
