@@ -478,7 +478,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			if( (*i)->GetOutPacketsQueued( ) <= 1 )
 			{
-				(*i)->QueueGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
+				(*i)->QueueGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, 0, m_HostCounter );
 				Refreshed = true;
 			}
 		}
@@ -1289,8 +1289,8 @@ void CBaseGame :: SendAllActions( )
 		// something is going terribly wrong - GHost++ is probably starved of resources
 		// print a message because even though this will take more resources it should provide some information to the administrator for future reference
 		// other solutions - dynamically modify the latency, request higher priority, terminate other games, ???
-
-		CONSOLE_Print( "[GAME: " + m_GameName + "] warning - the latency is " + UTIL_ToString( m_Latency ) + "ms but the last update was late by " + UTIL_ToString( m_LastActionLateBy ) + "ms" );
+		//To causes a performance problem, when the console has to say this 1000 times. Should improve ghost hosting on servers
+		//CONSOLE_Print( "[GAME: " + m_GameName + "] warning - the latency is " + UTIL_ToString( m_Latency ) + "ms but the last update was late by " + UTIL_ToString( m_LastActionLateBy ) + "ms" );
 		m_LastActionLateBy = m_Latency;
 	}
 
@@ -2081,6 +2081,8 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		SendAllChat( m_GHost->m_Language->GameLocked( ) );
 		m_Locked = true;
 	}
+
+	Player->SetSpoofedRealm( JoinedRealm );
 }
 
 void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score )
@@ -2496,6 +2498,8 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 
 	if( m_AutoStartPlayers != 0 && GetNumHumanPlayers( ) == m_AutoStartPlayers )
 		BalanceSlots( );
+
+	Player->SetSpoofedRealm( JoinedRealm );
 }
 
 void CBaseGame :: EventPlayerLeft( CGamePlayer *player, uint32_t reason )
@@ -4318,7 +4322,7 @@ void CBaseGame :: StartCountDown( bool force )
 		if( force )
 		{
 			m_CountDownStarted = true;
-			m_CountDownCounter = 5;
+			m_CountDownCounter = 10;
 		}
 		else
 		{
@@ -4398,7 +4402,7 @@ void CBaseGame :: StartCountDown( bool force )
 			if( StillDownloading.empty( ) && NotSpoofChecked.empty( ) && NotPinged.empty( ) )
 			{
 				m_CountDownStarted = true;
-				m_CountDownCounter = 5;
+				m_CountDownCounter = 10;
 			}
 		}
 	}
