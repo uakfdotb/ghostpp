@@ -1663,8 +1663,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 								for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
 								{
-									string FileName = i->filename( );
-									string Stem = i->path( ).stem( );
+									string FileName = i->path( ).filename( ).string( );
+									string Stem = i->path( ).stem( ).string( );
 									transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
 									transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 
@@ -1674,9 +1674,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										++Matches;
 
 										if( FoundMapConfigs.empty( ) )
-											FoundMapConfigs = i->filename( );
+											FoundMapConfigs = i->path( ).filename( ).string( );
 										else
-											FoundMapConfigs += ", " + i->filename( );
+											FoundMapConfigs += ", " + i->path( ).filename( ).string( );
 
 										// if the pattern matches the filename exactly, with or without extension, stop any further matching
 
@@ -1692,7 +1692,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 									QueueChatCommand( m_GHost->m_Language->NoMapConfigsFound( ), User, Whisper );
 								else if( Matches == 1 )
 								{
-									string File = LastMatch.filename( );
+									string File = LastMatch.filename( ).string( );
 									QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
 									CConfig MapCFG;
 									MapCFG.Read( LastMatch.string( ) );
@@ -1774,8 +1774,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 								for( directory_iterator i( MapPath ); i != EndIterator; ++i )
 								{
-									string FileName = i->filename( );
-									string Stem = i->path( ).stem( );
+									string FileName = i->path( ).filename( ).string( );
+									string Stem = i->path( ).stem( ).string( );
 									transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
 									transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 
@@ -1785,9 +1785,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										++Matches;
 
 										if( FoundMaps.empty( ) )
-											FoundMaps = i->filename( );
+											FoundMaps = i->path( ).filename( ).string( );
 										else
-											FoundMaps += ", " + i->filename( );
+											FoundMaps += ", " + i->path( ).filename( ).string( );
 
 										// if the pattern matches the filename exactly, with or without extension, stop any further matching
 
@@ -1803,7 +1803,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 									QueueChatCommand( m_GHost->m_Language->NoMapsFound( ), User, Whisper );
 								else if( Matches == 1 )
 								{
-									string File = LastMatch.filename( );
+									string File = LastMatch.filename( ).string( );
 									QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
 
 									// hackhack: create a config file in memory with the required information to load the map
