@@ -62,6 +62,9 @@
 #  endif
 #endif
 
+// Workaround for V2010
+#ifndef _STDINT
+#define _STDINT
 
 // 7.18.1 Integer types
 
