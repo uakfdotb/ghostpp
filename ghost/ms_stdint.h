@@ -46,11 +46,9 @@
 // or compiler give many errors like this:
 //   error C2733: second C linkage of overloaded function 'wmemchr' not allowed
 #if (_MSC_VER < 1300) && defined(__cplusplus)
-   extern "C++" {
-#endif 
-#     include <wchar.h>
-#if (_MSC_VER < 1300) && defined(__cplusplus)
-   }
+extern "C++" {
+	#include <wchar.h>
+}
 #endif
 
 // Define _W64 macros to mark types changing their size, like intptr_t.
@@ -65,7 +63,7 @@
 // Workaround for V2010
 #ifndef _STDINT
 #define _STDINT
-
+#endif
 // 7.18.1 Integer types
 
 // 7.18.1.1 Exact-width integer types
