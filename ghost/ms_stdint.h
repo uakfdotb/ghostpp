@@ -46,9 +46,11 @@
 // or compiler give many errors like this:
 //   error C2733: second C linkage of overloaded function 'wmemchr' not allowed
 #if (_MSC_VER < 1300) && defined(__cplusplus)
-extern "C++" {
-	#include <wchar.h>
-}
+   extern "C++" {
+#endif 
+#     include <wchar.h>
+#if (_MSC_VER < 1300) && defined(__cplusplus)
+   }
 #endif
 
 // Define _W64 macros to mark types changing their size, like intptr_t.
