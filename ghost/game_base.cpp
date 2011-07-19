@@ -1650,9 +1650,13 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	uint32_t HostCounterID = joinPlayer->GetHostCounter( ) >> 28;
 	string JoinedRealm;
 
-	// we use an ID value of 0 to denote joining via LAN
+	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+	{
+		if( (*i)->GetHostCounterID( ) == HostCounterID )
+			JoinedRealm = (*i)->GetServer( );
+	}
 
-	if( HostCounterID == 0 )
+	if( JoinedRealm.empty( ) )
 	{
 		// the player is pretending to join via LAN, which they might or might not be (i.e. it could be spoofed)
 		// however, we've been broadcasting a random entry key to the LAN
@@ -1667,14 +1671,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 			potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_WRONGPASSWORD ) );
 			potential->SetDeleteMe( true );
 			return;
-		}
-	}
-	else
-	{
-                for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
-		{
-			if( (*i)->GetHostCounterID( ) == HostCounterID )
-				JoinedRealm = (*i)->GetServer( );
 		}
 	}
 
