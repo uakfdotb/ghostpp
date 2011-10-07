@@ -67,7 +67,7 @@
 #define MAPFILTER_OBS_ONDEATH			2
 #define MAPFILTER_OBS_NONE				4
 
-#define MAPGAMETYPE_UNKNOWN0			1			// always set except for saved games?
+#define MAPGAMETYPE_UNKNOWN0			1 << 32	// always set except for saved games?
 // AuthenticatedMakerBlizzard = 1 << 3
 // OfficialMeleeGame = 1 << 5
 #define MAPGAMETYPE_SAVEDGAME			1 << 9
