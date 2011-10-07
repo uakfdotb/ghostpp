@@ -740,7 +740,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapObservers = CFG->GetInt( "map_observers", MAPOBS_NONE );
 	m_MapFlags = CFG->GetInt( "map_flags", MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS );
 	m_MapFilterMaker = CFG->GetInt( "map_filter_maker", MAPFILTER_MAKER_USER );
-	m_MapFilterType = CFG->GetInt( "map_filter_type", 0 );
+	m_MapFilterType = CFG->GetInt( "map_filter_type", 2 );
 	m_MapFilterSize = CFG->GetInt( "map_filter_size", MAPFILTER_SIZE_LARGE );
 	m_MapFilterObs = CFG->GetInt( "map_filter_obs", MAPFILTER_OBS_NONE );
 
