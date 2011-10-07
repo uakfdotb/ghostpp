@@ -456,6 +456,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	BYTEARRAY MapHeight;
 	uint32_t MapNumPlayers = 0;
 	uint32_t MapNumTeams = 0;
+	uint32_t MapFilterType = MAPFILTER_TYPE_SCENARIO;
 	vector<CGameSlot> Slots;
 
 	if( !m_MapData.empty( ) )
@@ -661,6 +662,8 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 									(*i).SetTeam( Team++ );
 									(*i).SetRace( SLOTRACE_RANDOM );
 								}
+
+								MapFilterType = MAPFILTER_TYPE_MELEE;
 							}
 
 							if( !( MapOptions & MAPOPT_FIXEDPLAYERSETTINGS ) )
@@ -740,7 +743,15 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapObservers = CFG->GetInt( "map_observers", MAPOBS_NONE );
 	m_MapFlags = CFG->GetInt( "map_flags", MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS );
 	m_MapFilterMaker = CFG->GetInt( "map_filter_maker", MAPFILTER_MAKER_USER );
-	m_MapFilterType = CFG->GetInt( "map_filter_type", 2 );
+
+	if( CFG->Exists( "map_filter_type" ) )
+	{
+		CONSOLE_Print( "[MAP] overriding calculated map_filter_type with config value map_filter_type = " + CFG->GetString( "map_filter_type", string( ) ) );
+		MapFilterType = CFG->GetInt( "map_filter_type", MAPFILTER_TYPE_SCENARIO );
+	}
+
+	m_MapFilterType = MapFilterType;
+
 	m_MapFilterSize = CFG->GetInt( "map_filter_size", MAPFILTER_SIZE_LARGE );
 	m_MapFilterObs = CFG->GetInt( "map_filter_obs", MAPFILTER_OBS_NONE );
 
@@ -804,7 +815,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( Slots.empty( ) )
 	{
-                for( uint32_t Slot = 1; Slot <= 12; ++Slot )
+        for( uint32_t Slot = 1; Slot <= 12; ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
