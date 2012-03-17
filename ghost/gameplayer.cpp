@@ -415,7 +415,7 @@ void CGamePlayer :: ProcessPackets( )
 			case CGameProtocol :: W3GS_GAMELOADED_SELF:
 				if( m_Protocol->RECEIVE_W3GS_GAMELOADED_SELF( Packet->GetData( ) ) )
 				{
-					if( !m_FinishedLoading )
+					if( !m_FinishedLoading && m_Game->GetGameLoading( ) )
 					{
 						m_FinishedLoading = true;
 						m_FinishedLoadingTicks = GetTicks( );
