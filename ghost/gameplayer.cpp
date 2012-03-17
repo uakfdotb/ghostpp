@@ -435,18 +435,7 @@ void CGamePlayer :: ProcessPackets( )
 				if( Action )
 				{
 					// don't delete Action here because the game is going to store it in a queue and delete it later
-					
-					if( !m_Game->GetGameLoaded() || Action->GetLength( ) > 1452 )
-					{
-						// either the game isn't loaded yet and player is sending an action,
-						// or the action is too large for us to relay
-						// possibly a malicious attempt, so kick the player
-
-						SetDeleteMe( true );
-						SetLeftReason( "Invalid packet received." );
-					}
-					else
-						m_Game->EventPlayerAction( this, Action );
+					m_Game->EventPlayerAction( this, Action );
 				}
 
 				break;

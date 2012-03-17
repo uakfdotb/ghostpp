@@ -2588,6 +2588,12 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 
 void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 {
+	if( !m_GameLoaded || action->GetLength( ) > 1452 )
+	{
+		delete action;
+		return;
+	}
+
 	m_Actions.push( action );
 
 	// check for players saving the game and notify everyone
@@ -2601,6 +2607,9 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 
 void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 {
+	if( !m_GameLoaded )
+		return;
+
 	// check for desyncs
 	// however, it's possible that not every player has sent a checksum for this frame yet
 	// first we verify that we have enough checksums to work with otherwise we won't know exactly who desynced
