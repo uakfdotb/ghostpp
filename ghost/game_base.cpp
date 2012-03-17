@@ -2768,7 +2768,9 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 
 			if( !ExtraFlags.empty( ) )
 			{
-				if( ExtraFlags[0] == 0 )
+				if( !m_GameLoaded )
+					Relay = false;
+				else if( ExtraFlags[0] == 0 )
 				{
 					// this is an ingame [All] message, print it to the console
 
@@ -2798,12 +2800,17 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 			}
 			else
 			{
-				// this is a lobby message, print it to the console
-
-				CONSOLE_Print( "[GAME: " + m_GameName + "] [Lobby] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
-
-				if( m_MuteLobby )
+				if( m_GameLoading || m_GameLoaded )
 					Relay = false;
+				else
+				{
+					// this is a lobby message, print it to the console
+
+					CONSOLE_Print( "[GAME: " + m_GameName + "] [Lobby] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+
+					if( m_MuteLobby )
+						Relay = false;
+				}
 			}
 
 			// handle bot commands
