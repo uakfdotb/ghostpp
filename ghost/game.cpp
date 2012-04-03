@@ -322,18 +322,20 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 	}
 }
 
-void CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
+bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 {
-	CBaseGame :: EventPlayerAction( player, action );
+	bool success = CBaseGame :: EventPlayerAction( player, action );
 
 	// give the stats class a chance to process the action
 
-	if( m_Stats && m_Stats->ProcessAction( action ) && m_GameOverTime == 0 )
+	if( success && m_Stats && m_Stats->ProcessAction( action ) && m_GameOverTime == 0 )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (stats class reported game over)" );
 		SendEndMessage( );
 		m_GameOverTime = GetTime( );
 	}
+	
+	return success;
 }
 
 bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )

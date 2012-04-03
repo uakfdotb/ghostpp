@@ -211,7 +211,7 @@ public:
 	virtual void EventPlayerJoinedWithScore( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score );
 	virtual void EventPlayerLeft( CGamePlayer *player, uint32_t reason );
 	virtual void EventPlayerLoaded( CGamePlayer *player );
-	virtual void EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
+	virtual bool EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
 	virtual void EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum );
 	virtual void EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlayer *chatPlayer );
 	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );

@@ -2586,12 +2586,12 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 		SendAll( m_Protocol->SEND_W3GS_GAMELOADED_OTHERS( player->GetPID( ) ) );
 }
 
-void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
+bool CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 {
 	if( !m_GameLoaded || action->GetLength( ) > 1452 )
 	{
 		delete action;
-		return;
+		return false;
 	}
 
 	m_Actions.push( action );
@@ -2603,6 +2603,8 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] is saving the game" );
 		SendAllChat( m_GHost->m_Language->PlayerIsSavingTheGame( player->GetName( ) ) );
 	}
+	
+	return true;
 }
 
 void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
