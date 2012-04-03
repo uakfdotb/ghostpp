@@ -3092,7 +3092,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 	}
 	else
 	{
-		if( player->GetDownloadStarted( ) )
+		if( player->GetDownloadStarted( ) && !player->GetDownloadFinished( ) )
 		{
 			// calculate download rate
 
