@@ -123,6 +123,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastNullTime = 0;
 	m_LastOutPacketTicks = 0;
 	m_LastOutPacketSize = 0;
+	m_FrequencyDelayTimes = 0;
 	m_LastAdminRefreshTime = GetTime( );
 	m_LastBanRefreshTime = GetTime( );
 	m_FirstConnect = true;
@@ -511,11 +512,19 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		uint32_t WaitTicks = 0;
 
 		if( m_LastOutPacketSize < 10 )
-			WaitTicks = 1000;
+			WaitTicks = 1300;
+		else if( m_LastOutPacketSize < 30 )
+			WaitTicks = 3400;
+		else if( m_LastOutPacketSize < 50 )
+			WaitTicks = 3600;
 		else if( m_LastOutPacketSize < 100 )
-			WaitTicks = 3500;
+			WaitTicks = 3900;
 		else
-			WaitTicks = 4000;
+			WaitTicks = 5200;
+		
+		// add on frequency delay
+		
+		WaitTicks += m_FrequencyDelayTimes * 60;
 
 		if( !m_OutPackets.empty( ) && GetTicks( ) - m_LastOutPacketTicks >= WaitTicks )
 		{
@@ -525,6 +534,14 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_Socket->PutBytes( m_OutPackets.front( ) );
 			m_LastOutPacketSize = m_OutPackets.front( ).size( );
 			m_OutPackets.pop( );
+
+			// reset frequency delay (or increment it)
+			
+			if( m_FrequencyDelayTimes >= 100 || GetTicks( ) > m_LastOutPacketTicks + WaitTicks + 500 )
+				m_FrequencyDelayTimes = 0;
+			else
+				m_FrequencyDelayTimes++;
+			
 			m_LastOutPacketTicks = GetTicks( );
 		}
 
