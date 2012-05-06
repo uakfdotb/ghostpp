@@ -2588,8 +2588,14 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 
 bool CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 {
-	if( !m_GameLoaded || action->GetLength( ) > 1452 )
+	if( !m_GameLoaded || action->GetLength( ) > 1027 )
 	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] warning: blocked invalid action packet" );
+
+		player->SetDeleteMe( true );
+		player->SetLeftReason( "Invalid action packet" );
+		player->SetLeftCode( PLAYERLEAVE_LOST );    
+
 		delete action;
 		return false;
 	}
