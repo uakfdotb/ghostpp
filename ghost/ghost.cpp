@@ -673,7 +673,7 @@ CGHost :: CGHost( CConfig *CFG )
 	{
 		CONSOLE_Print( "[GHOST] creating admin game" );
 		m_AdminGame = new CAdminGame( this, m_AdminMap, NULL, m_AdminGamePort, 0, "GHost++ Admin Game", m_AdminGamePassword );
-		new boost::thread(&CBaseGame::loop, m_AdminGame);
+		boost::thread(&CBaseGame::loop, m_AdminGame);
 
 		if( m_AdminGamePort == m_HostPort )
 			CONSOLE_Print( "[GHOST] warning - admingame_port and bot_hostport are set to the same value, you won't be able to host any games" );
@@ -990,45 +990,22 @@ bool CGHost :: Update( long usecBlock )
 					{
 						if( Bytes[1] == CGPSProtocol :: GPS_RECONNECT && Length == 13 )
 						{
-							unsigned char PID = Bytes[4];
-							uint32_t ReconnectKey = UTIL_ByteArrayToUInt32( Bytes, false, 5 );
-							uint32_t LastPacket = UTIL_ByteArrayToUInt32( Bytes, false, 9 );
+							GProxyReconnector *Reconnector = new GProxyReconnector;
+							Reconnector->PID = Bytes[4];
+							Reconnector->ReconnectKey = UTIL_ByteArrayToUInt32( Bytes, false, 5 );
+							Reconnector->LastPacket = UTIL_ByteArrayToUInt32( Bytes, false, 9 );
+							Reconnector->PostedTime = GetTicks( );
+							Reconnector->socket = (*i);
+							
+							// update the receive buffer
+							*RecvBuffer = RecvBuffer->substr( Length );
+							i = m_ReconnectSockets.erase( i );
 
-							// look for a matching player in a running game
-
-							CGamePlayer *Match = NULL;
-
-                                                        for( vector<CBaseGame *> :: iterator j = m_Games.begin( ); j != m_Games.end( ); ++j )
-							{
-								if( (*j)->GetGameLoaded( ) )
-								{
-									CGamePlayer *Player = (*j)->GetPlayerFromPID( PID );
-
-									if( Player && Player->GetGProxy( ) && Player->GetGProxyReconnectKey( ) == ReconnectKey )
-									{
-										Match = Player;
-										break;
-									}
-								}
-							}
-
-							if( Match )
-							{
-								// reconnect successful!
-
-								*RecvBuffer = RecvBuffer->substr( Length );
-								Match->EventGProxyReconnect( *i, LastPacket );
-								i = m_ReconnectSockets.erase( i );
-								continue;
-							}
-							else
-							{
-								(*i)->PutBytes( m_GPSProtocol->SEND_GPSS_REJECT( REJECTGPS_NOTFOUND ) );
-								(*i)->DoSend( &send_fd );
-								delete *i;
-								i = m_ReconnectSockets.erase( i );
-								continue;
-							}
+							// post in the reconnects buffer and wait to see if a game thread will pick it up
+							boost::mutex::scoped_lock lock( m_ReconnectMutex );
+							m_PendingReconnects.push_back( Reconnector );
+							lock.unlock();
+							continue;
 						}
 						else
 						{
@@ -1061,6 +1038,28 @@ bool CGHost :: Update( long usecBlock )
 
 		(*i)->DoSend( &send_fd );
                 ++i;
+	}
+	
+	// delete any old pending reconnects that have not been handled by games
+	if( !m_PendingReconnects.empty( ) ) {
+		boost::mutex::scoped_lock lock( m_ReconnectMutex );
+	
+		for( vector<GProxyReconnector *> :: iterator i = m_PendingReconnects.begin( ); i != m_PendingReconnects.end( ); )
+		{
+			if( GetTicks( ) - (*i)->PostedTime > 1500 )
+			{
+				(*i)->socket->PutBytes( m_GPSProtocol->SEND_GPSS_REJECT( REJECTGPS_NOTFOUND ) );
+				(*i)->socket->DoSend( &send_fd );
+				delete (*i)->socket;
+				delete (*i);
+				i = m_PendingReconnects.erase( i );
+				continue;
+			}
+			
+			i++;
+		}
+	
+		lock.unlock();
 	}
 
 	// autohost
@@ -1683,6 +1682,6 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 	}
 	
 	// start the game thread
-	new boost::thread(&CBaseGame::loop, m_CurrentGame);
+	boost::thread(&CBaseGame::loop, m_CurrentGame);
 	CONSOLE_Print("[GameThread] Made new game thread");
 }

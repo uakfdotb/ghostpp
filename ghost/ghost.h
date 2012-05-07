@@ -43,6 +43,14 @@ class CMap;
 class CSaveGame;
 class CConfig;
 
+struct GProxyReconnector {
+	CTCPSocket *socket;
+	unsigned char PID;
+	uint32_t ReconnectKey;
+	uint32_t LastPacket;
+	uint32_t PostedTime;
+};
+
 class CGHost
 {
 public:
@@ -135,6 +143,8 @@ public:
 	uint32_t m_ReplayBuildNumber;			// config value: replay build number (for saving replays)
 	bool m_TCPNoDelay;						// config value: use Nagle's algorithm or not
 	uint32_t m_MatchMakingMethod;			// config value: the matchmaking method
+	vector<GProxyReconnector *> m_PendingReconnects;
+	boost::mutex m_ReconnectMutex;
 
 	CGHost( CConfig *CFG );
 	~CGHost( );
