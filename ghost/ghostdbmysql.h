@@ -176,6 +176,7 @@ private:
 	queue<void *> m_IdleConnections;
 	uint32_t m_NumConnections;
 	uint32_t m_OutstandingCallables;
+	boost::mutex m_DatabaseMutex;
 
 public:
 	CGHostDBMySQL( CConfig *CFG );

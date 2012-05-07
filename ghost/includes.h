@@ -41,6 +41,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <boost/thread.hpp>
 
 using namespace std;
 

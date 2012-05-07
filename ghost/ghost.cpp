@@ -673,6 +673,7 @@ CGHost :: CGHost( CConfig *CFG )
 	{
 		CONSOLE_Print( "[GHOST] creating admin game" );
 		m_AdminGame = new CAdminGame( this, m_AdminMap, NULL, m_AdminGamePort, 0, "GHost++ Admin Game", m_AdminGamePassword );
+		new boost::thread(&CBaseGame::loop, m_AdminGame);
 
 		if( m_AdminGamePort == m_HostPort )
 			CONSOLE_Print( "[GHOST] warning - admingame_port and bot_hostport are set to the same value, you won't be able to host any games" );
@@ -705,11 +706,13 @@ CGHost :: ~CGHost( )
         for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		delete *i;
 
-	delete m_CurrentGame;
-	delete m_AdminGame;
+	if( m_CurrentGame )
+		m_CurrentGame->doDelete();
+	if( m_AdminGame )
+		m_AdminGame->doDelete();
 
         for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-		delete *i;
+		(*i)->doDelete();
 
 	delete m_DB;
 	delete m_DBLocal;
@@ -744,6 +747,32 @@ bool CGHost :: Update( long usecBlock )
 		return true;
 	}
 
+	// get rid of any deleted games
+	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); )
+	{
+		if( (*i)->readyDelete( ) )
+		{
+			delete *i;
+			boost::mutex::scoped_lock lock( m_GamesMutex );
+			m_Games.erase( i );
+			lock.unlock( );
+		} else {
+			++i;
+		}
+	}
+
+	if( m_CurrentGame && m_CurrentGame->readyDelete( ) )
+	{
+        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+        {
+            (*i)->QueueGameUncreate( );
+            (*i)->QueueEnterChat( );
+        }
+        
+		delete m_CurrentGame;
+		m_CurrentGame = NULL;
+	}
+
 	// try to exit nicely if requested to do so
 
 	if( m_ExitingNice )
@@ -761,14 +790,14 @@ bool CGHost :: Update( long usecBlock )
 		if( m_CurrentGame )
 		{
 			CONSOLE_Print( "[GHOST] deleting current game in preparation for exiting nicely" );
-			delete m_CurrentGame;
+			m_CurrentGame->doDelete( );
 			m_CurrentGame = NULL;
 		}
 
 		if( m_AdminGame )
 		{
 			CONSOLE_Print( "[GHOST] deleting admin game in preparation for exiting nicely" );
-			delete m_AdminGame;
+			m_AdminGame->doDelete( );
 			m_AdminGame = NULL;
 		}
 
@@ -854,21 +883,6 @@ bool CGHost :: Update( long usecBlock )
         for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		NumFDs += (*i)->SetFD( &fd, &send_fd, &nfds );
 
-	// 2. the current game's server and player sockets
-
-	if( m_CurrentGame )
-		NumFDs += m_CurrentGame->SetFD( &fd, &send_fd, &nfds );
-
-	// 3. the admin game's server and player sockets
-
-	if( m_AdminGame )
-		NumFDs += m_AdminGame->SetFD( &fd, &send_fd, &nfds );
-
-	// 4. all running games' player sockets
-
-        for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-		NumFDs += (*i)->SetFD( &fd, &send_fd, &nfds );
-
 	// 5. the GProxy++ reconnect socket(s)
 
 	if( m_Reconnect && m_ReconnectSocket )
@@ -928,59 +942,6 @@ bool CGHost :: Update( long usecBlock )
 
 	bool AdminExit = false;
 	bool BNETExit = false;
-
-	// update current game
-
-	if( m_CurrentGame )
-	{
-		if( m_CurrentGame->Update( &fd, &send_fd ) )
-		{
-			CONSOLE_Print( "[GHOST] deleting current game [" + m_CurrentGame->GetGameName( ) + "]" );
-			delete m_CurrentGame;
-			m_CurrentGame = NULL;
-
-                        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
-			{
-				(*i)->QueueGameUncreate( );
-				(*i)->QueueEnterChat( );
-			}
-		}
-		else if( m_CurrentGame )
-			m_CurrentGame->UpdatePost( &send_fd );
-	}
-
-	// update admin game
-
-	if( m_AdminGame )
-	{
-		if( m_AdminGame->Update( &fd, &send_fd ) )
-		{
-			CONSOLE_Print( "[GHOST] deleting admin game" );
-			delete m_AdminGame;
-			m_AdminGame = NULL;
-			AdminExit = true;
-		}
-		else if( m_AdminGame )
-			m_AdminGame->UpdatePost( &send_fd );
-	}
-
-	// update running games
-
-	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); )
-	{
-		if( (*i)->Update( &fd, &send_fd ) )
-		{
-			CONSOLE_Print( "[GHOST] deleting game [" + (*i)->GetGameName( ) + "]" );
-			EventGameDeleted( *i );
-			delete *i;
-			i = m_Games.erase( i );
-		}
-		else
-		{
-			(*i)->UpdatePost( &send_fd );
-                        ++i;
-		}
-	}
 
 	// update battle.net connections
 
@@ -1720,4 +1681,8 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		if( (*i)->GetHoldClan( ) )
 			(*i)->HoldClan( m_CurrentGame );
 	}
+	
+	// start the game thread
+	new boost::thread(&CBaseGame::loop, m_CurrentGame);
+	CONSOLE_Print("[GameThread] Made new game thread");
 }

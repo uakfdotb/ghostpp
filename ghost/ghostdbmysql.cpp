@@ -81,6 +81,7 @@ CGHostDBMySQL :: CGHostDBMySQL( CConfig *CFG ) : CGHostDB( CFG )
 
 CGHostDBMySQL :: ~CGHostDBMySQL( )
 {
+	boost::mutex::scoped_lock lock(m_DatabaseMutex);
 	CONSOLE_Print( "[MYSQL] closing " + UTIL_ToString( m_IdleConnections.size( ) ) + "/" + UTIL_ToString( m_NumConnections ) + " idle MySQL connections" );
 
 	while( !m_IdleConnections.empty( ) )
@@ -102,6 +103,7 @@ string CGHostDBMySQL :: GetStatus( )
 
 void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 {
+	boost::mutex::scoped_lock lock(m_DatabaseMutex);
 	CMySQLCallable *MySQLCallable = dynamic_cast<CMySQLCallable *>( callable );
 
 	if( MySQLCallable )
@@ -450,6 +452,7 @@ CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map
 
 void *CGHostDBMySQL :: GetIdleConnection( )
 {
+	boost::mutex::scoped_lock lock(m_DatabaseMutex);
 	void *Connection = NULL;
 
 	if( !m_IdleConnections.empty( ) )

@@ -125,10 +125,15 @@ protected:
 	bool m_AutoSave;								// if we should auto save the game before someone disconnects
 	bool m_MatchMaking;								// if matchmaking mode is enabled
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
+	int m_DoDelete;									// notifies thread to exit
 
 public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CBaseGame( );
+
+	virtual void loop( );
+	virtual void doDelete( );
+	virtual bool readyDelete( );
 
 	virtual vector<CGameSlot> GetEnforceSlots( )	{ return m_EnforceSlots; }
 	virtual vector<PIDPlayer> GetEnforcePlayers( )	{ return m_EnforcePlayers; }
