@@ -967,6 +967,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// this case covers whispers - we assume that anyone who sends a whisper to the bot with message "spoofcheck" should be considered spoof checked
 		// note that this means you can whisper "spoofcheck" even in a public game to manually spoofcheck if the /whois fails
 
+		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+		
 		if( Event == CBNETProtocol :: EID_WHISPER && m_GHost->m_CurrentGame )
 		{
 			if( Message == "s" || Message == "sc" || Message == "spoof" || Message == "check" || Message == "spoofcheck" )
@@ -990,6 +992,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
 			}
 		}
+		
+		lock.unlock( );
 
 		// handle bot commands
 
@@ -1068,49 +1072,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						QueueChatCommand( m_GHost->m_Language->UserIsAlreadyBanned( m_Server, Victim ), User, Whisper );
 					else
 						m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason ) ) );
-				}
-
-				//
-				// !ANNOUNCE
-				//
-
-				else if( Command == "announce" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
-				{
-					if( Payload.empty( ) || Payload == "off" )
-					{
-						QueueChatCommand( m_GHost->m_Language->AnnounceMessageDisabled( ), User, Whisper );
-						m_GHost->m_CurrentGame->SetAnnounce( 0, string( ) );
-					}
-					else
-					{
-						// extract the interval and the message
-						// e.g. "30 hello everyone" -> interval: "30", message: "hello everyone"
-
-						uint32_t Interval;
-						string Message;
-						stringstream SS;
-						SS << Payload;
-						SS >> Interval;
-
-						if( SS.fail( ) || Interval == 0 )
-							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] bad input #1 to announce command" );
-						else
-						{
-							if( SS.eof( ) )
-								CONSOLE_Print( "[BNET: " + m_ServerAlias + "] missing input #2 to announce command" );
-							else
-							{
-								getline( SS, Message );
-								string :: size_type Start = Message.find_first_not_of( " " );
-
-								if( Start != string :: npos )
-									Message = Message.substr( Start );
-
-								QueueChatCommand( m_GHost->m_Language->AnnounceMessageEnabled( ), User, Whisper );
-								m_GHost->m_CurrentGame->SetAnnounce( Interval, Message );
-							}
-						}
-					}
 				}
 
 				//
@@ -1278,29 +1239,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
-				// !AUTOSTART
-				//
-
-				else if( Command == "autostart" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
-				{
-					if( Payload.empty( ) || Payload == "off" )
-					{
-						QueueChatCommand( m_GHost->m_Language->AutoStartDisabled( ), User, Whisper );
-						m_GHost->m_CurrentGame->SetAutoStartPlayers( 0 );
-					}
-					else
-					{
-						uint32_t AutoStartPlayers = UTIL_ToUInt32( Payload );
-
-						if( AutoStartPlayers != 0 )
-						{
-							QueueChatCommand( m_GHost->m_Language->AutoStartEnabled( UTIL_ToString( AutoStartPlayers ) ), User, Whisper );
-							m_GHost->m_CurrentGame->SetAutoStartPlayers( AutoStartPlayers );
-						}
-					}
-				}
-
-				//
 				// !CHANNEL (change channel)
 				//
 
@@ -1336,49 +1274,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						QueueChatCommand( m_GHost->m_Language->UserWasBannedOnByBecause( m_Server, Payload, Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ), User, Whisper );
 					else
 						QueueChatCommand( m_GHost->m_Language->UserIsNotBanned( m_Server, Payload ), User, Whisper );
-				}
-
-				//
-				// !CLOSE (close slot)
-				//
-
-				else if( Command == "close" && !Payload.empty( ) && m_GHost->m_CurrentGame )
-				{
-					if( !m_GHost->m_CurrentGame->GetLocked( ) )
-					{
-						// close as many slots as specified, e.g. "5 10" closes slots 5 and 10
-
-						stringstream SS;
-						SS << Payload;
-
-						while( !SS.eof( ) )
-						{
-							uint32_t SID;
-							SS >> SID;
-
-							if( SS.fail( ) )
-							{
-								CONSOLE_Print( "[BNET: " + m_ServerAlias + "] bad input to close command" );
-								break;
-							}
-							else
-								m_GHost->m_CurrentGame->CloseSlot( (unsigned char)( SID - 1 ), true );
-						}
-					}
-					else
-						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
-				}
-
-				//
-				// !CLOSEALL
-				//
-
-				else if( Command == "closeall" && m_GHost->m_CurrentGame )
-				{
-					if( !m_GHost->m_CurrentGame->GetLocked( ) )
-						m_GHost->m_CurrentGame->CloseAllSlots( );
-					else
-						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
 				}
 
 				//
@@ -1593,12 +1488,16 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( Command == "getgame" && !Payload.empty( ) )
 				{
+					boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+					
 					uint32_t GameNumber = UTIL_ToUInt32( Payload ) - 1;
 
 					if( GameNumber < m_GHost->m_Games.size( ) )
 						QueueChatCommand( m_GHost->m_Language->GameNumberIs( Payload, m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper );
 					else
 						QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( Payload ), User, Whisper );
+					
+					lock.unlock( );
 				}
 
 				//
@@ -1607,39 +1506,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( Command == "getgames" )
 				{
+					boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+					
 					if( m_GHost->m_CurrentGame )
 						QueueChatCommand( m_GHost->m_Language->GameIsInTheLobby( m_GHost->m_CurrentGame->GetDescription( ), UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
 					else
 						QueueChatCommand( m_GHost->m_Language->ThereIsNoGameInTheLobby( UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
-				}
-
-				//
-				// !HOLD (hold a slot for someone)
-				//
-
-				else if( Command == "hold" && !Payload.empty( ) && m_GHost->m_CurrentGame )
-				{
-					// hold as many players as specified, e.g. "Varlock Kilranin" holds players "Varlock" and "Kilranin"
-
-					stringstream SS;
-					SS << Payload;
-
-					while( !SS.eof( ) )
-					{
-						string HoldName;
-						SS >> HoldName;
-
-						if( SS.fail( ) )
-						{
-							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] bad input to hold command" );
-							break;
-						}
-						else
-						{
-							QueueChatCommand( m_GHost->m_Language->AddedPlayerToTheHoldList( HoldName ), User, Whisper );
-							m_GHost->m_CurrentGame->AddToReserved( HoldName );
-						}
-					}
+					
+					lock.unlock( );
 				}
 
 				//
@@ -1843,49 +1717,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
-				// !OPEN (open slot)
-				//
-
-				else if( Command == "open" && !Payload.empty( ) && m_GHost->m_CurrentGame )
-				{
-					if( !m_GHost->m_CurrentGame->GetLocked( ) )
-					{
-						// open as many slots as specified, e.g. "5 10" opens slots 5 and 10
-
-						stringstream SS;
-						SS << Payload;
-
-						while( !SS.eof( ) )
-						{
-							uint32_t SID;
-							SS >> SID;
-
-							if( SS.fail( ) )
-							{
-								CONSOLE_Print( "[BNET: " + m_ServerAlias + "] bad input to open command" );
-								break;
-							}
-							else
-								m_GHost->m_CurrentGame->OpenSlot( (unsigned char)( SID - 1 ), true );
-						}
-					}
-					else
-						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
-				}
-
-				//
-				// !OPENALL
-				//
-
-				else if( Command == "openall" && m_GHost->m_CurrentGame )
-				{
-					if( !m_GHost->m_CurrentGame->GetLocked( ) )
-						m_GHost->m_CurrentGame->OpenAllSlots( );
-					else
-						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
-				}
-
-				//
 				// !PRIV (host private game)
 				//
 
@@ -1970,48 +1801,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
-				// !SAYGAME
-				//
-
-				else if( Command == "saygame" && !Payload.empty( ) )
-				{
-					if( IsRootAdmin( User ) )
-					{
-						// extract the game number and the message
-						// e.g. "3 hello everyone" -> game number: "3", message: "hello everyone"
-
-						uint32_t GameNumber;
-						string Message;
-						stringstream SS;
-						SS << Payload;
-						SS >> GameNumber;
-
-						if( SS.fail( ) )
-							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] bad input #1 to saygame command" );
-						else
-						{
-							if( SS.eof( ) )
-								CONSOLE_Print( "[BNET: " + m_ServerAlias + "] missing input #2 to saygame command" );
-							else
-							{
-								getline( SS, Message );
-								string :: size_type Start = Message.find_first_not_of( " " );
-
-								if( Start != string :: npos )
-									Message = Message.substr( Start );
-
-								if( GameNumber - 1 < m_GHost->m_Games.size( ) )
-									m_GHost->m_Games[GameNumber - 1]->SendAllChat( "ADMIN: " + Message );
-								else
-									QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( UTIL_ToString( GameNumber ) ), User, Whisper );
-							}
-						}
-					}
-					else
-						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-				}
-
-				//
 				// !SAYGAMES
 				//
 
@@ -2019,84 +1808,22 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				{
 					if( IsRootAdmin( User ) )
 					{
+						boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+				
 						if( m_GHost->m_CurrentGame )
 							m_GHost->m_CurrentGame->SendAllChat( Payload );
 
 						for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
-							(*i)->SendAllChat( "ADMIN: " + Payload );
+						{
+							boost::mutex::scoped_lock sayLock( (*i)->m_SayGamesMutex );
+							(*i)->m_DoSayGames.push_back( Payload );
+							sayLock.unlock( );
+						}
+				
+						lock.unlock( );
 					}
 					else
 						QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-				}
-
-				//
-				// !SP
-				//
-
-				else if( Command == "sp" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
-				{
-					if( !m_GHost->m_CurrentGame->GetLocked( ) )
-					{
-						m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->ShufflingPlayers( ) );
-						m_GHost->m_CurrentGame->ShuffleSlots( );
-					}
-					else
-						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
-				}
-
-				//
-				// !START
-				//
-
-				else if( Command == "start" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) && m_GHost->m_CurrentGame->GetNumHumanPlayers( ) > 0 )
-				{
-					if( !m_GHost->m_CurrentGame->GetLocked( ) )
-					{
-						// if the player sent "!start force" skip the checks and start the countdown
-						// otherwise check that the game is ready to start
-
-						if( Payload == "force" )
-							m_GHost->m_CurrentGame->StartCountDown( true );
-						else
-							m_GHost->m_CurrentGame->StartCountDown( false );
-					}
-					else
-						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
-				}
-
-				//
-				// !SWAP (swap slots)
-				//
-
-				else if( Command == "swap" && !Payload.empty( ) && m_GHost->m_CurrentGame )
-				{
-					if( !m_GHost->m_CurrentGame->GetLocked( ) )
-					{
-						uint32_t SID1;
-						uint32_t SID2;
-						stringstream SS;
-						SS << Payload;
-						SS >> SID1;
-
-						if( SS.fail( ) )
-							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] bad input #1 to swap command" );
-						else
-						{
-							if( SS.eof( ) )
-								CONSOLE_Print( "[BNET: " + m_ServerAlias + "] missing input #2 to swap command" );
-							else
-							{
-								SS >> SID2;
-
-								if( SS.fail( ) )
-									CONSOLE_Print( "[BNET: " + m_ServerAlias + "] bad input #2 to swap command" );
-								else
-									m_GHost->m_CurrentGame->SwapSlots( (unsigned char)( SID1 - 1 ), (unsigned char)( SID2 - 1 ) );
-							}
-						}
-					}
-					else
-						QueueChatCommand( m_GHost->m_Language->TheGameIsLockedBNET( ), User, Whisper );
 				}
 
 				//
@@ -2105,6 +1832,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( Command == "unhost" )
 				{
+					boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+					
 					if( m_GHost->m_CurrentGame )
 					{
 						if( m_GHost->m_CurrentGame->GetCountDownStarted( ) )
@@ -2122,6 +1851,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					}
 					else
 						QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameNoGameInLobby( ), User, Whisper );
+					
+					lock.unlock( );
 				}
 
 				//
@@ -2225,6 +1956,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// this case covers whois results which are used when hosting a public game (we send out a "/whois [player]" for each player)
 		// at all times you can still /w the bot with "spoofcheck" to manually spoof check
 
+		
+		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+		
 		if( m_GHost->m_CurrentGame && m_GHost->m_CurrentGame->GetPlayerFromName( UserName, true ) )
 		{
 			if( Message.find( "is away" ) != string :: npos )
@@ -2252,6 +1986,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName ) );
 			}
 		}
+		
+		lock.unlock( );
 	}
 	else if( Event == CBNETProtocol :: EID_ERROR )
 		CONSOLE_Print( "[ERROR: " + m_ServerAlias + "] " + Message );

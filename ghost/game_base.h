@@ -129,6 +129,10 @@ protected:
 	uint32_t m_LastReconnectHandleTime;				// last time we tried to handle GProxy reconnects
 
 public:
+	vector<string> m_DoSayGames;					// vector of strings we should announce to the current game
+	boost::mutex m_SayGamesMutex;					// mutex for the above vector
+
+public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CBaseGame( );
 

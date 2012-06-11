@@ -158,8 +158,12 @@ CBaseGame :: ~CBaseGame( )
         for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		delete *i;
 
+	boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
+	
         for( vector<CCallableScoreCheck *> :: iterator i = m_ScoreChecks.begin( ); i != m_ScoreChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( *i );
+	
+	lock.unlock( );
 
 	while( !m_Actions.empty( ) )
 	{
@@ -627,6 +631,19 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		SendAllChat( m_AnnounceMessage );
 		m_LastAnnounceTime = GetTime( );
+	}
+	
+	// handle saygames vector
+	if( !m_DoSayGames.empty( ) )
+	{
+		boost::mutex::scoped_lock lock( m_SayGamesMutex );
+		
+		for( vector<string> :: iterator i = m_DoSayGames.begin( ); i != m_DoSayGames.end( ); ++i )
+			SendAllChat( "ADMIN: " + *i );
+		
+		m_DoSayGames.clear( );
+		
+		lock.unlock( );
 	}
 
 	// kick players who don't spoof check within 20 seconds when spoof checks are required and the game is autohosted

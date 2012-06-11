@@ -747,6 +747,8 @@ bool CGHost :: Update( long usecBlock )
 		return true;
 	}
 
+	boost::mutex::scoped_lock gamesLock( m_GamesMutex );
+	
 	// get rid of any deleted games
 	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); )
 	{
@@ -772,6 +774,8 @@ bool CGHost :: Update( long usecBlock )
 		delete m_CurrentGame;
 		m_CurrentGame = NULL;
 	}
+	
+	gamesLock.unlock( );
 
 	// try to exit nicely if requested to do so
 
@@ -828,6 +832,7 @@ bool CGHost :: Update( long usecBlock )
 	}
 
 	// update callables
+	boost::mutex::scoped_lock callablesLock( m_CallablesMutex );
 
 	for( vector<CBaseCallable *> :: iterator i = m_Callables.begin( ); i != m_Callables.end( ); )
 	{
@@ -840,6 +845,8 @@ bool CGHost :: Update( long usecBlock )
 		else
                         ++i;
 	}
+	
+	callablesLock.unlock( );
 
 	// create the GProxy++ reconnect listener
 
@@ -1140,36 +1147,24 @@ void CGHost :: EventBNETConnecting( CBNET *bnet )
 {
 	if( m_AdminGame )
 		m_AdminGame->SendAllChat( m_Language->ConnectingToBNET( bnet->GetServer( ) ) );
-
-	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->ConnectingToBNET( bnet->GetServer( ) ) );
 }
 
 void CGHost :: EventBNETConnected( CBNET *bnet )
 {
 	if( m_AdminGame )
 		m_AdminGame->SendAllChat( m_Language->ConnectedToBNET( bnet->GetServer( ) ) );
-
-	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->ConnectedToBNET( bnet->GetServer( ) ) );
 }
 
 void CGHost :: EventBNETDisconnected( CBNET *bnet )
 {
 	if( m_AdminGame )
 		m_AdminGame->SendAllChat( m_Language->DisconnectedFromBNET( bnet->GetServer( ) ) );
-
-	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->DisconnectedFromBNET( bnet->GetServer( ) ) );
 }
 
 void CGHost :: EventBNETLoggedIn( CBNET *bnet )
 {
 	if( m_AdminGame )
 		m_AdminGame->SendAllChat( m_Language->LoggedInToBNET( bnet->GetServer( ) ) );
-
-	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->LoggedInToBNET( bnet->GetServer( ) ) );
 }
 
 void CGHost :: EventBNETGameRefreshed( CBNET *bnet )
@@ -1177,12 +1172,18 @@ void CGHost :: EventBNETGameRefreshed( CBNET *bnet )
 	if( m_AdminGame )
 		m_AdminGame->SendAllChat( m_Language->BNETGameHostingSucceeded( bnet->GetServer( ) ) );
 
+	boost::mutex::scoped_lock lock( m_GamesMutex );
+	
 	if( m_CurrentGame )
 		m_CurrentGame->EventGameRefreshed( bnet->GetServer( ) );
+	
+	lock.unlock( );
 }
 
 void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )
 {
+	boost::mutex::scoped_lock lock( m_GamesMutex );
+	
 	if( m_CurrentGame )
 	{
                 for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
@@ -1207,15 +1208,14 @@ void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )
 
 		m_CurrentGame->SetRefreshError( true );
 	}
+	
+	lock.unlock( );
 }
 
 void CGHost :: EventBNETConnectTimedOut( CBNET *bnet )
 {
 	if( m_AdminGame )
 		m_AdminGame->SendAllChat( m_Language->ConnectingToBNETTimedOut( bnet->GetServer( ) ) );
-
-	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->ConnectingToBNETTimedOut( bnet->GetServer( ) ) );
 }
 
 void CGHost :: EventBNETWhisper( CBNET *bnet, string user, string message )
@@ -1223,12 +1223,6 @@ void CGHost :: EventBNETWhisper( CBNET *bnet, string user, string message )
 	if( m_AdminGame )
 	{
 		m_AdminGame->SendAdminChat( "[W: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
-
-		if( m_CurrentGame )
-			m_CurrentGame->SendLocalAdminChat( "[W: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
-
-                for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-			(*i)->SendLocalAdminChat( "[W: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 	}
 }
 
@@ -1237,12 +1231,6 @@ void CGHost :: EventBNETChat( CBNET *bnet, string user, string message )
 	if( m_AdminGame )
 	{
 		m_AdminGame->SendAdminChat( "[L: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
-
-		if( m_CurrentGame )
-			m_CurrentGame->SendLocalAdminChat( "[L: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
-
-                for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-			(*i)->SendLocalAdminChat( "[L: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 	}
 }
 
@@ -1251,12 +1239,6 @@ void CGHost :: EventBNETEmote( CBNET *bnet, string user, string message )
 	if( m_AdminGame )
 	{
 		m_AdminGame->SendAdminChat( "[E: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
-
-		if( m_CurrentGame )
-			m_CurrentGame->SendLocalAdminChat( "[E: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
-
-                for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-			(*i)->SendLocalAdminChat( "[E: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 	}
 }
 
@@ -1578,6 +1560,8 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 			return;
 		}
 	}
+	
+	boost::mutex::scoped_lock lock( m_GamesMutex );
 
 	if( m_CurrentGame )
 	{
@@ -1606,6 +1590,8 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 		return;
 	}
+
+	lock.unlock( );
 
 	CONSOLE_Print( "[GHOST] creating game [" + gameName + "]" );
 
