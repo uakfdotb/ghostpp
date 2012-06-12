@@ -35,6 +35,7 @@ CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
 #include "replay.h"
 #include "gameprotocol.h"
 #include "game_base.h"
+#include "game_staging.h"
 
 #include <boost/filesystem.hpp>
 
@@ -976,7 +977,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		if( Event == CBNETProtocol :: EID_WHISPER && m_GHost->m_CurrentGame )
 		{
 			if( Message == "s" || Message == "sc" || Message == "spoof" || Message == "check" || Message == "spoofcheck" )
-				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, true );
+				m_GHost->m_StagingGame->AddToSpoofed( m_Server, User, true );
 			else if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
 			{
 				// look for messages like "entered a Warcraft III The Frozen Throne game called XYZ"
@@ -990,10 +991,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					vector<string> Tokens = UTIL_Tokenize( Message, ' ' );
 
 					if( Tokens.size( ) >= 3 )
-						m_GHost->m_CurrentGame->AddToSpoofed( m_Server, Tokens[2], false );
+						m_GHost->m_StagingGame->AddToSpoofed( m_Server, Tokens[2], false );
 				}
 				else
-					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
+					m_GHost->m_StagingGame->AddToSpoofed( m_Server, User, false );
 			}
 		}
 		
@@ -1959,35 +1960,22 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// handle spoof checking for current game
 		// this case covers whois results which are used when hosting a public game (we send out a "/whois [player]" for each player)
 		// at all times you can still /w the bot with "spoofcheck" to manually spoof check
-
 		
 		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
 		
-		if( m_GHost->m_CurrentGame && m_GHost->m_CurrentGame->GetPlayerFromName( UserName, true ) )
+		if( m_GHost->m_StagingGame->GetPlayerFromName( UserName, true ) )
 		{
-			if( Message.find( "is away" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsAway( UserName ) );
-			else if( Message.find( "is unavailable" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsUnavailable( UserName ) );
-			else if( Message.find( "is refusing messages" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsRefusingMessages( UserName ) );
-			else if( Message.find( "is using Warcraft III The Frozen Throne in the channel" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName ) );
-			else if( Message.find( "is using Warcraft III The Frozen Throne in channel" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName ) );
-			else if( Message.find( "is using Warcraft III The Frozen Throne in a private channel" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInPrivateChannel( UserName ) );
-
 			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos )
 			{
 				// check both the current game name and the last game name against the /whois response
 				// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
 				// note: if the game is rehosted more than once it is possible (but unlikely) for a false positive because only two game names are checked
+				// update for staging area: also check last hosted game in case this player joined that one
 
-				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos || Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) != string :: npos )
-					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, UserName, false );
+				if( ( m_GHost->m_CurrentGame && ( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos || Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) != string :: npos ) ) || ( !m_GHost->m_Games.empty( ) && Message.find( m_GHost->m_Games[0]->GetGameName( ) ) != string :: npos ) )
+					m_GHost->m_StagingGame->AddToSpoofed( m_Server, UserName, false );
 				else
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName ) );
+					m_GHost->m_StagingGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName ) );
 			}
 		}
 		

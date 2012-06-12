@@ -36,12 +36,14 @@ class CSHA1;
 class CBNET;
 class CBaseGame;
 class CAdminGame;
+class CStagingGame;
 class CGHostDB;
 class CBaseCallable;
 class CLanguage;
 class CMap;
 class CSaveGame;
 class CConfig;
+struct TransferPlayer;
 
 struct GProxyReconnector {
 	CTCPSocket *socket;
@@ -63,6 +65,9 @@ public:
 	vector<CBNET *> m_BNETs;				// all our battle.net connections (there can be more than one)
 	CBaseGame *m_CurrentGame;				// this game is still in the lobby state
 	CAdminGame *m_AdminGame;				// this "fake game" allows an admin who knows the password to control the bot from the local network
+	vector<TransferPlayer> m_TransferPlayers;	// players waiting to be tranferred to the current game
+	boost::mutex m_TransferMutex;			// mutex for m_TransferPlayers
+	CStagingGame *m_StagingGame;			// staging area for new players so current games can start more quickly
 	vector<CBaseGame *> m_Games;			// these games are in progress
 	boost::thread_group m_GameThreads;		// the threads for games in progress and stuff
 	boost::mutex m_GamesMutex;

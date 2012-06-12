@@ -39,6 +39,7 @@
 #include "game_base.h"
 #include "game.h"
 #include "game_admin.h"
+#include "game_staging.h"
 
 #include <signal.h>
 #include <stdlib.h>
@@ -680,6 +681,9 @@ CGHost :: CGHost( CConfig *CFG )
 	}
 	else
 		m_AdminGame = NULL;
+	
+	m_StagingGame = new CStagingGame( this, m_AutoHostMap, NULL, m_HostPort, 0, "GHost++ Staging Game", string( ) );
+	boost::thread(&CBaseGame::loop, m_StagingGame);
 
 	if( m_BNETs.empty( ) && !m_AdminGame )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
@@ -710,6 +714,8 @@ CGHost :: ~CGHost( )
 		m_CurrentGame->doDelete();
 	if( m_AdminGame )
 		m_AdminGame->doDelete();
+	if( m_StagingGame )
+		m_StagingGame->doDelete();
 
         for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 		(*i)->doDelete();
@@ -778,7 +784,7 @@ bool CGHost :: Update( long usecBlock )
 	gamesLock.unlock( );
 
 	// try to exit nicely if requested to do so
-
+	CONSOLE_Print( "exiting nice: " + UTIL_ToString( m_ExitingNice ) + " " + UTIL_ToString( m_BNETs.empty( ) ) );
 	if( m_ExitingNice )
 	{
 		if( !m_BNETs.empty( ) )
@@ -803,6 +809,13 @@ bool CGHost :: Update( long usecBlock )
 			CONSOLE_Print( "[GHOST] deleting admin game in preparation for exiting nicely" );
 			m_AdminGame->doDelete( );
 			m_AdminGame = NULL;
+		}
+		
+		if( m_StagingGame )
+		{
+			CONSOLE_Print( "[GHOST] deleting staging game in preparation for exiting nicely" );
+			m_StagingGame->doDelete( );
+			m_StagingGame = NULL;
 		}
 
 		if( m_Games.empty( ) )
@@ -1596,9 +1609,9 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 	CONSOLE_Print( "[GHOST] creating game [" + gameName + "]" );
 
 	if( saveGame )
-		m_CurrentGame = new CGame( this, map, m_SaveGame, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
+		m_CurrentGame = new CGame( this, map, m_SaveGame, 0, gameState, gameName, ownerName, creatorName, creatorServer );
 	else
-		m_CurrentGame = new CGame( this, map, NULL, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
+		m_CurrentGame = new CGame( this, map, NULL, 0, gameState, gameName, ownerName, creatorName, creatorServer );
 
 	// todotodo: check if listening failed and report the error to the user
 

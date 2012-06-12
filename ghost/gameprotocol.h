@@ -161,6 +161,8 @@ private:
 	uint32_t m_EntryKey;
 	string m_Name;
 	BYTEARRAY m_InternalIP;
+	bool m_TransferJoin;
+	int m_TransferPID;
 
 public:
 	CIncomingJoinPlayer( uint32_t nHostCounter, uint32_t nEntryKey, string nName, BYTEARRAY &nInternalIP );
@@ -170,6 +172,11 @@ public:
 	uint32_t GetEntryKey( )		{ return m_EntryKey; }
 	string GetName( )			{ return m_Name; }
 	BYTEARRAY GetInternalIP( )	{ return m_InternalIP; }
+	bool GetTransferJoin( )		{ return m_TransferJoin; }
+	int GetTransferPID( )		{ return m_TransferPID; }
+
+	void SetTransferJoin( bool nTransferJoin ) { m_TransferJoin = nTransferJoin; }
+	void SetTransferPID( int nTransferPID ) { m_TransferPID = nTransferPID; }
 };
 
 //
