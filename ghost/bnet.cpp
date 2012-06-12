@@ -524,7 +524,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		else if( m_LastOutPacketSize < 100 )
 			WaitTicks = 3900;
 		else
-			WaitTicks = 5200;
+			WaitTicks = 5500;
 		
 		// add on frequency delay
 		
