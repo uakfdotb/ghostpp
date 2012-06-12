@@ -761,9 +761,7 @@ bool CGHost :: Update( long usecBlock )
 		if( (*i)->readyDelete( ) )
 		{
 			delete *i;
-			boost::mutex::scoped_lock lock( m_GamesMutex );
 			m_Games.erase( i );
-			lock.unlock( );
 		} else {
 			++i;
 		}
