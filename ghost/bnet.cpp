@@ -155,6 +155,8 @@ CBNET :: ~CBNET( )
 	for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 		delete *i;
 
+	boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
+	
 	for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
@@ -184,6 +186,8 @@ CBNET :: ~CBNET( )
 
 	if( m_CallableBanList )
 		m_GHost->m_Callables.push_back( m_CallableBanList );
+
+	lock.unlock( );
 
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 		delete *i;
