@@ -782,7 +782,7 @@ bool CGHost :: Update( long usecBlock )
 	gamesLock.unlock( );
 
 	// try to exit nicely if requested to do so
-	CONSOLE_Print( "exiting nice: " + UTIL_ToString( m_ExitingNice ) + " " + UTIL_ToString( m_BNETs.empty( ) ) );
+	
 	if( m_ExitingNice )
 	{
 		if( !m_BNETs.empty( ) )
