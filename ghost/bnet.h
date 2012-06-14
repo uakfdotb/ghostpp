@@ -64,6 +64,7 @@ private:
 	CBNETProtocol *m_Protocol;						// battle.net protocol
 	CBNLSClient *m_BNLSClient;						// the BNLS client (for external warden handling)
 	queue<CCommandPacket *> m_Packets;				// queue of incoming packets
+	boost::mutex m_PacketsMutex;					// game sometimes calls QueueChatCommand and UnqueueChatCommand; this makes the functions synchronized
 	CBNCSUtilInterface *m_BNCSUtil;					// the interface to the bncsutil library (used for logging into battle.net)
 	queue<BYTEARRAY> m_OutPackets;					// queue of outgoing packets to be sent (to prevent getting kicked for flooding)
 	vector<CIncomingFriendList *> m_Friends;		// vector of friends
