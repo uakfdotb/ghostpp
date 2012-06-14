@@ -151,6 +151,8 @@ public:
 	uint32_t m_MatchMakingMethod;			// config value: the matchmaking method
 	vector<GProxyReconnector *> m_PendingReconnects;
 	boost::mutex m_ReconnectMutex;
+	bool m_RemoteDownloads;					// config value: enable remote downloads
+	vector<string> m_RDownloadServers;		// vector of rdownload servers
 
 	CGHost( CConfig *CFG );
 	~CGHost( );

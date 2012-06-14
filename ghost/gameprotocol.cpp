@@ -355,14 +355,14 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_REJECTJOIN( uint32_t reason )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP )
+BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP, BYTEARRAY port )
 {
 	unsigned char PlayerJoinCounter[]	= { 2, 0, 0, 0 };
 	unsigned char Zeros[]				= { 0, 0, 0, 0 };
 
 	BYTEARRAY packet;
 
-	if( !name.empty( ) && name.size( ) <= 15 && externalIP.size( ) == 4 && internalIP.size( ) == 4 )
+	if( !name.empty( ) && name.size( ) <= 15 && externalIP.size( ) == 4 && internalIP.size( ) == 4 && port.size( ) == 2 )
 	{
 		packet.push_back( W3GS_HEADER_CONSTANT );							// W3GS header constant
 		packet.push_back( W3GS_PLAYERINFO );								// W3GS_PLAYERINFO
@@ -375,15 +375,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, string name,
 		packet.push_back( 0 );												// ???
 		packet.push_back( 2 );												// AF_INET
 		packet.push_back( 0 );												// AF_INET continued...
-		packet.push_back( 0 );												// port
-		packet.push_back( 0 );												// port continued...
+		UTIL_AppendByteArray( packet, port );								// port
 		UTIL_AppendByteArrayFast( packet, externalIP );						// external IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		packet.push_back( 2 );												// AF_INET
 		packet.push_back( 0 );												// AF_INET continued...
-		packet.push_back( 0 );												// port
-		packet.push_back( 0 );												// port continued...
+		UTIL_AppendByteArray( packet, port );								// port
 		UTIL_AppendByteArrayFast( packet, internalIP );						// internal IP
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???
 		UTIL_AppendByteArray( packet, Zeros, 4 );							// ???

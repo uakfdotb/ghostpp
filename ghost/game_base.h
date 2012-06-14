@@ -129,6 +129,8 @@ protected:
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
 	int m_DoDelete;									// notifies thread to exit
 	uint32_t m_LastReconnectHandleTime;				// last time we tried to handle GProxy reconnects
+	bool m_VirtualSlots;							// whether or not slots should be hidden from other players
+	unsigned char m_NextPID;						// PID to assign to the next player; only used with virtual slots
 
 public:
 	vector<string> m_DoSayGames;					// vector of strings we should announce to the current game
@@ -220,7 +222,7 @@ public:
 	virtual void EventPlayerDisconnectPlayerError( CGamePlayer *player );
 	virtual void EventPlayerDisconnectSocketError( CGamePlayer *player );
 	virtual void EventPlayerDisconnectConnectionClosed( CGamePlayer *player );
-	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, bool Virtual = false );
+	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
 	virtual void EventPlayerJoinedWithScore( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score );
 	virtual void EventPlayerLeft( CGamePlayer *player, uint32_t reason );
 	virtual void EventPlayerLoaded( CGamePlayer *player );

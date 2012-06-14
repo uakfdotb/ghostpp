@@ -1337,6 +1337,34 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 1 ) == 0 ? false : true;
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
+	
+	m_RemoteDownloads = CFG->GetInt( "rd_enabled", 0 ) == 0 ? false : true;
+	
+	if( m_RemoteDownloads )
+	{
+		string RDFile = CFG->GetString( "rd_file", "rd_servers.txt" );
+		
+		ifstream in;
+		in.open( RDFile.c_str( ) );
+		m_RDownloadServers.clear( );
+
+		if( !in.fail( ) )
+		{
+			string Line;
+
+			while( !in.eof( ) )
+			{
+				getline( in, Line );
+
+				if( !Line.empty( ) )
+					m_RDownloadServers.push_back( Line );
+			}
+
+			in.close( );
+		}
+		else
+			m_RemoteDownloads = false;
+	}
 }
 
 void CGHost :: ExtractScripts( )

@@ -43,7 +43,7 @@
 // CBaseGame
 //
 
-CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_FakePlayerPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages ), m_DoDelete( 0 ), m_LastReconnectHandleTime( 0 )
+CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_FakePlayerPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages ), m_DoDelete( 0 ), m_LastReconnectHandleTime( 0 ), m_VirtualSlots( false ), m_NextPID( 1 )
 {
 	if( m_HostPort != 0 )
 		m_Socket = new CTCPServer( );
@@ -1304,7 +1304,27 @@ void CBaseGame :: SendAllSlotInfo( )
 {
 	if( !m_GameLoading && !m_GameLoaded )
 	{
-		SendAll( m_Protocol->SEND_W3GS_SLOTINFO( m_Slots, m_RandomSeed, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+		if( m_VirtualSlots )
+		{
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i) 
+			{
+				vector<CGameSlot> Slots = m_Map->GetSlots( );
+				
+				uint32_t MapSize = UTIL_ByteArrayToUInt32( m_Map->GetMapSize( ), false );
+				unsigned char DownloadStatus = (unsigned char)( (float)(*i)->GetLastMapPartAcked( ) / MapSize * 100 );
+				
+				if( DownloadStatus > 100 )
+					DownloadStatus = 100;
+			
+				if( !Slots.empty( ) )
+					Slots[0] = CGameSlot( (*i)->GetPID( ), DownloadStatus, SLOTSTATUS_OCCUPIED, 0, m_Slots[0].GetTeam( ), m_Slots[0].GetColour( ), m_Slots[0].GetRace( ) );
+			
+				SendAll( m_Protocol->SEND_W3GS_SLOTINFO( Slots, m_RandomSeed, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+			}
+		}
+		else
+			SendAll( m_Protocol->SEND_W3GS_SLOTINFO( m_Slots, m_RandomSeed, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+		
 		m_SlotInfoChanged = false;
 	}
 }
@@ -1319,7 +1339,12 @@ void CBaseGame :: SendVirtualHostPlayerInfo( CGamePlayer *player )
 	IP.push_back( 0 );
 	IP.push_back( 0 );
 	IP.push_back( 0 );
-	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP ) );
+	
+	BYTEARRAY Port;
+	Port.push_back( 0 );
+	Port.push_back( 0 );
+	
+	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP, Port ) );
 }
 
 void CBaseGame :: SendFakePlayerInfo( CGamePlayer *player )
@@ -1332,7 +1357,12 @@ void CBaseGame :: SendFakePlayerInfo( CGamePlayer *player )
 	IP.push_back( 0 );
 	IP.push_back( 0 );
 	IP.push_back( 0 );
-	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_FakePlayerPID, "FakePlayer", IP, IP ) );
+	
+	BYTEARRAY Port;
+	Port.push_back( 0 );
+	Port.push_back( 0 );
+	
+	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_FakePlayerPID, "FakePlayer", IP, IP, Port ) );
 }
 
 void CBaseGame :: SendAllActions( )
@@ -1552,7 +1582,12 @@ void CBaseGame :: SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban )
 	IP.push_back( 0 );
 	IP.push_back( 0 );
 	IP.push_back( 0 );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( 1, m_VirtualHostName, IP, IP ) );
+	
+	BYTEARRAY Port;
+	Port.push_back( 0 );
+	Port.push_back( 0 );
+	
+	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( 1, m_VirtualHostName, IP, IP, Port ) );
 	
 	// send a map check packet to the new player
 	
@@ -1792,7 +1827,7 @@ void CBaseGame :: EventPlayerDisconnectConnectionClosed( CGamePlayer *player )
 		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 }
 
-void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, bool Virtual )
+void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
 {
 	// check if the new player's name is empty or too long
 
@@ -1972,7 +2007,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		}
 	}
 
-	if( !Virtual )
+	if( !m_VirtualSlots )
 	{
 		if( m_SaveGame )
 		{
@@ -2072,7 +2107,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		}
 	}
 
-	if( !Virtual && SID >= m_Slots.size( ) )
+	if( !m_VirtualSlots && SID >= m_Slots.size( ) )
 	{
 		potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
@@ -2115,7 +2150,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if( !Virtual && ( GetNumPlayers( ) >= 11 || EnforcePID == m_VirtualHostPID ) )
+	if( ( !m_VirtualSlots && GetNumPlayers( ) >= 11 ) || EnforcePID == m_VirtualHostPID )
 		DeleteVirtualHost( );
 
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
@@ -2137,7 +2172,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	potential->SetJoinPlayer( NULL );
 	potential->SetDeleteMe( true );
 
-	if( !Virtual )
+	if( !m_VirtualSlots )
 	{
 		int downloadStatus = joinPlayer->GetTransferJoin( ) ? 100 : 255;
 		
@@ -2183,9 +2218,13 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	if( !joinPlayer->GetTransferJoin( ) )
 	{
-		if( Virtual )
+		if( m_VirtualSlots )
 		{
 			vector<CGameSlot> Slots = m_Map->GetSlots( );
+			
+			if( !Slots.empty( ) )
+				Slots[0] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam( ), m_Slots[SID].GetColour( ), m_Slots[SID].GetRace( ) );
+			
 			Player->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player->GetPID( ), Player->GetSocket( )->GetPort( ), Player->GetExternalIP( ), Slots, m_RandomSeed, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
 		}
 		else
@@ -2202,8 +2241,12 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	BlankIP.push_back( 0 );
 	BlankIP.push_back( 0 );
 	BlankIP.push_back( 0 );
+	
+	BYTEARRAY BlankPort;
+	BlankPort.push_back( 0 );
+	BlankPort.push_back( 0 );
 
-	if( !Virtual )
+	if( !m_VirtualSlots )
 	{
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		{
@@ -2214,17 +2257,17 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 				if( (*i)->GetSocket( ) )
 				{
 					if( m_GHost->m_HideIPAddresses )
-						(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), BlankIP, BlankIP ) );
+						(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), BlankIP, BlankIP, BlankPort ) );
 					else
-						(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), Player->GetExternalIP( ), Player->GetInternalIP( ) ) );
+						(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), Player->GetExternalIP( ), Player->GetInternalIP( ), BlankPort ) );
 				}
 
 				// send info about every other player to the new player
 
 				if( m_GHost->m_HideIPAddresses )
-					Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), BlankIP, BlankIP ) );
+					Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), BlankIP, BlankIP, BlankPort ) );
 				else
-					Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ) ) );
+					Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ), BlankPort ) );
 			}
 		}
 	}
@@ -2238,8 +2281,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	// send slot info to everyone, so the new player gets this info twice but everyone else still needs to know the new slot layout
 
-	if( !Virtual )
-		SendAllSlotInfo( );
+	SendAllSlotInfo( );
 
 	// send a welcome message
 
@@ -2266,7 +2308,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 	// check for multiple IP usage
 
-	if( m_GHost->m_CheckMultipleIPUsage && !Virtual )
+	if( m_GHost->m_CheckMultipleIPUsage && !m_VirtualSlots )
 	{
 		string Others;
 
@@ -2600,6 +2642,10 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	BlankIP.push_back( 0 );
 	BlankIP.push_back( 0 );
 	BlankIP.push_back( 0 );
+	
+	BYTEARRAY BlankPort;
+	BlankPort.push_back( 0 );
+	BlankPort.push_back( 0 );
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 	{
@@ -2610,17 +2656,17 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 			if( (*i)->GetSocket( ) )
 			{
 				if( m_GHost->m_HideIPAddresses )
-					(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), BlankIP, BlankIP ) );
+					(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), BlankIP, BlankIP, BlankPort ) );
 				else
-					(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), Player->GetExternalIP( ), Player->GetInternalIP( ) ) );
+					(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), Player->GetExternalIP( ), Player->GetInternalIP( ), BlankPort ) );
 			}
 
 			// send info about every other player to the new player
 
 			if( m_GHost->m_HideIPAddresses )
-				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), BlankIP, BlankIP ) );
+				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), BlankIP, BlankIP, BlankPort ) );
 			else
-				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ) ) );
+				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ), BlankPort ) );
 		}
 	}
 
@@ -3111,7 +3157,7 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 {
 	// player is requesting a team change
 
-	if( m_SaveGame )
+	if( m_SaveGame || m_VirtualSlots )
 		return;
 
 	if( m_Map->GetMapOptions( ) & MAPOPT_CUSTOMFORCES )
@@ -3177,7 +3223,7 @@ void CBaseGame :: EventPlayerChangeColour( CGamePlayer *player, unsigned char co
 {
 	// player is requesting a colour change
 
-	if( m_SaveGame )
+	if( m_SaveGame || m_VirtualSlots )
 		return;
 
 	if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
@@ -3203,7 +3249,7 @@ void CBaseGame :: EventPlayerChangeRace( CGamePlayer *player, unsigned char race
 {
 	// player is requesting a race change
 
-	if( m_SaveGame )
+	if( m_SaveGame || m_VirtualSlots )
 		return;
 
 	if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
@@ -3228,7 +3274,7 @@ void CBaseGame :: EventPlayerChangeHandicap( CGamePlayer *player, unsigned char 
 {
 	// player is requesting a handicap change
 
-	if( m_SaveGame )
+	if( m_SaveGame || m_VirtualSlots )
 		return;
 
 	if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
@@ -3296,7 +3342,24 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 						// inform the client that we are willing to send the map
 
 						CONSOLE_Print( "[GAME: " + m_GameName + "] map download started for player [" + player->GetName( ) + "]" );
-						Send( player, m_Protocol->SEND_W3GS_STARTDOWNLOAD( GetHostPID( ) ) );
+						
+						if( m_GHost->m_RemoteDownloads && m_VirtualSlots )
+						{
+							CONSOLE_Print( "[GAME: " + m_GameName + "] attempting remote download initiation" );
+							Send( player, m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( m_VirtualHostPID, PLAYERLEAVE_LOBBY ) );
+							
+							BYTEARRAY IP;
+							IP.push_back( 173 );
+							IP.push_back( 57 );
+							IP.push_back( 42 );
+							IP.push_back( 213 );
+							
+							Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP, UTIL_CreateByteArray( (uint16_t) 6119, true ) ) );
+							Send( player, m_Protocol->SEND_W3GS_STARTDOWNLOAD( m_VirtualHostPID ) );
+						}
+						else
+							Send( player, m_Protocol->SEND_W3GS_STARTDOWNLOAD( GetHostPID( ) ) );
+						
 						player->SetDownloadStarted( true );
 						player->SetStartedDownloadingTicks( GetTicks( ) );
 					}
@@ -3759,26 +3822,39 @@ CGamePlayer *CBaseGame :: GetPlayerFromColour( unsigned char colour )
 
 unsigned char CBaseGame :: GetNewPID( )
 {
-	// find an unused PID for a new player to use
-
-        for( unsigned char TestPID = 1; TestPID < 255; ++TestPID )
+	if( m_VirtualSlots )
 	{
-		if( TestPID == m_VirtualHostPID || TestPID == m_FakePlayerPID )
-			continue;
+		m_NextPID++;
+		
+		if( m_NextPID == 255 || m_NextPID == 0 || m_NextPID == 1 )
+			m_NextPID = 2;
+	
+		return m_NextPID;
+	}
+	
+	else
+	{
+		// find an unused PID for a new player to use
 
-		bool InUse = false;
-
-                for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+		    for( unsigned char TestPID = 1; TestPID < 255; ++TestPID )
 		{
-			if( !(*i)->GetLeftMessageSent( ) && (*i)->GetPID( ) == TestPID )
-			{
-				InUse = true;
-				break;
-			}
-		}
+			if( TestPID == m_VirtualHostPID || TestPID == m_FakePlayerPID )
+				continue;
 
-		if( !InUse )
-			return TestPID;
+			bool InUse = false;
+
+		            for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+			{
+				if( !(*i)->GetLeftMessageSent( ) && (*i)->GetPID( ) == TestPID )
+				{
+					InUse = true;
+					break;
+				}
+			}
+
+			if( !InUse )
+				return TestPID;
+		}
 	}
 
 	// this should never happen
@@ -4796,13 +4872,22 @@ void CBaseGame :: CreateVirtualHost( )
 	if( m_VirtualHostPID != 255 )
 		return;
 
-	m_VirtualHostPID = GetNewPID( );
+	if( m_VirtualSlots )
+		m_VirtualHostPID = 1;
+	else
+		m_VirtualHostPID = GetNewPID( );
+	
 	BYTEARRAY IP;
 	IP.push_back( 0 );
 	IP.push_back( 0 );
 	IP.push_back( 0 );
 	IP.push_back( 0 );
-	SendAll( m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP ) );
+	
+	BYTEARRAY Port;
+	Port.push_back( 0 );
+	Port.push_back( 0 );
+	
+	SendAll( m_Protocol->SEND_W3GS_PLAYERINFO( m_VirtualHostPID, m_VirtualHostName, IP, IP, Port ) );
 }
 
 void CBaseGame :: DeleteVirtualHost( )
@@ -4832,7 +4917,12 @@ void CBaseGame :: CreateFakePlayer( )
 		IP.push_back( 0 );
 		IP.push_back( 0 );
 		IP.push_back( 0 );
-		SendAll( m_Protocol->SEND_W3GS_PLAYERINFO( m_FakePlayerPID, "FakePlayer", IP, IP ) );
+		
+		BYTEARRAY Port;
+		Port.push_back( 0 );
+		Port.push_back( 0 );
+		
+		SendAll( m_Protocol->SEND_W3GS_PLAYERINFO( m_FakePlayerPID, "FakePlayer", IP, IP, Port ) );
 		m_Slots[SID] = CGameSlot( m_FakePlayerPID, 100, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam( ), m_Slots[SID].GetColour( ), m_Slots[SID].GetRace( ) );
 		SendAllSlotInfo( );
 	}

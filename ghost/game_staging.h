@@ -32,7 +32,6 @@ class CStagingGame : public CBaseGame
 protected:
 	string m_Password;
 	vector<TempBan> m_TempBans;
-	unsigned char m_NextPID;
 
 public:
 	CStagingGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword );
@@ -42,7 +41,6 @@ public:
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
 	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
-	virtual unsigned char GetNewPID( );
 };
 
 #endif

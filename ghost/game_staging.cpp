@@ -48,7 +48,7 @@ CStagingGame :: CStagingGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, 
 {
         m_Password = nPassword;
         m_MuteLobby = true;
-        m_NextPID = 1;
+        m_VirtualSlots = true;
 }
 
 CStagingGame :: ~CStagingGame( )
@@ -68,15 +68,7 @@ bool CStagingGame :: Update( void *fd, void *send_fd )
 	
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); )
 	{
-		if( GetTime( ) - (*i)->GetJoinTime( ) > 180000 || ( GetTime( ) - (*i)->GetJoinTime( ) > 20000 && !(*i)->GetDownloadStarted( ) ) )
-		{
-			(*i)->SetDeleteMe( true );
-			(*i)->SetLeftReason( "Allowable staging area time expired." );
-			(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
-			++i;
-		}
-		
-		else if( ( (*i)->GetSpoofed( ) || !m_GHost->m_RequireSpoofChecks ) && (*i)->GetDownloadFinished( ) && ( (*i)->GetLoggedIn( ) || m_Password.empty( ) ) )
+		if( ( (*i)->GetSpoofed( ) || !m_GHost->m_RequireSpoofChecks ) && (*i)->GetDownloadFinished( ) && ( (*i)->GetLoggedIn( ) || m_Password.empty( ) ) )
 		{
 			// remove the player from the current game
 			// and then add the player to the other game (or create new game)
@@ -106,6 +98,14 @@ bool CStagingGame :: Update( void *fd, void *send_fd )
 			
 			delete (*i);
 			i = m_Players.erase( i );
+		}
+		
+		else if( GetTime( ) - (*i)->GetJoinTime( ) > 180000 || ( GetTime( ) - (*i)->GetJoinTime( ) > 20000 && (*i)->GetDownloadFinished( ) ) )
+		{
+			(*i)->SetDeleteMe( true );
+			(*i)->SetLeftReason( "Allowable staging area time expired." );
+			(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
+			++i;
 		}
 		
 		else
@@ -141,7 +141,7 @@ void CStagingGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJo
 		}
 	}
 
-	CBaseGame :: EventPlayerJoined( potential, joinPlayer, true );
+	CBaseGame :: EventPlayerJoined( potential, joinPlayer );
 }
 
 void CStagingGame :: SendWelcomeMessage( CGamePlayer *player )
@@ -188,16 +188,6 @@ void CStagingGame :: SendWelcomeMessage( CGamePlayer *player )
 
 		in.close( );
 	}
-}
-
-unsigned char CStagingGame :: GetNewPID( )
-{
-	m_NextPID++;
-	
-	if( m_NextPID == 255 || m_NextPID == 0 )
-		m_NextPID = 1;
-	
-	return m_NextPID;
 }
 
 bool CStagingGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
