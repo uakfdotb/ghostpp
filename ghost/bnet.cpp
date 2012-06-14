@@ -531,6 +531,8 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		
 		WaitTicks += m_FrequencyDelayTimes * 60;
 
+		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+		
 		if( !m_OutPackets.empty( ) && GetTicks( ) - m_LastOutPacketTicks >= WaitTicks )
 		{
 			if( m_OutPackets.size( ) > 7 )
@@ -549,6 +551,8 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			
 			m_LastOutPacketTicks = GetTicks( );
 		}
+		
+		packetsLock.unlock( );
 
 		// send a null packet every 60 seconds to detect disconnects
 
@@ -578,8 +582,12 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_LastNullTime = GetTime( );
 			m_LastOutPacketTicks = GetTicks( );
 
+			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+			
 			while( !m_OutPackets.empty( ) )
 				m_OutPackets.pop( );
+
+			packetsLock.unlock( );
 
 			return m_Exiting;
 		}
@@ -2010,8 +2018,12 @@ void CBNET :: SendGetClanList( )
 
 void CBNET :: QueueEnterChat( )
 {
+	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+	
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_ENTERCHAT( ) );
+	
+	packetsLock.unlock( );
 }
 
 void CBNET :: QueueChatCommand( string chatCommand )
@@ -2027,6 +2039,8 @@ void CBNET :: QueueChatCommand( string chatCommand )
 		if( chatCommand.size( ) > 255 )
 			chatCommand = chatCommand.substr( 0, 255 );
 
+		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+		
 		if( m_OutPackets.size( ) > 10 )
 			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempted to queue chat command [" + chatCommand + "] but there are too many (" + UTIL_ToString( m_OutPackets.size( ) ) + ") packets queued, discarding" );
 		else
@@ -2034,6 +2048,8 @@ void CBNET :: QueueChatCommand( string chatCommand )
 			CONSOLE_Print( "[QUEUED: " + m_ServerAlias + "] " + chatCommand );
 			m_OutPackets.push( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
 		}
+		
+		packetsLock.unlock( );
 	}
 }
 
@@ -2102,10 +2118,14 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapHeight.push_back( 192 );
 			MapHeight.push_back( 7 );
 
+			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+			
 			if( m_GHost->m_Reconnect )
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			else
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+			
+			packetsLock.unlock( );
 		}
 		else
 		{
@@ -2124,18 +2144,26 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapHeight.push_back( 192 );
 			MapHeight.push_back( 7 );
 
+			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+			
 			if( m_GHost->m_Reconnect )
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			else
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+			
+			packetsLock.unlock( );
 		}
 	}
 }
 
 void CBNET :: QueueGameUncreate( )
 {
+	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+	
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_STOPADV( ) );
+	
+	packetsLock.unlock( );
 }
 
 void CBNET :: UnqueuePackets( unsigned char type )
@@ -2143,6 +2171,8 @@ void CBNET :: UnqueuePackets( unsigned char type )
 	queue<BYTEARRAY> Packets;
 	uint32_t Unqueued = 0;
 
+	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+	
 	while( !m_OutPackets.empty( ) )
 	{
 		// todotodo: it's very inefficient to have to copy all these packets while searching the queue
@@ -2157,6 +2187,8 @@ void CBNET :: UnqueuePackets( unsigned char type )
 	}
 
 	m_OutPackets = Packets;
+	
+	packetsLock.unlock( );
 
 	if( Unqueued > 0 )
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] unqueued " + UTIL_ToString( Unqueued ) + " packets of type " + UTIL_ToString( type ) );
@@ -2172,6 +2204,8 @@ void CBNET :: UnqueueChatCommand( string chatCommand )
 	queue<BYTEARRAY> Packets;
 	uint32_t Unqueued = 0;
 
+	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+	
 	while( !m_OutPackets.empty( ) )
 	{
 		// todotodo: it's very inefficient to have to copy all these packets while searching the queue
@@ -2186,6 +2220,8 @@ void CBNET :: UnqueueChatCommand( string chatCommand )
 	}
 
 	m_OutPackets = Packets;
+	
+	packetsLock.unlock( );
 
 	if( Unqueued > 0 )
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] unqueued " + UTIL_ToString( Unqueued ) + " chat command packets" );
