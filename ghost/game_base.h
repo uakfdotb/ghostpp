@@ -39,6 +39,7 @@ class CIncomingAction;
 class CIncomingChatPlayer;
 class CIncomingMapSize;
 class CCallableScoreCheck;
+struct QueuedSpoofAdd;
 
 class CBaseGame
 {
@@ -131,6 +132,8 @@ protected:
 public:
 	vector<string> m_DoSayGames;					// vector of strings we should announce to the current game
 	boost::mutex m_SayGamesMutex;					// mutex for the above vector
+	vector<QueuedSpoofAdd> m_DoSpoofAdd;			// vector of spoof add function call structures
+	boost::mutex m_SpoofAddMutex;
 
 public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
@@ -279,6 +282,13 @@ public:
 	virtual void DeleteVirtualHost( );
 	virtual void CreateFakePlayer( );
 	virtual void DeleteFakePlayer( );
+};
+
+struct QueuedSpoofAdd {
+	string server;
+	string name;
+	bool sendMessage;
+	string failMessage; //empty if no failure
 };
 
 #endif

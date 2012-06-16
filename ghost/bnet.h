@@ -81,6 +81,7 @@ private:
 	CCallableBanList *m_CallableBanList;			// threaded database ban list in progress
 	vector<string> m_Admins;						// vector of cached admins
 	vector<CDBBan *> m_Bans;						// vector of cached bans
+	boost::mutex m_BansMutex;						// synchronizes accesses and updates to the m_Bans vector
 	bool m_Exiting;									// set to true and this class will be deleted next update
 	string m_Server;								// battle.net server to connect to
 	string m_ServerIP;								// battle.net server to connect to (the IP address so we don't have to resolve it every time we connect)

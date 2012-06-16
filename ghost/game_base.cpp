@@ -634,6 +634,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	}
 	
 	// handle saygames vector
+	
 	if( !m_DoSayGames.empty( ) )
 	{
 		boost::mutex::scoped_lock lock( m_SayGamesMutex );
@@ -643,6 +644,24 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		
 		m_DoSayGames.clear( );
 		
+		lock.unlock( );
+	}
+	
+	// handle add to spoofed vector
+	
+	if( !m_DoSpoofAdd.empty( ) )
+	{
+		boost::mutex::scoped_lock lock( m_SpoofAddMutex );
+		
+		for( vector<QueuedSpoofAdd> :: iterator i = m_DoSpoofAdd.begin( ); i != m_DoSpoofAdd.end( ); ++i )
+		{
+			if( (*i).failMessage.empty( ) )
+				AddToSpoofed( (*i).server, (*i).name, (*i).sendMessage );
+			else
+				SendAllChat( (*i).failMessage );
+		}
+		
+		m_DoSpoofAdd.clear( );
 		lock.unlock( );
 	}
 

@@ -189,8 +189,12 @@ CBNET :: ~CBNET( )
 
 	lock.unlock( );
 
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
+
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 		delete *i;
+	
+	bansLock.unlock( );
 }
 
 BYTEARRAY CBNET :: GetUniqueName( )
@@ -428,11 +432,14 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
 	{
 		// CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
-
+		boost::mutex::scoped_lock lock( m_BansMutex );
+		
 		for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 			delete *i;
 
 		m_Bans = m_CallableBanList->GetResult( );
+		lock.unlock( );
+		
 		m_GHost->m_DB->RecoverCallable( m_CallableBanList );
 		delete m_CallableBanList;
 		m_CallableBanList = NULL;
@@ -983,8 +990,19 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		
 		if( Event == CBNETProtocol :: EID_WHISPER && m_GHost->m_CurrentGame )
 		{
+			bool Success = false;
+			QueuedSpoofAdd SpoofAdd;
+			SpoofAdd.server = m_Server;
+			SpoofAdd.name = User;
+			SpoofAdd.sendMessage = false;
+			SpoofAdd.failMessage = string( );
+			
 			if( Message == "s" || Message == "sc" || Message == "spoof" || Message == "check" || Message == "spoofcheck" )
-				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, true );
+			{
+				Success = true;
+				SpoofAdd.sendMessage = true;
+			}
+			
 			else if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
 			{
 				// look for messages like "entered a Warcraft III The Frozen Throne game called XYZ"
@@ -998,10 +1016,17 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					vector<string> Tokens = UTIL_Tokenize( Message, ' ' );
 
 					if( Tokens.size( ) >= 3 )
-						m_GHost->m_CurrentGame->AddToSpoofed( m_Server, Tokens[2], false );
+						SpoofAdd.name = Tokens[2];
 				}
-				else
-					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
+				
+				Success = true;
+			}
+			
+			if( Success )
+			{
+				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
+				spoofLock.unlock( );
 			}
 		}
 		
@@ -1991,10 +2016,18 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
 				// note: if the game is rehosted more than once it is possible (but unlikely) for a false positive because only two game names are checked
 
-				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos || Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) != string :: npos )
-					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, UserName, false );
-				else
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName ) );
+				QueuedSpoofAdd SpoofAdd;
+				SpoofAdd.server = m_Server;
+				SpoofAdd.name = UserName;
+				SpoofAdd.sendMessage = false;
+				SpoofAdd.failMessage = string( );
+
+				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) == string :: npos && Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) == string :: npos )
+					SpoofAdd.failMessage = m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName );
+				
+				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
+				spoofLock.unlock( );
 			}
 		}
 		
@@ -2286,26 +2319,32 @@ CDBBan *CBNET :: IsBannedName( string name )
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
 	// todotodo: optimize this - maybe use a map?
+	
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
 
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetName( ) == name )
 			return *i;
 	}
-
+	
+	bansLock.unlock( );
 	return NULL;
 }
 
 CDBBan *CBNET :: IsBannedIP( string ip )
 {
 	// todotodo: optimize this - maybe use a map?
-
+	
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetIP( ) == ip )
 			return *i;
 	}
 
+	bansLock.unlock( );
 	return NULL;
 }
 
@@ -2318,7 +2357,10 @@ void CBNET :: AddAdmin( string name )
 void CBNET :: AddBan( string name, string ip, string gamename, string admin, string reason )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+	
+	boost::mutex::scoped_lock lock( m_BansMutex );
 	m_Bans.push_back( new CDBBan( m_Server, name, ip, "N/A", gamename, admin, reason ) );
+	lock.unlock( );
 }
 
 void CBNET :: RemoveAdmin( string name )
@@ -2338,6 +2380,8 @@ void CBNET :: RemoveBan( string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
+	boost::mutex::scoped_lock lock( m_BansMutex );
+	
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
 	{
 		if( (*i)->GetName( ) == name )
@@ -2345,6 +2389,8 @@ void CBNET :: RemoveBan( string name )
 		else
 			++i;
 	}
+	
+	lock.unlock( );
 }
 
 void CBNET :: HoldFriends( CBaseGame *game )
