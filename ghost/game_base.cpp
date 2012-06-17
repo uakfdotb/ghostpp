@@ -2710,7 +2710,7 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 
 bool CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 {
-	if( !m_GameLoaded || action->GetLength( ) > 1027 )
+	if( ( !m_GameLoaded && !m_GameLoading ) || action->GetLength( ) > 1027 )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] warning: blocked invalid action packet" );
 
