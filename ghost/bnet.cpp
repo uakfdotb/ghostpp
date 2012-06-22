@@ -1848,7 +1848,11 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
 				
 						if( m_GHost->m_CurrentGame )
-							m_GHost->m_CurrentGame->SendAllChat( Payload );
+						{
+							boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
+							m_GHost->m_CurrentGame->m_DoSayGames.push_back( Payload );
+							sayLock.unlock( );
+						}
 
 						for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
 						{
@@ -1997,18 +2001,27 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		
 		if( m_GHost->m_CurrentGame && m_GHost->m_CurrentGame->GetPlayerFromName( UserName, true ) )
 		{
+			string FailMessage;
+			
 			if( Message.find( "is away" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsAway( UserName ) );
+				FailMessage = m_GHost->m_Language->SpoofPossibleIsAway( UserName );
 			else if( Message.find( "is unavailable" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsUnavailable( UserName ) );
+				FailMessage = m_GHost->m_Language->SpoofPossibleIsUnavailable( UserName );
 			else if( Message.find( "is refusing messages" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofPossibleIsRefusingMessages( UserName ) );
+				FailMessage = m_GHost->m_Language->SpoofPossibleIsRefusingMessages( UserName );
 			else if( Message.find( "is using Warcraft III The Frozen Throne in the channel" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName ) );
+				FailMessage = m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName );
 			else if( Message.find( "is using Warcraft III The Frozen Throne in channel" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName ) );
+				FailMessage = m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName );
 			else if( Message.find( "is using Warcraft III The Frozen Throne in a private channel" ) != string :: npos )
-				m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInPrivateChannel( UserName ) );
+				FailMessage = m_GHost->m_Language->SpoofDetectedIsInPrivateChannel( UserName );
+			
+			if( !FailMessage.empty( ) )
+			{
+				boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
+				m_GHost->m_CurrentGame->m_DoSayGames.push_back( FailMessage );
+				sayLock.unlock( );
+			}
 
 			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos )
 			{
