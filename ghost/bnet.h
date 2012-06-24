@@ -86,6 +86,7 @@ private:
 	string m_Server;								// battle.net server to connect to
 	string m_ServerIP;								// battle.net server to connect to (the IP address so we don't have to resolve it every time we connect)
 	string m_ServerAlias;							// battle.net server alias (short name, e.g. "USEast")
+	uint32_t m_ServerReconnectCount;				// counts how many times we have reconnected to the server and failed; when it's high, we resolve ServerIP again
 	string m_BNLSServer;							// BNLS server to connect to (for warden handling)
 	uint16_t m_BNLSPort;							// BNLS port
 	uint32_t m_BNLSWardenCookie;					// BNLS warden cookie
