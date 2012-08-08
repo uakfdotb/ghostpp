@@ -217,6 +217,12 @@ void CBaseGame :: loop( )
 		select( nfds + 1, NULL, &send_fd, NULL, &send_tv );
 #endif
 
+		if( NumFDs == 0 )
+		{
+			// select will return immediately and we'll chew up the CPU if we let it loop so just sleep for 50ms to kill some time
+			MILLISLEEP( 50 );
+		}
+
 		if( Update( &fd, &send_fd ) )
 		{
 			CONSOLE_Print( "[GameThread] deleting game [" + GetGameName( ) + "]" );
