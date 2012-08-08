@@ -37,6 +37,7 @@ public:
 	void Read( string file );
 	bool Exists( string key );
 	int GetInt( string key, int x );
+	uint32_t GetUInt( string key, uint32_t x );
 	string GetString( string key, string x );
 	void Set( string key, string x );
 };

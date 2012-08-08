@@ -107,6 +107,7 @@ string gLogFile;
 uint32_t gLogMethod;
 ofstream *gLog = NULL;
 CGHost *gGHost = NULL;
+boost::mutex PrintMutex;
 
 uint32_t GetTime( )
 {
@@ -170,6 +171,7 @@ void SignalCatcher( int s )
 
 void CONSOLE_Print( string message )
 {
+	boost::mutex::scoped_lock printLock( PrintMutex );
 	cout << message << endl;
 
 	// logging
@@ -208,6 +210,8 @@ void CONSOLE_Print( string message )
 			}
 		}
 	}
+	
+	printLock.unlock( );
 }
 
 void DEBUG_Print( string message )
@@ -486,7 +490,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_Version = "17.1";
+	m_Version = "17.2";
 	m_HostCounter = 1;
 	m_AutoHostMaximumGames = CFG->GetInt( "autohost_maxgames", 0 );
 	m_AutoHostAutoStartPlayers = CFG->GetInt( "autohost_startplayers", 0 );
@@ -1326,6 +1330,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 1 ) == 0 ? false : true;
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
+	m_MapGameType = CFG->GetUInt( "bot_mapgametype", 0 );
 }
 
 void CGHost :: ExtractScripts( )

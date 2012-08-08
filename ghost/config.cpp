@@ -94,6 +94,14 @@ int CConfig :: GetInt( string key, int x )
 		return atoi( m_CFG[key].c_str( ) );
 }
 
+uint32_t CConfig :: GetUInt( string key, uint32_t x )
+{
+	if( m_CFG.find( key ) == m_CFG.end( ) )
+		return x;
+	else
+		return strtoul( m_CFG[key].c_str( ), NULL, 0 );
+}
+
 string CConfig :: GetString( string key, string x )
 {
 	if( m_CFG.find( key ) == m_CFG.end( ) )
