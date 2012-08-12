@@ -133,6 +133,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_HoldFriends = nHoldFriends;
 	m_HoldClan = nHoldClan;
 	m_PublicCommands = nPublicCommands;
+	m_LastInviteCreation = false;
 	m_ServerReconnectCount = 0;
 }
 
@@ -960,6 +961,7 @@ void CBNET :: ProcessPackets( )
 				break;
 
 			case CBNETProtocol :: SID_CLANMEMBERLIST:
+				{
 				vector<CIncomingClanList *> Clans = m_Protocol->RECEIVE_SID_CLANMEMBERLIST( Packet->GetData( ) );
 
 				for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
@@ -967,6 +969,25 @@ void CBNET :: ProcessPackets( )
 
 				m_Clans = Clans;
 				break;
+				}
+			
+			case CBNETProtocol :: SID_CLANCREATIONINVITATION:
+				{
+				string ClanCreateName = m_Protocol->RECEIVE_SID_CLANCREATIONINVITATION( Packet->GetData( ) );
+				
+				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Invited (creation) to clan " + ClanCreateName + ", !accept to accept" );
+				m_LastInviteCreation = true;
+				break;
+				}
+			
+			case CBNETProtocol :: SID_CLANINVITATIONRESPONSE:
+				{
+				string ClanInviteName = m_Protocol->RECEIVE_SID_CLANINVITATIONRESPONSE( Packet->GetData( ) );
+				
+				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Invited to clan " + ClanInviteName + ", !accept to accept" );
+				m_LastInviteCreation = false;
+				break;
+				}
 			}
 		}
 
@@ -1050,7 +1071,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			QueueChatCommand( m_GHost->m_Language->CommandTrigger( string( 1, m_CommandTrigger ) ), User, Whisper );
 		else if( !Message.empty( ) && Message[0] == m_CommandTrigger )
 		{
-			
+			BotCommand( Message, User, Whisper, false );
 		}
 	}
 	else if( Event == CBNETProtocol :: EID_CHANNEL )
@@ -1162,6 +1183,18 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		/*****************
 		* ADMIN COMMANDS *
 		******************/
+
+		//
+		// !ACCEPT
+		//
+
+		if( Command == "accept" )
+		{
+			if( IsRootAdmin( User ) || ForceRoot )
+				SendClanAcceptInvite( true );
+			else
+				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
+		}
 
 		//
 		// !ADDADMIN
@@ -1625,6 +1658,17 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			
 			lock.unlock( );
 		}
+		
+		//
+		// !GRUNT
+		//
+
+		if( Command == "grunt"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
+		{
+			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_MEMBER );
+			SendGetClanList( );
+			CONSOLE_Print( "[GHOST] changing " + Payload + " to status grunt done by " + User );
+		}
 
 		//
 		// !HOSTSG
@@ -1632,6 +1676,17 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "hostsg" && !Payload.empty( ) )
 			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
+
+		//
+		// !INVITE
+		//
+
+		if( Command == "invite" && !Payload.empty( ) )
+		{
+			SendClanInvitation( Payload );
+			SendGetClanList( );
+			CONSOLE_Print( "[GHOST] inviting clan member " + Payload + " done by " + User );
+		}
 
 		//
 		// !LOAD (load config file)
@@ -1826,6 +1881,27 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			}
 		}
 
+        //
+        // !MOTD
+        //
+
+		if( Command == "motd"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
+		{
+			SendClanSetMotd( Payload );
+			CONSOLE_Print( "[GHOST] setting motd to " + Payload );
+		}
+
+        //
+        // !PEON
+        //
+
+		if( Command == "peon"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
+		{
+			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_PARTIAL_MEMBER );
+			SendGetClanList( );
+			CONSOLE_Print( "[GHOST] changing " + Payload + " to status peon done by " + User );
+		}
+
 		//
 		// !PRIV (host private game)
 		//
@@ -1897,6 +1973,17 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 		}
 
+        //
+        // !REMOVE
+        //
+
+		if( Command == "remove" && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
+		{
+			SendClanRemoveMember( Payload );
+			SendGetClanList( );
+			CONSOLE_Print( "[GHOST] removing clan member " + Payload + " done by " + User );
+		}
+
 		//
 		// !SAY
 		//
@@ -1940,6 +2027,17 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 		}
 
+        //
+        // !SHAMAN
+        //
+
+		if( Command == "shaman"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
+		{
+			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_OFFICER );
+			SendGetClanList( );
+			CONSOLE_Print( "[GHOST] changing " + Payload + " to status shaman done by " + User );
+		}
+
 		//
 		// !UNHOST
 		//
@@ -1955,7 +2053,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 				// if the game owner is still in the game only allow the root admin to unhost the game
 
-				else if( m_GHost->m_CurrentGame->GetPlayerFromName( m_GHost->m_CurrentGame->GetOwnerName( ), false ) && !IsRootAdmin( User ) )
+				else if( m_GHost->m_CurrentGame->GetPlayerFromName( m_GHost->m_CurrentGame->GetOwnerName( ), false ) && !IsRootAdmin( User ) && !ForceRoot )
 					QueueChatCommand( m_GHost->m_Language->CantUnhostGameOwnerIsPresent( m_GHost->m_CurrentGame->GetOwnerName( ) ), User, Whisper );
 				else
 				{
@@ -1986,7 +2084,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 	/*********************
 	* NON ADMIN COMMANDS *
-
 	*********************/
 
 	// don't respond to non admins if there are more than 3 messages already in the queue
@@ -2061,6 +2158,40 @@ void CBNET :: SendGetClanList( )
 {
 	if( m_LoggedIn )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
+}
+
+void CBNET :: SendClanInvitation( string accountName )
+{
+	if( m_LoggedIn )
+		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANINVITATION( accountName ) );
+}
+
+void CBNET :: SendClanRemoveMember( string accountName )
+{
+	if( m_LoggedIn )
+		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANREMOVEMEMBER( accountName ) );
+}
+
+void CBNET :: SendClanChangeRank( string accountName, CBNETProtocol :: RankCode rank )
+{
+	if( m_LoggedIn )
+		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANCHANGERANK( accountName, rank ) );
+}
+
+void CBNET :: SendClanSetMotd( string motd )
+{
+	if( m_LoggedIn )
+		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANSETMOTD( motd ) );
+}
+
+void CBNET :: SendClanAcceptInvite( bool accept )
+{
+	if( m_LoggedIn ) {
+		if( m_LastInviteCreation )
+			m_Socket->PutBytes( m_Protocol->SEND_SID_CLANCREATIONINVITATION( accept ) );
+		else
+			m_Socket->PutBytes( m_Protocol->SEND_SID_CLANINVITATIONRESPONSE( accept ) );
+	}
 }
 
 void CBNET :: QueueEnterChat( )

@@ -21,6 +21,8 @@
 #ifndef BNET_H
 #define BNET_H
 
+#include "bnetprotocol.h"
+
 //
 // CBNET
 //
@@ -123,6 +125,7 @@ private:
 	bool m_HoldFriends;								// whether to auto hold friends when creating a game or not
 	bool m_HoldClan;								// whether to auto hold clan members when creating a game or not
 	bool m_PublicCommands;							// whether to allow public commands or not
+	bool m_LastInviteCreation;						// whether the last invite received was for a clan creation (else, it was for invitation response)
 
 public:
 	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID );
@@ -166,6 +169,11 @@ public:
 	void SendJoinChannel( string channel );
 	void SendGetFriendsList( );
 	void SendGetClanList( );
+	void SendClanInvitation( string accountName );
+	void SendClanRemoveMember( string accountName );
+	void SendClanChangeRank( string accountName, CBNETProtocol::RankCode rank );
+	void SendClanSetMotd( string motd );
+	void SendClanAcceptInvite( bool accept );
 	void QueueEnterChat( );
 	void QueueChatCommand( string chatCommand );
 	void QueueChatCommand( string chatCommand, string user, bool whisper );
