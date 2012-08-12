@@ -425,9 +425,9 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		m_LastAdminRefreshTime = GetTime( );
 	}
 
-	// refresh the ban list every 60 minutes
+	// refresh the ban list every 5 minutes
 
-	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 3600 )
+	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 300 )
 		m_CallableBanList = m_GHost->m_DB->ThreadedBanList( m_Server );
 
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
