@@ -1330,7 +1330,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 1 ) == 0 ? false : true;
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
-	m_MapGameType = CFG->GetUInt( "bot_mapgametype", 0 );
+	m_MapGameType = CFG->GetUInt32( "bot_mapgametype", 0 );
 }
 
 void CGHost :: ExtractScripts( )
