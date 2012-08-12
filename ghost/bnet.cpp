@@ -1155,7 +1155,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 
-	if( IsAdmin( User ) || IsRootAdmin( User ) )
+	if( IsAdmin( User ) || IsRootAdmin( User ) || ForceRoot )
 	{
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] admin [" + User + "] sent command [" + Message + "]" );
 
@@ -1169,7 +1169,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		if( Command == "addadmin" && !Payload.empty( ) )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				if( IsAdmin( Payload ) )
 					QueueChatCommand( m_GHost->m_Language->UserIsAlreadyAnAdmin( m_Server, Payload ), User, Whisper );
@@ -1217,7 +1217,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "autohost" )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				if( Payload.empty( ) || Payload == "off" )
 				{
@@ -1291,7 +1291,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "autohostmm" )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				if( Payload.empty( ) || Payload == "off" )
 				{
@@ -1388,7 +1388,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "checkadmin" && !Payload.empty( ) )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				if( IsAdmin( Payload ) )
 					QueueChatCommand( m_GHost->m_Language->UserIsAnAdmin( m_Server, Payload ), User, Whisper );
@@ -1419,7 +1419,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "countadmins" )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 				m_PairedAdminCounts.push_back( PairedAdminCount( Whisper ? User : string( ), m_GHost->m_DB->ThreadedAdminCount( m_Server ) ) );
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
@@ -1445,7 +1445,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "deladmin" && !Payload.empty( ) )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				if( !IsAdmin( Payload ) )
 					QueueChatCommand( m_GHost->m_Language->UserIsNotAnAdmin( m_Server, Payload ), User, Whisper );
@@ -1470,7 +1470,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "disable" )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				QueueChatCommand( m_GHost->m_Language->BotDisabled( ), User, Whisper );
 				m_GHost->m_Enabled = false;
@@ -1510,40 +1510,13 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "enable" )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				QueueChatCommand( m_GHost->m_Language->BotEnabled( ), User, Whisper );
 				m_GHost->m_Enabled = true;
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
-
-		//
-		// !END
-		//
-
-		else if( Command == "end" && !Payload.empty( ) )
-		{
-			// todotodo: what if a game ends just as you're typing this command and the numbering changes?
-
-			uint32_t GameNumber = UTIL_ToUInt32( Payload ) - 1;
-
-			if( GameNumber < m_GHost->m_Games.size( ) )
-			{
-				// if the game owner is still in the game only allow the root admin to end the game
-
-				if( m_GHost->m_Games[GameNumber]->GetPlayerFromName( m_GHost->m_Games[GameNumber]->GetOwnerName( ), false ) && !IsRootAdmin( User ) )
-					QueueChatCommand( m_GHost->m_Language->CantEndGameOwnerIsStillPlaying( m_GHost->m_Games[GameNumber]->GetOwnerName( ) ), User, Whisper );
-				else
-				{
-					QueueChatCommand( m_GHost->m_Language->EndingGame( m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper );
-					CONSOLE_Print( "[GAME: " + m_GHost->m_Games[GameNumber]->GetGameName( ) + "] is over (admin ended game)" );
-					m_GHost->m_Games[GameNumber]->StopPlayers( "was disconnected (admin ended game)" );
-				}
-			}
-			else
-				QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( Payload ), User, Whisper );
 		}
 
 		//
@@ -1581,7 +1554,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "exit" || Command == "quit" )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				if( Payload == "nice" )
 					m_GHost->m_ExitingNice = true;
@@ -1915,7 +1888,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "reload" )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				QueueChatCommand( m_GHost->m_Language->ReloadingConfigurationFiles( ), User, Whisper );
 				m_GHost->ReloadConfigs( );
@@ -1930,7 +1903,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "say" && !Payload.empty( ) )
 		{
-			if( IsRootAdmin( User ) ) {
+			if( IsRootAdmin( User ) || ForceRoot ) {
 				QueueChatCommand( Payload );
 			}
 			else
@@ -1943,7 +1916,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "saygames" && !Payload.empty( ) )
 		{
-			if( IsRootAdmin( User ) )
+			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
 		
@@ -2021,7 +1994,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 	// in some cases the queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
 	// e.g. when several users join a game at the same time and cause multiple /whois messages to be queued at once
 
-	if( IsAdmin( User ) || IsRootAdmin( User ) || ( m_PublicCommands && m_OutPackets.size( ) <= 3 ) )
+	if( IsAdmin( User ) || IsRootAdmin( User ) || ForceRoot || ( m_PublicCommands && m_OutPackets.size( ) <= 3 ) )
 	{
 		//
 		// !STATS
