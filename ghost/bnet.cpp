@@ -1102,7 +1102,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		
 		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
 		
-		if( m_GHost->m_CurrentGame && m_GHost->m_CurrentGame->GetPlayerFromName( UserName, true ) )
+		if( m_GHost->m_CurrentGame )
 		{
 			string FailMessage;
 			
@@ -2051,15 +2051,8 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				if( m_GHost->m_CurrentGame->GetCountDownStarted( ) )
 					QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameCountdownStarted( m_GHost->m_CurrentGame->GetDescription( ) ), User, Whisper );
 
-				// if the game owner is still in the game only allow the root admin to unhost the game
-
-				else if( m_GHost->m_CurrentGame->GetPlayerFromName( m_GHost->m_CurrentGame->GetOwnerName( ), false ) && !IsRootAdmin( User ) && !ForceRoot )
-					QueueChatCommand( m_GHost->m_Language->CantUnhostGameOwnerIsPresent( m_GHost->m_CurrentGame->GetOwnerName( ) ), User, Whisper );
-				else
-				{
-					QueueChatCommand( m_GHost->m_Language->UnhostingGame( m_GHost->m_CurrentGame->GetDescription( ) ), User, Whisper );
-					m_GHost->m_CurrentGame->SetExiting( true );
-				}
+				QueueChatCommand( m_GHost->m_Language->UnhostingGame( m_GHost->m_CurrentGame->GetDescription( ) ), User, Whisper );
+				m_GHost->m_CurrentGame->SetExiting( true );
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameNoGameInLobby( ), User, Whisper );

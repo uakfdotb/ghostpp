@@ -518,6 +518,11 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 		string GameName = m_GHost->m_AutoHostGameName + " #" + UTIL_ToString( m_GHost->m_HostCounter );
 		CONSOLE_Print( "[GAME: " + m_GameName + "] automatically trying to rehost as public game [" + GameName + "] due to refresh failure" );
+
+		//need to synchronize here because we're using host counter variable from GHost
+		// and also gamenames are used in some functions accessed externally
+		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+
 		m_LastGameName = m_GameName;
 		m_GameName = GameName;
 		m_HostCounter = m_GHost->m_HostCounter++;
@@ -533,6 +538,8 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 		m_CreationTime = GetTime( );
 		m_LastRefreshTime = GetTime( );
+		
+		lock.unlock( );
 	}
 
 	// refresh every 3 seconds
