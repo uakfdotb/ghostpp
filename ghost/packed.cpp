@@ -185,7 +185,7 @@ void CPacked :: Decompress( bool allBlocks )
 
 	// read blocks
 
-        for( uint32_t i = 0; i < m_NumBlocks; ++i )
+	for( uint32_t i = 0; i < m_NumBlocks; ++i )
 	{
 		uint16_t BlockCompressed;
 		uint16_t BlockDecompressed;
@@ -363,7 +363,7 @@ void CPacked :: Compress( bool TFT )
 
 	// append blocks
 
-        for( vector<string> :: iterator i = CompressedBlocks.begin( ); i != CompressedBlocks.end( ); ++i )
+	for( vector<string> :: iterator i = CompressedBlocks.begin( ); i != CompressedBlocks.end( ); ++i )
 	{
 		BYTEARRAY BlockHeader;
 		UTIL_AppendByteArray( BlockHeader, (uint16_t)(*i).size( ), false );

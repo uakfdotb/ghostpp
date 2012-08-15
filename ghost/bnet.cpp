@@ -1881,9 +1881,9 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			}
 		}
 
-        //
-        // !MOTD
-        //
+		//
+		// !MOTD
+		//
 
 		if( Command == "motd"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
 		{
@@ -1891,9 +1891,9 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			CONSOLE_Print( "[GHOST] setting motd to " + Payload );
 		}
 
-        //
-        // !PEON
-        //
+		//
+		// !PEON
+		//
 
 		if( Command == "peon"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
 		{
@@ -1973,9 +1973,9 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 		}
 
-        //
-        // !REMOVE
-        //
+		//
+		// !REMOVE
+		//
 
 		if( Command == "remove" && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
 		{
@@ -2027,9 +2027,9 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 		}
 
-        //
-        // !SHAMAN
-        //
+		//
+		// !SHAMAN
+		//
 
 		if( Command == "shaman"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
 		{

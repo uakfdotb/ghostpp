@@ -222,16 +222,16 @@ class CIncomingChatEvent
 {
 private:
 	CBNETProtocol :: IncomingChatEvent m_ChatEvent;
-        int32_t m_Ping;
+	int32_t m_Ping;
 	string m_User;
 	string m_Message;
 
 public:
-        CIncomingChatEvent( CBNETProtocol :: IncomingChatEvent nChatEvent, int32_t nPing, string nUser, string nMessage );
+	CIncomingChatEvent( CBNETProtocol :: IncomingChatEvent nChatEvent, int32_t nPing, string nUser, string nMessage );
 	~CIncomingChatEvent( );
 
 	CBNETProtocol :: IncomingChatEvent GetChatEvent( )	{ return m_ChatEvent; }
-        int32_t GetPing( )									{ return m_Ping; }
+	int32_t GetPing( )									{ return m_Ping; }
 	string GetUser( )									{ return m_User; }
 	string GetMessage( )								{ return m_Message; }
 };

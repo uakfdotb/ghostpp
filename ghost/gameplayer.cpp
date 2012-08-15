@@ -204,7 +204,7 @@ m_DropVote( false ), m_KickVote( false ), m_Muted( false ), m_LeftMessageSent( f
 	// m_Packets = potential->GetPackets( );
 
 
-        // hackhack: we initialize m_TotalPacketsReceived to 1 because the CPotentialPlayer must have received a W3GS_REQJOIN before this class was created
+	// hackhack: we initialize m_TotalPacketsReceived to 1 because the CPotentialPlayer must have received a W3GS_REQJOIN before this class was created
 	// to fix this we could move the packet counters to CPotentialPlayer and copy them here
 	// note: we must make sure we never send a packet to a CPotentialPlayer otherwise the send counter will be incorrect too! what a mess this is...
 	// that said, the packet counters are only used for managing GProxy++ reconnections
@@ -240,7 +240,7 @@ uint32_t CGamePlayer :: GetPing( bool LCPing )
 
 	uint32_t AvgPing = 0;
 
-        for( unsigned int i = 0; i < m_Pings.size( ); ++i )
+	for( unsigned int i = 0; i < m_Pings.size( ); ++i )
 		AvgPing += m_Pings[i];
 
 	AvgPing /= m_Pings.size( );
@@ -260,7 +260,7 @@ bool CGamePlayer :: Update( void *fd )
 	{
 		// todotodo: we could get kicked from battle.net for sending a command with invalid characters, do some basic checking
 
-                for( vector<CBNET *> :: iterator i = m_Game->m_GHost->m_BNETs.begin( ); i != m_Game->m_GHost->m_BNETs.end( ); ++i )
+		for( vector<CBNET *> :: iterator i = m_Game->m_GHost->m_BNETs.begin( ); i != m_Game->m_GHost->m_BNETs.end( ); ++i )
 		{
 			if( (*i)->GetServer( ) == m_JoinedRealm )
 			{
@@ -361,7 +361,7 @@ void CGamePlayer :: ExtractPackets( )
 					m_Packets.push( new CCommandPacket( Bytes[0], Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
 
 					if( Bytes[0] == W3GS_HEADER_CONSTANT )
-                                                ++m_TotalPacketsReceived;
+						++m_TotalPacketsReceived;
 
 					*RecvBuffer = RecvBuffer->substr( Length );
 					Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
@@ -443,7 +443,7 @@ void CGamePlayer :: ProcessPackets( )
 			case CGameProtocol :: W3GS_OUTGOING_KEEPALIVE:
 				CheckSum = m_Protocol->RECEIVE_W3GS_OUTGOING_KEEPALIVE( Packet->GetData( ) );
 				m_CheckSums.push( CheckSum );
-                                ++m_SyncCounter;
+				++m_SyncCounter;
 				m_Game->EventPlayerKeepAlive( this, CheckSum );
 				break;
 
@@ -545,7 +545,7 @@ void CGamePlayer :: ProcessPackets( )
 					while( PacketsToUnqueue > 0 )
 					{
 						m_GProxyBuffer.pop( );
-                                                --PacketsToUnqueue;
+						--PacketsToUnqueue;
 					}
 				}
 			}
@@ -561,7 +561,7 @@ void CGamePlayer :: Send( BYTEARRAY data )
 	// but we can avoid buffering packets until we know the client is using GProxy++ since that'll be determined before the game starts
 	// this prevents us from buffering packets for non-GProxy++ clients
 
-        ++m_TotalPacketsSent;
+	++m_TotalPacketsSent;
 
 	if( m_GProxy && m_Game->GetGameLoaded( ) )
 		m_GProxyBuffer.push( data );
@@ -587,7 +587,7 @@ void CGamePlayer :: EventGProxyReconnect( CTCPSocket *NewSocket, uint32_t LastPa
 		while( PacketsToUnqueue > 0 )
 		{
 			m_GProxyBuffer.pop( );
-                        --PacketsToUnqueue;
+			--PacketsToUnqueue;
 		}
 	}
 

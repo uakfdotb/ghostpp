@@ -560,12 +560,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, b
 		if( loadInGame )
 		{
 			if( !(*i)->GetFinishedLoading( ) )
-                                ++NumLaggers;
+				++NumLaggers;
 		}
 		else
 		{
 			if( (*i)->GetLagging( ) )
-                                ++NumLaggers;
+				++NumLaggers;
 		}
 	}
 
@@ -948,7 +948,7 @@ BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t ra
 	BYTEARRAY SlotInfo;
 	SlotInfo.push_back( (unsigned char)slots.size( ) );		// number of slots
 
-        for( unsigned int i = 0; i < slots.size( ); ++i )
+	for( unsigned int i = 0; i < slots.size( ); ++i )
 		UTIL_AppendByteArray( SlotInfo, slots[i].GetByteArray( ) );
 
 	UTIL_AppendByteArray( SlotInfo, randomSeed, false );	// random seed

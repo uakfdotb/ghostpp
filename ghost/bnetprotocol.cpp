@@ -996,7 +996,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CLANCHANGERANK( string accountName,  CBNETPr
 
 	BYTEARRAY packet;
 	packet.push_back( BNET_HEADER_CONSTANT );       // BNET header constant
-	packet.push_back( SID_CLANCHANGERANK );         // SID_CLANCHANGERANK
+	packet.push_back( SID_CLANCHANGERANK );			// SID_CLANCHANGERANK
 	packet.push_back( 0 );							// packet length will be assigned later
 	packet.push_back( 0 );							// packet length will be assigned later
 	UTIL_AppendByteArray( packet, Cookie, 4);
@@ -1126,7 +1126,7 @@ string CIncomingGameHost :: GetIPString( )
 
 	if( m_IP.size( ) >= 4 )
 	{
-                for( unsigned int i = 0; i < 4; ++i )
+		for( unsigned int i = 0; i < 4; ++i )
 		{
 			Result += UTIL_ToString( (unsigned int)m_IP[i] );
 

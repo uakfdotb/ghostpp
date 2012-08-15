@@ -161,7 +161,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 
 	// PlayerList (4.9)
 
-        for( vector<PIDPlayer> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+	for( vector<PIDPlayer> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 	{
 		if( (*i).first != m_HostPID )
 		{
@@ -180,7 +180,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 	UTIL_AppendByteArray( Replay, (uint16_t)( 7 + m_Slots.size( ) * 9 ), false );	// Size (4.10)
 	Replay.push_back( m_Slots.size( ) );											// NumSlots (4.10)
 
-        for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 		UTIL_AppendByteArray( Replay, m_Slots[i].GetByteArray( ) );
 
 	UTIL_AppendByteArray( Replay, m_RandomSeed, false );							// RandomSeed (4.10)
@@ -383,7 +383,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 		return;
 	}
 
-        for( int i = 0; i < NumSlots; ++i )
+	for( int i = 0; i < NumSlots; ++i )
 	{
 		unsigned char SlotData[9];
 		READB( ISS, SlotData, 9 );

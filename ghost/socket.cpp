@@ -34,7 +34,7 @@
 
 CSocket :: CSocket( ) :  m_Socket( INVALID_SOCKET ), m_HasError( false ), m_Error( 0 )
 {
-        memset( &m_SIN, 0, sizeof( m_SIN ) );
+	memset( &m_SIN, 0, sizeof( m_SIN ) );
 }
 
 CSocket :: CSocket( SOCKET nSocket, struct sockaddr_in nSIN ) : m_Socket( nSocket ), m_SIN( nSIN ), m_HasError( false ), m_Error( 0 )
