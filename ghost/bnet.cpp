@@ -589,7 +589,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_Socket->DoSend( (fd_set *)send_fd );
 			m_LastNullTime = GetTime( );
 			m_LastOutPacketTicks = GetTicks( );
-			m_ServerReconnectCount = 0;
 
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 			
@@ -844,6 +843,7 @@ void CBNET :: ProcessPackets( )
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] cd keys accepted" );
 					m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGON( );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON( m_BNCSUtil->GetClientKey( ), m_UserName ) );
+					m_ServerReconnectCount = 0;
 				}
 				else
 				{
@@ -1510,31 +1510,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
-
-		//
-		// !DOWNLOADS
-		//
-
-		else if( Command == "downloads" && !Payload.empty( ) )
-		{
-			uint32_t Downloads = UTIL_ToUInt32( Payload );
-
-			if( Downloads == 0 )
-			{
-				QueueChatCommand( m_GHost->m_Language->MapDownloadsDisabled( ), User, Whisper );
-				m_GHost->m_AllowDownloads = 0;
-			}
-			else if( Downloads == 1 )
-			{
-				QueueChatCommand( m_GHost->m_Language->MapDownloadsEnabled( ), User, Whisper );
-				m_GHost->m_AllowDownloads = 1;
-			}
-			else if( Downloads == 2 )
-			{
-				QueueChatCommand( m_GHost->m_Language->MapDownloadsConditional( ), User, Whisper );
-				m_GHost->m_AllowDownloads = 2;
-			}
 		}
 
 		//
