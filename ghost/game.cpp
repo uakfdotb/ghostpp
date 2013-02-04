@@ -1821,6 +1821,66 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			SendAllChat( m_GHost->m_Language->VoteKickAcceptedNeedMoreVotes( m_KickVotePlayer, User, UTIL_ToString( VotesNeeded - Votes ) ) );
 	}
 
+	//
+	// !VOTESTART
+	//
+
+	else if( Command == "votestart" && m_GHost->m_VoteStartAllowed && !m_CountDownStarted )
+	{
+		if( m_VoteStarting )
+			SendChat( player, m_GHost->m_Language->UnableToVoteStartAlreadyInProgress( ) );
+		else if( m_Players.size( ) < m_GHost->m_VoteStartMinPlayers )
+			SendChat( player, m_GHost->m_Language->UnableToVoteStartNotEnoughPlayers( ) );
+		else
+		{
+			m_StartedStartVoteTime = GetTime( );
+			m_VoteStarting = true;
+
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+				(*i)->SetStartVote( false );
+
+			player->SetStartVote( true );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] votestart started by player [" + User + "]" );
+			SendAllChat( m_GHost->m_Language->StartedVoteStart( User, UTIL_ToString( (uint32_t)ceil( GetNumHumanPlayers( ) * (float)m_GHost->m_VoteStartPercentage / 100 ) - 1 ) ) );
+			SendAllChat( m_GHost->m_Language->TypeGoToVote( string( 1, m_GHost->m_CommandTrigger ) ) );
+		}
+	}
+
+	//
+	// !GO
+	//
+
+	else if( Command == "go" && m_VoteStarting && !player->GetStartVote( ) && m_Players.size( ) >= m_GHost->m_VoteStartMinPlayers && !m_CountDownStarted )
+	{
+		player->SetStartVote( true );
+		uint32_t VotesNeeded = (uint32_t)ceil( GetNumHumanPlayers( ) * (float)m_GHost->m_VoteStartPercentage / 100 );
+		uint32_t Votes = 0;
+
+		CONSOLE_Print( "[GAME: " + m_GameName + "] User [" + User + "] voted to start" );
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+		{
+			if( (*i)->GetStartVote( ) )
+				++Votes;
+		}
+
+		if( Votes >= VotesNeeded )
+		{
+			SendAllChat( m_GHost->m_Language->VoteStartPassed( ) );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] votestart passed with " + UTIL_ToString( Votes ) + "/" + UTIL_ToString( GetNumHumanPlayers( ) ) + " votes" );
+			
+			if( GetTicks( ) - m_LastPlayerLeaveTicks >= 2000 )
+				StartCountDown( false );
+			else
+				SendAllChat( m_GHost->m_Language->CountDownAbortedSomeoneLeftRecently( ) );
+
+			m_VoteStarting = false;
+			m_StartedStartVoteTime = 0;
+		}
+		else
+			SendAllChat( m_GHost->m_Language->VoteStartAcceptedNeedMoreVotes( User, UTIL_ToString( VotesNeeded - Votes ) , UTIL_ToString( Votes ), UTIL_ToString( GetNumHumanPlayers( ) ) ) );
+	}
+
 	return HideCommand;
 }
 

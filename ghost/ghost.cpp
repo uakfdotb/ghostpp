@@ -1324,6 +1324,23 @@ void CGHost :: SetConfigs( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] warning - bot_votekickpercentage is greater than 100, using 100 instead" );
 	}
 
+	m_VoteStartAllowed = CFG->GetInt( "bot_votestartallowed", 1 ) == 0 ? false : true;
+	m_VoteStartPercentage = CFG->GetInt( "bot_votestartpercentage", 100 );
+
+	if( m_VoteStartPercentage > 100 )
+	{
+		m_VoteStartPercentage = 100;
+		CONSOLE_Print( "[GHOST] warning - bot_votestartpercentage is greater than 100, using 100 instead" );
+	}
+
+	m_VoteStartMinPlayers = CFG->GetInt( "bot_votestartminplayers", 2 );
+
+	if( m_VoteStartMinPlayers > 12 )
+	{
+		m_VoteStartMinPlayers = 12;
+		CONSOLE_Print( "[GHOST] warning - bot_votestartminplayers is greater than 12, using 12 instead" );
+	}
+
 	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
 	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
 	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );

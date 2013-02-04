@@ -64,6 +64,7 @@ protected:
 	CReplay *m_Replay;								// replay
 	bool m_Exiting;									// set to true and this class will be deleted next update
 	bool m_Saving;									// if we're currently saving game data to the database
+	bool m_VoteStarting;							// if we're currently doing a votestart
 	uint16_t m_HostPort;							// the port to host games on
 	unsigned char m_GameState;						// game state, public or private
 	unsigned char m_VirtualHostPID;					// virtual host's PID
@@ -107,6 +108,7 @@ protected:
 	uint32_t m_LastLagScreenTime;					// GetTime when the last lag screen was active (continuously updated)
 	uint32_t m_LastReservedSeen;					// GetTime when the last reserved player was seen in the lobby
 	uint32_t m_StartedKickVoteTime;					// GetTime when the kick vote was started
+	uint32_t m_StartedStartVoteTime;				// GetTime when the start vote was started
 	uint32_t m_GameOverTime;						// GetTime when the game was over
 	uint32_t m_LastPlayerLeaveTicks;				// GetTicks when the most recent player left the game
 	double m_MinimumScore;							// the minimum allowed score for matchmaking mode
