@@ -1533,3 +1533,53 @@ string CLanguage :: PlayerReconnectedWithGProxy( string name )
 	UTIL_Replace( Out, "$NAME$", name );
 	return Out;
 }
+
+string CLanguage :: UnableToVoteStartAlreadyInProgress( )
+{
+	return m_CFG->GetString( "lang_0223", "lang_0223" );
+}
+
+string CLanguage :: UnableToVoteStartNotEnoughPlayers( )
+{
+	return m_CFG->GetString( "lang_0224", "lang_0224" );
+}
+
+string CLanguage :: StartedVoteStart( string user, string votesneeded )
+{
+	string Out = m_CFG->GetString( "lang_0225", "lang_0225" );
+	UTIL_Replace( Out, "$USER$", user );
+	UTIL_Replace( Out, "$VOTESNEEDED$", votesneeded );
+	return Out;
+}
+
+string CLanguage :: VoteStartPassed( )
+{
+	return m_CFG->GetString( "lang_0226", "lang_0226" );
+}
+
+string CLanguage :: VoteStartAcceptedNeedMoreVotes( string user, string votes, string totalvotes, string numplayers )
+{
+	string Out = m_CFG->GetString( "lang_0227", "lang_0227" );
+	UTIL_Replace( Out, "$USER$", user );
+	UTIL_Replace( Out, "$VOTES$", votes );
+	UTIL_Replace( Out, "$TOTALVOTES$", totalvotes );
+	UTIL_Replace( Out, "$NUMPLAYERS$", numplayers );
+	return Out;
+}
+
+string CLanguage :: VoteStartCancelled( )
+{
+	return m_CFG->GetString( "lang_0228", "lang_0228" );
+}
+
+string CLanguage :: VoteStartExpired( )
+{
+	return m_CFG->GetString( "lang_0229", "lang_0229" );
+}
+
+string CLanguage :: TypeGoToVote( string commandtrigger )
+{
+	string Out = m_CFG->GetString( "lang_0230", "lang_0230" );
+	UTIL_Replace( Out, "$COMMANDTRIGGER$", commandtrigger );
+	return Out;
+}
