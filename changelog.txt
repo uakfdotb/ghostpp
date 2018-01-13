@@ -2,6 +2,22 @@
 GHost++ Changelog
 =================
 
+Version 17.2 (July 13, 2012)
+ - compatible with boost 1.46.0+
+ - switched to and compiled against VC10 (Visual Studio 2010)
+  * Requires vc_2010
+ - Update default version numbers to match 1.26 patch
+ - MAPOPT_FIXEDSETTINGS (hopefully) handled properly
+ - improved detection of the map_filter_type.
+ - fixed a bug with negative pings
+ - fixed bug that could cause flood of MySQL connections
+ - fixed security exploits from LAN
+ - fixed a very minor bug with the !sendlan command
+ - fixed insecure GProxy++ reconnection key.
+ - fixed various exploits caused from invalid action packets
+ - fixed exploit that would crash players in the lobby
+ - added bot config value bot_mapgametype
+
 Version 17.1 (June 1, 2010)
  - the bot now sends chat messages from the fake player if one exists
  - added new config value bnet*_locale
