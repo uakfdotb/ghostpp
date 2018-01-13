@@ -30,13 +30,13 @@ See MANUAL or [the ghostpp.com wiki](https://www.ghostpp.com/wiki/index.php?titl
 Configuration
 -------------
 
-Generally, it is recommended to copy default.cfg to ghost.cfg, and update options there. GHost++ will read default.cfg first, and then overwrite the configuration with any options that appear in ghost.cfg.
+Generally, it is recommended to copy `default.cfg` to `ghost.cfg`, and update options there. GHost++ will read `default.cfg` first, and then overwrite the configuration with any options that appear in `ghost.cfg`.
 
 Once configured, start GHost++:
 
 	./ghost++
 
-You can pass a command-line argument to use a different secondary configuration filename, instead of ghost.cfg:
+You can pass a command-line argument to use a different secondary configuration filename, instead of `ghost.cfg`:
 
 	./ghost++ /opt/myconfig.cfg
 
