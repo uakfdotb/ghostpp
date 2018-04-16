@@ -517,9 +517,9 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AdminGamePort = CFG->GetInt( "admingame_port", 6113 );
 	m_AdminGamePassword = CFG->GetString( "admingame_password", string( ) );
 	m_AdminGameMap = CFG->GetString( "admingame_map", string( ) );
-	m_LANWar3Version = CFG->GetInt( "lan_war3version", 26 );
-	m_ReplayWar3Version = CFG->GetInt( "replay_war3version", 26 );
-	m_ReplayBuildNumber = CFG->GetInt( "replay_buildnumber", 6059 );
+	m_LANWar3Version = CFG->GetInt( "lan_war3version", 29 );
+	m_ReplayWar3Version = CFG->GetInt( "replay_war3version", 29 );
+	m_ReplayBuildNumber = CFG->GetInt( "replay_buildnumber", 6060 );
 	SetConfigs( CFG );
 
 	// load the battle.net connections
@@ -569,7 +569,7 @@ CGHost :: CGHost( CConfig *CFG )
 		string BNLSServer = CFG->GetString( Prefix + "bnlsserver", string( ) );
 		int BNLSPort = CFG->GetInt( Prefix + "bnlsport", 9367 );
 		int BNLSWardenCookie = CFG->GetInt( Prefix + "bnlswardencookie", 0 );
-		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 26 );
+		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 29 );
 		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversion", string( ) ), 4 );
 		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
 		string PasswordHashType = CFG->GetString( Prefix + "custom_passwordhashtype", string( ) );
@@ -1335,7 +1335,11 @@ void CGHost :: SetConfigs( CConfig *CFG )
 
 void CGHost :: ExtractScripts( )
 {
-	string PatchMPQFileName = m_Warcraft3Path + "War3Patch.mpq";
+	string PatchMPQFileName = m_Warcraft3Path + "War3x.mpq";
+
+	if( !UTIL_FileExists( PatchMPQFileName ) )
+		PatchMPQFileName = m_Warcraft3Path + "War3Patch.mpq";
+
 	HANDLE PatchMPQ;
 
 	if( SFileOpenArchive( PatchMPQFileName.c_str( ), 0, MPQ_OPEN_FORCE_MPQ_V1, &PatchMPQ ) )

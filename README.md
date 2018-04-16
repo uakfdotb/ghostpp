@@ -10,6 +10,15 @@ GHost++ is no longer actively maintained. Nevertheless, GHost++ remains widely u
 
 If you are looking for a simple bot to host games from a server, consider [Aura](https://github.com/Josko/aura-bot/), an actively maintained fork of GHost++ with a greatly modernized core but with many features stripped out.
 
+1.29 Note
+---------
+
+For 1.29, put `Warcraft III.exe` in the `bot_war3path`. You may name it `Warcraft III.exe` or `warcraft.exe`.
+
+`war3.exe`, `game.dll`, and `storm.dll` are no longer needed.
+
+Also, use `War3x.mpq` instead of `War3Patch.mpq`. (Actually, it is recommended that you extract common.j and blizzard.j yourself and put them in `bot_mapcfgpath`, since the new MPQ file is very large. Make sure to also exclude War3x.mpq from `bot_war3path` so that the host bot does not attempt to read the archive.)
+
 Compilation
 -----------
 

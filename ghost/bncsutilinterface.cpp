@@ -48,59 +48,86 @@ void CBNCSUtilInterface :: Reset( string userName, string userPassword )
 	m_NLS = new NLS( userName, userPassword );
 }
 
-bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( bool TFT, string war3Path, string keyROC, string keyTFT, string valueStringFormula, string mpqFileName, BYTEARRAY clientToken, BYTEARRAY serverToken )
+bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( bool TFT, uint32_t war3Version, string war3Path, string keyROC, string keyTFT, string valueStringFormula, string mpqFileName, BYTEARRAY clientToken, BYTEARRAY serverToken )
 {
 	// set m_EXEVersion, m_EXEVersionHash, m_EXEInfo, m_InfoROC, m_InfoTFT
 
-	string FileWar3EXE = war3Path + "war3.exe";
-	string FileStormDLL = war3Path + "Storm.dll";
+	string FileWar3EXE = war3Path + "Warcraft III.exe";
 
-	if( !UTIL_FileExists( FileStormDLL ) )
-		FileStormDLL = war3Path + "storm.dll";
+	if( !UTIL_FileExists( FileWar3EXE ) )
+		FileWar3EXE = war3Path + "warcraft.exe";
 
-	string FileGameDLL = war3Path + "game.dll";
-	bool ExistsWar3EXE = UTIL_FileExists( FileWar3EXE );
-	bool ExistsStormDLL = UTIL_FileExists( FileStormDLL );
-	bool ExistsGameDLL = UTIL_FileExists( FileGameDLL );
+	bool MissingFile = false;
 
-	if( ExistsWar3EXE && ExistsStormDLL && ExistsGameDLL )
+	if( !UTIL_FileExists( FileWar3EXE ) )
 	{
-		// todotodo: check getExeInfo return value to ensure 1024 bytes was enough
+		CONSOLE_Print( "[BNCSUI] unable to open [" + FileWar3EXE + "]" );
+		MissingFile = true;
+	}
 
-		char buf[1024];
-		uint32_t EXEVersion;
-		getExeInfo( FileWar3EXE.c_str( ), (char *)&buf, 1024, (uint32_t *)&EXEVersion, BNCSUTIL_PLATFORM_X86 );
-		m_EXEInfo = buf;
-		m_EXEVersion = UTIL_CreateByteArray( EXEVersion, false );
-		unsigned long EXEVersionHash;
-		checkRevisionFlat( valueStringFormula.c_str( ), FileWar3EXE.c_str( ), FileStormDLL.c_str( ), FileGameDLL.c_str( ), extractMPQNumber( mpqFileName.c_str( ) ), (unsigned long *)&EXEVersionHash );
-		m_EXEVersionHash = UTIL_CreateByteArray( (uint32_t) EXEVersionHash, false );
-		m_KeyInfoROC = CreateKeyInfo( keyROC, UTIL_ByteArrayToUInt32( clientToken, false ), UTIL_ByteArrayToUInt32( serverToken, false ) );
+	string FileStormDLL, FileGameDLL;
 
-		if( TFT )
-			m_KeyInfoTFT = CreateKeyInfo( keyTFT, UTIL_ByteArrayToUInt32( clientToken, false ), UTIL_ByteArrayToUInt32( serverToken, false ) );
+	if( war3Version <= 28 )
+	{
+		FileStormDLL = war3Path + "Storm.dll";
 
-		if( m_KeyInfoROC.size( ) == 36 && ( !TFT || m_KeyInfoTFT.size( ) == 36 ) )
-			return true;
-		else
+		if( !UTIL_FileExists( FileStormDLL ) )
+			FileStormDLL = war3Path + "storm.dll";
+
+		FileGameDLL = war3Path + "game.dll";
+
+		if( !UTIL_FileExists( FileStormDLL ) )
 		{
-			if( m_KeyInfoROC.size( ) != 36 )
-				CONSOLE_Print( "[BNCSUI] unable to create ROC key info - invalid ROC key" );
-
-			if( TFT && m_KeyInfoTFT.size( ) != 36 )
-				CONSOLE_Print( "[BNCSUI] unable to create TFT key info - invalid TFT key" );
+			CONSOLE_Print( "[BNCSUI] unable to open [" + FileStormDLL + "]" );
+			MissingFile = true;
 		}
+
+		if( !UTIL_FileExists( FileGameDLL ) )
+		{
+			CONSOLE_Print( "[BNCSUI] unable to open [" + FileGameDLL + "]" );
+			MissingFile = true;
+		}
+	}
+
+	if( MissingFile )
+		return false;
+
+	// todotodo: check getExeInfo return value to ensure 1024 bytes was enough
+
+	char buf[1024];
+	uint32_t EXEVersion;
+	getExeInfo( FileWar3EXE.c_str( ), (char *)&buf, 1024, (uint32_t *)&EXEVersion, BNCSUTIL_PLATFORM_X86 );
+	m_EXEInfo = buf;
+	m_EXEVersion = UTIL_CreateByteArray( EXEVersion, false );
+	unsigned long EXEVersionHash;
+
+	// for war3version <= 28, we use war3.exe, storm.dll, and game.dll
+	// for war3version == 29, we use Warcraft III.exe only
+	if( war3Version <= 28 )
+	{
+		checkRevisionFlat( valueStringFormula.c_str( ), FileWar3EXE.c_str( ), FileStormDLL.c_str( ), FileGameDLL.c_str( ), extractMPQNumber( mpqFileName.c_str( ) ), (unsigned long *)&EXEVersionHash );
 	}
 	else
 	{
-		if( !ExistsWar3EXE )
-			CONSOLE_Print( "[BNCSUI] unable to open [" + FileWar3EXE + "]" );
+		const char* files[] = { FileWar3EXE.c_str( ) };
+		checkRevision( valueStringFormula.c_str( ), files, 1, extractMPQNumber( mpqFileName.c_str( ) ), (unsigned long *)&EXEVersionHash );
+	}
 
-		if( !ExistsStormDLL )
-			CONSOLE_Print( "[BNCSUI] unable to open [" + FileStormDLL + "]" );
+	m_EXEVersionHash = UTIL_CreateByteArray( (uint32_t) EXEVersionHash, false );
+	m_KeyInfoROC = CreateKeyInfo( keyROC, UTIL_ByteArrayToUInt32( clientToken, false ), UTIL_ByteArrayToUInt32( serverToken, false ) );
 
-		if( !ExistsGameDLL )
-			CONSOLE_Print( "[BNCSUI] unable to open [" + FileGameDLL + "]" );
+	if( TFT )
+		m_KeyInfoTFT = CreateKeyInfo( keyTFT, UTIL_ByteArrayToUInt32( clientToken, false ), UTIL_ByteArrayToUInt32( serverToken, false ) );
+
+	if( m_KeyInfoROC.size( ) == 36 && ( !TFT || m_KeyInfoTFT.size( ) == 36 ) )
+		return true;
+	else
+	{
+		if( m_KeyInfoROC.size( ) != 36 )
+			CONSOLE_Print( "[BNCSUI] unable to create ROC key info - invalid ROC key" );
+
+		if( TFT && m_KeyInfoTFT.size( ) != 36 )
+			CONSOLE_Print( "[BNCSUI] unable to create TFT key info - invalid TFT key" );
 	}
 
 	return false;
