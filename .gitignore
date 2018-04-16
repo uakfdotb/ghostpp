@@ -1,0 +1,7 @@
+*.o
+*.so
+ghost++
+ghost.cfg
+ghost/ghost++
+ghost.log
+ghost.dbs
