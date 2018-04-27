@@ -708,7 +708,7 @@ Flags:
 		UTIL_AppendByteArray( packet, CustomGame, 4 );					// Custom Game
 		UTIL_AppendByteArrayFast( packet, gameName );					// Game Name
 		packet.push_back( 0 );											// Game Password is NULL
-		packet.push_back( 98 );											// Slots Free (ascii 98 = char 'b' = 11 slots free) - note: do not reduce this as this is the # of PID's Warcraft III will allocate
+		packet.push_back( 110 );										// Slots Free (ascii 98 = char 'b' = 11 slots free) - note: do not reduce this as this is the # of PID's Warcraft III will allocate
 		UTIL_AppendByteArrayFast( packet, HostCounterString, false );	// Host Counter
 		UTIL_AppendByteArrayFast( packet, StatString );					// Stat String
 		packet.push_back( 0 );											// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)

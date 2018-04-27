@@ -434,7 +434,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// create the virtual host player
 
-	if( !m_GameLoading && !m_GameLoaded && GetNumPlayers( ) < 12 )
+	if( !m_GameLoading && !m_GameLoaded && GetNumPlayers( ) < MAX_SLOTS )
 		CreateVirtualHost( );
 
 	// unlock the game
@@ -473,14 +473,14 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			uint32_t FixedHostCounter = m_HostCounter & 0x0FFFFFFF;
 
-			// we send 12 for SlotsTotal because this determines how many PID's Warcraft 3 allocates
-			// we need to make sure Warcraft 3 allocates at least SlotsTotal + 1 but at most 12 PID's
-			// this is because we need an extra PID for the virtual host player (but we always delete the virtual host player when the 12th person joins)
+			// we send MAX_SLOTS for SlotsTotal because this determines how many PID's Warcraft 3 allocates
+			// we need to make sure Warcraft 3 allocates at least SlotsTotal + 1 but at most MAX_SLOTS PID's
+			// this is because we need an extra PID for the virtual host player (but we always delete the virtual host player when the MAX_SLOTSth person joins)
 			// however, we can't send 13 for SlotsTotal because this causes Warcraft 3 to crash when sharing control of units
-			// nor can we send SlotsTotal because then Warcraft 3 crashes when playing maps with less than 12 PID's (because of the virtual host player taking an extra PID)
-			// we also send 12 for SlotsOpen because Warcraft 3 assumes there's always at least one player in the game (the host)
+			// nor can we send SlotsTotal because then Warcraft 3 crashes when playing maps with less than MAX_SLOTS PID's (because of the virtual host player taking an extra PID)
+			// we also send MAX_SLOTS for SlotsOpen because Warcraft 3 assumes there's always at least one player in the game (the host)
 			// so if we try to send accurate numbers it'll always be off by one and results in Warcraft 3 assuming the game is full when it still needs one more player
-			// the easiest solution is to simply send 12 for both so the game will always show up as (1/12) players
+			// the easiest solution is to simply send MAX_SLOTS for both so the game will always show up as (1/MAX_SLOTS) players
 
 			if( m_SaveGame )
 			{
@@ -493,7 +493,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				BYTEARRAY MapHeight;
 				MapHeight.push_back( 0 );
 				MapHeight.push_back( 0 );
-				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey ) );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), MAX_SLOTS, MAX_SLOTS, m_HostPort, FixedHostCounter, m_EntryKey ) );
 			}
 			else
 			{
@@ -501,7 +501,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				// note: we do not use m_Map->GetMapGameType because none of the filters are set when broadcasting to LAN (also as you might expect)
 
 				uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
-				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey ) );
+				m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), MAX_SLOTS, MAX_SLOTS, m_HostPort, FixedHostCounter, m_EntryKey ) );
 			}
 		}
 
@@ -2049,7 +2049,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if( GetNumPlayers( ) >= 11 || EnforcePID == m_VirtualHostPID )
+	if( GetNumPlayers( ) >= MAX_SLOTS-1 || EnforcePID == m_VirtualHostPID )
 		DeleteVirtualHost( );
 
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
@@ -2079,9 +2079,9 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		else
 		{
 			if( m_Map->GetMapFlags( ) & MAPFLAG_RANDOMRACES )
-				m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, 12, 12, SLOTRACE_RANDOM );
+				m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, MAX_SLOTS, MAX_SLOTS, SLOTRACE_RANDOM );
 			else
-				m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, 12, 12, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE );
+				m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, MAX_SLOTS, MAX_SLOTS, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE );
 
 			// try to pick a team and colour
 			// make sure there aren't too many other players already
@@ -2090,7 +2090,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 			for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 			{
-				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != 12 )
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != MAX_SLOTS )
 					NumOtherPlayers++;
 			}
 
@@ -2439,7 +2439,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if( GetNumPlayers( ) >= 11 )
+	if( GetNumPlayers( ) >= MAX_SLOTS-1 )
 		DeleteVirtualHost( );
 
 	// identify their joined realm
@@ -3033,10 +3033,10 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 	}
 	else
 	{
-		if( team > 12 )
+		if( team > MAX_SLOTS )
 			return;
 
-		if( team == 12 )
+		if( team == MAX_SLOTS )
 		{
 			if( m_Map->GetMapObservers( ) != MAPOBS_ALLOWED && m_Map->GetMapObservers( ) != MAPOBS_REFEREES )
 				return;
@@ -3052,7 +3052,7 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 
 			for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 			{
-				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != 12 && m_Slots[i].GetPID( ) != player->GetPID( ) )
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != MAX_SLOTS && m_Slots[i].GetPID( ) != player->GetPID( ) )
 					++NumOtherPlayers;
 			}
 
@@ -3066,13 +3066,13 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 		{
 			m_Slots[SID].SetTeam( team );
 
-			if( team == 12 )
+			if( team == MAX_SLOTS )
 			{
 				// if they're joining the observer team give them the observer colour
 
-				m_Slots[SID].SetColour( 12 );
+				m_Slots[SID].SetColour( MAX_SLOTS );
 			}
-			else if( m_Slots[SID].GetColour( ) == 12 )
+			else if( m_Slots[SID].GetColour( ) == MAX_SLOTS )
 			{
 				// if they're joining a regular team give them an unused colour
 
@@ -3094,7 +3094,7 @@ void CBaseGame :: EventPlayerChangeColour( CGamePlayer *player, unsigned char co
 	if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
 		return;
 
-	if( colour > 11 )
+	if( colour > MAX_SLOTS-1 )
 		return;
 
 	unsigned char SID = GetSIDFromPID( player->GetPID( ) );
@@ -3103,7 +3103,7 @@ void CBaseGame :: EventPlayerChangeColour( CGamePlayer *player, unsigned char co
 	{
 		// make sure the player isn't an observer
 
-		if( m_Slots[SID].GetTeam( ) == 12 )
+		if( m_Slots[SID].GetTeam( ) == MAX_SLOTS )
 			return;
 
 		ColourSlot( SID, colour );
@@ -3698,7 +3698,7 @@ unsigned char CBaseGame :: GetNewColour( )
 {
 	// find an unused colour for a player to use
 
-	for( unsigned char TestColour = 0; TestColour < 12; ++TestColour )
+	for( unsigned char TestColour = 0; TestColour < MAX_SLOTS; ++TestColour )
 	{
 		bool InUse = false;
 
@@ -3717,7 +3717,7 @@ unsigned char CBaseGame :: GetNewColour( )
 
 	// this should never happen
 
-	return 12;
+	return MAX_SLOTS;
 }
 
 BYTEARRAY CBaseGame :: GetPIDs( )
@@ -4013,7 +4013,7 @@ void CBaseGame :: ComputerSlot( unsigned char SID, unsigned char skill, bool kic
 
 void CBaseGame :: ColourSlot( unsigned char SID, unsigned char colour )
 {
-	if( SID < m_Slots.size( ) && colour < 12 )
+	if( SID < m_Slots.size( ) && colour < MAX_SLOTS )
 	{
 		// make sure the requested colour isn't already taken
 
@@ -4094,7 +4094,7 @@ void CBaseGame :: ShuffleSlots( )
 
 	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
 	{
-		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != 12 )
+		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != MAX_SLOTS )
 			PlayerSlots.push_back( *i );
 	}
 
@@ -4140,7 +4140,7 @@ void CBaseGame :: ShuffleSlots( )
 
 	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
 	{
-		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != 12 )
+		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != MAX_SLOTS )
 		{
 			Slots.push_back( *CurrentPlayer );
 			++CurrentPlayer;
@@ -4168,7 +4168,7 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 	vector<unsigned char> BestOrdering = PlayerIDs;
 	double BestDifference = -1.0;
 
-	for( unsigned char i = StartTeam; i < 12; ++i )
+	for( unsigned char i = StartTeam; i < MAX_SLOTS; ++i )
 	{
 		if( TeamSizes[i] > 0 )
 		{
@@ -4195,9 +4195,9 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 				// now calculate the team scores for all the teams that we know about (e.g. on subsequent recursion steps this will NOT be every possible team)
 
 				vector<unsigned char> :: iterator CurrentPID = TestOrdering.begin( );
-				double TeamScores[12];
+				double TeamScores[MAX_SLOTS];
 
-				for( unsigned char j = StartTeam; j < 12; ++j )
+				for( unsigned char j = StartTeam; j < MAX_SLOTS; ++j )
 				{
 					TeamScores[j] = 0.0;
 
@@ -4212,11 +4212,11 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 
 				double LargestDifference = 0.0;
 
-				for( unsigned char j = StartTeam; j < 12; ++j )
+				for( unsigned char j = StartTeam; j < MAX_SLOTS; ++j )
 				{
 					if( TeamSizes[j] > 0 )
 					{
-						for( unsigned char k = j + 1; k < 12; ++k )
+						for( unsigned char k = j + 1; k < MAX_SLOTS; ++k )
 						{
 							if( TeamSizes[k] > 0 )
 							{
@@ -4252,12 +4252,12 @@ void CBaseGame :: BalanceSlots( )
 	}
 
 	// setup the necessary variables for the balancing algorithm
-	// use an array of 13 elements for 12 players because GHost++ allocates PID's from 1-12 (i.e. excluding 0) and we use the PID to index the array
+	// use an array of 13 elements for MAX_SLOTS players because GHost++ allocates PID's from 1-MAX_SLOTS (i.e. excluding 0) and we use the PID to index the array
 
 	vector<unsigned char> PlayerIDs;
-	unsigned char TeamSizes[12];
+	unsigned char TeamSizes[MAX_SLOTS];
 	double PlayerScores[13];
-	memset( TeamSizes, 0, sizeof( unsigned char ) * 12 );
+	memset( TeamSizes, 0, sizeof( unsigned char ) * MAX_SLOTS );
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 	{
@@ -4271,7 +4271,7 @@ void CBaseGame :: BalanceSlots( )
 			{
 				unsigned char Team = m_Slots[SID].GetTeam( );
 
-				if( Team < 12 )
+				if( Team < MAX_SLOTS )
 				{
 					// we are forced to use a default score because there's no way to balance the teams otherwise
 
@@ -4291,7 +4291,7 @@ void CBaseGame :: BalanceSlots( )
 	sort( PlayerIDs.begin( ), PlayerIDs.end( ) );
 
 	// balancing the teams is a variation of the bin packing problem which is NP
-	// we can have up to 12 players and/or teams so the scope of the problem is sometimes small enough to process quickly
+	// we can have up to MAX_SLOTS players and/or teams so the scope of the problem is sometimes small enough to process quickly
 	// let's try to figure out roughly how much work this is going to take
 	// examples:
 	//  2 teams of 4 =     70 ~    5ms *** ok
@@ -4306,7 +4306,7 @@ void CBaseGame :: BalanceSlots( )
 	uint32_t AlgorithmCost = 0;
 	uint32_t PlayersLeft = PlayerIDs.size( );
 
-	for( unsigned char i = 0; i < 12; ++i )
+	for( unsigned char i = 0; i < MAX_SLOTS; ++i )
 	{
 		if( TeamSizes[i] > 0 )
 		{
@@ -4339,7 +4339,7 @@ void CBaseGame :: BalanceSlots( )
 
 	vector<unsigned char> :: iterator CurrentPID = BestOrdering.begin( );
 
-	for( unsigned char i = 0; i < 12; ++i )
+	for( unsigned char i = 0; i < MAX_SLOTS; ++i )
 	{
 		unsigned char CurrentSlot = 0;
 
@@ -4377,7 +4377,7 @@ void CBaseGame :: BalanceSlots( )
 	SendAllChat( m_GHost->m_Language->BalancingSlotsCompleted( ) );
 	SendAllSlotInfo( );
 
-	for( unsigned char i = 0; i < 12; ++i )
+	for( unsigned char i = 0; i < MAX_SLOTS; ++i )
 	{
 		bool TeamHasPlayers = false;
 		double TeamScore = 0.0;
@@ -4731,7 +4731,7 @@ void CBaseGame :: CreateFakePlayer( )
 
 	if( SID < m_Slots.size( ) )
 	{
-		if( GetNumPlayers( ) >= 11 )
+		if( GetNumPlayers( ) >= MAX_SLOTS-1 )
 			DeleteVirtualHost( );
 
 		m_FakePlayerPID = GetNewPID( );
