@@ -297,7 +297,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 	READSTR( ISS, m_StatString );			// StatString (4.3)
 	READB( ISS, &m_PlayerCount, 4 );		// PlayerCount (4.6)
 
-	if( m_PlayerCount > 12 )
+	if( m_PlayerCount > MAX_SLOTS )
 	{
 		CONSOLE_Print( "[REPLAY] invalid replay (4.6 PlayerCount is invalid)" );
 		m_Valid = false;
@@ -376,7 +376,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 		return;
 	}
 
-	if( NumSlots == 0 || NumSlots > 12 )
+	if( NumSlots == 0 || NumSlots > MAX_SLOTS )
 	{
 		CONSOLE_Print( "[REPLAY] invalid replay (4.10 NumSlots is invalid)" );
 		m_Valid = false;
