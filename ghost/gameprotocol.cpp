@@ -172,7 +172,7 @@ CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data 
 		unsigned int i = 5;
 		unsigned char Total = data[4];
 
-		if( Total > 0 && Total <= 16 && data.size( ) >= i + Total )
+		if( Total > 0 && Total <= MAX_SLOTS && data.size( ) >= i + Total )
 		{
 			BYTEARRAY ToPIDs = BYTEARRAY( data.begin( ) + i, data.begin( ) + i + Total );
 			i += Total;
