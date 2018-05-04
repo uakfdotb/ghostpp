@@ -135,6 +135,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_PublicCommands = nPublicCommands;
 	m_LastInviteCreation = false;
 	m_ServerReconnectCount = 0;
+	m_FirstMessage = false;
 }
 
 CBNET :: ~CBNET( )
@@ -1080,6 +1081,11 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] joined channel [" + Message + "]" );
 		m_CurrentChannel = Message;
+		
+		if (!m_FirstMessage){
+            m_FirstMessage = true;
+            QueueChatCommand( "Morning!" );
+        }
 	}
 	else if( Event == CBNETProtocol :: EID_INFO )
 	{
