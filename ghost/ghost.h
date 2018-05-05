@@ -22,6 +22,7 @@
 #define GHOST_H
 
 #include "includes.h"
+#include <boost/thread.hpp>
 
 //
 // CGHost
@@ -147,6 +148,10 @@ public:
 	uint32_t m_MapGameType;					// config value: the MapGameType overwrite (aka: refresh hack)
 	vector<GProxyReconnector *> m_PendingReconnects;
 	boost::mutex m_ReconnectMutex;
+	
+	boost::thread *inputThread;
+    boost::mutex m_InputMutex;
+    string m_InputMessage;
 
 	CGHost( CConfig *CFG );
 	~CGHost( );
@@ -171,6 +176,8 @@ public:
 
 	// other functions
 
+	void inputLoop( );
+	
 	void ReloadConfigs( );
 	void SetConfigs( CConfig *CFG );
 	void ExtractScripts( );
