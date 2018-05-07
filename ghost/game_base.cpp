@@ -4487,14 +4487,14 @@ void CBaseGame :: SaveGameData( )
 
 }
 
-void CBaseGame :: StartCountDown( bool force )
+void CBaseGame :: StartCountDown( bool force, int interval )
 {
 	if( !m_CountDownStarted )
 	{
 		if( force )
 		{
 			m_CountDownStarted = true;
-			m_CountDownCounter = 5;
+			m_CountDownCounter = interval;
 		}
 		else
 		{
@@ -4574,7 +4574,7 @@ void CBaseGame :: StartCountDown( bool force )
 			if( StillDownloading.empty( ) && NotSpoofChecked.empty( ) && NotPinged.empty( ) )
 			{
 				m_CountDownStarted = true;
-				m_CountDownCounter = 5;
+				m_CountDownCounter = interval;
 			}
 		}
 	}

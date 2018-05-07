@@ -1488,6 +1488,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				SendAllChat( m_GHost->m_Language->ShufflingPlayers( ) );
 				ShuffleSlots( );
 			}
+			
+			//
+			// !SF
+			// !STARTN
+			//
+
+			if ( (Command == "sf" || Command == "startn") && !m_CountDownStarted )
+			{
+				if ( Payload.empty( ) )
+				{
+					StartCountDown( true, 0 );
+				}
+				else
+				{
+					uint32_t Interval;
+					stringstream SS;
+					SS << Payload;
+					SS >> Interval;
+
+					StartCountDown( true, Interval );
+				}
+			}
 
 			//
 			// !START
@@ -1499,11 +1521,11 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				// otherwise check that the game is ready to start
 
 				if( Payload == "force" )
-					StartCountDown( true );
+					StartCountDown( true, 5 );
 				else
 				{
 					if( GetTicks( ) - m_LastPlayerLeaveTicks >= 2000 )
-						StartCountDown( false );
+						StartCountDown( false, 5 );
 					else
 						SendAllChat( m_GHost->m_Language->CountDownAbortedSomeoneLeftRecently( ) );
 				}
