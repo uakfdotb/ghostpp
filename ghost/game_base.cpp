@@ -1053,6 +1053,15 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		m_KickVotePlayer.clear( );
 		m_StartedKickVoteTime = 0;
 	}
+	
+	// expire the votestart
+	
+	if( m_StartedVoteStartTime != 0 && GetTime( ) - m_StartedVoteStartTime >= 120 )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] votestart expired" );
+		SendAllChat( "Votestart expired (120 seconds without pass)." );
+		m_StartedVoteStartTime = 0;
+	}
 
 	// start the gameover timer if there's only one player left
 
@@ -1626,6 +1635,13 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 	m_KickVotePlayer.clear( );
 	m_StartedKickVoteTime = 0;
+	
+	// abort the votestart
+	
+	if( m_StartedVoteStartTime != 0 )
+	  SendAllChat( "Votestart cancelled!" );
+
+	m_StartedVoteStartTime = 0;
 }
 
 void CBaseGame :: EventPlayerDisconnectTimedOut( CGamePlayer *player )
