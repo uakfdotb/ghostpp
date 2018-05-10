@@ -1774,7 +1774,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					return false;
 				}
 				if ( m_GHost->m_StartGameWhenAtLeastXPlayers != 0 && GetNumHumanPlayers( ) < m_GHost->m_StartGameWhenAtLeastXPlayers ){						
-					SendChat( player->GetPID(), "You cannot use " +string( 1, m_GHost->m_CommandTrigger )+ "votestart until there're at least" + UTIL_ToString(m_GHost->m_StartGameWhenAtLeastXPlayers) + " or more players!");
+					SendChat( player->GetPID(), "You cannot use " + string( 1, m_GHost->m_CommandTrigger ) + "votestart until there are " + UTIL_ToString(m_GHost->m_StartGameWhenAtLeastXPlayers) + " or more players!");
 					return HideCommand;
 				}      
 				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
