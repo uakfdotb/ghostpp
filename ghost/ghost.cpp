@@ -1370,6 +1370,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_LCPings = CFG->GetInt( "bot_lcpings", 1 ) == 0 ? false : true;
 	m_AutoKickPing = CFG->GetInt( "bot_autokickping", 400 );
 	m_StartGameWhenAtLeastXPlayers = CFG->GetInt( "bot_gamenotstartuntilXplayers", 4 );
+	m_VoteStartMinPlayers = CFG->GetInt("bot_votestartplayers", 4);
 	m_BanMethod = CFG->GetInt( "bot_banmethod", 1 );
 	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
 	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
