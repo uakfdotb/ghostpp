@@ -22,6 +22,7 @@
 #define GHOST_H
 
 #include "includes.h"
+#include <boost/thread.hpp>
 
 //
 // CGHost
@@ -128,6 +129,9 @@ public:
 	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players
 	uint32_t m_Latency;						// config value: the latency (by default)
 	uint32_t m_SyncLimit;					// config value: the maximum number of packets a player can fall out of sync before starting the lag screen (by default)
+	bool m_VoteStartAllowed;    			// config value: if votestarts are allowed or not
+	bool m_VoteStartAutohostOnly;           // config value: if votestarts are only allowed in autohosted games
+	uint32_t m_VoteStartMinPlayers;         // config value: minimum number of players before users can !votestart
 	bool m_VoteKickAllowed;					// config value: if votekicks are allowed or not
 	uint32_t m_VoteKickPercentage;			// config value: percentage of players required to vote yes for a votekick to pass
 	string m_DefaultMap;					// config value: default map (map.cfg)
@@ -145,8 +149,13 @@ public:
 	bool m_TCPNoDelay;						// config value: use Nagle's algorithm or not
 	uint32_t m_MatchMakingMethod;			// config value: the matchmaking method
 	uint32_t m_MapGameType;					// config value: the MapGameType overwrite (aka: refresh hack)
+	uint32_t m_StartGameWhenAtLeastXPlayers;
 	vector<GProxyReconnector *> m_PendingReconnects;
 	boost::mutex m_ReconnectMutex;
+	
+	boost::thread *inputThread;
+    boost::mutex m_InputMutex;
+    string m_InputMessage;
 
 	CGHost( CConfig *CFG );
 	~CGHost( );
@@ -171,6 +180,8 @@ public:
 
 	// other functions
 
+	void inputLoop( );
+	
 	void ReloadConfigs( );
 	void SetConfigs( CConfig *CFG );
 	void ExtractScripts( );

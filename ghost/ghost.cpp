@@ -693,6 +693,47 @@ CGHost :: CGHost( CConfig *CFG )
 #else
 	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (without MySQL support)" );
 #endif
+
+    // initialize the input thread
+	inputThread = new boost::thread(&CGHost::inputLoop, this);
+}
+
+void CGHost :: inputLoop( )
+{
+    string path = "fifo_in";
+
+    std::ifstream fifo;
+    fifo.open(path.c_str(), ifstream::in);
+
+    if (!fifo.is_open()){
+        cout << "Unable to open fifo: " << path  << endl;
+        return;
+    }
+
+    string line;
+    bool done = false;
+	
+    while (!done){
+        while( getline(fifo, line) ){
+			boost::mutex::scoped_lock lock( m_InputMutex );
+			m_InputMessage = line;
+			lock.unlock( );
+
+			// temporary fix: sometimes the above fails and will cause
+			//  a continuous infinite loop
+			// to prevent this, we sleep for a few milliseconds
+			MILLISLEEP( 100 );
+        }
+		
+		MILLISLEEP( 100 );
+
+		if (fifo.eof()){
+			fifo.clear();
+		}else{
+			done = true; 
+			cout << "Fifo closed." << endl;
+		}
+	}
 }
 
 CGHost :: ~CGHost( )
@@ -1141,6 +1182,24 @@ bool CGHost :: Update( long usecBlock )
 
 		m_LastAutoHostTime = GetTime( );
 	}
+	
+	// execute input message
+    boost::mutex::scoped_lock lock( m_InputMutex );
+    if( !m_InputMessage.empty( ) ) {
+        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
+        {
+            if( m_InputMessage[0] == (*i)->GetCommandTrigger() )
+            {
+                (*i)->BotCommand(m_InputMessage, "Console", false, true);
+            } else {
+                (*i)->QueueChatCommand(m_InputMessage);
+            }
+        }
+
+        m_InputMessage = "";
+    }
+
+    lock.unlock( );
 
 	return m_Exiting || AdminExit || BNETExit;
 }
@@ -1310,6 +1369,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MaxDownloadSpeed = CFG->GetInt( "bot_maxdownloadspeed", 100 );
 	m_LCPings = CFG->GetInt( "bot_lcpings", 1 ) == 0 ? false : true;
 	m_AutoKickPing = CFG->GetInt( "bot_autokickping", 400 );
+	m_StartGameWhenAtLeastXPlayers = CFG->GetInt( "bot_gamenotstartuntilXplayers", 4 );
+	m_VoteStartMinPlayers = CFG->GetInt("bot_votestartplayers", 4);
 	m_BanMethod = CFG->GetInt( "bot_banmethod", 1 );
 	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
 	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
