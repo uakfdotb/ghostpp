@@ -451,6 +451,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	// try to calculate map_width, map_height, map_slot<x>, map_numplayers, map_numteams
 
+	uint32_t EditorVersion; // used to determine maximum slots when adding observers
 	uint32_t MapOptions = 0;
 	BYTEARRAY MapWidth;
 	BYTEARRAY MapHeight;
@@ -493,7 +494,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 						if( FileFormat == 18 || FileFormat == 25 )
 						{
 							ISS.seekg( 4, ios :: cur );					// number of saves
-							ISS.seekg( 4, ios :: cur );					// editor version
+							ISS.read( (char *)&EditorVersion, 4 );		// editor version
 							getline( ISS, GarbageString, '\0' );		// map name
 							getline( ISS, GarbageString, '\0' );		// map author
 							getline( ISS, GarbageString, '\0' );		// map description
@@ -859,9 +860,13 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( m_MapObservers == MAPOBS_ALLOWED || m_MapObservers == MAPOBS_REFEREES )
 	{
-		CONSOLE_Print( "[MAP] adding " + UTIL_ToString( MAX_SLOTS - m_Slots.size( ) ) + " observer slots" );
+		uint32_t DefaultMaxSlots = MAX_SLOTS;
+		if( EditorVersion < 6060 )
+			DefaultMaxSlots = 12;
+		uint32_t MaxSlots = CFG->GetInt( "map_maxslots", DefaultMaxSlots );
+		CONSOLE_Print( "[MAP] adding " + UTIL_ToString( MaxSlots - m_Slots.size( ) ) + " observer slots" );
 
-		while( m_Slots.size( ) < MAX_SLOTS )
+		while( m_Slots.size( ) < MaxSlots )
 			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, MAX_SLOTS, MAX_SLOTS, SLOTRACE_RANDOM ) );
 	}
 
