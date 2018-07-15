@@ -1645,7 +1645,8 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 	//Send message that we are waiting until n players joined
 	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && GetTime( ) - m_LastAutoStartTime >= 0 ) {
-		SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanPlayers( ) ) ) );
+        //Player is not removed from list at this time, so playercount must be decremented
+		SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - (GetNumHumanPlayers( ) - 1) ) ) );
 	}
 }
 
