@@ -1768,7 +1768,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
         if( !m_GHost->m_CurrentGame->GetLocked( ) )
 		{
 			if(m_StartedVoteStartTime == 0) { //need >minplayers or admin to START a votestart
-				if (GetNumHumanPlayers() < m_GHost->m_VoteStartMinPlayers && !votestartAuth) { //need at least eight players to votestart
+				if (GetNumHumanPlayers() < m_GHost->m_VoteStartMinPlayers && !votestartAuth) { //need at least n players to votestart
 					uint32_t MinPlayers = m_GHost->m_VoteStartMinPlayers;					
 					SendChat( player, "You cannot use " + string( 1, m_GHost->m_CommandTrigger ) + "votestart until there are " + UTIL_ToString(MinPlayers) + " or more players!" );
 					return false;
