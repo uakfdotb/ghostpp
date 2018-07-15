@@ -50,7 +50,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Map = new CMap( *nMap );
 
 	if( m_GHost->m_SaveReplays && !m_SaveGame )
-		m_Replay = new CReplay( );	
+		m_Replay = new CReplay( );
 
 	// wait time of 1 minute  = 0 empty actions required
 	// wait time of 2 minutes = 1 empty action required
@@ -1642,6 +1642,11 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 	  SendAllChat( "Votestart cancelled!" );
 
 	m_StartedVoteStartTime = 0;
+
+	//Send message that we are waiting until n players joined
+	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && GetTime( ) - m_LastAutoStartTime >= 0 ) {
+		SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanPlayers( ) ) ) );
+	}
 }
 
 void CBaseGame :: EventPlayerDisconnectTimedOut( CGamePlayer *player )
@@ -2170,8 +2175,12 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	SendAllSlotInfo( );
 
 	// send a welcome message
-
 	SendWelcomeMessage( Player );
+
+	//Send message that we are waiting until n players joined
+	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && GetTime( ) - m_LastAutoStartTime >= 0 ) {
+		SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanPlayers( ) ) ) );
+	}
 
 	// if spoof checks are required and we won't automatically spoof check this player then tell them how to spoof check
 	// e.g. if automatic spoof checks are disabled, or if automatic spoof checks are done on admins only and this player isn't an admin
@@ -2560,8 +2569,12 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	SendAllSlotInfo( );
 
 	// send a welcome message
-
 	SendWelcomeMessage( Player );
+
+	//Send message that we are waiting until n players joined
+	if( !m_CountDownStarted && m_AutoStartPlayers != 0 && GetTime( ) - m_LastAutoStartTime >= 0 ) {
+		SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanPlayers( ) ) ) );
+	}
 
 	// if spoof checks are required and we won't automatically spoof check this player then tell them how to spoof check
 	// e.g. if automatic spoof checks are disabled, or if automatic spoof checks are done on admins only and this player isn't an admin
@@ -4604,7 +4617,6 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 
 		if( GetNumHumanPlayers( ) < m_AutoStartPlayers )
 		{
-			SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanPlayers( ) ) ) );
 			return;
 		}
 
