@@ -38,17 +38,17 @@ MEXP(int) bncsutil_getVersionString(char* outBuf) {
     // major
     major = (unsigned long) (BNCSUTIL_VERSION / 10000);
     if (major > 99 || major < 0) return 0;
-    
+
     // minor
     ver -= (major * 10000);
     minor = (unsigned long) (ver / 100);
     if (minor > 99 || minor < 0) return 0;
-    
+
     // revision
     ver -= (minor * 100);
     rev = ver;
     if (rev > 99 || rev < 0) return 0;
-    
+
     printed = std::sprintf(outBuf, "%lu.%lu.%lu", major, minor, rev);
     if (printed < 0) return 0;
     outBuf[8] = '\0';

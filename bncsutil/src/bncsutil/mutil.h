@@ -36,7 +36,7 @@
 
 /* Specific-Sized Integers */
 #include "mutil_types.h"
-#include	 <stdlib.h>	
+#include     <stdlib.h>
 
 // functions for converting a string to a 64-bit number.
 #if defined(_MSC_VER)
@@ -46,9 +46,9 @@
 #endif
 
 #ifdef _MSC_VER
-#pragma intrinsic(_lrotl,_lrotr)		/* use intrinsic compiler rotations */
-#define	ROL(x,n)	_lrotl((x),(n))			
-#define	ROR(x,n)	_lrotr((x),(n))
+#pragma intrinsic(_lrotl,_lrotr)        /* use intrinsic compiler rotations */
+#define    ROL(x,n)    _lrotl((x),(n))
+#define    ROR(x,n)    _lrotr((x),(n))
 #else
 #ifndef ROL
 #define ROL(a,b) (((a) << (b)) | ((a) >> 32 - (b)))
@@ -102,8 +102,8 @@
 
 #define SWAP2(num) ((((num) >> 8) & 0x00FF) | (((num) << 8) & 0xFF00))
 #define SWAP4(num) ((((num) >> 24) & 0x000000FF) | (((num) >> 8) & 0x0000FF00) | (((num) << 8) & 0x00FF0000) | (((num) << 24) & 0xFF000000))
-#define SWAP8(x)													   \
-	(uint64_t)((((uint64_t)(x) & 0xff) << 56) |						   \
+#define SWAP8(x)                                                       \
+    (uint64_t)((((uint64_t)(x) & 0xff) << 56) |                           \
             ((uint64_t)(x) & 0xff00ULL) << 40 |                        \
             ((uint64_t)(x) & 0xff0000ULL) << 24 |                      \
             ((uint64_t)(x) & 0xff000000ULL) << 8 |                     \
@@ -129,17 +129,17 @@
 #define MSB4(num) SWAP4(num)
 #endif /* (endianness) */
 
-#ifndef MOS_WINDOWS 
+#ifndef MOS_WINDOWS
 /* attempt automatic Windows detection  */
-  #ifdef _MSC_VER 
+  #ifdef _MSC_VER
     /* Microsoft C++ compiler, has to be windows  */
-    #define MOS_WINDOWS 
-  #else 
+    #define MOS_WINDOWS
+  #else
     #if defined(_WIN) || defined(_WINDOWS) || defined(WINDOWS) || \
     defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
       #define MOS_WINDOWS
-    #endif 
-  #endif 
+    #endif
+  #endif
 #endif
 
 #if !(defined(MUTIL_LIB_BUILD)) && defined(BNCSUTIL_EXPORTS)

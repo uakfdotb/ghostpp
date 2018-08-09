@@ -23,7 +23,7 @@
  * Boston, MA  02111-1307  USA
  */
 
-/*
+/**
  * Mule Server
  * Copyright (c) 2004-2006 Eric Naeseth.
  *
@@ -35,13 +35,13 @@
 #define CM_STACK_H_INCLUDED 1
 
 typedef struct cm_stack_node {
-	void* value;
-	struct cm_stack_node* next;
+    void* value;
+    struct cm_stack_node* next;
 } cm_stack_node_t;
 
 typedef struct cm_stack {
-	unsigned int size;
-	cm_stack_node_t* top;
+    unsigned int size;
+    cm_stack_node_t* top;
 } *cm_stack_t;
 
 cm_stack_t cm_stack_create();

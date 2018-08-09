@@ -41,7 +41,7 @@ extern "C" {
  * hash: Buffer, at least 20 bytes in length, to receive the hash.
  */
 MEXP(void) calcHashBuf(const char* data, size_t length, char* hash);
-	
+
 /*
  * New implementation.  Broken.  No plans to fix.
  */
