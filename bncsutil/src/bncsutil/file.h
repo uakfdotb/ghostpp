@@ -41,15 +41,15 @@ extern "C" {
 
 typedef struct _file* file_t;
 
-#define FILE_READ	(0x01)
-#define FILE_WRITE	(0x02)
+#define FILE_READ    (0x01)
+#define FILE_WRITE    (0x02)
 
 
 file_t file_open(const char* filename, unsigned int mode);
 void file_close(file_t file);
 size_t file_read(file_t file, void* ptr, size_t size, size_t count);
 size_t file_write(file_t file, const void* ptr, size_t size,
-	size_t count);
+    size_t count);
 size_t file_size(file_t file);
 
 void* file_map(file_t file, size_t len, off_t offset);

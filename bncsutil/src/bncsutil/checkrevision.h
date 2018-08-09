@@ -71,8 +71,8 @@ MEXP(int) checkRevision(
 MEXP(int) checkRevisionFlat(
     const char* valueString,
     const char* file1,
-	const char* file2,
-	const char* file3,
+    const char* file2,
+    const char* file3,
     int mpqNumber,
     unsigned long* checksum
 );
@@ -87,11 +87,11 @@ MEXP(int) checkRevisionFlat(
  * necessary.
  */
 MEXP(int) getExeInfo(const char* file_name,
-					 char* exe_info,
-					 size_t exe_info_size,
-					 uint32_t* version,
-					 int platform);
-					
+                     char* exe_info,
+                     size_t exe_info_size,
+                     uint32_t* version,
+                     int platform);
+
 /**
  * Gets the seed value for the given MPQ file.  If no seed value for the given
  * MPQ is registered with BNCSutil, returns 0.

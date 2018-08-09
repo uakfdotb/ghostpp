@@ -30,7 +30,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 /**
  * Decodes a CD-key, retrieves its relevant values, and calculates a hash
  * suitable for SID_AUTH_CHECK (0x51) in one function call.  Returns 1 on
@@ -38,8 +38,8 @@ extern "C" {
  * calling this function.  Available since BNCSutil 1.1.0.
  */
 MEXP(int) kd_quick(const char* cd_key, uint32_t client_token,
-				   uint32_t server_token, uint32_t* public_value,
-				   uint32_t* product, char* hash_buffer, size_t buffer_len);
+                   uint32_t server_token, uint32_t* public_value,
+                   uint32_t* product, char* hash_buffer, size_t buffer_len);
 
 /**
  * Initializes the CD-key decoding C wrappers.
@@ -96,7 +96,7 @@ MEXP(int) kd_longVal2(int decoder, char* out);
  * Returns the hash length or 0 on failure.
  */
 MEXP(int) kd_calculateHash(int decoder, uint32_t clientToken,
-						   uint32_t serverToken);
+                           uint32_t serverToken);
 
 /**
  * Places the key hash in "out".  The "out" buffer must be

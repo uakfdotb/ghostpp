@@ -27,7 +27,7 @@
 #define BNCSUTIL_CDKEYDECODER_H
 
 #include <bncsutil/mutil.h>
- 
+
 /**
  * Internal key type constants.
  */
@@ -49,18 +49,18 @@ protected:
     unsigned long value2;
     unsigned long product;
     char* w3value2;
-    
+
     int processStarCraftKey();
     int processWarCraft2Key();
     int processWarCraft3Key();
-    
+
     void decodeKeyTable(int* keyTable);
-    
+
     inline char getHexValue(int v);
     inline int getNumValue(char v);
-    
+
     inline void mult(const int r, const int x, int* a, int dcByte);
-    
+
 public:
     /**
      * Creates a new CD-key decoder object.
@@ -68,8 +68,8 @@ public:
      */
     CDKeyDecoder();
 
-	CDKeyDecoder(const char* cd_key);
-    
+    CDKeyDecoder(const char* cd_key);
+
     /**
      * Creates a new CD-key decoder object, using the specified key.
      * keyLength should be the length of the key, NOT INCLUDING the
@@ -77,16 +77,16 @@ public:
      * this constructor to check the validity of the provided key.
      */
     CDKeyDecoder(const char* cdKey, size_t keyLength);
-    
+
     virtual ~CDKeyDecoder();
-    
+
     int isKeyValid();
     int getVal2Length();
     uint32_t getProduct();
     uint32_t getVal1();
     uint32_t getVal2();
     int getLongVal2(char* out);
-    
+
     /**
      * Calculates the CD-Key hash for use in SID_AUTH_CHECK (0x51)
      * Returns the length of the generated hash; call getHash and pass
@@ -99,7 +99,7 @@ public:
      * endianness is not a factor.
      */
     size_t calculateHash(uint32_t clientToken, uint32_t serverToken);
-    
+
     /**
      * Places the calculated CD-key hash in outputBuffer.  You must call
      * calculateHash before getHash.  Returns the length of the hash

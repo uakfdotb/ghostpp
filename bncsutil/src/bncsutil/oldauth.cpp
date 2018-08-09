@@ -22,7 +22,7 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA  02111-1307  USA
  */
- 
+
 #include <bncsutil/mutil.h> // for MEXP()
 #include <bncsutil/bsha1.h>
 #include <bncsutil/oldauth.h>
@@ -44,11 +44,11 @@ uint32_t serverToken, char* outBuffer) {
     lp[0] = clientToken;
     lp[1] = serverToken;
     calcHashBuf(intermediate, 28, outBuffer);
-	
+
 #if DEBUG
-	bncsutil_debug_message_a("doubleHashPassword(\"%s\", 0x%08X, 0x%08X) =",
-		password, clientToken, serverToken);
-	bncsutil_debug_dump(outBuffer, 20);
+    bncsutil_debug_message_a("doubleHashPassword(\"%s\", 0x%08X, 0x%08X) =",
+        password, clientToken, serverToken);
+    bncsutil_debug_dump(outBuffer, 20);
 #endif
 }
 
@@ -61,7 +61,7 @@ MEXP(void) hashPassword(const char* password, char* outBuffer) {
     calcHashBuf(password, std::strlen(password), outBuffer);
 
 #if DEBUG
-	bncsutil_debug_message_a("hashPassword(\"%s\") =", password);
-	bncsutil_debug_dump(outBuffer, 20);
+    bncsutil_debug_message_a("hashPassword(\"%s\") =", password);
+    bncsutil_debug_dump(outBuffer, 20);
 #endif
 }

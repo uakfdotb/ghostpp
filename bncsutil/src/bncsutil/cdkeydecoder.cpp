@@ -22,7 +22,7 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA  02111-1307  USA
  */
- 
+
 #include <bncsutil/mutil.h>
 #include <bncsutil/cdkeydecoder.h>
 #include <bncsutil/keytables.h> // w2/d2 and w3 tables
@@ -64,13 +64,13 @@ CDKeyDecoder::CDKeyDecoder() {
     initialized = 0;
     keyOK = 0;
     hashLen = 0;
-	cdkey = (char*) 0;
-	w3value2 = (char*) 0;
-	keyHash = (char*) 0;
+    cdkey = (char*) 0;
+    w3value2 = (char*) 0;
+    keyHash = (char*) 0;
 }
 
 CDKeyDecoder::CDKeyDecoder(const char* cd_key) {
-	CDKeyDecoder(cd_key, std::strlen(cd_key));
+    CDKeyDecoder(cd_key, std::strlen(cd_key));
 }
 
 /**
@@ -81,19 +81,19 @@ CDKeyDecoder::CDKeyDecoder(const char* cd_key) {
  */
 CDKeyDecoder::CDKeyDecoder(const char* cdKey, size_t keyLength) {
     unsigned int i;
-    
+
     initialized = 0;
-	product = 0;
-	value1 = 0;
-	value2 = 0;
+    product = 0;
+    value1 = 0;
+    value2 = 0;
     keyOK = 0;
     hashLen = 0;
-	cdkey = (char*) 0;
-	w3value2 = (char*) 0;
-	keyHash = (char*) 0;
-    
+    cdkey = (char*) 0;
+    w3value2 = (char*) 0;
+    keyHash = (char*) 0;
+
     if (keyLength <= 0) return;
-    
+
     // Initial sanity check
     if (keyLength == 13) {
         // StarCraft key
@@ -102,9 +102,9 @@ CDKeyDecoder::CDKeyDecoder(const char* cdKey, size_t keyLength) {
         }
         keyType = KEY_STARCRAFT;
 #if DEBUG
-				bncsutil_debug_message_a(
-					"Created CD key decoder with STAR key %s.", cdKey
-				);
+                bncsutil_debug_message_a(
+                    "Created CD key decoder with STAR key %s.", cdKey
+                );
 #endif
     } else {
         // D2/W2/W3 key
@@ -115,54 +115,54 @@ CDKeyDecoder::CDKeyDecoder(const char* cdKey, size_t keyLength) {
             case 16:
                 keyType = KEY_WARCRAFT2;
 #if DEBUG
-				bncsutil_debug_message_a(
-					"Created CD key decoder with W2/D2 key %s.", cdKey
-				);
+                bncsutil_debug_message_a(
+                    "Created CD key decoder with W2/D2 key %s.", cdKey
+                );
 #endif
                 break;
             case 26:
                 keyType = KEY_WARCRAFT3;
 #if DEBUG
-				bncsutil_debug_message_a(
-					"Created CD key decoder with WAR3 key %s.", cdKey
-				);
+                bncsutil_debug_message_a(
+                    "Created CD key decoder with WAR3 key %s.", cdKey
+                );
 #endif
                 break;
             default:
 #if DEBUG
-				bncsutil_debug_message_a(
-					"Created CD key decoder with unrecognized key %s.", cdKey
-				);
+                bncsutil_debug_message_a(
+                    "Created CD key decoder with unrecognized key %s.", cdKey
+                );
 #endif
                 return;
         }
     }
-    
+
     cdkey = new char[keyLength + 1];
     initialized = 1;
     keyLen = keyLength;
     strcpy(cdkey, cdKey);
-    
+
     switch (keyType) {
         case KEY_STARCRAFT:
             keyOK = processStarCraftKey();
 #if DEBUG
-			bncsutil_debug_message_a("%s: ok=%d; product=%d; public=%d; "
-				"private=%d", cdkey, keyOK, getProduct(), getVal1(), getVal2());
+            bncsutil_debug_message_a("%s: ok=%d; product=%d; public=%d; "
+                "private=%d", cdkey, keyOK, getProduct(), getVal1(), getVal2());
 #endif
             break;
         case KEY_WARCRAFT2:
             keyOK = processWarCraft2Key();
 #if DEBUG
-			bncsutil_debug_message_a("%s: ok=%d; product=%d; public=%d; "
-				"private=%d", cdkey, keyOK, getProduct(), getVal1(), getVal2());
+            bncsutil_debug_message_a("%s: ok=%d; product=%d; public=%d; "
+                "private=%d", cdkey, keyOK, getProduct(), getVal1(), getVal2());
 #endif
             break;
         case KEY_WARCRAFT3:
             keyOK = processWarCraft3Key();
 #if DEBUG
-			bncsutil_debug_message_a("%s: ok=%d; product=%d; public=%d; ",
-				cdkey, keyOK, getProduct(), getVal1());
+            bncsutil_debug_message_a("%s: ok=%d; product=%d; public=%d; ",
+                cdkey, keyOK, getProduct(), getVal1());
 #endif
             break;
         default:
@@ -175,8 +175,8 @@ CDKeyDecoder::~CDKeyDecoder() {
         delete [] cdkey;
     if (hashLen > 0 && keyHash != NULL)
         delete [] keyHash;
-	if (w3value2)
-		delete [] w3value2;
+    if (w3value2)
+        delete [] w3value2;
 }
 
 int CDKeyDecoder::isKeyValid() {
@@ -188,27 +188,27 @@ int CDKeyDecoder::getVal2Length() {
 }
 
 uint32_t CDKeyDecoder::getProduct() {
-	switch (keyType) {
-		case KEY_STARCRAFT:
-		case KEY_WARCRAFT2:
-			return (uint32_t) LSB4(product);
-		case KEY_WARCRAFT3:
-			return (uint32_t) MSB4(product);
-		default:
-			return (uint32_t) -1;
-	}
+    switch (keyType) {
+        case KEY_STARCRAFT:
+        case KEY_WARCRAFT2:
+            return (uint32_t) LSB4(product);
+        case KEY_WARCRAFT3:
+            return (uint32_t) MSB4(product);
+        default:
+            return (uint32_t) -1;
+    }
 }
 
 uint32_t CDKeyDecoder::getVal1() {
     switch (keyType) {
-		case KEY_STARCRAFT:
-		case KEY_WARCRAFT2:
-			return (uint32_t) LSB4(value1);
-		case KEY_WARCRAFT3:
-			return (uint32_t) MSB4(value1);
-		default:
-			return (uint32_t) -1;
-	}
+        case KEY_STARCRAFT:
+        case KEY_WARCRAFT2:
+            return (uint32_t) LSB4(value1);
+        case KEY_WARCRAFT3:
+            return (uint32_t) MSB4(value1);
+        default:
+            return (uint32_t) -1;
+    }
 }
 
 uint32_t CDKeyDecoder::getVal2() {
@@ -240,35 +240,35 @@ size_t CDKeyDecoder::calculateHash(uint32_t clientToken,
 {
     struct CDKEYHASH kh;
     SHA1Context sha;
-    
+
     if (!initialized || !keyOK) return 0;
     hashLen = 0;
-    
+
     kh.clientToken = clientToken;
     kh.serverToken = serverToken;
-    
+
     switch (keyType) {
         case KEY_STARCRAFT:
         case KEY_WARCRAFT2:
-			kh.product = (uint32_t) LSB4(product);
-			kh.value1 = (uint32_t) LSB4(value1);
+            kh.product = (uint32_t) LSB4(product);
+            kh.value1 = (uint32_t) LSB4(value1);
 
             kh.value2.s.zero = 0;
             kh.value2.s.v = (uint32_t) LSB4(value2);
-            
+
             keyHash = new char[20];
             calcHashBuf((char*) &kh, 24, keyHash);
             hashLen = 20;
 
 #if DEBUG
-			bncsutil_debug_message_a("%s: Hash calculated.", cdkey);
-			bncsutil_debug_dump(keyHash, 20);
+            bncsutil_debug_message_a("%s: Hash calculated.", cdkey);
+            bncsutil_debug_dump(keyHash, 20);
 #endif
 
             return 20;
         case KEY_WARCRAFT3:
-			kh.product = (uint32_t) MSB4(product);
-			kh.value1 = (uint32_t) MSB4(value1);
+            kh.product = (uint32_t) MSB4(product);
+            kh.value1 = (uint32_t) MSB4(value1);
             memcpy(kh.value2.l.v, w3value2, 10);
 
             if (SHA1Reset(&sha))
@@ -282,10 +282,10 @@ size_t CDKeyDecoder::calculateHash(uint32_t clientToken,
             }
             SHA1Reset(&sha);
             hashLen = 20;
-			
+
 #if DEBUG
-			bncsutil_debug_message_a("%s: Hash calculated.", cdkey);
-			bncsutil_debug_dump(keyHash, 20);
+            bncsutil_debug_message_a("%s: Hash calculated.", cdkey);
+            bncsutil_debug_dump(keyHash, 20);
 #endif
 
             return 20;
@@ -301,7 +301,7 @@ size_t CDKeyDecoder::calculateHash(uint32_t clientToken,
  */
 size_t CDKeyDecoder::getHash(char* outputBuffer) {
     if (hashLen == 0 || !keyHash || !outputBuffer)
-		return 0;
+        return 0;
     memcpy(outputBuffer, keyHash, hashLen);
     return hashLen;
 }
@@ -319,21 +319,21 @@ int CDKeyDecoder::processStarCraftKey() {
     int accum, pos, i;
     char temp;
     int hashKey = 0x13AC9741;
-	char cdkey[14];
+    char cdkey[14];
 
-	std::strcpy(cdkey, this->cdkey);
-    
+    std::strcpy(cdkey, this->cdkey);
+
     // Verification
     accum = 3;
     for (i = 0; i < (int) (keyLen - 1); i++) {
         accum += ((tolower(cdkey[i]) - '0') ^ (accum * 2));
     }
-    
-	if ((accum % 10) != (cdkey[12] - '0')) {
-		// bncsutil_debug_message_a("error: %s is not a valid StarCraft key", cdkey);
+
+    if ((accum % 10) != (cdkey[12] - '0')) {
+        // bncsutil_debug_message_a("error: %s is not a valid StarCraft key", cdkey);
         return 0;
-	}
-    
+    }
+
     // Shuffling
     pos = 0x0B;
     for (i = 0xC2; i >= 7; i -= 0x11) {
@@ -342,7 +342,7 @@ int CDKeyDecoder::processStarCraftKey() {
         cdkey[i % 0x0C] = temp;
         pos--;
     }
-    
+
     // Final Value
     for (i = (int) (keyLen - 2); i >= 0; i--) {
         temp = toupper(cdkey[i]);
@@ -354,10 +354,10 @@ int CDKeyDecoder::processStarCraftKey() {
             cdkey[i] ^= ((char) i & 1);
         }
     }
-    
+
     // Final Calculations
     sscanf(cdkey, "%2ld%7ld%3ld", &product, &value1, &value2);
-    
+
     return 1;
 }
 
@@ -365,10 +365,10 @@ int CDKeyDecoder::processWarCraft2Key() {
     unsigned long r, n, n2, v, v2, checksum;
     int i;
     unsigned char c1, c2, c;
-	char cdkey[17];
+    char cdkey[17];
 
-	std::strcpy(cdkey, this->cdkey);
-    
+    std::strcpy(cdkey, this->cdkey);
+
     r = 1;
     checksum = 0;
     for (i = 0; i < 16; i += 2) {
@@ -376,7 +376,7 @@ int CDKeyDecoder::processWarCraft2Key() {
         n = c1 * 3;
         c2 = w2Map[(int) cdkey[i + 1]];
         n = c2 + n * 8;
-        
+
         if (n >= 0x100) {
             n -= 0x100;
             checksum |= r;
@@ -388,7 +388,7 @@ int CDKeyDecoder::processWarCraft2Key() {
         cdkey[i + 1] = getHexValue(n);
         r <<= 1;
     }
-    
+
     v = 3;
     for (i = 0; i < 16; i++) {
         c = cdkey[i];
@@ -398,11 +398,11 @@ int CDKeyDecoder::processWarCraft2Key() {
         v += n;
     }
     v &= 0xFF;
-    
+
     if (v != checksum) {
         return 0;
     }
-    
+
     n = 0;
     for (int j = 15; j >= 0; j--) {
         c = cdkey[j];
@@ -442,13 +442,13 @@ int CDKeyDecoder::processWarCraft3Key() {
     int a, b;
     int i;
     char decode;
-    
+
     a = 0;
     b = 0x21;
-    
+
     memset(table, 0, W3_BUFLEN);
     memset(values, 0, (sizeof(int) * 4));
-    
+
     for (i = 0; ((unsigned int) i) < keyLen; i++) {
         cdkey[i] = toupper(cdkey[i]);
         a = (b + 0x07B5) % W3_BUFLEN;
@@ -457,40 +457,40 @@ int CDKeyDecoder::processWarCraft3Key() {
         table[a] = (decode / 5);
         table[b] = (decode % 5);
     }
-    
+
     // Mult
     i = W3_BUFLEN;
     do {
         mult(4, 5, values + 3, table[i - 1]);
     } while (--i);
-    
+
     decodeKeyTable(values);
-	
-	// 00 00 38 08 f0 64 18 6c 79 14 14 8E B9 49 1D BB
-	//          --------
-	//            val1
 
-	product = values[0] >> 0xA;
-	product = SWAP4(product);
+    // 00 00 38 08 f0 64 18 6c 79 14 14 8E B9 49 1D BB
+    //          --------
+    //            val1
+
+    product = values[0] >> 0xA;
+    product = SWAP4(product);
 #if LITTLEENDIAN
-	for (i = 0; i < 4; i++) {
-		values[i] = MSB4(values[i]);
-	}
+    for (i = 0; i < 4; i++) {
+        values[i] = MSB4(values[i]);
+    }
 #endif
 
-	value1 = LSB4(*(uint32_t*) (((char*) values) + 2)) & 0xFFFFFF00;
+    value1 = LSB4(*(uint32_t*) (((char*) values) + 2)) & 0xFFFFFF03;
 
-	w3value2 = new char[10];
+    w3value2 = new char[10];
 #if LITTLEENDIAN
-	*((uint16_t*) w3value2) = MSB2(*(uint16_t*) (((char*) values) + 6));
-	*((uint32_t*) ((char*) w3value2 + 2)) = MSB4(*(uint32_t*) (((char*) values) + 8));
-	*((uint32_t*) ((char*) w3value2 + 6)) = MSB4(*(uint32_t*) (((char*) values) + 12));
+    *((uint16_t*) w3value2) = MSB2(*(uint16_t*) (((char*) values) + 6));
+    *((uint32_t*) ((char*) w3value2 + 2)) = MSB4(*(uint32_t*) (((char*) values) + 8));
+    *((uint32_t*) ((char*) w3value2 + 6)) = MSB4(*(uint32_t*) (((char*) values) + 12));
 #else
-	*((uint16_t*) w3value2) = LSB2(*(uint16_t*) (((char*) values) + 6));
-	*((uint32_t*) ((char*) w3value2 + 2)) = LSB4(*(uint32_t*) (((char*) values) + 8));
-	*((uint32_t*) ((char*) w3value2 + 6)) = LSB4(*(uint32_t*) (((char*) values) + 12));
+    *((uint16_t*) w3value2) = LSB2(*(uint16_t*) (((char*) values) + 6));
+    *((uint32_t*) ((char*) w3value2 + 2)) = LSB4(*(uint32_t*) (((char*) values) + 8));
+    *((uint32_t*) ((char*) w3value2 + 6)) = LSB4(*(uint32_t*) (((char*) values) + 12));
 #endif
-	return 1;
+    return 1;
 }
 
 inline void CDKeyDecoder::mult(int r, const int x, int* a, int dcByte) {
@@ -511,7 +511,7 @@ void CDKeyDecoder::decodeKeyTable(int* keyTable) {
     int ckt_temp;
     var8 = 29;
     int i = 464;
-    
+
     // pass 1
     do {
         int j;
@@ -521,7 +521,7 @@ void CDKeyDecoder::decodeKeyTable(int* keyTable) {
         varC = keyTable[3 - var4];
         varC &= (0xF << esi);
         varC = varC >> esi;
-        
+
         if (i < 464) {
             for (j = 29; (unsigned int) j > var8; j--) {
                 /*
@@ -537,7 +537,7 @@ void CDKeyDecoder::decodeKeyTable(int* keyTable) {
                 varC = w3TranslateMap[ebp ^ w3TranslateMap[varC + i] + i];
             }
         }
-        
+
         j = --var8;
         while (j >= 0) {
             ecx = (j & 7) << 2;
@@ -548,12 +548,12 @@ void CDKeyDecoder::decodeKeyTable(int* keyTable) {
             varC = w3TranslateMap[ebp ^ w3TranslateMap[varC + i] + i];
             j--;
         }
-        
+
         j = 3 - var4;
         ebx = (w3TranslateMap[varC + i] & 0xF) << esi;
         keyTable[j] = (ebx | ~(0xF << esi) & ((int) keyTable[j]));
     } while ((i -= 16) >= 0);
-    
+
     // pass 2
     eax = 0;
     edx = 0;
@@ -561,26 +561,26 @@ void CDKeyDecoder::decodeKeyTable(int* keyTable) {
     edi = 0;
     esi = 0;
     ebp = 0;
-    
+
     for (i = 0; i < 4; i++) {
         copy[i] = LSB4(keyTable[i]);
     }
     scopy = (unsigned char*) copy;
-    
+
     for (edi = 0; edi < 120; edi++) {
         unsigned int location = 12;
         eax = edi & 0x1F;
         ecx = esi & 0x1F;
         edx = 3 - (edi >> 5);
-        
+
         location -= ((esi >> 5) << 2);
         ebp = *(int*) (scopy + location);
         ebp = LSB4(ebp);
-        
+
         //ebp = (ebp & (1 << ecx)) >> ecx;
         ebp &= (1 << ecx);
         ebp = ebp >> ecx;
-        
+
         //keyTable[edx] = ((ebp & 1) << eax) | (~(1 << eax) & keyTable[edx]);
         ckt = (keyTable + edx);
         ckt_temp = *ckt;
