@@ -33,7 +33,7 @@ Bot hanging on authenticating? The bncsutil in this repository has recently been
 Compilation
 -----------
 
-GHost++ depends on libboost, libgmp, zlib, libbz2, and libmysqlclient. These steps should suffice to compile GHost++ on Ubuntu 16.04:
+GHost++ depends on cmake, libboost, libgmp, zlib, libbz2, and libmysqlclient. These steps should suffice to compile GHost++ on Ubuntu 16.04:
 
 	sudo apt-get install -y cmake git libboost-all-dev build-essential libgmp-dev zlib1g-dev libbz2-dev libmysql++-dev
 	git clone https://github.com/uakfdotb/ghostpp
