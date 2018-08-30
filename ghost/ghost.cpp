@@ -19,6 +19,10 @@
 */
 
 #include "ghost.h"
+
+#define __STORMLIB_SELF__
+#include <StormLib.h>
+
 #include "util.h"
 #include "crc32.h"
 #include "sha1.h"
@@ -46,46 +50,6 @@
 #ifdef WIN32
  #include <ws2tcpip.h>		// for WSAIoctl
 #endif
-
-#define __STORMLIB_SELF__
-#include <stormlib/StormLib.h>
-
-/*
-
-#include "ghost.h"
-#include "util.h"
-#include "crc32.h"
-#include "sha1.h"
-#include "csvparser.h"
-#include "config.h"
-#include "language.h"
-#include "socket.h"
-#include "commandpacket.h"
-#include "ghostdb.h"
-#include "ghostdbsqlite.h"
-#include "ghostdbmysql.h"
-#include "bncsutilinterface.h"
-#include "warden.h"
-#include "bnlsprotocol.h"
-#include "bnlsclient.h"
-#include "bnetprotocol.h"
-#include "bnet.h"
-#include "map.h"
-#include "packed.h"
-#include "savegame.h"
-#include "replay.h"
-#include "gameslot.h"
-#include "gameplayer.h"
-#include "gameprotocol.h"
-#include "gpsprotocol.h"
-#include "game_base.h"
-#include "game.h"
-#include "game_admin.h"
-#include "stats.h"
-#include "statsdota.h"
-#include "sqlite3.h"
-
-*/
 
 #ifdef WIN32
  #include <windows.h>
@@ -1358,7 +1322,7 @@ void CGHost :: ExtractScripts( )
 				char *SubFileData = new char[FileLength];
 				DWORD BytesRead = 0;
 
-				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead , NULL ) )
 				{
 					CONSOLE_Print( "[GHOST] extracting Scripts\\common.j from MPQ file to [" + m_MapCFGPath + "common.j]" );
 					UTIL_FileWrite( m_MapCFGPath + "common.j", (unsigned char *)SubFileData, BytesRead );
@@ -1385,7 +1349,7 @@ void CGHost :: ExtractScripts( )
 				char *SubFileData = new char[FileLength];
 				DWORD BytesRead = 0;
 
-				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead , NULL) )
 				{
 					CONSOLE_Print( "[GHOST] extracting Scripts\\blizzard.j from MPQ file to [" + m_MapCFGPath + "blizzard.j]" );
 					UTIL_FileWrite( m_MapCFGPath + "blizzard.j", (unsigned char *)SubFileData, BytesRead );

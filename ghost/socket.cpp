@@ -25,7 +25,7 @@
 #include <string.h>
 
 #ifndef WIN32
- int GetLastError( ) { return errno; }
+ DWORD GetLastError( ) { return errno; }
 #endif
 
 //

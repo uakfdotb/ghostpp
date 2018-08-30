@@ -15,8 +15,14 @@ Here are alternatives that are actively being developed as of 15 July 2018:
 
 1.30 Note
 ---------
+For 1.30 `Warcraft III.exe` uses now the CASC-Format instead of the old MPQ-Format.
+Currently there is no automatic way implemented to extract blizzard.j and common.j, so now you must do this yourself.
+(see zezula.net/en/casc/main.html)
 
-For 1.30, put `Warcraft III.exe` in the `bot_war3path`. (You should name it `Warcraft III.exe` to avoid Battle.net connection issues, but you may also name it `warcraft.exe`.)
+1.29 - 1.30 Note
+---------
+
+For 1.29 - 1.30, put `Warcraft III.exe` in the `bot_war3path`. (You should name it `Warcraft III.exe` to avoid Battle.net connection issues, but you may also name it `warcraft.exe`.)
 
 `war3.exe`, `game.dll`, and `storm.dll` are no longer needed.
 
@@ -29,14 +35,21 @@ Compilation
 
 GHost++ depends on libboost, libgmp, zlib, libbz2, and libmysqlclient. These steps should suffice to compile GHost++ on Ubuntu 16.04:
 
-	sudo apt-get install -y git libboost-all-dev build-essential libgmp-dev zlib1g-dev libbz2-dev libmysql++-dev
+	sudo apt-get install -y cmake git libboost-all-dev build-essential libgmp-dev zlib1g-dev libbz2-dev libmysql++-dev
 	git clone https://github.com/uakfdotb/ghostpp
 	cd ghostpp
-	cd bncsutil/src/bncsutil/
-	make && sudo make install
-	cd ../../../StormLib/stormlib/
-	make && sudo make install
-	cd ../../ghost
+
+    cd bncsutil
+    mkdir build
+    cmake -G "Unix Makefiles" -B./build -H./
+    cd build && make && sudo make install
+
+    cd ../../StormLib/
+    mkdir build
+    cmake -G "Unix Makefiles" -B./build -H./
+    cd build && make && sudo make install
+
+	cd ../../ghost/
 	make
 
 See MANUAL or [the ghostpp.com wiki](https://www.ghostpp.com/wiki/index.php?title=Main_Page) for more in-depth but possibly outdated guides on other platforms.

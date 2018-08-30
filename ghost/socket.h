@@ -80,7 +80,8 @@
 
  #define closesocket close
 
- extern int GetLastError( );
+ typedef unsigned int   DWORD;
+ extern DWORD GetLastError( );
 #endif
 
 #ifndef INADDR_NONE
