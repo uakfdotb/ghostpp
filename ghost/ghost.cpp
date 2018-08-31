@@ -1334,12 +1334,64 @@ void CGHost :: ExtractScripts( )
 }
 
 void CGHost :: ExtractScriptsAfter130( string PatchMPQFileName){
-    CASC::HANDLE cascFile;
+    CASC::HANDLE cascStorage;
 
-    if( CASC::CascOpenStorage( PatchMPQFileName.c_str( ), LANG_NEUTRAL, &cascFile) ){
+    if( CASC::CascOpenStorage( PatchMPQFileName.c_str( ), LANG_NEUTRAL, &cascStorage) ){
         CONSOLE_Print( "[GHOST] loading CASC file [" + PatchMPQFileName + "]" );
 
-        CASC::CascCloseStorage( cascFile );
+        CASC::HANDLE subFile;
+
+        if(CASC::CascOpenFile(cascStorage,  "war3.mpq:scripts\\common.j", 0, 0, &subFile)){
+            uint32_t FileLength = CASC::CascGetFileSize( subFile, NULL );
+
+            if( FileLength > 0 && FileLength != 0xFFFFFFFF )
+            {
+                char *SubFileData = new char[FileLength];
+                DWORD BytesRead = 0;
+
+                if( CASC::CascReadFile( subFile, SubFileData, FileLength, &BytesRead ) )
+                {
+                    CONSOLE_Print( "[GHOST] extracting Scripts\\common.j from CASC file to [" + m_MapCFGPath + "common.j]" );
+                    UTIL_FileWrite( m_MapCFGPath + "common.j", (unsigned char *)SubFileData, BytesRead );
+                }
+                else
+                    CONSOLE_Print( "[GHOST] warning - unable to extract Scripts\\common.j from CASC file" );
+
+                delete [] SubFileData;
+            }
+
+            CASC::CascCloseFile(subFile);
+        }
+        else{
+            CONSOLE_Print( "[GHOST] couldn't find Scripts\\common.j in CASC file" );
+        }
+
+        if(CASC::CascOpenFile(cascStorage,  "war3.mpq:scripts\\blizzard.j", 0, 0, &subFile)){
+            uint32_t FileLength = CASC::CascGetFileSize( subFile, NULL );
+
+            if( FileLength > 0 && FileLength != 0xFFFFFFFF )
+            {
+                char *SubFileData = new char[FileLength];
+                DWORD BytesRead = 0;
+
+                if( CASC::CascReadFile( subFile, SubFileData, FileLength, &BytesRead ) )
+                {
+                    CONSOLE_Print( "[GHOST] extracting Scripts\\blizzard.j from CASC file to [" + m_MapCFGPath + "blizzard.j]" );
+                    UTIL_FileWrite( m_MapCFGPath + "blizzard.j", (unsigned char *)SubFileData, BytesRead );
+                }
+                else
+                    CONSOLE_Print( "[GHOST] warning - unable to extract Scripts\\blizzard.j from CASC file" );
+
+                delete [] SubFileData;
+            }
+
+            CASC::CascCloseFile(subFile);
+        }
+        else{
+            CONSOLE_Print( "[GHOST] couldn't find Scripts\\blizzard.j in CASC file" );
+        }
+
+        CASC::CascCloseStorage( cascStorage );
     }
     else{
         CONSOLE_Print( "[GHOST] warning - unable to load CASC file [" + PatchMPQFileName + "] - error code " + UTIL_ToString( GetLastError( ) ) );
