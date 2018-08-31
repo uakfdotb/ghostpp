@@ -1315,9 +1315,7 @@ void CGHost :: ExtractScripts( )
 
     if( !UTIL_FileExists( PatchMPQFileName ) ){
         extractCasc = true;
-        //PatchMPQFileName = m_Warcraft3Path + "Warcraft III.exe";
-
-        PatchMPQFileName = "/Applications/Warcraft III/Warcraft III.app/Contents/MacOS/Warcraft III";
+        PatchMPQFileName = m_Warcraft3Path + "/Data";
     }
 
     if( !UTIL_FileExists( PatchMPQFileName ) ){
