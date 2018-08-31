@@ -1664,13 +1664,6 @@ bool IsPseudoFileName(const char * szFileName, DWORD * pdwFileIndex)
 //-----------------------------------------------------------------------------
 // Functions calculating and verifying the MD5 signature
 
-bool IsValidMD5(LPBYTE pbMd5)
-{
-    LPDWORD Md5 = (LPDWORD)pbMd5;
-
-    return (Md5[0] | Md5[1] | Md5[2] | Md5[3]) ? true : false;
-}
-
 bool IsValidSignature(LPBYTE pbSignature)
 {
     LPDWORD Signature = (LPDWORD)pbSignature;
@@ -1682,6 +1675,13 @@ bool IsValidSignature(LPBYTE pbSignature)
     return (SigValid != 0) ? true : false;
 }
 
+#ifndef STORM_CASC
+bool IsValidMD5(LPBYTE pbMd5)
+{
+    LPDWORD Md5 = (LPDWORD)pbMd5;
+
+    return (Md5[0] | Md5[1] | Md5[2] | Md5[3]) ? true : false;
+}
 
 bool VerifyDataBlockHash(void * pvDataBlock, DWORD cbDataBlock, LPBYTE expected_md5)
 {
@@ -1709,7 +1709,7 @@ void CalculateDataBlockHash(void * pvDataBlock, DWORD cbDataBlock, LPBYTE md5_ha
     md5_process(&md5_state, (unsigned char *)pvDataBlock, cbDataBlock);
     md5_done(&md5_state, md5_hash);
 }
-
+#endif
 
 //-----------------------------------------------------------------------------
 // Swapping functions

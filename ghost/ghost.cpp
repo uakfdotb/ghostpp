@@ -20,8 +20,15 @@
 
 #include "ghost.h"
 
-#define __STORMLIB_SELF__
-#include <StormLib.h>
+namespace CASC{
+    #define __CASCLIB_SELF__
+    #include <CascLib.h>
+}
+
+namespace MPQ{
+    #define __STORMLIB_SELF__
+    #include <StormLib.h>
+}
 
 #include "util.h"
 #include "crc32.h"
@@ -527,9 +534,9 @@ CGHost :: CGHost( CConfig *CFG )
 		if( BNETCommandTrigger.empty( ) )
 			BNETCommandTrigger = "!";
 
-		bool HoldFriends = CFG->GetInt( Prefix + "holdfriends", 1 ) == 0 ? false : true;
-		bool HoldClan = CFG->GetInt( Prefix + "holdclan", 1 ) == 0 ? false : true;
-		bool PublicCommands = CFG->GetInt( Prefix + "publiccommands", 1 ) == 0 ? false : true;
+		bool HoldFriends = CFG->GetInt( Prefix + "holdfriends", 1 ) != 0;
+		bool HoldClan = CFG->GetInt( Prefix + "holdclan", 1 ) != 0;
+		bool PublicCommands = CFG->GetInt( Prefix + "publiccommands", 1 ) != 0;
 		string BNLSServer = CFG->GetString( Prefix + "bnlsserver", string( ) );
 		int BNLSPort = CFG->GetInt( Prefix + "bnlsport", 9367 );
 		int BNLSWardenCookie = CFG->GetInt( Prefix + "bnlswardencookie", 0 );
@@ -1291,84 +1298,120 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
 	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
 	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );
-	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 1 ) == 0 ? false : true;
-	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
+	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 1 ) != 0;
+	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) != 0;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
 	m_MapGameType = CFG->GetUInt32( "bot_mapgametype", 0 );
 }
 
 void CGHost :: ExtractScripts( )
 {
+    bool extractCasc = false;
+
 	string PatchMPQFileName = m_Warcraft3Path + "War3x.mpq";
 
 	if( !UTIL_FileExists( PatchMPQFileName ) )
 		PatchMPQFileName = m_Warcraft3Path + "War3Patch.mpq";
 
-	HANDLE PatchMPQ;
+    if( !UTIL_FileExists( PatchMPQFileName ) ){
+        extractCasc = true;
+        //PatchMPQFileName = m_Warcraft3Path + "Warcraft III.exe";
 
-	if( SFileOpenArchive( PatchMPQFileName.c_str( ), 0, MPQ_OPEN_FORCE_MPQ_V1, &PatchMPQ ) )
-	{
-		CONSOLE_Print( "[GHOST] loading MPQ file [" + PatchMPQFileName + "]" );
-		HANDLE SubFile;
+        PatchMPQFileName = "/Applications/Warcraft III/Warcraft III.app/Contents/MacOS/Warcraft III";
+    }
 
-		// common.j
+    if( !UTIL_FileExists( PatchMPQFileName ) ){
+        CONSOLE_Print( "[GHOST] warning - mpq file and exe file not found");
+    }
+    else{
+        if(extractCasc){
+            ExtractScriptsAfter130( PatchMPQFileName );
+        }
+        else{
+            ExtractScriptsPre130( PatchMPQFileName );
+        }
+    }
+}
 
-		if( SFileOpenFileEx( PatchMPQ, "Scripts\\common.j", 0, &SubFile ) )
-		{
-			uint32_t FileLength = SFileGetFileSize( SubFile, NULL );
+void CGHost :: ExtractScriptsAfter130( string PatchMPQFileName){
+    CASC::HANDLE cascFile;
 
-			if( FileLength > 0 && FileLength != 0xFFFFFFFF )
-			{
-				char *SubFileData = new char[FileLength];
-				DWORD BytesRead = 0;
+    if( CASC::CascOpenStorage( PatchMPQFileName.c_str( ), LANG_NEUTRAL, &cascFile) ){
+        CONSOLE_Print( "[GHOST] loading CASC file [" + PatchMPQFileName + "]" );
 
-				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead , NULL ) )
-				{
-					CONSOLE_Print( "[GHOST] extracting Scripts\\common.j from MPQ file to [" + m_MapCFGPath + "common.j]" );
-					UTIL_FileWrite( m_MapCFGPath + "common.j", (unsigned char *)SubFileData, BytesRead );
-				}
-				else
-					CONSOLE_Print( "[GHOST] warning - unable to extract Scripts\\common.j from MPQ file" );
+        CASC::CascCloseStorage( cascFile );
+    }
+    else{
+        CONSOLE_Print( "[GHOST] warning - unable to load CASC file [" + PatchMPQFileName + "] - error code " + UTIL_ToString( GetLastError( ) ) );
+    }
+}
 
-				delete [] SubFileData;
-			}
+void CGHost :: ExtractScriptsPre130( string PatchMPQFileName){
+    MPQ::HANDLE PatchMPQ;
 
-			SFileCloseFile( SubFile );
-		}
-		else
-			CONSOLE_Print( "[GHOST] couldn't find Scripts\\common.j in MPQ file" );
+    if( MPQ::SFileOpenArchive( PatchMPQFileName.c_str( ), 0, MPQ_OPEN_FORCE_MPQ_V1, &PatchMPQ ) )
+    {
+        CONSOLE_Print( "[GHOST] loading MPQ file [" + PatchMPQFileName + "]" );
+        MPQ::HANDLE SubFile;
 
-		// blizzard.j
+        // common.j
 
-		if( SFileOpenFileEx( PatchMPQ, "Scripts\\blizzard.j", 0, &SubFile ) )
-		{
-			uint32_t FileLength = SFileGetFileSize( SubFile, NULL );
+        if( MPQ::SFileOpenFileEx( PatchMPQ, "Scripts\\common.j", 0, &SubFile ) )
+        {
+            uint32_t FileLength = MPQ::SFileGetFileSize( SubFile, NULL );
 
-			if( FileLength > 0 && FileLength != 0xFFFFFFFF )
-			{
-				char *SubFileData = new char[FileLength];
-				DWORD BytesRead = 0;
+            if( FileLength > 0 && FileLength != 0xFFFFFFFF )
+            {
+                char *SubFileData = new char[FileLength];
+                DWORD BytesRead = 0;
 
-				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead , NULL) )
-				{
-					CONSOLE_Print( "[GHOST] extracting Scripts\\blizzard.j from MPQ file to [" + m_MapCFGPath + "blizzard.j]" );
-					UTIL_FileWrite( m_MapCFGPath + "blizzard.j", (unsigned char *)SubFileData, BytesRead );
-				}
-				else
-					CONSOLE_Print( "[GHOST] warning - unable to extract Scripts\\blizzard.j from MPQ file" );
+                if( MPQ::SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead , NULL ) )
+                {
+                    CONSOLE_Print( "[GHOST] extracting Scripts\\common.j from MPQ file to [" + m_MapCFGPath + "common.j]" );
+                    UTIL_FileWrite( m_MapCFGPath + "common.j", (unsigned char *)SubFileData, BytesRead );
+                }
+                else
+                    CONSOLE_Print( "[GHOST] warning - unable to extract Scripts\\common.j from MPQ file" );
 
-				delete [] SubFileData;
-			}
+                delete [] SubFileData;
+            }
 
-			SFileCloseFile( SubFile );
-		}
-		else
-			CONSOLE_Print( "[GHOST] couldn't find Scripts\\blizzard.j in MPQ file" );
+            MPQ::SFileCloseFile( SubFile );
+        }
+        else
+            CONSOLE_Print( "[GHOST] couldn't find Scripts\\common.j in MPQ file" );
 
-		SFileCloseArchive( PatchMPQ );
-	}
-	else
-		CONSOLE_Print( "[GHOST] warning - unable to load MPQ file [" + PatchMPQFileName + "] - error code " + UTIL_ToString( GetLastError( ) ) );
+        // blizzard.j
+
+        if( MPQ::SFileOpenFileEx( PatchMPQ, "Scripts\\blizzard.j", 0, &SubFile ) )
+        {
+            uint32_t FileLength = MPQ::SFileGetFileSize( SubFile, NULL );
+
+            if( FileLength > 0 && FileLength != 0xFFFFFFFF )
+            {
+                char *SubFileData = new char[FileLength];
+                DWORD BytesRead = 0;
+
+                if( MPQ::SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead , NULL) )
+                {
+                    CONSOLE_Print( "[GHOST] extracting Scripts\\blizzard.j from MPQ file to [" + m_MapCFGPath + "blizzard.j]" );
+                    UTIL_FileWrite( m_MapCFGPath + "blizzard.j", (unsigned char *)SubFileData, BytesRead );
+                }
+                else
+                    CONSOLE_Print( "[GHOST] warning - unable to extract Scripts\\blizzard.j from MPQ file" );
+
+                delete [] SubFileData;
+            }
+
+            MPQ::SFileCloseFile( SubFile );
+        }
+        else
+            CONSOLE_Print( "[GHOST] couldn't find Scripts\\blizzard.j in MPQ file" );
+
+        MPQ::SFileCloseArchive( PatchMPQ );
+    }
+    else
+        CONSOLE_Print( "[GHOST] warning - unable to load MPQ file [" + PatchMPQFileName + "] - error code " + UTIL_ToString( GetLastError( ) ) );
 }
 
 void CGHost :: LoadIPToCountryData( )

@@ -49,6 +49,11 @@ GHost++ depends on cmake, libboost, libgmp, zlib, libbz2, and libmysqlclient. Th
     cmake -G "Unix Makefiles" -B./build -H./
     cd build && make && sudo make install
 
+    cd ../../CascLib/
+    mkdir build
+    cmake -G "Unix Makefiles" -B./build -H./
+    cd build && make && sudo make install
+
 	cd ../../ghost/
 	make
 

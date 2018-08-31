@@ -6,6 +6,7 @@ set(LIBRARY_NAME storm)
 include(CMakeDependentOption)
 
 option(BUILD_SHARED_LIBS "Compile shared libraries" OFF)
+option(USE_WITH_CASC "Compile for simultaneous usage with CascLib" ON)
 option(STORM_BUILD_TESTS
     "Compile StormLib test application" OFF
 #   "BUILD_TESTING" OFF # Stay coherent with CTest variables
@@ -322,7 +323,10 @@ if(BUILD_SHARED_LIBS)
 else()
     message(STATUS "Linking against dependent libraries statically")
 endif()
-
+if(USE_WITH_CASC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTORM_CASC")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTORM_CASC")
+endif()
 install(TARGETS ${LIBRARY_NAME} 
 	RUNTIME DESTINATION bin 
 	LIBRARY DESTINATION lib 

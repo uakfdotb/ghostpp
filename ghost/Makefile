@@ -4,14 +4,15 @@ C++ = g++
 CC = gcc
 DFLAGS = -DGHOST_MYSQL
 OFLAGS = -O3
-LFLAGS = -L. -lbncsutil -lpthread -ldl -lz -lstorm -lmysqlclient -lboost_date_time -lboost_thread -lboost_system -lboost_filesystem -lgmp -lbz2
+LFLAGS = -L. -lbncsutil -lpthread -ldl -lstorm -lcasc -lz -lmysqlclient -lboost_date_time -lboost_system -lboost_filesystem -lgmp -lbz2
 CFLAGS =
 
 ifeq ($(SYSTEM),Darwin)
 DFLAGS += -D__APPLE__
 OFLAGS += -flat_namespace
+LFLAGS += -lboost_thread-mt
 else
-LFLAGS += -lrt
+LFLAGS += -lrt -lboost_thread
 endif
 
 ifeq ($(SYSTEM),FreeBSD)
