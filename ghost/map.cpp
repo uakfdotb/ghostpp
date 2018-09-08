@@ -26,7 +26,7 @@
 #include "map.h"
 
 #define __STORMLIB_SELF__
-#include <stormlib/StormLib.h>
+#include <src/StormLib.h>
 
 #define ROTL(x,n) ((x)<<(n))|((x)>>(32-(n)))	// this won't work with signed types
 #define ROTR(x,n) ((x)>>(n))|((x)<<(32-(n)))	// this won't work with signed types
@@ -52,7 +52,7 @@ CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapPath( 
 	m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 11, 11, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE ) );
 }
 
-CMap :: CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile ) : m_GHost( nGHost )
+CMap :: CMap( CGHost *nGHost, CConfig *CFG, std::string nCFGFile ) : m_GHost( nGHost )
 {
 	Load( CFG, nCFGFile );
 }
@@ -227,14 +227,14 @@ unsigned char CMap :: GetMapLayoutStyle( )
 	return 3;
 }
 
-void CMap :: Load( CConfig *CFG, string nCFGFile )
+void CMap :: Load( CConfig *CFG, std::string nCFGFile )
 {
 	m_Valid = true;
 	m_CFGFile = nCFGFile;
 
 	// load the map data
 
-	m_MapLocalPath = CFG->GetString( "map_localpath", string( ) );
+	m_MapLocalPath = CFG->GetString( "map_localpath", std::string( ) );
 	m_MapData.clear( );
 
 	if( !m_MapLocalPath.empty( ) )
@@ -242,7 +242,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	// load the map MPQ
 
-	string MapMPQFileName = m_GHost->m_MapPath + m_MapLocalPath;
+	std::string MapMPQFileName = m_GHost->m_MapPath + m_MapLocalPath;
 	HANDLE MapMPQ;
 	bool MapMPQReady = false;
 
@@ -278,13 +278,13 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		// calculate map_crc (this is not the CRC) and map_sha1
 		// a big thank you to Strilanc for figuring the map_crc algorithm out
 
-		string CommonJ = UTIL_FileRead( m_GHost->m_MapCFGPath + "common.j" );
+		std::string CommonJ = UTIL_FileRead( m_GHost->m_MapCFGPath + "common.j" );
 
 		if( CommonJ.empty( ) )
 			CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - unable to read file [" + m_GHost->m_MapCFGPath + "common.j]" );
 		else
 		{
-			string BlizzardJ = UTIL_FileRead( m_GHost->m_MapCFGPath + "blizzard.j" );
+			std::string BlizzardJ = UTIL_FileRead( m_GHost->m_MapCFGPath + "blizzard.j" );
 
 			if( BlizzardJ.empty( ) )
 				CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - unable to read file [" + m_GHost->m_MapCFGPath + "blizzard.j]" );
@@ -313,7 +313,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							char *SubFileData = new char[FileLength];
 							DWORD BytesRead = 0;
 
-							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead,0) )
 							{
 								CONSOLE_Print( "[MAP] overriding default common.j with map copy while calculating map_crc/sha1" );
 								OverrodeCommonJ = true;
@@ -349,7 +349,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							char *SubFileData = new char[FileLength];
 							DWORD BytesRead = 0;
 
-							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead,0) )
 							{
 								CONSOLE_Print( "[MAP] overriding default blizzard.j with map copy while calculating map_crc/sha1" );
 								OverrodeBlizzardJ = true;
@@ -376,7 +376,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 				if( MapMPQReady )
 				{
-					vector<string> FileList;
+					std::vector<std::string> FileList;
 					FileList.push_back( "war3map.j" );
 					FileList.push_back( "scripts\\war3map.j" );
 					FileList.push_back( "war3map.w3e" );
@@ -389,7 +389,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 					FileList.push_back( "war3map.w3q" );
 					bool FoundScript = false;
 
-					for( vector<string> :: iterator i = FileList.begin( ); i != FileList.end( ); ++i )
+					for( std::vector<std::string> :: iterator i = FileList.begin( ); i != FileList.end( ); ++i )
 					{
 						// don't use scripts\war3map.j if we've already used war3map.j (yes, some maps have both but only war3map.j is used)
 
@@ -407,7 +407,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								char *SubFileData = new char[FileLength];
 								DWORD BytesRead = 0;
 
-								if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+								if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead,0 ) )
 								{
 									if( *i == "war3map.j" || *i == "scripts\\war3map.j" )
 										FoundScript = true;
@@ -458,7 +458,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	uint32_t MapNumPlayers = 0;
 	uint32_t MapNumTeams = 0;
 	uint32_t MapFilterType = MAPFILTER_TYPE_SCENARIO;
-	vector<CGameSlot> Slots;
+	std::vector<CGameSlot> Slots;
 
 	if( !m_MapData.empty( ) )
 	{
@@ -475,13 +475,13 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 					char *SubFileData = new char[FileLength];
 					DWORD BytesRead = 0;
 
-					if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+					if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ,0) )
 					{
-						istringstream ISS( string( SubFileData, BytesRead ) );
+						std::istringstream ISS( std::string( SubFileData, BytesRead ) );
 
 						// war3map.w3i format found at http://www.wc3campaigns.net/tools/specs/index.html by Zepir/PitzerMike
 
-						string GarbageString;
+						std::string GarbageString;
 						uint32_t FileFormat;
 						uint32_t RawMapWidth;
 						uint32_t RawMapHeight;
@@ -493,60 +493,60 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 						if( FileFormat == 18 || FileFormat == 25 )
 						{
-							ISS.seekg( 4, ios :: cur );					// number of saves
+							ISS.seekg( 4, std::ios :: cur );					// number of saves
 							ISS.read( (char *)&EditorVersion, 4 );		// editor version
-							getline( ISS, GarbageString, '\0' );		// map name
-							getline( ISS, GarbageString, '\0' );		// map author
-							getline( ISS, GarbageString, '\0' );		// map description
-							getline( ISS, GarbageString, '\0' );		// players recommended
-							ISS.seekg( 32, ios :: cur );				// camera bounds
-							ISS.seekg( 16, ios :: cur );				// camera bounds complements
+							std::getline( ISS, GarbageString, '\0' );		// map name
+							std::getline( ISS, GarbageString, '\0' );		// map author
+							std::getline( ISS, GarbageString, '\0' );		// map description
+							std::getline( ISS, GarbageString, '\0' );		// players recommended
+							ISS.seekg( 32, std::ios :: cur );				// camera bounds
+							ISS.seekg( 16, std::ios :: cur );				// camera bounds complements
 							ISS.read( (char *)&RawMapWidth, 4 );		// map width
 							ISS.read( (char *)&RawMapHeight, 4 );		// map height
 							ISS.read( (char *)&RawMapFlags, 4 );		// flags
-							ISS.seekg( 1, ios :: cur );					// map main ground type
+							ISS.seekg( 1, std::ios :: cur );					// map main ground type
 
 							if( FileFormat == 18 )
-								ISS.seekg( 4, ios :: cur );				// campaign background number
+								ISS.seekg( 4, std::ios :: cur );				// campaign background number
 							else if( FileFormat == 25 )
 							{
-								ISS.seekg( 4, ios :: cur );				// loading screen background number
-								getline( ISS, GarbageString, '\0' );	// path of custom loading screen model
+								ISS.seekg( 4, std::ios :: cur );				// loading screen background number
+								std::getline( ISS, GarbageString, '\0' );	// path of custom loading screen model
 							}
 
-							getline( ISS, GarbageString, '\0' );		// map loading screen text
-							getline( ISS, GarbageString, '\0' );		// map loading screen title
-							getline( ISS, GarbageString, '\0' );		// map loading screen subtitle
+							std::getline( ISS, GarbageString, '\0' );		// map loading screen text
+							std::getline( ISS, GarbageString, '\0' );		// map loading screen title
+							std::getline( ISS, GarbageString, '\0' );		// map loading screen subtitle
 
 							if( FileFormat == 18 )
-								ISS.seekg( 4, ios :: cur );				// map loading screen number
+								ISS.seekg( 4, std::ios :: cur );				// map loading screen number
 							else if( FileFormat == 25 )
 							{
-								ISS.seekg( 4, ios :: cur );				// used game data set
-								getline( ISS, GarbageString, '\0' );	// prologue screen path
+								ISS.seekg( 4, std::ios :: cur );				// used game data set
+								std::getline( ISS, GarbageString, '\0' );	// prologue screen path
 							}
-
-							getline( ISS, GarbageString, '\0' );		// prologue screen text
-							getline( ISS, GarbageString, '\0' );		// prologue screen title
-							getline( ISS, GarbageString, '\0' );		// prologue screen subtitle
+							// std:: not need but added
+							std::getline( ISS, GarbageString, '\0' );		// prologue screen text
+							std::getline( ISS, GarbageString, '\0' );		// prologue screen title
+							std::getline( ISS, GarbageString, '\0' );		// prologue screen subtitle
 
 							if( FileFormat == 25 )
 							{
-								ISS.seekg( 4, ios :: cur );				// uses terrain fog
-								ISS.seekg( 4, ios :: cur );				// fog start z height
-								ISS.seekg( 4, ios :: cur );				// fog end z height
-								ISS.seekg( 4, ios :: cur );				// fog density
-								ISS.seekg( 1, ios :: cur );				// fog red value
-								ISS.seekg( 1, ios :: cur );				// fog green value
-								ISS.seekg( 1, ios :: cur );				// fog blue value
-								ISS.seekg( 1, ios :: cur );				// fog alpha value
-								ISS.seekg( 4, ios :: cur );				// global weather id
-								getline( ISS, GarbageString, '\0' );	// custom sound environment
-								ISS.seekg( 1, ios :: cur );				// tileset id of the used custom light environment
-								ISS.seekg( 1, ios :: cur );				// custom water tinting red value
-								ISS.seekg( 1, ios :: cur );				// custom water tinting green value
-								ISS.seekg( 1, ios :: cur );				// custom water tinting blue value
-								ISS.seekg( 1, ios :: cur );				// custom water tinting alpha value
+								ISS.seekg( 4, std::ios :: cur );				// uses terrain fog
+								ISS.seekg( 4, std::ios :: cur );				// fog start z height
+								ISS.seekg( 4, std::ios :: cur );				// fog end z height
+								ISS.seekg( 4, std::ios :: cur );				// fog density
+								ISS.seekg( 1, std::ios :: cur );				// fog red value
+								ISS.seekg( 1, std::ios :: cur );				// fog green value
+								ISS.seekg( 1, std::ios :: cur );				// fog blue value
+								ISS.seekg( 1, std::ios :: cur );				// fog alpha value
+								ISS.seekg( 4, std::ios :: cur );				// global weather id
+								std::getline( ISS, GarbageString, '\0' );	// custom sound environment
+								ISS.seekg( 1, std::ios :: cur );				// tileset id of the used custom light environment
+								ISS.seekg( 1, std::ios :: cur );				// custom water tinting red value
+								ISS.seekg( 1, std::ios :: cur );				// custom water tinting green value
+								ISS.seekg( 1, std::ios :: cur );				// custom water tinting blue value
+								ISS.seekg( 1, std::ios :: cur );				// custom water tinting alpha value
 							}
 
 							ISS.read( (char *)&RawMapNumPlayers, 4 );	// number of players
@@ -590,12 +590,12 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								else
 									Slot.SetRace( SLOTRACE_RANDOM );
 
-								ISS.seekg( 4, ios :: cur );				// fixed start position
-								getline( ISS, GarbageString, '\0' );	// player name
-								ISS.seekg( 4, ios :: cur );				// start position x
-								ISS.seekg( 4, ios :: cur );				// start position y
-								ISS.seekg( 4, ios :: cur );				// ally low priorities
-								ISS.seekg( 4, ios :: cur );				// ally high priorities
+								ISS.seekg( 4, std::ios :: cur );				// fixed start position
+								std::getline( ISS, GarbageString, '\0' );	// player name
+								ISS.seekg( 4, std::ios :: cur );				// start position x
+								ISS.seekg( 4, std::ios :: cur );				// start position y
+								ISS.seekg( 4, std::ios :: cur );				// ally low priorities
+								ISS.seekg( 4, std::ios :: cur );				// ally high priorities
 
 								if( Slot.GetSlotStatus( ) != SLOTSTATUS_CLOSED )
 									Slots.push_back( Slot );
@@ -615,7 +615,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								{
 									if( PlayerMask & 1 )
 									{
-										for( vector<CGameSlot> :: iterator k = Slots.begin( ); k != Slots.end( ); ++k )
+										for( std::vector<CGameSlot> :: iterator k = Slots.begin( ); k != Slots.end( ); ++k )
 										{
 											if( (*k).GetColour( ) == j )
 												(*k).SetTeam( i );
@@ -625,7 +625,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 									PlayerMask >>= 1;
 								}
 
-								getline( ISS, GarbageString, '\0' );	// team name
+								std::getline( ISS, GarbageString, '\0' );	// team name
 							}
 
 							// the bot only cares about the following options: melee, fixed player settings, custom forces
@@ -644,7 +644,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 							uint32_t SlotNum = 1;
 
-							for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
+							for( std::vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
 							{
 								CONSOLE_Print( "[MAP] calculated map_slot" + UTIL_ToString( SlotNum ) + " = " + UTIL_ByteArrayToDecString( (*i).GetByteArray( ) ) );
 								++SlotNum;
@@ -658,7 +658,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 								unsigned char Team = 0;
 
-								for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
+								for( std::vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
 								{
 									(*i).SetTeam( Team++ );
 									(*i).SetRace( SLOTRACE_RANDOM );
@@ -671,7 +671,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							{
 								// make races selectable
 
-								for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
+								for( std::vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
 									(*i).SetRace( (*i).GetRace( ) | SLOTRACE_SELECTABLE );
 							}
 						}
@@ -698,44 +698,44 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	if( MapMPQReady )
 		SFileCloseArchive( MapMPQ );
 
-	m_MapPath = CFG->GetString( "map_path", string( ) );
+	m_MapPath = CFG->GetString( "map_path", std::string( ) );
 
 	if( MapSize.empty( ) )
-		MapSize = UTIL_ExtractNumbers( CFG->GetString( "map_size", string( ) ), 4 );
+		MapSize = UTIL_ExtractNumbers( CFG->GetString( "map_size", std::string( ) ), 4 );
 	else if( CFG->Exists( "map_size" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_size with config value map_size = " + CFG->GetString( "map_size", string( ) ) );
-		MapSize = UTIL_ExtractNumbers( CFG->GetString( "map_size", string( ) ), 4 );
+		CONSOLE_Print( "[MAP] overriding calculated map_size with config value map_size = " + CFG->GetString( "map_size", std::string( ) ) );
+		MapSize = UTIL_ExtractNumbers( CFG->GetString( "map_size", std::string( ) ), 4 );
 	}
 
 	m_MapSize = MapSize;
 
 	if( MapInfo.empty( ) )
-		MapInfo = UTIL_ExtractNumbers( CFG->GetString( "map_info", string( ) ), 4 );
+		MapInfo = UTIL_ExtractNumbers( CFG->GetString( "map_info", std::string( ) ), 4 );
 	else if( CFG->Exists( "map_info" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_info with config value map_info = " + CFG->GetString( "map_info", string( ) ) );
-		MapInfo = UTIL_ExtractNumbers( CFG->GetString( "map_info", string( ) ), 4 );
+		CONSOLE_Print( "[MAP] overriding calculated map_info with config value map_info = " + CFG->GetString( "map_info", std::string( ) ) );
+		MapInfo = UTIL_ExtractNumbers( CFG->GetString( "map_info", std::string( ) ), 4 );
 	}
 
 	m_MapInfo = MapInfo;
 
 	if( MapCRC.empty( ) )
-		MapCRC = UTIL_ExtractNumbers( CFG->GetString( "map_crc", string( ) ), 4 );
+		MapCRC = UTIL_ExtractNumbers( CFG->GetString( "map_crc", std::string( ) ), 4 );
 	else if( CFG->Exists( "map_crc" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_crc with config value map_crc = " + CFG->GetString( "map_crc", string( ) ) );
-		MapCRC = UTIL_ExtractNumbers( CFG->GetString( "map_crc", string( ) ), 4 );
+		CONSOLE_Print( "[MAP] overriding calculated map_crc with config value map_crc = " + CFG->GetString( "map_crc", std::string( ) ) );
+		MapCRC = UTIL_ExtractNumbers( CFG->GetString( "map_crc", std::string( ) ), 4 );
 	}
 
 	m_MapCRC = MapCRC;
 
 	if( MapSHA1.empty( ) )
-		MapSHA1 = UTIL_ExtractNumbers( CFG->GetString( "map_sha1", string( ) ), 20 );
+		MapSHA1 = UTIL_ExtractNumbers( CFG->GetString( "map_sha1", std::string( ) ), 20 );
 	else if( CFG->Exists( "map_sha1" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_sha1 with config value map_sha1 = " + CFG->GetString( "map_sha1", string( ) ) );
-		MapSHA1 = UTIL_ExtractNumbers( CFG->GetString( "map_sha1", string( ) ), 20 );
+		CONSOLE_Print( "[MAP] overriding calculated map_sha1 with config value map_sha1 = " + CFG->GetString( "map_sha1", std::string( ) ) );
+		MapSHA1 = UTIL_ExtractNumbers( CFG->GetString( "map_sha1", std::string( ) ), 20 );
 	}
 
 	m_MapSHA1 = MapSHA1;
@@ -747,7 +747,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( CFG->Exists( "map_filter_type" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_filter_type with config value map_filter_type = " + CFG->GetString( "map_filter_type", string( ) ) );
+		CONSOLE_Print( "[MAP] overriding calculated map_filter_type with config value map_filter_type = " + CFG->GetString( "map_filter_type", std::string( ) ) );
 		MapFilterType = CFG->GetInt( "map_filter_type", MAPFILTER_TYPE_SCENARIO );
 	}
 
@@ -762,35 +762,35 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		MapOptions = CFG->GetInt( "map_options", 0 );
 	else if( CFG->Exists( "map_options" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_options with config value map_options = " + CFG->GetString( "map_options", string( ) ) );
+		CONSOLE_Print( "[MAP] overriding calculated map_options with config value map_options = " + CFG->GetString( "map_options", std::string( ) ) );
 		MapOptions = CFG->GetInt( "map_options", 0 );
 	}
 
 	m_MapOptions = MapOptions;
 
 	if( MapWidth.empty( ) )
-		MapWidth = UTIL_ExtractNumbers( CFG->GetString( "map_width", string( ) ), 2 );
+		MapWidth = UTIL_ExtractNumbers( CFG->GetString( "map_width", std::string( ) ), 2 );
 	else if( CFG->Exists( "map_width" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_width with config value map_width = " + CFG->GetString( "map_width", string( ) ) );
-		MapWidth = UTIL_ExtractNumbers( CFG->GetString( "map_width", string( ) ), 2 );
+		CONSOLE_Print( "[MAP] overriding calculated map_width with config value map_width = " + CFG->GetString( "map_width", std::string( ) ) );
+		MapWidth = UTIL_ExtractNumbers( CFG->GetString( "map_width", std::string( ) ), 2 );
 	}
 
 	m_MapWidth = MapWidth;
 
 	if( MapHeight.empty( ) )
-		MapHeight = UTIL_ExtractNumbers( CFG->GetString( "map_height", string( ) ), 2 );
+		MapHeight = UTIL_ExtractNumbers( CFG->GetString( "map_height", std::string( ) ), 2 );
 	else if( CFG->Exists( "map_height" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_height with config value map_height = " + CFG->GetString( "map_height", string( ) ) );
-		MapHeight = UTIL_ExtractNumbers( CFG->GetString( "map_height", string( ) ), 2 );
+		CONSOLE_Print( "[MAP] overriding calculated map_height with config value map_height = " + CFG->GetString( "map_height", std::string( ) ) );
+		MapHeight = UTIL_ExtractNumbers( CFG->GetString( "map_height", std::string( ) ), 2 );
 	}
 
 	m_MapHeight = MapHeight;
-	m_MapType = CFG->GetString( "map_type", string( ) );
-	m_MapMatchMakingCategory = CFG->GetString( "map_matchmakingcategory", string( ) );
-	m_MapStatsW3MMDCategory = CFG->GetString( "map_statsw3mmdcategory", string( ) );
-	m_MapDefaultHCL = CFG->GetString( "map_defaulthcl", string( ) );
+	m_MapType = CFG->GetString( "map_type", std::string( ) );
+	m_MapMatchMakingCategory = CFG->GetString( "map_matchmakingcategory", std::string( ) );
+	m_MapStatsW3MMDCategory = CFG->GetString( "map_statsw3mmdcategory", std::string( ) );
+	m_MapDefaultHCL = CFG->GetString( "map_defaulthcl", std::string( ) );
 	m_MapDefaultPlayerScore = CFG->GetInt( "map_defaultplayerscore", 1000 );
 	m_MapLoadInGame = CFG->GetInt( "map_loadingame", 0 ) == 0 ? false : true;
 
@@ -798,7 +798,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		MapNumPlayers = CFG->GetInt( "map_numplayers", 0 );
 	else if( CFG->Exists( "map_numplayers" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_numplayers with config value map_numplayers = " + CFG->GetString( "map_numplayers", string( ) ) );
+		CONSOLE_Print( "[MAP] overriding calculated map_numplayers with config value map_numplayers = " + CFG->GetString( "map_numplayers", std::string( ) ) );
 		MapNumPlayers = CFG->GetInt( "map_numplayers", 0 );
 	}
 
@@ -808,7 +808,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		MapNumTeams = CFG->GetInt( "map_numteams", 0 );
 	else if( CFG->Exists( "map_numteams" ) )
 	{
-		CONSOLE_Print( "[MAP] overriding calculated map_numteams with config value map_numteams = " + CFG->GetString( "map_numteams", string( ) ) );
+		CONSOLE_Print( "[MAP] overriding calculated map_numteams with config value map_numteams = " + CFG->GetString( "map_numteams", std::string( ) ) );
 		MapNumTeams = CFG->GetInt( "map_numteams", 0 );
 	}
 
@@ -818,7 +818,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	{
 	for( uint32_t Slot = 1; Slot <= MAX_SLOTS; ++Slot )
 		{
-			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
+			std::string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), std::string( ) );
 
 			if( SlotString.empty( ) )
 				break;
@@ -834,7 +834,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 		for( uint32_t Slot = 1; Slot <= MAX_SLOTS; ++Slot )
 		{
-			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
+			std::string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), std::string( ) );
 
 			if( SlotString.empty( ) )
 				break;
@@ -852,7 +852,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	{
 		CONSOLE_Print( "[MAP] forcing races to random" );
 
-		for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
+		for( std::vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
 			(*i).SetRace( SLOTRACE_RANDOM );
 	}
 
@@ -885,7 +885,7 @@ void CMap :: CheckValid( )
 	else if( m_MapPath[0] == '\\' )
 		CONSOLE_Print( "[MAP] warning - map_path starts with '\\', any replays saved by GHost++ will not be playable in Warcraft III" );
 
-	if( m_MapPath.find( '/' ) != string :: npos )
+	if( m_MapPath.find( '/' ) != std::string :: npos )
 		CONSOLE_Print( "[MAP] warning - map_path contains forward slashes '/' but it must use Windows style back slashes '\\'" );
 
 	if( m_MapSize.size( ) != 4 )

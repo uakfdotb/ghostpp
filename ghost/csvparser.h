@@ -34,20 +34,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <string>
-using namespace std;
 
 class CSVParser {
  private:
-  string m_sData;
-  string::size_type m_nPos;
+  std::string m_sData;
+  std::string::size_type m_nPos;
   void SkipSpaces(void);
  public:
   CSVParser();
-  const CSVParser & operator << (const string &sIn);
+  const CSVParser & operator << (const std::string &sIn);
   const CSVParser & operator << (const char *sIn);
   CSVParser & operator >> (int &nOut);
   CSVParser & operator >> (double &nOut);
-  CSVParser & operator >> (string &sOut);
+  CSVParser & operator >> (std::string &sOut);
 };
 
 #endif

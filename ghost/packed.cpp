@@ -77,7 +77,7 @@ CPacked :: ~CPacked( )
 	delete m_CRC;
 }
 
-void CPacked :: Load( string fileName, bool allBlocks )
+void CPacked :: Load( std::string fileName, bool allBlocks )
 {
 	m_Valid = true;
 	CONSOLE_Print( "[PACKED] loading data from file [" + fileName + "]" );
@@ -85,7 +85,7 @@ void CPacked :: Load( string fileName, bool allBlocks )
 	Decompress( allBlocks );
 }
 
-bool CPacked :: Save( bool TFT, string fileName )
+bool CPacked :: Save( bool TFT, std::string fileName )
 {
 	Compress( TFT );
 
@@ -98,7 +98,7 @@ bool CPacked :: Save( bool TFT, string fileName )
 		return false;
 }
 
-bool CPacked :: Extract( string inFileName, string outFileName )
+bool CPacked :: Extract( std::string inFileName, std::string outFileName )
 {
 	m_Valid = true;
 	CONSOLE_Print( "[PACKED] extracting data from file [" + inFileName + "] to file [" + outFileName + "]" );
@@ -111,7 +111,7 @@ bool CPacked :: Extract( string inFileName, string outFileName )
 		return false;
 }
 
-bool CPacked :: Pack( bool TFT, string inFileName, string outFileName )
+bool CPacked :: Pack( bool TFT, std::string inFileName, std::string outFileName )
 {
 	m_Valid = true;
 	CONSOLE_Print( "[PACKET] packing data from file [" + inFileName + "] to file [" + outFileName + "]" );
@@ -131,12 +131,12 @@ void CPacked :: Decompress( bool allBlocks )
 	// format found at http://www.thehelper.net/forums/showthread.php?t=42787
 
 	m_Decompressed.clear( );
-	istringstream ISS( m_Compressed );
-	string GarbageString;
+	std::istringstream ISS( m_Compressed );
+	std::string GarbageString;
 
 	// read header
 
-	getline( ISS, GarbageString, '\0' );
+	std::getline( ISS, GarbageString, '\0' );
 
 	if( GarbageString != "Warcraft III recorded game\x01A" )
 	{
@@ -153,8 +153,8 @@ void CPacked :: Decompress( bool allBlocks )
 
 	if( m_HeaderVersion == 0 )
 	{
-		ISS.seekg( 2, ios :: cur );					// unknown
-		ISS.seekg( 2, ios :: cur );					// version number
+		ISS.seekg( 2, std::ios :: cur );					// unknown
+		ISS.seekg( 2, std::ios :: cur );					// version number
 
 		CONSOLE_Print( "[PACKED] header version is too old" );
 		m_Valid = false;
@@ -169,7 +169,7 @@ void CPacked :: Decompress( bool allBlocks )
 	ISS.read( (char *)&m_BuildNumber, 2 );			// build number
 	ISS.read( (char *)&m_Flags, 2 );				// flags
 	ISS.read( (char *)&m_ReplayLength, 4 );			// replay length
-	ISS.seekg( 4, ios :: cur );						// CRC
+	ISS.seekg( 4, std::ios :: cur );						// CRC
 
 	if( ISS.fail( ) )
 	{
@@ -194,7 +194,7 @@ void CPacked :: Decompress( bool allBlocks )
 
 		ISS.read( (char *)&BlockCompressed, 2 );	// block compressed size
 		ISS.read( (char *)&BlockDecompressed, 2 );	// block decompressed size
-		ISS.seekg( 4, ios :: cur );					// checksum
+		ISS.seekg( 4, std::ios :: cur );					// checksum
 
 		if( ISS.fail( ) )
 		{
@@ -242,7 +242,7 @@ void CPacked :: Decompress( bool allBlocks )
 			return;
 		}
 
-		m_Decompressed += string( (char *)DecompressedData, BlockDecompressedLong );
+		m_Decompressed += std::string( (char *)DecompressedData, BlockDecompressedLong );
 		delete [] DecompressedData;
 		delete [] CompressedData;
 
@@ -282,10 +282,10 @@ void CPacked :: Compress( bool TFT )
 	// use a buffer of size 8213 bytes because in the worst case zlib will grow the data 0.1% plus 12 bytes
 
 	uint32_t CompressedSize = 0;
-	string Padded = m_Decompressed;
+	std::string Padded = m_Decompressed;
 	Padded.append( 8192 - ( Padded.size( ) % 8192 ), 0 );
-	vector<string> CompressedBlocks;
-	string :: size_type Position = 0;
+	std::vector<std::string> CompressedBlocks;
+	std::string :: size_type Position = 0;
 	unsigned char *CompressedData = new unsigned char[8213];
 
 	while( Position < Padded.size( ) )
@@ -301,7 +301,7 @@ void CPacked :: Compress( bool TFT )
 			return;
 		}
 
-		CompressedBlocks.push_back( string( (char *)CompressedData, BlockCompressedLong ) );
+		CompressedBlocks.push_back( std::string( (char *)CompressedData, BlockCompressedLong ) );
 		CompressedSize += BlockCompressedLong;
 		Position += 8192;
 	}
@@ -349,7 +349,7 @@ void CPacked :: Compress( bool TFT )
 
 	// calculate header CRC
 
-	string HeaderString = string( Header.begin( ), Header.end( ) );
+	std::string HeaderString = std::string( Header.begin( ), Header.end( ) );
 	uint32_t CRC = m_CRC->FullCRC( (unsigned char *)HeaderString.c_str( ), HeaderString.size( ) );
 
 	// overwrite the (currently zero) header CRC with the calculated CRC
@@ -359,11 +359,11 @@ void CPacked :: Compress( bool TFT )
 
 	// append header
 
-	m_Compressed += string( Header.begin( ), Header.end( ) );
+	m_Compressed += std::string( Header.begin( ), Header.end( ) );
 
 	// append blocks
 
-	for( vector<string> :: iterator i = CompressedBlocks.begin( ); i != CompressedBlocks.end( ); ++i )
+	for( std::vector<std::string> :: iterator i = CompressedBlocks.begin( ); i != CompressedBlocks.end( ); ++i )
 	{
 		BYTEARRAY BlockHeader;
 		UTIL_AppendByteArray( BlockHeader, (uint16_t)(*i).size( ), false );
@@ -374,7 +374,7 @@ void CPacked :: Compress( bool TFT )
 
 		// calculate block header CRC
 
-		string BlockHeaderString = string( BlockHeader.begin( ), BlockHeader.end( ) );
+		std::string BlockHeaderString = std::string( BlockHeader.begin( ), BlockHeader.end( ) );
 		uint32_t CRC1 = m_CRC->FullCRC( (unsigned char *)BlockHeaderString.c_str( ), BlockHeaderString.size( ) );
 		CRC1 = CRC1 ^ ( CRC1 >> 16 );
 		uint32_t CRC2 = m_CRC->FullCRC( (unsigned char *)(*i).c_str( ), (*i).size( ) );
@@ -388,7 +388,7 @@ void CPacked :: Compress( bool TFT )
 
 		// append block header and data
 
-		m_Compressed += string( BlockHeader.begin( ), BlockHeader.end( ) );
+		m_Compressed += std::string( BlockHeader.begin( ), BlockHeader.end( ) );
 		m_Compressed += *i;
 	}
 }

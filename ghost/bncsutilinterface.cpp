@@ -28,7 +28,7 @@
 // CBNCSUtilInterface
 //
 
-CBNCSUtilInterface :: CBNCSUtilInterface( string userName, string userPassword )
+CBNCSUtilInterface :: CBNCSUtilInterface( std::string userName, std::string userPassword )
 {
 	// m_nls = (void *)nls_init( userName.c_str( ), userPassword.c_str( ) );
 	m_NLS = new NLS( userName, userPassword );
@@ -40,7 +40,7 @@ CBNCSUtilInterface :: ~CBNCSUtilInterface( )
 	delete (NLS *)m_NLS;
 }
 
-void CBNCSUtilInterface :: Reset( string userName, string userPassword )
+void CBNCSUtilInterface :: Reset( std::string userName, std::string userPassword )
 {
 	// nls_free( (nls_t *)m_nls );
 	// m_nls = (void *)nls_init( userName.c_str( ), userPassword.c_str( ) );
@@ -48,11 +48,11 @@ void CBNCSUtilInterface :: Reset( string userName, string userPassword )
 	m_NLS = new NLS( userName, userPassword );
 }
 
-bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( bool TFT, uint32_t war3Version, string war3Path, string keyROC, string keyTFT, string valueStringFormula, string mpqFileName, BYTEARRAY clientToken, BYTEARRAY serverToken )
+bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( bool TFT, uint32_t war3Version, std::string war3Path, std::string keyROC, std::string keyTFT, std::string valueStringFormula, std::string mpqFileName, BYTEARRAY clientToken, BYTEARRAY serverToken )
 {
 	// set m_EXEVersion, m_EXEVersionHash, m_EXEInfo, m_InfoROC, m_InfoTFT
 
-	string FileWar3EXE = war3Path + "Warcraft III.exe";
+	std::string FileWar3EXE = war3Path + "Warcraft III.exe";
 
 	if( !UTIL_FileExists( FileWar3EXE ) )
 		FileWar3EXE = war3Path + "warcraft.exe";
@@ -65,7 +65,7 @@ bool CBNCSUtilInterface :: HELP_SID_AUTH_CHECK( bool TFT, uint32_t war3Version, 
 		MissingFile = true;
 	}
 
-	string FileStormDLL, FileGameDLL;
+	std::string FileStormDLL, FileGameDLL;
 
 	if( war3Version <= 28 )
 	{
@@ -149,13 +149,13 @@ bool CBNCSUtilInterface :: HELP_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY salt, BYTE
 	// set m_M1
 
 	char buf[20];
-	// nls_get_M1( (nls_t *)m_nls, buf, string( serverKey.begin( ), serverKey.end( ) ).c_str( ), string( salt.begin( ), salt.end( ) ).c_str( ) );
-	( (NLS *)m_NLS )->getClientSessionKey( buf, string( salt.begin( ), salt.end( ) ).c_str( ), string( serverKey.begin( ), serverKey.end( ) ).c_str( ) );
+	// nls_get_M1( (nls_t *)m_nls, buf, std::string( serverKey.begin( ), serverKey.end( ) ).c_str( ), std::string( salt.begin( ), salt.end( ) ).c_str( ) );
+	( (NLS *)m_NLS )->getClientSessionKey( buf, std::string( salt.begin( ), salt.end( ) ).c_str( ), std::string( serverKey.begin( ), serverKey.end( ) ).c_str( ) );
 	m_M1 = UTIL_CreateByteArray( (unsigned char *)buf, 20 );
 	return true;
 }
 
-bool CBNCSUtilInterface :: HELP_PvPGNPasswordHash( string userPassword )
+bool CBNCSUtilInterface :: HELP_PvPGNPasswordHash( std::string userPassword )
 {
 	// set m_PvPGNPasswordHash
 
@@ -165,7 +165,7 @@ bool CBNCSUtilInterface :: HELP_PvPGNPasswordHash( string userPassword )
 	return true;
 }
 
-BYTEARRAY CBNCSUtilInterface :: CreateKeyInfo( string key, uint32_t clientToken, uint32_t serverToken )
+BYTEARRAY CBNCSUtilInterface :: CreateKeyInfo( std::string key, uint32_t clientToken, uint32_t serverToken )
 {
 	unsigned char Zeros[] = { 0, 0, 0, 0 };
 	BYTEARRAY KeyInfo;

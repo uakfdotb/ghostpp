@@ -152,7 +152,7 @@ void CSHA1::Final()
 	Transform(m_state, m_buffer);
 }
 
-// Get the final hash as a pre-formatted string
+// Get the final hash as a pre-formatted std::string
 void CSHA1::ReportHash(char *szReport, unsigned char uReportType)
 {
 	/*

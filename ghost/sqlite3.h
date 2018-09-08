@@ -84,7 +84,7 @@ extern "C" {
 ** CAPI3REF: Compile-Time Library Version Numbers
 **
 ** ^(The [SQLITE_VERSION] C preprocessor macro in the sqlite3.h header
-** evaluates to a string literal that is the SQLite version in the
+** evaluates to a std::string literal that is the SQLite version in the
 ** format "X.Y.Z" where X is the major version number (always 3 for
 ** SQLite3) and Y is the minor version number and Z is the release number.)^
 ** ^(The [SQLITE_VERSION_NUMBER] C preprocessor macro resolves to an integer
@@ -98,9 +98,9 @@ extern "C" {
 ** Since version 3.6.18, SQLite source code has been stored in the
 ** <a href="http://www.fossil-scm.org/">Fossil configuration management
 ** system</a>.  ^The SQLITE_SOURCE_ID macro evaluates to
-** a string which identifies a particular check-in of SQLite
+** a std::string which identifies a particular check-in of SQLite
 ** within its configuration management system.  ^The SQLITE_SOURCE_ID
-** string contains the date and time of the check-in (UTC) and an SHA1
+** std::string contains the date and time of the check-in (UTC) and an SHA1
 ** hash of the entire source tree.
 **
 ** See also: [sqlite3_libversion()],
@@ -129,14 +129,14 @@ extern "C" {
 ** assert( strcmp(sqlite3_libversion(),SQLITE_VERSION)==0 );
 ** </pre></blockquote>)^
 **
-** ^The sqlite3_version[] string constant contains the text of [SQLITE_VERSION]
+** ^The sqlite3_version[] std::string constant contains the text of [SQLITE_VERSION]
 ** macro.  ^The sqlite3_libversion() function returns a pointer to the
-** to the sqlite3_version[] string constant.  The sqlite3_libversion()
+** to the sqlite3_version[] std::string constant.  The sqlite3_libversion()
 ** function is provided for use in DLLs since DLL users usually do not have
-** direct access to string constants within the DLL.  ^The
+** direct access to std::string constants within the DLL.  ^The
 ** sqlite3_libversion_number() function returns an integer equal to
 ** [SQLITE_VERSION_NUMBER].  ^The sqlite3_sourceid() function returns 
-** a pointer to a string constant whose value is the same as the 
+** a pointer to a std::string constant whose value is the same as the 
 ** [SQLITE_SOURCE_ID] C preprocessor macro.
 **
 ** See also: [sqlite_version()] and [sqlite_source_id()].
@@ -156,7 +156,7 @@ SQLITE_API int sqlite3_libversion_number(void);
 **
 ** ^The sqlite3_compileoption_get() function allows iterating
 ** over the list of options that were defined at compile time by
-** returning the N-th compile time option string.  ^If N is out of range,
+** returning the N-th compile time option std::string.  ^If N is out of range,
 ** sqlite3_compileoption_get() returns a NULL pointer.  ^The SQLITE_ 
 ** prefix is omitted from any strings returned by 
 ** sqlite3_compileoption_get().
@@ -322,7 +322,7 @@ typedef int (*sqlite3_callback)(void*,int,char**, char**);
 ** from [sqlite3_malloc()] and passed back through the 5th parameter.
 ** To avoid memory leaks, the application should invoke [sqlite3_free()]
 ** on error message strings returned through the 5th parameter of
-** of sqlite3_exec() after the error message string is no longer needed.
+** of sqlite3_exec() after the error message std::string is no longer needed.
 ** ^If the 5th parameter to sqlite3_exec() is not NULL and no errors
 ** occur, then sqlite3_exec() sets the pointer in its 5th parameter to
 ** NULL before returning.
@@ -335,14 +335,14 @@ typedef int (*sqlite3_callback)(void*,int,char**, char**);
 ** number of columns in the result.  ^The 3rd argument to the sqlite3_exec()
 ** callback is an array of pointers to strings obtained as if from
 ** [sqlite3_column_text()], one for each column.  ^If an element of a
-** result row is NULL then the corresponding string pointer for the
+** result row is NULL then the corresponding std::string pointer for the
 ** sqlite3_exec() callback is a NULL pointer.  ^The 4th argument to the
 ** sqlite3_exec() callback is an array of pointers to strings where each
 ** entry represents the name of corresponding result column as obtained
 ** from [sqlite3_column_name()].
 **
 ** ^If the 2nd parameter to sqlite3_exec() is a NULL pointer, a pointer
-** to an empty string, or a pointer that contains only whitespace and/or 
+** to an empty std::string, or a pointer that contains only whitespace and/or 
 ** SQL comments, then no SQL statements are evaluated and the database
 ** is not changed.
 **
@@ -498,7 +498,7 @@ SQLITE_API int sqlite3_exec(
 ** CAPI3REF: Device Characteristics
 **
 ** The xDeviceCharacteristics method of the [sqlite3_io_methods]
-** object returns an integer which is a vector of the these
+** object returns an integer which is a std::vector of the these
 ** bit values expressing I/O characteristics of the mass storage
 ** device that holds the file that the [sqlite3_io_methods]
 ** refers to.
@@ -647,7 +647,7 @@ struct sqlite3_file {
 ** device that underlies the file.  The sector size is the
 ** minimum write that can be performed without disturbing
 ** other bytes in the file.  The xDeviceCharacteristics()
-** method returns a bit vector describing behaviors of the
+** method returns a bit std::vector describing behaviors of the
 ** underlying device:
 **
 ** <ul>
@@ -823,8 +823,8 @@ struct sqlite3_io_methods {
 ** is the name of the pragma and the third element is the argument to the
 ** pragma or NULL if the pragma has no argument.  ^The handler for an
 ** [SQLITE_FCNTL_PRAGMA] file control can optionally make the first element
-** of the char** argument point to a string obtained from [sqlite3_mprintf()]
-** or the equivalent and that string will become the result of the pragma or
+** of the char** argument point to a std::string obtained from [sqlite3_mprintf()]
+** or the equivalent and that std::string will become the result of the pragma or
 ** the error message if the pragma fails. ^If the
 ** [SQLITE_FCNTL_PRAGMA] file control returns [SQLITE_NOTFOUND], then normal 
 ** [PRAGMA] processing continues.  ^If the [SQLITE_FCNTL_PRAGMA]
@@ -902,13 +902,13 @@ typedef struct sqlite3_mutex sqlite3_mutex;
 **
 ** [[sqlite3_vfs.xOpen]]
 ** ^SQLite guarantees that the zFilename parameter to xOpen
-** is either a NULL pointer or string obtained
+** is either a NULL pointer or std::string obtained
 ** from xFullPathname() with an optional suffix added.
 ** ^If a suffix is added to the zFilename parameter, it will
 ** consist of a single "-" character followed by no more than
 ** 11 alphanumeric and/or "-" characters.
 ** ^SQLite further guarantees that
-** the string will be valid and unchanged until xClose() is
+** the std::string will be valid and unchanged until xClose() is
 ** called. Because of the previous sentence,
 ** the [sqlite3_file] can safely store a pointer to the
 ** filename if it needs to remember the filename for some reason.
@@ -1820,11 +1820,11 @@ SQLITE_API void sqlite3_interrupt(sqlite3*);
 ** These routines are useful during command-line input to determine if the
 ** currently entered text seems to form a complete SQL statement or
 ** if additional input is needed before sending the text into
-** SQLite for parsing.  ^These routines return 1 if the input string
+** SQLite for parsing.  ^These routines return 1 if the input std::string
 ** appears to be a complete SQL statement.  ^A statement is judged to be
 ** complete if it ends with a semicolon token and is not a prefix of a
 ** well-formed CREATE TRIGGER statement.  ^Semicolons that are embedded within
-** string literals or quoted identifier names or comments are not
+** std::string literals or quoted identifier names or comments are not
 ** independent tokens (they are part of the token in which they are
 ** embedded) and thus do not count as a statement terminator.  ^Whitespace
 ** and comments that follow the final semicolon are ignored.
@@ -1842,10 +1842,10 @@ SQLITE_API void sqlite3_interrupt(sqlite3*);
 ** regardless of whether or not the input SQL is complete.)^
 **
 ** The input to [sqlite3_complete()] must be a zero-terminated
-** UTF-8 string.
+** UTF-8 std::string.
 **
 ** The input to [sqlite3_complete16()] must be a zero-terminated
-** UTF-16 string in native byte order.
+** UTF-16 std::string in native byte order.
 */
 SQLITE_API int sqlite3_complete(const char *sql);
 SQLITE_API int sqlite3_complete16(const void *sql);
@@ -1956,7 +1956,7 @@ SQLITE_API int sqlite3_busy_timeout(sqlite3*, int ms);
 ** to zero-terminated strings that  contain the names of the columns.
 ** The remaining entries all point to query results.  NULL values result
 ** in NULL pointers.  All other values are in their UTF-8 zero-terminated
-** string representation as returned by [sqlite3_column_text()].
+** std::string representation as returned by [sqlite3_column_text()].
 **
 ** A result table might consist of one or more memory allocations.
 ** It is not safe to pass a result table directly to [sqlite3_free()].
@@ -1990,7 +1990,7 @@ SQLITE_API int sqlite3_busy_timeout(sqlite3*, int ms);
 **
 ** ^The sqlite3_get_table() function evaluates one or more
 ** semicolon-separated SQL statements in the zero-terminated UTF-8
-** string of its 2nd parameter and returns a result table to the
+** std::string of its 2nd parameter and returns a result table to the
 ** pointer given in its 3rd parameter.
 **
 ** After the application has finished with the result from sqlite3_get_table(),
@@ -2029,7 +2029,7 @@ SQLITE_API void sqlite3_free_table(char **result);
 ** The strings returned by these two routines should be
 ** released by [sqlite3_free()].  ^Both routines return a
 ** NULL pointer if [sqlite3_malloc()] is unable to allocate enough
-** memory to hold the resulting string.
+** memory to hold the resulting std::string.
 **
 ** ^(The sqlite3_snprintf() routine is similar to "snprintf()" from
 ** the standard C library.  The result is written into the
@@ -2047,7 +2047,7 @@ SQLITE_API void sqlite3_free_table(char **result);
 ** ^As long as the buffer size is greater than zero, sqlite3_snprintf()
 ** guarantees that the buffer is always zero-terminated.  ^The first
 ** parameter "n" is the total size of the buffer, including space for
-** the zero terminator.  So the longest string that can be completely
+** the zero terminator.  So the longest std::string that can be completely
 ** written will be n-1 characters.
 **
 ** ^The sqlite3_vsnprintf() routine is a varargs version of sqlite3_snprintf().
@@ -2058,12 +2058,12 @@ SQLITE_API void sqlite3_free_table(char **result);
 ** is are "%q", "%Q", and "%z" options.
 **
 ** ^(The %q option works like %s in that it substitutes a nul-terminated
-** string from the argument list.  But %q also doubles every '\'' character.
-** %q is designed for use inside a string literal.)^  By doubling each '\''
+** std::string from the argument list.  But %q also doubles every '\'' character.
+** %q is designed for use inside a std::string literal.)^  By doubling each '\''
 ** character it escapes that character and allows it to be inserted into
-** the string.
+** the std::string.
 **
-** For example, assume the string variable zText contains text as follows:
+** For example, assume the std::string variable zText contains text as follows:
 **
 ** <blockquote><pre>
 **  char *zText = "It's a happy day!";
@@ -2077,7 +2077,7 @@ SQLITE_API void sqlite3_free_table(char **result);
 **  sqlite3_free(zSQL);
 ** </pre></blockquote>
 **
-** Because the %q format string is used, the '\'' character in zText
+** Because the %q format std::string is used, the '\'' character in zText
 ** is escaped and the SQL generated is as follows:
 **
 ** <blockquote><pre>
@@ -2092,10 +2092,10 @@ SQLITE_API void sqlite3_free_table(char **result);
 ** </pre></blockquote>
 **
 ** This second example is an SQL syntax error.  As a general rule you should
-** always use %q instead of %s when inserting text into a string literal.
+** always use %q instead of %s when inserting text into a std::string literal.
 **
 ** ^(The %Q option works like %q except it also adds single quotes around
-** the outside of the total string.  Additionally, if the parameter in the
+** the outside of the total std::string.  Additionally, if the parameter in the
 ** argument list is a NULL pointer, %Q substitutes the text "NULL" (without
 ** single quotes).)^  So, for example, one could say:
 **
@@ -2109,8 +2109,8 @@ SQLITE_API void sqlite3_free_table(char **result);
 ** variable even if the zText variable is a NULL pointer.
 **
 ** ^(The "%z" formatting option works like "%s" but with the
-** addition that after the string has been read and copied into
-** the result, [sqlite3_free()] is called on the input string.)^
+** addition that after the std::string has been read and copied into
+** the result, [sqlite3_free()] is called on the input std::string.)^
 */
 SQLITE_API char *sqlite3_mprintf(const char*,...);
 SQLITE_API char *sqlite3_vmprintf(const char*, va_list);
@@ -2531,7 +2531,7 @@ SQLITE_API void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
 ** a ":" character you should prefix the filename with a pathname such as
 ** "./" to avoid ambiguity.
 **
-** ^If the filename is an empty string, then a private, temporary
+** ^If the filename is an empty std::string, then a private, temporary
 ** on-disk database will be created.  ^This private database will be
 ** automatically deleted as soon as the database connection is closed.
 **
@@ -2549,8 +2549,8 @@ SQLITE_API void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
 ** information.
 **
 ** URI filenames are parsed according to RFC 3986. ^If the URI contains an
-** authority, then it must be either an empty string or the string 
-** "localhost". ^If the authority is not an empty string or "localhost", an 
+** authority, then it must be either an empty std::string or the std::string 
+** "localhost". ^If the authority is not an empty std::string or "localhost", an 
 ** error is returned to the caller. ^The fragment component of a URI, if 
 ** present, is ignored.
 **
@@ -2571,7 +2571,7 @@ SQLITE_API void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
 **   <li> <b>vfs</b>: ^The "vfs" parameter may be used to specify the name of
 **     a VFS object that provides the operating system interface that should
 **     be used to access the database file on disk. ^If this option is set to
-**     an empty string the default VFS object is used. ^Specifying an unknown
+**     an empty std::string the default VFS object is used. ^Specifying an unknown
 **     VFS is an error. ^If sqlite3_open_v2() is used and the vfs option is
 **     present, then the VFS specified by the option takes precedence over
 **     the value passed as the fourth parameter to sqlite3_open_v2().
@@ -2679,7 +2679,7 @@ SQLITE_API int sqlite3_open_v2(
 ** parameter if it exists or a NULL pointer if P does not appear as a 
 ** query parameter on F.  If P is a query parameter of F
 ** has no explicit value, then sqlite3_uri_parameter(F,P) returns
-** a pointer to an empty string.
+** a pointer to an empty std::string.
 **
 ** The sqlite3_uri_boolean(F,P,B) routine assumes that P is a boolean
 ** parameter and returns true (1) or false (0) according to the value
@@ -2722,9 +2722,9 @@ SQLITE_API sqlite3_int64 sqlite3_uri_int64(const char*, const char*, sqlite3_int
 **
 ** ^The sqlite3_errmsg() and sqlite3_errmsg16() return English-language
 ** text that describes the error, as either UTF-8 or UTF-16 respectively.
-** ^(Memory to hold the error message string is managed internally.
+** ^(Memory to hold the error message std::string is managed internally.
 ** The application does not need to worry about freeing the result.
-** However, the error string might be overwritten or deallocated by
+** However, the error std::string might be overwritten or deallocated by
 ** subsequent calls to other SQLite interface functions.)^
 **
 ** When the serialized [threading mode] is in use, it might be the
@@ -2824,7 +2824,7 @@ SQLITE_API int sqlite3_limit(sqlite3*, int id, int newVal);
 **
 ** <dl>
 ** [[SQLITE_LIMIT_LENGTH]] ^(<dt>SQLITE_LIMIT_LENGTH</dt>
-** <dd>The maximum size of any string or BLOB or table row, in bytes.<dd>)^
+** <dd>The maximum size of any std::string or BLOB or table row, in bytes.<dd>)^
 **
 ** [[SQLITE_LIMIT_SQL_LENGTH]] ^(<dt>SQLITE_LIMIT_SQL_LENGTH</dt>
 ** <dd>The maximum length of an SQL statement, in bytes.</dd>)^
@@ -2896,13 +2896,13 @@ SQLITE_API int sqlite3_limit(sqlite3*, int id, int newVal);
 ** ^If the nByte argument is less than zero, then zSql is read up to the
 ** first zero terminator. ^If nByte is non-negative, then it is the maximum
 ** number of  bytes read from zSql.  ^When nByte is non-negative, the
-** zSql string ends at either the first '\000' or '\u0000' character or
+** zSql std::string ends at either the first '\000' or '\u0000' character or
 ** the nByte-th byte, whichever comes first. If the caller knows
-** that the supplied string is nul-terminated, then there is a small
+** that the supplied std::string is nul-terminated, then there is a small
 ** performance advantage to be gained by passing an nByte parameter that
-** is equal to the number of bytes in the input string <i>including</i>
+** is equal to the number of bytes in the input std::string <i>including</i>
 ** the nul-terminator bytes as this saves SQLite from having to
-** make a copy of the input string.
+** make a copy of the input std::string.
 **
 ** ^If pzTail is not NULL then *pzTail is made to point to the first byte
 ** past the end of the first SQL statement in zSql.  These routines only
@@ -2912,7 +2912,7 @@ SQLITE_API int sqlite3_limit(sqlite3*, int id, int newVal);
 ** ^*ppStmt is left pointing to a compiled [prepared statement] that can be
 ** executed using [sqlite3_step()].  ^If there is an error, *ppStmt is set
 ** to NULL.  ^If the input text contains no SQL (if the input is an empty
-** string or a comment) then *ppStmt is set to NULL.
+** std::string or a comment) then *ppStmt is set to NULL.
 ** The calling procedure is responsible for deleting the compiled
 ** SQL statement using [sqlite3_finalize()] after it has finished with it.
 ** ppStmt may not be NULL.
@@ -3140,20 +3140,20 @@ typedef struct sqlite3_context sqlite3_context;
 ** ^(In those routines that have a fourth argument, its value is the
 ** number of bytes in the parameter.  To be clear: the value is the
 ** number of <u>bytes</u> in the value, not the number of characters.)^
-** ^If the fourth parameter is negative, the length of the string is
+** ^If the fourth parameter is negative, the length of the std::string is
 ** the number of bytes up to the first zero terminator.
 ** If a non-negative fourth parameter is provided to sqlite3_bind_text()
 ** or sqlite3_bind_text16() then that parameter must be the byte offset
-** where the NUL terminator would occur assuming the string were NUL
+** where the NUL terminator would occur assuming the std::string were NUL
 ** terminated.  If any NUL characters occur at byte offsets less than 
-** the value of the fourth parameter then the resulting string value will
+** the value of the fourth parameter then the resulting std::string value will
 ** contain embedded NULs.  The result of expressions involving strings
 ** with embedded NULs is undefined.
 **
 ** ^The fifth argument to sqlite3_bind_blob(), sqlite3_bind_text(), and
 ** sqlite3_bind_text16() is a destructor used to dispose of the BLOB or
-** string after SQLite has finished with it.  ^The destructor is called
-** to dispose of the BLOB or string even if the call to sqlite3_bind_blob(),
+** std::string after SQLite has finished with it.  ^The destructor is called
+** to dispose of the BLOB or std::string even if the call to sqlite3_bind_blob(),
 ** sqlite3_bind_text(), or sqlite3_bind_text16() fails.  
 ** ^If the fifth argument is
 ** the special value [SQLITE_STATIC], then SQLite assumes that the
@@ -3224,7 +3224,7 @@ SQLITE_API int sqlite3_bind_parameter_count(sqlite3_stmt*);
 ** ^The sqlite3_bind_parameter_name(P,N) interface returns
 ** the name of the N-th [SQL parameter] in the [prepared statement] P.
 ** ^(SQL parameters of the form "?NNN" or ":AAA" or "@AAA" or "$AAA"
-** have a name which is the string "?NNN" or ":AAA" or "@AAA" or "$AAA"
+** have a name which is the std::string "?NNN" or ":AAA" or "@AAA" or "$AAA"
 ** respectively.
 ** In other words, the initial ":" or "$" or "@" or "?"
 ** is included as part of the name.)^
@@ -3234,7 +3234,7 @@ SQLITE_API int sqlite3_bind_parameter_count(sqlite3_stmt*);
 ** ^The first host parameter has an index of 1, not 0.
 **
 ** ^If the value N is out of range or if the N-th parameter is
-** nameless, then NULL is returned.  ^The returned string is
+** nameless, then NULL is returned.  ^The returned std::string is
 ** always in UTF-8 encoding even if the named parameter was
 ** originally specified as UTF-16 in [sqlite3_prepare16()] or
 ** [sqlite3_prepare16_v2()].
@@ -3286,13 +3286,13 @@ SQLITE_API int sqlite3_column_count(sqlite3_stmt *pStmt);
 **
 ** ^These routines return the name assigned to a particular column
 ** in the result set of a [SELECT] statement.  ^The sqlite3_column_name()
-** interface returns a pointer to a zero-terminated UTF-8 string
+** interface returns a pointer to a zero-terminated UTF-8 std::string
 ** and sqlite3_column_name16() returns a pointer to a zero-terminated
-** UTF-16 string.  ^The first parameter is the [prepared statement]
+** UTF-16 std::string.  ^The first parameter is the [prepared statement]
 ** that implements the [SELECT] statement. ^The second parameter is the
 ** column number.  ^The leftmost column is number 0.
 **
-** ^The returned string pointer is valid until either the [prepared statement]
+** ^The returned std::string pointer is valid until either the [prepared statement]
 ** is destroyed by [sqlite3_finalize()] or until the statement is automatically
 ** reprepared by the first call to [sqlite3_step()] for a particular run
 ** or until the next call to
@@ -3317,10 +3317,10 @@ SQLITE_API const void *sqlite3_column_name16(sqlite3_stmt*, int N);
 ** table column that is the origin of a particular result column in
 ** [SELECT] statement.
 ** ^The name of the database or table or column can be returned as
-** either a UTF-8 or UTF-16 string.  ^The _database_ routines return
+** either a UTF-8 or UTF-16 std::string.  ^The _database_ routines return
 ** the database name, the _table_ routines return the table name, and
 ** the origin_ routines return the column name.
-** ^The returned string is valid until the [prepared statement] is destroyed
+** ^The returned std::string is valid until the [prepared statement] is destroyed
 ** using [sqlite3_finalize()] or until the statement is automatically
 ** reprepared by the first call to [sqlite3_step()] for a particular run
 ** or until the same information is requested
@@ -3371,7 +3371,7 @@ SQLITE_API const void *sqlite3_column_origin_name16(sqlite3_stmt*,int);
 ** expression or subquery) then the declared type of the table
 ** column is returned.)^  ^If the Nth column of the result set is an
 ** expression or subquery, then a NULL pointer is returned.
-** ^The returned string is always UTF-8 encoded.
+** ^The returned std::string is always UTF-8 encoded.
 **
 ** ^(For example, given the database schema:
 **
@@ -3381,7 +3381,7 @@ SQLITE_API const void *sqlite3_column_origin_name16(sqlite3_stmt*,int);
 **
 ** SELECT c1 + 1, c1 FROM t1;
 **
-** this routine would return the string "VARIANT" for the second result
+** this routine would return the std::string "VARIANT" for the second result
 ** column (i==1), and a NULL pointer for the first result column (i==0).)^
 **
 ** ^SQLite uses dynamic run-time typing.  ^So just because a column
@@ -3502,7 +3502,7 @@ SQLITE_API int sqlite3_data_count(sqlite3_stmt *pStmt);
 ** <ul>
 ** <li> 64-bit signed integer
 ** <li> 64-bit IEEE floating point number
-** <li> string
+** <li> std::string
 ** <li> BLOB
 ** <li> NULL
 ** </ul>)^
@@ -3562,29 +3562,29 @@ SQLITE_API int sqlite3_data_count(sqlite3_stmt *pStmt);
 ** versions of SQLite may change the behavior of sqlite3_column_type()
 ** following a type conversion.
 **
-** ^If the result is a BLOB or UTF-8 string then the sqlite3_column_bytes()
-** routine returns the number of bytes in that BLOB or string.
-** ^If the result is a UTF-16 string, then sqlite3_column_bytes() converts
-** the string to UTF-8 and then returns the number of bytes.
+** ^If the result is a BLOB or UTF-8 std::string then the sqlite3_column_bytes()
+** routine returns the number of bytes in that BLOB or std::string.
+** ^If the result is a UTF-16 std::string, then sqlite3_column_bytes() converts
+** the std::string to UTF-8 and then returns the number of bytes.
 ** ^If the result is a numeric value then sqlite3_column_bytes() uses
-** [sqlite3_snprintf()] to convert that value to a UTF-8 string and returns
-** the number of bytes in that string.
+** [sqlite3_snprintf()] to convert that value to a UTF-8 std::string and returns
+** the number of bytes in that std::string.
 ** ^If the result is NULL, then sqlite3_column_bytes() returns zero.
 **
-** ^If the result is a BLOB or UTF-16 string then the sqlite3_column_bytes16()
-** routine returns the number of bytes in that BLOB or string.
-** ^If the result is a UTF-8 string, then sqlite3_column_bytes16() converts
-** the string to UTF-16 and then returns the number of bytes.
+** ^If the result is a BLOB or UTF-16 std::string then the sqlite3_column_bytes16()
+** routine returns the number of bytes in that BLOB or std::string.
+** ^If the result is a UTF-8 std::string, then sqlite3_column_bytes16() converts
+** the std::string to UTF-16 and then returns the number of bytes.
 ** ^If the result is a numeric value then sqlite3_column_bytes16() uses
-** [sqlite3_snprintf()] to convert that value to a UTF-16 string and returns
-** the number of bytes in that string.
+** [sqlite3_snprintf()] to convert that value to a UTF-16 std::string and returns
+** the number of bytes in that std::string.
 ** ^If the result is NULL, then sqlite3_column_bytes16() returns zero.
 **
 ** ^The values returned by [sqlite3_column_bytes()] and 
 ** [sqlite3_column_bytes16()] do not include the zero terminators at the end
-** of the string.  ^For clarity: the values returned by
+** of the std::string.  ^For clarity: the values returned by
 ** [sqlite3_column_bytes()] and [sqlite3_column_bytes16()] are the number of
-** bytes in the string, not the number of characters.
+** bytes in the std::string, not the number of characters.
 **
 ** ^Strings returned by sqlite3_column_text() and sqlite3_column_text16(),
 ** even empty strings, are always zero-terminated.  ^The return
@@ -3642,7 +3642,7 @@ SQLITE_API int sqlite3_data_count(sqlite3_stmt *pStmt);
 ** <ul>
 ** <li> The initial content is a BLOB and sqlite3_column_text() or
 **      sqlite3_column_text16() is called.  A zero-terminator might
-**      need to be added to the string.</li>
+**      need to be added to the std::string.</li>
 ** <li> The initial content is UTF-8 text and sqlite3_column_bytes16() or
 **      sqlite3_column_text16() is called.  The content must be converted
 **      to UTF-16.</li>
@@ -3926,7 +3926,7 @@ SQLITE_API SQLITE_DEPRECATED int sqlite3_memory_alarm(void(*)(void*,sqlite3_int6
 ** except that  these routines take a single [protected sqlite3_value] object
 ** pointer instead of a [sqlite3_stmt*] pointer and an integer column number.
 **
-** ^The sqlite3_value_text16() interface extracts a UTF-16 string
+** ^The sqlite3_value_text16() interface extracts a UTF-16 std::string
 ** in the native byte-order of the host machine.  ^The
 ** sqlite3_value_text16be() and sqlite3_value_text16le() interfaces
 ** extract UTF-16 strings as big-endian and little-endian respectively.
@@ -3935,7 +3935,7 @@ SQLITE_API SQLITE_DEPRECATED int sqlite3_memory_alarm(void(*)(void*,sqlite3_int6
 ** numeric affinity to the value.  This means that an attempt is
 ** made to convert the value to an integer or floating point.  If
 ** such a conversion is possible without loss of information (in other
-** words, if the value is a string that looks like a number)
+** words, if the value is a std::string that looks like a number)
 ** then the conversion is performed.  Otherwise no conversion occurs.
 ** The [SQLITE_INTEGER | datatype] after conversion is returned.)^
 **
@@ -4038,7 +4038,7 @@ SQLITE_API sqlite3 *sqlite3_context_db_handle(sqlite3_context*);
 ** function. The compiled version of the regular expression is stored as
 ** metadata associated with the SQL value passed as the regular expression
 ** pattern.  The compiled regular expression can be reused on multiple
-** invocations of the same function so that the original pattern string
+** invocations of the same function so that the original pattern std::string
 ** does not need to be recompiled on each invocation.
 **
 ** ^The sqlite3_get_auxdata() interface returns a pointer to the metadata
@@ -4118,11 +4118,11 @@ typedef void (*sqlite3_destructor_type)(void*);
 **
 ** ^The sqlite3_result_error() and sqlite3_result_error16() functions
 ** cause the implemented SQL function to throw an exception.
-** ^SQLite uses the string pointed to by the
+** ^SQLite uses the std::string pointed to by the
 ** 2nd parameter of sqlite3_result_error() or sqlite3_result_error16()
 ** as the text of an error message.  ^SQLite interprets the error
-** message string from sqlite3_result_error() as UTF-8. ^SQLite
-** interprets the string from sqlite3_result_error16() as UTF-16 in native
+** message std::string from sqlite3_result_error() as UTF-8. ^SQLite
+** interprets the std::string from sqlite3_result_error16() as UTF-16 in native
 ** byte order.  ^If the third parameter to sqlite3_result_error()
 ** or sqlite3_result_error16() is negative then SQLite takes as the error
 ** message all text up through the first zero character.
@@ -4139,7 +4139,7 @@ typedef void (*sqlite3_destructor_type)(void*);
 ** or sqlite3_result_error16() resets the error code to SQLITE_ERROR.
 **
 ** ^The sqlite3_result_toobig() interface causes SQLite to throw an error
-** indicating that a string or BLOB is too long to represent.
+** indicating that a std::string or BLOB is too long to represent.
 **
 ** ^The sqlite3_result_nomem() interface causes SQLite to throw an error
 ** indicating that a memory allocation failed.
@@ -4157,7 +4157,7 @@ typedef void (*sqlite3_destructor_type)(void*);
 ** ^The sqlite3_result_text(), sqlite3_result_text16(),
 ** sqlite3_result_text16le(), and sqlite3_result_text16be() interfaces
 ** set the return value of the application-defined function to be
-** a text string which is represented as UTF-8, UTF-16 native byte order,
+** a text std::string which is represented as UTF-8, UTF-16 native byte order,
 ** UTF-16 little endian, or UTF-16 big endian, respectively.
 ** ^SQLite takes the text result from the application from
 ** the 2nd parameter of the sqlite3_result_text* interfaces.
@@ -4168,10 +4168,10 @@ typedef void (*sqlite3_destructor_type)(void*);
 ** is non-negative, then as many bytes (not characters) of the text
 ** pointed to by the 2nd parameter are taken as the application-defined
 ** function result.  If the 3rd parameter is non-negative, then it
-** must be the byte offset into the string where the NUL terminator would
-** appear if the string where NUL terminated.  If any NUL characters occur
-** in the string at a byte offset that is less than the value of the 3rd
-** parameter, then the resulting string will contain embedded NULs and the
+** must be the byte offset into the std::string where the NUL terminator would
+** appear if the std::string where NUL terminated.  If any NUL characters occur
+** in the std::string at a byte offset that is less than the value of the 3rd
+** parameter, then the resulting std::string will contain embedded NULs and the
 ** result of expressions operating on strings with embedded NULs is undefined.
 ** ^If the 4th parameter to the sqlite3_result_text* interfaces
 ** or sqlite3_result_blob is a non-NULL pointer, then SQLite calls that
@@ -4224,9 +4224,9 @@ SQLITE_API void sqlite3_result_zeroblob(sqlite3_context*, int n);
 ** ^These functions add, remove, or modify a [collation] associated
 ** with the [database connection] specified as the first argument.
 **
-** ^The name of the collation is a UTF-8 string
+** ^The name of the collation is a UTF-8 std::string
 ** for sqlite3_create_collation() and sqlite3_create_collation_v2()
-** and a UTF-16 string in native byte order for sqlite3_create_collation16().
+** and a UTF-16 std::string in native byte order for sqlite3_create_collation16().
 ** ^Collation names that compare equal according to [sqlite3_strnicmp()] are
 ** considered to be the same name.
 **
@@ -4260,7 +4260,7 @@ SQLITE_API void sqlite3_result_zeroblob(sqlite3_context*, int n);
 ** application data pointer and with two strings in the encoding specified
 ** by the eTextRep argument.  The collating function must return an
 ** integer that is negative, zero, or positive
-** if the first string is less than, equal to, or greater than the second,
+** if the first std::string is less than, equal to, or greater than the second,
 ** respectively.  A collating function must always return the same answer
 ** given the same inputs.  If two or more collating functions are registered
 ** to the same collation name (using different eTextRep values) then all
@@ -4424,7 +4424,7 @@ SQLITE_API int sqlite3_sleep(int);
 /*
 ** CAPI3REF: Name Of The Folder Holding Temporary Files
 **
-** ^(If this global variable is made to point to a string which is
+** ^(If this global variable is made to point to a std::string which is
 ** the name of a folder (a.k.a. directory), then all temporary files
 ** created by SQLite when using a built-in [sqlite3_vfs | VFS]
 ** will be placed in that directory.)^  ^If this variable
@@ -4442,7 +4442,7 @@ SQLITE_API int sqlite3_sleep(int);
 **
 ** ^The [temp_store_directory pragma] may modify this variable and cause
 ** it to point to memory obtained from [sqlite3_malloc].  ^Furthermore,
-** the [temp_store_directory pragma] always assumes that any string
+** the [temp_store_directory pragma] always assumes that any std::string
 ** that this variable points to is held in memory obtained from 
 ** [sqlite3_malloc] and the pragma may attempt to free that memory
 ** using [sqlite3_free].
@@ -4455,7 +4455,7 @@ SQLITE_API SQLITE_EXTERN char *sqlite3_temp_directory;
 /*
 ** CAPI3REF: Name Of The Folder Holding Database Files
 **
-** ^(If this global variable is made to point to a string which is
+** ^(If this global variable is made to point to a std::string which is
 ** the name of a folder (a.k.a. directory), then all database files
 ** specified with a relative pathname and created or accessed by
 ** SQLite when using a built-in windows [sqlite3_vfs | VFS] will be assumed
@@ -4479,7 +4479,7 @@ SQLITE_API SQLITE_EXTERN char *sqlite3_temp_directory;
 **
 ** ^The [data_store_directory pragma] may modify this variable and cause
 ** it to point to memory obtained from [sqlite3_malloc].  ^Furthermore,
-** the [data_store_directory pragma] always assumes that any string
+** the [data_store_directory pragma] always assumes that any std::string
 ** that this variable points to is held in memory obtained from 
 ** [sqlite3_malloc] and the pragma may attempt to free that memory
 ** using [sqlite3_free].
@@ -5165,10 +5165,10 @@ SQLITE_API int sqlite3_create_module_v2(
 ** common to all module implementations.
 **
 ** ^Virtual tables methods can set an error message by assigning a
-** string obtained from [sqlite3_mprintf()] to zErrMsg.  The method should
-** take care that any prior string is freed by a call to [sqlite3_free()]
-** prior to assigning a new string to zErrMsg.  ^After the error message
-** is delivered up to the client application, the string will be automatically
+** std::string obtained from [sqlite3_mprintf()] to zErrMsg.  The method should
+** take care that any prior std::string is freed by a call to [sqlite3_free()]
+** prior to assigning a new std::string to zErrMsg.  ^After the error message
+** is delivered up to the client application, the std::string will be automatically
 ** freed by sqlite3_free() and the zErrMsg field will be zeroed.
 */
 struct sqlite3_vtab {
@@ -5469,7 +5469,7 @@ SQLITE_API int sqlite3_blob_write(sqlite3_blob *, const void *z, int n, int iOff
 ** ^To make an existing VFS into the default VFS, register it again
 ** with the makeDflt flag set.  If two different VFSes with the
 ** same name are registered, the behavior is undefined.  If a
-** VFS is registered with a name that is NULL or an empty string,
+** VFS is registered with a name that is NULL or an empty std::string,
 ** then the behavior is undefined.
 **
 ** ^Unregister a VFS with the sqlite3_vfs_unregister() interface.
@@ -6698,15 +6698,15 @@ SQLITE_API int sqlite3_strnicmp(const char *, const char *, int);
 **
 ** ^The [sqlite3_log()] interface writes a message into the error log
 ** established by the [SQLITE_CONFIG_LOG] option to [sqlite3_config()].
-** ^If logging is enabled, the zFormat string and subsequent arguments are
-** used with [sqlite3_snprintf()] to generate the final output string.
+** ^If logging is enabled, the zFormat std::string and subsequent arguments are
+** used with [sqlite3_snprintf()] to generate the final output std::string.
 **
 ** The sqlite3_log() interface is intended for use by extensions such as
 ** virtual tables, collating functions, and SQL functions.  While there is
 ** nothing to prevent an application from calling sqlite3_log(), doing so
 ** is considered bad form.
 **
-** The zFormat string must not be NULL.
+** The zFormat std::string must not be NULL.
 **
 ** To avoid deadlocks and other threading problems, the sqlite3_log() routine
 ** will not use dynamically allocated memory.  The log message is stored in
@@ -6789,7 +6789,7 @@ SQLITE_API int sqlite3_wal_autocheckpoint(sqlite3 *db, int N);
 **
 ** ^The [sqlite3_wal_checkpoint(D,X)] interface causes database named X
 ** on [database connection] D to be [checkpointed].  ^If X is NULL or an
-** empty string, then a checkpoint is run on all databases of
+** empty std::string, then a checkpoint is run on all databases of
 ** connection D.  ^If the database connection D is not in
 ** [WAL | write-ahead log mode] then this interface is a harmless no-op.
 **
@@ -6856,7 +6856,7 @@ SQLITE_API int sqlite3_wal_checkpoint(sqlite3 *db, const char *zDb);
 ** SQLITE_CHECKPOINT_PASSIVE - checkpointing as many frames as possible 
 ** without blocking any further. SQLITE_BUSY is returned in this case.
 **
-** If parameter zDb is NULL or points to a zero length string, then the
+** If parameter zDb is NULL or points to a zero length std::string, then the
 ** specified operation is attempted on all WAL databases. In this case the
 ** values written to output parameters *pnLog and *pnCkpt are undefined. If 
 ** an SQLITE_BUSY error is encountered when processing one or more of the 
@@ -6869,7 +6869,7 @@ SQLITE_API int sqlite3_wal_checkpoint(sqlite3 *db, const char *zDb);
 **
 ** If database zDb is the name of an attached database that is not in WAL
 ** mode, SQLITE_OK is returned and both *pnLog and *pnCkpt set to -1. If
-** zDb is not NULL (or a zero length string) and is not the name of any
+** zDb is not NULL (or a zero length std::string) and is not the name of any
 ** attached database, SQLITE_ERROR is returned to the caller.
 */
 SQLITE_API int sqlite3_wal_checkpoint_v2(

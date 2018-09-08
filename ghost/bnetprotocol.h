@@ -125,11 +125,11 @@ public:
 	BYTEARRAY GetServerToken( )				{ return m_ServerToken; }
 	BYTEARRAY GetMPQFileTime( )				{ return m_MPQFileTime; }
 	BYTEARRAY GetIX86VerFileName( )			{ return m_IX86VerFileName; }
-	string GetIX86VerFileNameString( )		{ return string( m_IX86VerFileName.begin( ), m_IX86VerFileName.end( ) ); }
+	std::string GetIX86VerFileNameString( )		{ return std::string( m_IX86VerFileName.begin( ), m_IX86VerFileName.end( ) ); }
 	BYTEARRAY GetValueStringFormula( )		{ return m_ValueStringFormula; }
-	string GetValueStringFormulaString( )	{ return string( m_ValueStringFormula.begin( ), m_ValueStringFormula.end( ) ); }
+	std::string GetValueStringFormulaString( )	{ return std::string( m_ValueStringFormula.begin( ), m_ValueStringFormula.end( ) ); }
 	BYTEARRAY GetKeyState( )				{ return m_KeyState; }
-	string GetKeyStateDescription( )		{ return string( m_KeyStateDescription.begin( ), m_KeyStateDescription.end( ) ); }
+	std::string GetKeyStateDescription( )		{ return std::string( m_KeyStateDescription.begin( ), m_KeyStateDescription.end( ) ); }
 	BYTEARRAY GetSalt( )					{ return m_Salt; }
 	BYTEARRAY GetServerPublicKey( )			{ return m_ServerPublicKey; }
 	BYTEARRAY GetUniqueName( )				{ return m_UniqueName; }
@@ -149,38 +149,38 @@ public:
 	bool RECEIVE_SID_AUTH_ACCOUNTLOGON( BYTEARRAY data );
 	bool RECEIVE_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY data );
 	BYTEARRAY RECEIVE_SID_WARDEN( BYTEARRAY data );
-	vector<CIncomingFriendList *> RECEIVE_SID_FRIENDSLIST( BYTEARRAY data );
-	vector<CIncomingClanList *> RECEIVE_SID_CLANMEMBERLIST( BYTEARRAY data );
+	std::vector<CIncomingFriendList *> RECEIVE_SID_FRIENDSLIST( BYTEARRAY data );
+	std::vector<CIncomingClanList *> RECEIVE_SID_CLANMEMBERLIST( BYTEARRAY data );
 	CIncomingClanList *RECEIVE_SID_CLANMEMBERSTATUSCHANGE( BYTEARRAY data );
-	string RECEIVE_SID_CLANCREATIONINVITATION( BYTEARRAY data );
-	string RECEIVE_SID_CLANINVITATIONRESPONSE( BYTEARRAY data );
+	std::string RECEIVE_SID_CLANCREATIONINVITATION( BYTEARRAY data );
+	std::string RECEIVE_SID_CLANINVITATIONRESPONSE( BYTEARRAY data );
 
 	// send functions
 
 	BYTEARRAY SEND_PROTOCOL_INITIALIZE_SELECTOR( );
 	BYTEARRAY SEND_SID_NULL( );
 	BYTEARRAY SEND_SID_STOPADV( );
-	BYTEARRAY SEND_SID_GETADVLISTEX( string gameName );
+	BYTEARRAY SEND_SID_GETADVLISTEX( std::string gameName );
 	BYTEARRAY SEND_SID_ENTERCHAT( );
-	BYTEARRAY SEND_SID_JOINCHANNEL( string channel );
-	BYTEARRAY SEND_SID_CHATCOMMAND( string command );
+	BYTEARRAY SEND_SID_JOINCHANNEL( std::string channel );
+	BYTEARRAY SEND_SID_CHATCOMMAND( std::string command );
 	BYTEARRAY SEND_SID_CHECKAD( );
-	BYTEARRAY SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, BYTEARRAY mapSHA1, uint32_t hostCounter );
-	BYTEARRAY SEND_SID_NOTIFYJOIN( string gameName );
+	BYTEARRAY SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, std::string gameName, std::string hostName, uint32_t upTime, std::string mapPath, BYTEARRAY mapCRC, BYTEARRAY mapSHA1, uint32_t hostCounter );
+	BYTEARRAY SEND_SID_NOTIFYJOIN( std::string gameName );
 	BYTEARRAY SEND_SID_PING( BYTEARRAY pingValue );
-	BYTEARRAY SEND_SID_LOGONRESPONSE( BYTEARRAY clientToken, BYTEARRAY serverToken, BYTEARRAY passwordHash, string accountName );
+	BYTEARRAY SEND_SID_LOGONRESPONSE( BYTEARRAY clientToken, BYTEARRAY serverToken, BYTEARRAY passwordHash, std::string accountName );
 	BYTEARRAY SEND_SID_NETGAMEPORT( uint16_t serverPort );
-	BYTEARRAY SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, uint32_t localeID, string countryAbbrev, string country );
-	BYTEARRAY SEND_SID_AUTH_CHECK( bool TFT, BYTEARRAY clientToken, BYTEARRAY exeVersion, BYTEARRAY exeVersionHash, BYTEARRAY keyInfoROC, BYTEARRAY keyInfoTFT, string exeInfo, string keyOwnerName );
-	BYTEARRAY SEND_SID_AUTH_ACCOUNTLOGON( BYTEARRAY clientPublicKey, string accountName );
+	BYTEARRAY SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, uint32_t localeID, std::string countryAbbrev, std::string country );
+	BYTEARRAY SEND_SID_AUTH_CHECK( bool TFT, BYTEARRAY clientToken, BYTEARRAY exeVersion, BYTEARRAY exeVersionHash, BYTEARRAY keyInfoROC, BYTEARRAY keyInfoTFT, std::string exeInfo, std::string keyOwnerName );
+	BYTEARRAY SEND_SID_AUTH_ACCOUNTLOGON( BYTEARRAY clientPublicKey, std::string accountName );
 	BYTEARRAY SEND_SID_AUTH_ACCOUNTLOGONPROOF( BYTEARRAY clientPasswordProof );
 	BYTEARRAY SEND_SID_WARDEN( BYTEARRAY wardenResponse );
 	BYTEARRAY SEND_SID_FRIENDSLIST( );
 	BYTEARRAY SEND_SID_CLANMEMBERLIST( );
-	BYTEARRAY SEND_SID_CLANINVITATION( string accountName );
-	BYTEARRAY SEND_SID_CLANREMOVEMEMBER( string accountName );
-	BYTEARRAY SEND_SID_CLANCHANGERANK( string accountName, CBNETProtocol :: RankCode rank );
-	BYTEARRAY SEND_SID_CLANSETMOTD( string motd );
+	BYTEARRAY SEND_SID_CLANINVITATION( std::string accountName );
+	BYTEARRAY SEND_SID_CLANREMOVEMEMBER( std::string accountName );
+	BYTEARRAY SEND_SID_CLANCHANGERANK( std::string accountName, CBNETProtocol :: RankCode rank );
+	BYTEARRAY SEND_SID_CLANSETMOTD( std::string motd );
 	BYTEARRAY SEND_SID_CLANCREATIONINVITATION( bool accept );
 	BYTEARRAY SEND_SID_CLANINVITATIONRESPONSE( bool accept );
 
@@ -200,17 +200,17 @@ class CIncomingGameHost
 private:
 	BYTEARRAY m_IP;
 	uint16_t m_Port;
-	string m_GameName;
+	std::string m_GameName;
 	BYTEARRAY m_HostCounter;
 
 public:
-	CIncomingGameHost( BYTEARRAY &nIP, uint16_t nPort, string nGameName, BYTEARRAY &nHostCounter );
+	CIncomingGameHost( BYTEARRAY &nIP, uint16_t nPort, std::string nGameName, BYTEARRAY &nHostCounter );
 	~CIncomingGameHost( );
 
 	BYTEARRAY GetIP( )			{ return m_IP; }
-	string GetIPString( );
+	std::string GetIPString( );
 	uint16_t GetPort( )			{ return m_Port; }
-	string GetGameName( )		{ return m_GameName; }
+	std::string GetGameName( )		{ return m_GameName; }
 	BYTEARRAY GetHostCounter( )	{ return m_HostCounter; }
 };
 
@@ -223,17 +223,17 @@ class CIncomingChatEvent
 private:
 	CBNETProtocol :: IncomingChatEvent m_ChatEvent;
 	int32_t m_Ping;
-	string m_User;
-	string m_Message;
+	std::string m_User;
+	std::string m_Message;
 
 public:
-	CIncomingChatEvent( CBNETProtocol :: IncomingChatEvent nChatEvent, int32_t nPing, string nUser, string nMessage );
+	CIncomingChatEvent( CBNETProtocol :: IncomingChatEvent nChatEvent, int32_t nPing, std::string nUser, std::string nMessage );
 	~CIncomingChatEvent( );
 
 	CBNETProtocol :: IncomingChatEvent GetChatEvent( )	{ return m_ChatEvent; }
 	int32_t GetPing( )									{ return m_Ping; }
-	string GetUser( )									{ return m_User; }
-	string GetMessage( )								{ return m_Message; }
+	std::string GetUser( )									{ return m_User; }
+	std::string GetMessage( )								{ return m_Message; }
 };
 
 //
@@ -243,25 +243,25 @@ public:
 class CIncomingFriendList
 {
 private:
-	string m_Account;
+	std::string m_Account;
 	unsigned char m_Status;
 	unsigned char m_Area;
-	string m_Location;
+	std::string m_Location;
 
 public:
-	CIncomingFriendList( string nAccount, unsigned char nStatus, unsigned char nArea, string nLocation );
+	CIncomingFriendList( std::string nAccount, unsigned char nStatus, unsigned char nArea, std::string nLocation );
 	~CIncomingFriendList( );
 
-	string GetAccount( )		{ return m_Account; }
+	std::string GetAccount( )		{ return m_Account; }
 	unsigned char GetStatus( )	{ return m_Status; }
 	unsigned char GetArea( )	{ return m_Area; }
-	string GetLocation( )		{ return m_Location; }
-	string GetDescription( );
+	std::string GetLocation( )		{ return m_Location; }
+	std::string GetDescription( );
 
 private:
-	string ExtractStatus( unsigned char status );
-	string ExtractArea( unsigned char area );
-	string ExtractLocation( string location );
+	std::string ExtractStatus( unsigned char status );
+	std::string ExtractArea( unsigned char area );
+	std::string ExtractLocation( std::string location );
 };
 
 //
@@ -271,18 +271,18 @@ private:
 class CIncomingClanList
 {
 private:
-	string m_Name;
+	std::string m_Name;
 	unsigned char m_Rank;
 	unsigned char m_Status;
 
 public:
-	CIncomingClanList( string nName, unsigned char nRank, unsigned char nStatus );
+	CIncomingClanList( std::string nName, unsigned char nRank, unsigned char nStatus );
 	~CIncomingClanList( );
 
-	string GetName( )			{ return m_Name; }
-	string GetRank( );
-	string GetStatus( );
-	string GetDescription( );
+	std::string GetName( )			{ return m_Name; }
+	std::string GetRank( );
+	std::string GetStatus( );
+	std::string GetDescription( );
 };
 
 #endif

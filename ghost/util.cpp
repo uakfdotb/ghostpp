@@ -90,12 +90,12 @@ uint32_t UTIL_ByteArrayToUInt32( BYTEARRAY b, bool reverse, unsigned int start )
 	return (uint32_t)( temp[3] << 24 | temp[2] << 16 | temp[1] << 8 | temp[0] );
 }
 
-string UTIL_ByteArrayToDecString( BYTEARRAY b )
+std::string UTIL_ByteArrayToDecString( BYTEARRAY b )
 {
 	if( b.empty( ) )
-		return string( );
+		return std::string( );
 
-	string result = UTIL_ToString( b[0] );
+	std::string result = UTIL_ToString( b[0] );
 
 	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); ++i )
 		result += " " + UTIL_ToString( *i );
@@ -103,12 +103,12 @@ string UTIL_ByteArrayToDecString( BYTEARRAY b )
 	return result;
 }
 
-string UTIL_ByteArrayToHexString( BYTEARRAY b )
+std::string UTIL_ByteArrayToHexString( BYTEARRAY b )
 {
 	if( b.empty( ) )
-		return string( );
+		return std::string( );
 
-	string result = UTIL_ToHexString( b[0] );
+	std::string result = UTIL_ToHexString( b[0] );
 
 	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); ++i )
 	{
@@ -136,9 +136,9 @@ void UTIL_AppendByteArray( BYTEARRAY &b, unsigned char *a, int size )
 	UTIL_AppendByteArray( b, UTIL_CreateByteArray( a, size ) );
 }
 
-void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator )
+void UTIL_AppendByteArray( BYTEARRAY &b, std::string append, bool terminator )
 {
-	// append the string plus a null terminator
+	// append the std::string plus a null terminator
 
 	b.insert( b.end( ), append.begin( ), append.end( ) );
 
@@ -146,9 +146,9 @@ void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator )
 		b.push_back( 0 );
 }
 
-void UTIL_AppendByteArrayFast( BYTEARRAY &b, string &append, bool terminator )
+void UTIL_AppendByteArrayFast( BYTEARRAY &b, std::string &append, bool terminator )
 {
-	// append the string plus a null terminator
+	// append the std::string plus a null terminator
 
 	b.insert( b.end( ), append.begin( ), append.end( ) );
 
@@ -195,27 +195,27 @@ unsigned char UTIL_ExtractHex( BYTEARRAY &b, unsigned int start, bool reverse )
 	if( start + 1 < b.size( ) )
 	{
 		unsigned int c;
-		string temp = string( b.begin( ) + start, b.begin( ) + start + 2 );
+		std::string temp = std::string( b.begin( ) + start, b.begin( ) + start + 2 );
 
 		if( reverse )
-			temp = string( temp.rend( ), temp.rbegin( ) );
+			temp = std::string( temp.rend( ), temp.rbegin( ) );
 
-		stringstream SS;
+		std::stringstream SS;
 		SS << temp;
-		SS >> hex >> c;
+		SS >> std::hex >> c;
 		return c;
 	}
 
 	return 0;
 }
 
-BYTEARRAY UTIL_ExtractNumbers( string s, unsigned int count )
+BYTEARRAY UTIL_ExtractNumbers( std::string s, unsigned int count )
 {
-	// consider the string to contain a bytearray in dec-text form, e.g. "52 99 128 1"
+	// consider the std::string to contain a bytearray in dec-text form, e.g. "52 99 128 1"
 
 	BYTEARRAY result;
 	unsigned int c;
-	stringstream SS;
+	std::stringstream SS;
 	SS << s;
 
 	for( unsigned int i = 0; i < count; ++i )
@@ -233,18 +233,18 @@ BYTEARRAY UTIL_ExtractNumbers( string s, unsigned int count )
 	return result;
 }
 
-BYTEARRAY UTIL_ExtractHexNumbers( string s )
+BYTEARRAY UTIL_ExtractHexNumbers( std::string s )
 {
-	// consider the string to contain a bytearray in hex-text form, e.g. "4e 17 b7 e6"
+	// consider the std::string to contain a bytearray in hex-text form, e.g. "4e 17 b7 e6"
 
 	BYTEARRAY result;
 	unsigned int c;
-	stringstream SS;
+	std::stringstream SS;
 	SS << s;
 
 	while( !SS.eof( ) )
 	{
-		SS >> hex >> c;
+		SS >> std::hex >> c;
 
 		// todotodo: if c > 255 handle the error instead of truncating
 
@@ -254,82 +254,82 @@ BYTEARRAY UTIL_ExtractHexNumbers( string s )
 	return result;
 }
 
-string UTIL_ToString( unsigned long i )
+std::string UTIL_ToString( unsigned long i )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << i;
 	SS >> result;
 	return result;
 }
 
-string UTIL_ToString( unsigned short i )
+std::string UTIL_ToString( unsigned short i )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << i;
 	SS >> result;
 	return result;
 }
 
-string UTIL_ToString( unsigned int i )
+std::string UTIL_ToString( unsigned int i )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << i;
 	SS >> result;
 	return result;
 }
 
-string UTIL_ToString( long i )
+std::string UTIL_ToString( long i )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << i;
 	SS >> result;
 	return result;
 }
 
-string UTIL_ToString( short i )
+std::string UTIL_ToString( short i )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << i;
 	SS >> result;
 	return result;
 }
 
-string UTIL_ToString( int i )
+std::string UTIL_ToString( int i )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << i;
 	SS >> result;
 	return result;
 }
 
-string UTIL_ToString( float f, int digits )
+std::string UTIL_ToString( float f, int digits )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << std :: fixed << std :: setprecision( digits ) << f;
 	SS >> result;
 	return result;
 }
 
-string UTIL_ToString( double d, int digits )
+std::string UTIL_ToString( double d, int digits )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << std :: fixed << std :: setprecision( digits ) << d;
 	SS >> result;
 	return result;
 }
 
-string UTIL_ToHexString( uint32_t i )
+std::string UTIL_ToHexString( uint32_t i )
 {
-	string result;
-	stringstream SS;
+	std::string result;
+	std::stringstream SS;
 	SS << std :: hex << i;
 	SS >> result;
 	return result;
@@ -337,55 +337,55 @@ string UTIL_ToHexString( uint32_t i )
 
 // todotodo: these UTIL_ToXXX functions don't fail gracefully, they just return garbage (in the uint case usually just -1 casted to an unsigned type it looks like)
 
-uint16_t UTIL_ToUInt16( string &s )
+uint16_t UTIL_ToUInt16( std::string &s )
 {
 	uint16_t result;
-	stringstream SS;
+	std::stringstream SS;
 	SS << s;
 	SS >> result;
 	return result;
 }
 
-uint32_t UTIL_ToUInt32( string &s )
+uint32_t UTIL_ToUInt32( std::string &s )
 {
 	uint32_t result;
-	stringstream SS;
+	std::stringstream SS;
 	SS << s;
 	SS >> result;
 	return result;
 }
 
-int16_t UTIL_ToInt16( string &s )
+int16_t UTIL_ToInt16( std::string &s )
 {
 	int16_t result;
-	stringstream SS;
+	std::stringstream SS;
 	SS << s;
 	SS >> result;
 	return result;
 }
 
-int32_t UTIL_ToInt32( string &s )
+int32_t UTIL_ToInt32( std::string &s )
 {
 	int32_t result;
-	stringstream SS;
+	std::stringstream SS;
 	SS << s;
 	SS >> result;
 	return result;
 }
 
-double UTIL_ToDouble( string &s )
+double UTIL_ToDouble( std::string &s )
 {
 	double result;
-	stringstream SS;
+	std::stringstream SS;
 	SS << s;
 	SS >> result;
 	return result;
 }
 
-string UTIL_MSToString( uint32_t ms )
+std::string UTIL_MSToString( uint32_t ms )
 {
-	string MinString = UTIL_ToString( ( ms / 1000 ) / 60 );
-	string SecString = UTIL_ToString( ( ms / 1000 ) % 60 );
+	std::string MinString = UTIL_ToString( ( ms / 1000 ) / 60 );
+	std::string SecString = UTIL_ToString( ( ms / 1000 ) % 60 );
 
 	if( MinString.size( ) == 1 )
 		MinString.insert( 0, "0" );
@@ -396,7 +396,7 @@ string UTIL_MSToString( uint32_t ms )
 	return MinString + "m" + SecString + "s";
 }
 
-bool UTIL_FileExists( string file )
+bool UTIL_FileExists( std::string file )
 {
 	struct stat fileinfo;
 
@@ -406,75 +406,75 @@ bool UTIL_FileExists( string file )
 	return false;
 }
 
-string UTIL_FileRead( string file, uint32_t start, uint32_t length )
+std::string UTIL_FileRead( std::string file, uint32_t start, uint32_t length )
 {
-	ifstream IS;
-	IS.open( file.c_str( ), ios :: binary );
+	std::ifstream IS;
+	IS.open( file.c_str( ), std::ios :: binary );
 
 	if( IS.fail( ) )
 	{
 		CONSOLE_Print( "[UTIL] warning - unable to read file part [" + file + "]" );
-		return string( );
+		return std::string( );
 	}
 
 	// get length of file
 
-	IS.seekg( 0, ios :: end );
+	IS.seekg( 0, std::ios :: end );
 	uint32_t FileLength = IS.tellg( );
 
 	if( start > FileLength )
 	{
 		IS.close( );
-		return string( );
+		return std::string( );
 	}
 
-	IS.seekg( start, ios :: beg );
+	IS.seekg( start, std::ios :: beg );
 
 	// read data
 
 	char *Buffer = new char[length];
 	IS.read( Buffer, length );
-	string BufferString = string( Buffer, IS.gcount( ) );
+	std::string BufferString = std::string( Buffer, IS.gcount( ) );
 	IS.close( );
 	delete [] Buffer;
 	return BufferString;
 }
 
-string UTIL_FileRead( string file )
+std::string UTIL_FileRead( std::string file )
 {
-	ifstream IS;
-	IS.open( file.c_str( ), ios :: binary );
+	std::ifstream IS;
+	IS.open( file.c_str( ), std::ios :: binary );
 
 	if( IS.fail( ) )
 	{
 		CONSOLE_Print( "[UTIL] warning - unable to read file [" + file + "]" );
-		return string( );
+		return std::string( );
 	}
 
 	// get length of file
 
-	IS.seekg( 0, ios :: end );
+	IS.seekg( 0, std::ios :: end );
 	uint32_t FileLength = IS.tellg( );
-	IS.seekg( 0, ios :: beg );
+	IS.seekg( 0, std::ios :: beg );
 
 	// read data
 
 	char *Buffer = new char[FileLength];
 	IS.read( Buffer, FileLength );
-	string BufferString = string( Buffer, IS.gcount( ) );
+	std::string BufferString = std::string( Buffer, IS.gcount( ) );
 	IS.close( );
 	delete [] Buffer;
 
 	if( BufferString.size( ) == FileLength )
 		return BufferString;
 	else
-		return string( );
+		return std::string( );
 }
 
-bool UTIL_FileWrite( string file, unsigned char *data, uint32_t length )
+bool UTIL_FileWrite( std::string file, unsigned char *data, uint32_t length )
 {
-	ofstream OS;
-	OS.open( file.c_str( ), ios :: binary );
+	std::ofstream OS;
+	OS.open( file.c_str( ), std::ios :: binary );
 
 	if( OS.fail( ) )
 	{
@@ -489,11 +489,11 @@ bool UTIL_FileWrite( string file, unsigned char *data, uint32_t length )
 	return true;
 }
 
-string UTIL_FileSafeName( string fileName )
+std::string UTIL_FileSafeName( std::string fileName )
 {
-	string :: size_type BadStart = fileName.find_first_of( "\\/:*?<>|" );
+	std::string :: size_type BadStart = fileName.find_first_of( "\\/:*?<>|" );
 
-	while( BadStart != string :: npos )
+	while( BadStart != std::string :: npos )
 	{
 		fileName.replace( BadStart, 1, 1, '_' );
 		BadStart = fileName.find_first_of( "\\/:*?<>|" );
@@ -502,10 +502,10 @@ string UTIL_FileSafeName( string fileName )
 	return fileName;
 }
 
-string UTIL_AddPathSeperator( string path )
+std::string UTIL_AddPathSeperator( std::string path )
 {
 	if( path.empty( ) )
-		return string( );
+		return std::string( );
 
 #ifdef WIN32
 	char Seperator = '\\';
@@ -516,7 +516,7 @@ string UTIL_AddPathSeperator( string path )
 	if( *(path.end( ) - 1) == Seperator )
 		return path;
 	else
-		return path + string( 1, Seperator );
+		return path + std::string( 1, Seperator );
 }
 
 BYTEARRAY UTIL_EncodeStatString( BYTEARRAY &data )
@@ -595,12 +595,12 @@ bool UTIL_IsLanIP( BYTEARRAY ip )
 	return false;
 }
 
-bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs )
+bool UTIL_IsLocalIP( BYTEARRAY ip, std::vector<BYTEARRAY> &localIPs )
 {
 	if( ip.size( ) != 4 )
 		return false;
 
-	for( vector<BYTEARRAY> :: iterator i = localIPs.begin( ); i != localIPs.end( ); ++i )
+	for( std::vector<BYTEARRAY> :: iterator i = localIPs.begin( ); i != localIPs.end( ); ++i )
 	{
 		if( (*i).size( ) != 4 )
 			continue;
@@ -612,28 +612,28 @@ bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs )
 	return false;
 }
 
-void UTIL_Replace( string &Text, string Key, string Value )
+void UTIL_Replace( std::string &Text, std::string Key, std::string Value )
 {
 	// don't allow any infinite loops
 
-	if( Value.find( Key ) != string :: npos )
+	if( Value.find( Key ) != std::string :: npos )
 		return;
 
-	string :: size_type KeyStart = Text.find( Key );
+	std::string :: size_type KeyStart = Text.find( Key );
 
-	while( KeyStart != string :: npos )
+	while( KeyStart != std::string :: npos )
 	{
 		Text.replace( KeyStart, Key.size( ), Value );
 		KeyStart = Text.find( Key );
 	}
 }
 
-vector<string> UTIL_Tokenize( string s, char delim )
+std::vector<std::string> UTIL_Tokenize( std::string s, char delim )
 {
-	vector<string> Tokens;
-	string Token;
+	std::vector<std::string> Tokens;
+	std::string Token;
 
-	for( string :: iterator i = s.begin( ); i != s.end( ); ++i )
+	for( std::string :: iterator i = s.begin( ); i != s.end( ); ++i )
 	{
 		if( *i == delim )
 		{

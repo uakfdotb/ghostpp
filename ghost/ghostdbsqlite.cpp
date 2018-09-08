@@ -29,7 +29,7 @@
 // CQSLITE3 (wrapper class)
 //
 
-CSQLITE3 :: CSQLITE3( string filename )
+CSQLITE3 :: CSQLITE3( std::string filename )
 {
 	m_Ready = true;
 
@@ -42,12 +42,12 @@ CSQLITE3 :: ~CSQLITE3( )
 	sqlite3_close( (sqlite3 *)m_DB );
 }
 
-string CSQLITE3 :: GetError( )
+std::string CSQLITE3 :: GetError( )
 {
 	return sqlite3_errmsg( (sqlite3 *)m_DB );
 }
 
-int CSQLITE3 :: Prepare( string query, void **Statement )
+int CSQLITE3 :: Prepare( std::string query, void **Statement )
 {
 	return sqlite3_prepare_v2( (sqlite3 *)m_DB, query.c_str( ), -1, (sqlite3_stmt **)Statement, NULL );
 }
@@ -67,7 +67,7 @@ int CSQLITE3 :: Step( void *Statement )
 			if( ColumnText )
 				m_Row.push_back( ColumnText );
 			else
-				m_Row.push_back( string( ) );
+				m_Row.push_back( std::string( ) );
 		}
 	}
 
@@ -89,7 +89,7 @@ int CSQLITE3 :: ClearBindings( void *Statement )
 	return sqlite3_clear_bindings( (sqlite3_stmt *)Statement );
 }
 
-int CSQLITE3 :: Exec( string query )
+int CSQLITE3 :: Exec( std::string query )
 {
 	return sqlite3_exec( (sqlite3 *)m_DB, query.c_str( ), NULL, NULL, NULL );
 }
@@ -106,7 +106,7 @@ uint32_t CSQLITE3 :: LastRowID( )
 CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 {
 	m_File = CFG->GetString( "db_sqlite3_file", "ghost.dbs" );
-	CONSOLE_Print( "[SQLITE3] version " + string( SQLITE_VERSION ) );
+	CONSOLE_Print( "[SQLITE3] version " + std::string( SQLITE_VERSION ) );
 	CONSOLE_Print( "[SQLITE3] opening database [" + m_File + "]" );
 	m_DB = new CSQLITE3( m_File );
 
@@ -115,7 +115,7 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 		// setting m_HasError to true indicates there's been a critical error and we want GHost to shutdown
 		// this is okay here because we're in the constructor so we're not dropping any games or players
 
-		CONSOLE_Print( string( "[SQLITE3] error opening database [" + m_File + "] - " ) + m_DB->GetError( ) );
+		CONSOLE_Print( std::string( "[SQLITE3] error opening database [" + m_File + "] - " ) + m_DB->GetError( ) );
 		m_HasError = true;
 		m_Error = "error opening database";
 		return;
@@ -123,7 +123,7 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 
 	// find the schema number so we can determine whether we need to upgrade or not
 
-	string SchemaNumber;
+	std::string SchemaNumber;
 	sqlite3_stmt *Statement;
 	m_DB->Prepare( "SELECT value FROM config WHERE name=\"schema_number\"", (void **)&Statement );
 
@@ -133,7 +133,7 @@ CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
 
 		if( RC == SQLITE_ROW )
 		{
-			vector<string> *Row = m_DB->GetRow( );
+			std::vector<std::string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 1 )
 				SchemaNumber = (*Row)[0];
@@ -555,7 +555,7 @@ bool CGHostDBSQLite :: Commit( )
 	return m_DB->Exec( "COMMIT TRANSACTION" ) == SQLITE_OK;
 }
 
-uint32_t CGHostDBSQLite :: AdminCount( string server )
+uint32_t CGHostDBSQLite :: AdminCount( std::string server )
 {
 	uint32_t Count = 0;
 	sqlite3_stmt *Statement;
@@ -579,7 +579,7 @@ uint32_t CGHostDBSQLite :: AdminCount( string server )
 	return Count;
 }
 
-bool CGHostDBSQLite :: AdminCheck( string server, string user )
+bool CGHostDBSQLite :: AdminCheck( std::string server, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	bool IsAdmin = false;
@@ -607,7 +607,7 @@ bool CGHostDBSQLite :: AdminCheck( string server, string user )
 	return IsAdmin;
 }
 
-bool CGHostDBSQLite :: AdminAdd( string server, string user )
+bool CGHostDBSQLite :: AdminAdd( std::string server, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	bool Success = false;
@@ -633,7 +633,7 @@ bool CGHostDBSQLite :: AdminAdd( string server, string user )
 	return Success;
 }
 
-bool CGHostDBSQLite :: AdminRemove( string server, string user )
+bool CGHostDBSQLite :: AdminRemove( std::string server, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	bool Success = false;
@@ -659,9 +659,9 @@ bool CGHostDBSQLite :: AdminRemove( string server, string user )
 	return Success;
 }
 
-vector<string> CGHostDBSQLite :: AdminList( string server )
+std::vector<std::string> CGHostDBSQLite :: AdminList( std::string server )
 {
-	vector<string> AdminList;
+	std::vector<std::string> AdminList;
 	sqlite3_stmt *Statement;
 	m_DB->Prepare( "SELECT name FROM admins WHERE server=?", (void **)&Statement );
 
@@ -672,7 +672,7 @@ vector<string> CGHostDBSQLite :: AdminList( string server )
 
 		while( RC == SQLITE_ROW )
 		{
-			vector<string> *Row = m_DB->GetRow( );
+			std::vector<std::string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 1 )
 				AdminList.push_back( (*Row)[0] );
@@ -691,7 +691,7 @@ vector<string> CGHostDBSQLite :: AdminList( string server )
 	return AdminList;
 }
 
-uint32_t CGHostDBSQLite :: BanCount( string server )
+uint32_t CGHostDBSQLite :: BanCount( std::string server )
 {
 	uint32_t Count = 0;
 	sqlite3_stmt *Statement;
@@ -715,7 +715,7 @@ uint32_t CGHostDBSQLite :: BanCount( string server )
 	return Count;
 }
 
-CDBBan *CGHostDBSQLite :: BanCheck( string server, string user, string ip )
+CDBBan *CGHostDBSQLite :: BanCheck( std::string server, std::string user, std::string ip )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	CDBBan *Ban = NULL;
@@ -738,7 +738,7 @@ CDBBan *CGHostDBSQLite :: BanCheck( string server, string user, string ip )
 
 		if( RC == SQLITE_ROW )
 		{
-			vector<string> *Row = m_DB->GetRow( );
+			std::vector<std::string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 6 )
 				Ban = new CDBBan( server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5] );
@@ -756,7 +756,7 @@ CDBBan *CGHostDBSQLite :: BanCheck( string server, string user, string ip )
 	return Ban;
 }
 
-bool CGHostDBSQLite :: BanAdd( string server, string user, string ip, string gamename, string admin, string reason )
+bool CGHostDBSQLite :: BanAdd( std::string server, std::string user, std::string ip, std::string gamename, std::string admin, std::string reason )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	bool Success = false;
@@ -787,7 +787,7 @@ bool CGHostDBSQLite :: BanAdd( string server, string user, string ip, string gam
 	return Success;
 }
 
-bool CGHostDBSQLite :: BanRemove( string server, string user )
+bool CGHostDBSQLite :: BanRemove( std::string server, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	bool Success = false;
@@ -813,7 +813,7 @@ bool CGHostDBSQLite :: BanRemove( string server, string user )
 	return Success;
 }
 
-bool CGHostDBSQLite :: BanRemove( string user )
+bool CGHostDBSQLite :: BanRemove( std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	bool Success = false;
@@ -838,9 +838,9 @@ bool CGHostDBSQLite :: BanRemove( string user )
 	return Success;
 }
 
-vector<CDBBan *> CGHostDBSQLite :: BanList( string server )
+std::vector<CDBBan *> CGHostDBSQLite :: BanList( std::string server )
 {
-	vector<CDBBan *> BanList;
+	std::vector<CDBBan *> BanList;
 	sqlite3_stmt *Statement;
 	m_DB->Prepare( "SELECT name, ip, date, gamename, admin, reason FROM bans WHERE server=?", (void **)&Statement );
 
@@ -851,7 +851,7 @@ vector<CDBBan *> CGHostDBSQLite :: BanList( string server )
 
 		while( RC == SQLITE_ROW )
 		{
-			vector<string> *Row = m_DB->GetRow( );
+			std::vector<std::string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 6 )
 				BanList.push_back( new CDBBan( server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5] ) );
@@ -870,7 +870,7 @@ vector<CDBBan *> CGHostDBSQLite :: BanList( string server )
 	return BanList;
 }
 
-uint32_t CGHostDBSQLite :: GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+uint32_t CGHostDBSQLite :: GameAdd( std::string server, std::string map, std::string gamename, std::string ownername, uint32_t duration, uint32_t gamestate, std::string creatorname, std::string creatorserver )
 {
 	uint32_t RowID = 0;
 	sqlite3_stmt *Statement;
@@ -902,7 +902,7 @@ uint32_t CGHostDBSQLite :: GameAdd( string server, string map, string gamename, 
 	return RowID;
 }
 
-uint32_t CGHostDBSQLite :: GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+uint32_t CGHostDBSQLite :: GamePlayerAdd( uint32_t gameid, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, std::string leftreason, uint32_t team, uint32_t colour )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t RowID = 0;
@@ -938,7 +938,7 @@ uint32_t CGHostDBSQLite :: GamePlayerAdd( uint32_t gameid, string name, string i
 	return RowID;
 }
 
-uint32_t CGHostDBSQLite :: GamePlayerCount( string name )
+uint32_t CGHostDBSQLite :: GamePlayerCount( std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t Count = 0;
@@ -963,7 +963,7 @@ uint32_t CGHostDBSQLite :: GamePlayerCount( string name )
 	return Count;
 }
 
-CDBGamePlayerSummary *CGHostDBSQLite :: GamePlayerSummaryCheck( string name )
+CDBGamePlayerSummary *CGHostDBSQLite :: GamePlayerSummaryCheck( std::string name )
 {
 	if( GamePlayerCount( name ) == 0 )
 		return NULL;
@@ -984,8 +984,8 @@ CDBGamePlayerSummary *CGHostDBSQLite :: GamePlayerSummaryCheck( string name )
 			{
 				char *First = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, 0 );
 				char *Last = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, 1 );
-				string FirstGameDateTime;
-				string LastGameDateTime;
+				std::string FirstGameDateTime;
+				std::string LastGameDateTime;
 
 				if( First )
 					FirstGameDateTime = First;
@@ -1003,7 +1003,7 @@ CDBGamePlayerSummary *CGHostDBSQLite :: GamePlayerSummaryCheck( string name )
 				uint32_t MinDuration = sqlite3_column_int( (sqlite3_stmt *)Statement, 9 );
 				uint32_t AvgDuration = sqlite3_column_int( (sqlite3_stmt *)Statement, 10 );
 				uint32_t MaxDuration = sqlite3_column_int( (sqlite3_stmt *)Statement, 11 );
-				GamePlayerSummary = new CDBGamePlayerSummary( string( ), name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
+				GamePlayerSummary = new CDBGamePlayerSummary( std::string( ), name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
 			}
 			else
 				CONSOLE_Print( "[SQLITE3] error checking gameplayersummary [" + name + "] - row doesn't have 12 columns" );
@@ -1047,7 +1047,7 @@ uint32_t CGHostDBSQLite :: DotAGameAdd( uint32_t gameid, uint32_t winner, uint32
 	return RowID;
 }
 
-uint32_t CGHostDBSQLite :: DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
+uint32_t CGHostDBSQLite :: DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, std::string item1, std::string item2, std::string item3, std::string item4, std::string item5, std::string item6, std::string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
 {
 	uint32_t RowID = 0;
 	sqlite3_stmt *Statement;
@@ -1091,7 +1091,7 @@ uint32_t CGHostDBSQLite :: DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint
 	return RowID;
 }
 
-uint32_t CGHostDBSQLite :: DotAPlayerCount( string name )
+uint32_t CGHostDBSQLite :: DotAPlayerCount( std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t Count = 0;
@@ -1116,7 +1116,7 @@ uint32_t CGHostDBSQLite :: DotAPlayerCount( string name )
 	return Count;
 }
 
-CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name )
+CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( std::string name )
 {
 	if( DotAPlayerCount( name ) == 0 )
 		return NULL;
@@ -1190,7 +1190,7 @@ CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name )
 
 				// done
 
-				DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills );
+				DotAPlayerSummary = new CDBDotAPlayerSummary( std::string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills );
 			}
 			else
 				CONSOLE_Print( "[SQLITE3] error checking dotaplayersummary [" + name + "] - row doesn't have 7 columns" );
@@ -1206,11 +1206,11 @@ CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name )
 	return DotAPlayerSummary;
 }
 
-string CGHostDBSQLite :: FromCheck( uint32_t ip )
+std::string CGHostDBSQLite :: FromCheck( uint32_t ip )
 {
 	// a big thank you to tjado for help with the iptocountry feature
 
-	string From = "??";
+	std::string From = "??";
 	sqlite3_stmt *Statement;
 	m_DB->Prepare( "SELECT country FROM iptocountry WHERE ip1<=? AND ip2>=?", (void **)&Statement );
 
@@ -1224,7 +1224,7 @@ string CGHostDBSQLite :: FromCheck( uint32_t ip )
 
 		if( RC == SQLITE_ROW )
 		{
-			vector<string> *Row = m_DB->GetRow( );
+			std::vector<std::string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 1 )
 				From = (*Row)[0];
@@ -1242,7 +1242,7 @@ string CGHostDBSQLite :: FromCheck( uint32_t ip )
 	return From;
 }
 
-bool CGHostDBSQLite :: FromAdd( uint32_t ip1, uint32_t ip2, string country )
+bool CGHostDBSQLite :: FromAdd( uint32_t ip1, uint32_t ip2, std::string country )
 {
 	// a big thank you to tjado for help with the iptocountry feature
 
@@ -1274,7 +1274,7 @@ bool CGHostDBSQLite :: FromAdd( uint32_t ip1, uint32_t ip2, string country )
 	return Success;
 }
 
-bool CGHostDBSQLite :: DownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime )
+bool CGHostDBSQLite :: DownloadAdd( std::string map, uint32_t mapsize, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t downloadtime )
 {
 	bool Success = false;
 	sqlite3_stmt *Statement;
@@ -1305,7 +1305,7 @@ bool CGHostDBSQLite :: DownloadAdd( string map, uint32_t mapsize, string name, s
 	return Success;
 }
 
-uint32_t CGHostDBSQLite :: W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+uint32_t CGHostDBSQLite :: W3MMDPlayerAdd( std::string category, uint32_t gameid, uint32_t pid, std::string name, std::string flag, uint32_t leaver, uint32_t practicing )
 {
 	uint32_t RowID = 0;
 	sqlite3_stmt *Statement;
@@ -1336,7 +1336,7 @@ uint32_t CGHostDBSQLite :: W3MMDPlayerAdd( string category, uint32_t gameid, uin
 	return RowID;
 }
 
-bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
+bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, std::map<VarP,int32_t> var_ints )
 {
 	if( var_ints.empty( ) )
 		return false;
@@ -1344,7 +1344,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints 
 	bool Success = true;
 	sqlite3_stmt *Statement = NULL;
 
-	for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); ++i )
+	for( std::map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); ++i )
 	{
 		if( !Statement )
 			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_int ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
@@ -1381,7 +1381,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints 
 	return Success;
 }
 
-bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
+bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, std::map<VarP,double> var_reals )
 {
 	if( var_reals.empty( ) )
 		return false;
@@ -1389,7 +1389,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals 
 	bool Success = true;
 	sqlite3_stmt *Statement = NULL;
 
-	for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); ++i )
+	for( std::map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); ++i )
 	{
 		if( !Statement )
 			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_real ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
@@ -1426,7 +1426,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals 
 	return Success;
 }
 
-bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
+bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, std::map<VarP,std::string> var_strings )
 {
 	if( var_strings.empty( ) )
 		return false;
@@ -1434,7 +1434,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_string
 	bool Success = true;
 	sqlite3_stmt *Statement = NULL;
 
-	for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); ++i )
+	for( std::map<VarP,std::string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); ++i )
 	{
 		if( !Statement )
 			m_DB->Prepare( "INSERT INTO w3mmdvars ( gameid, pid, varname, value_string ) VALUES ( ?, ?, ?, ? )", (void **)&Statement );
@@ -1451,7 +1451,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_string
 			if( RC == SQLITE_ERROR )
 			{
 				Success = false;
-				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + i->second + "] - " + m_DB->GetError( ) );
+				CONSOLE_Print( "[SQLITE3] error adding w3mmdvar-std::string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + i->second + "] - " + m_DB->GetError( ) );
 				break;
 			}
 
@@ -1460,7 +1460,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_string
 		else
 		{
 			Success = false;
-			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + i->second + "] - " + m_DB->GetError( ) );
+			CONSOLE_Print( "[SQLITE3] prepare error adding w3mmdvar-std::string [" + UTIL_ToString( gameid ) + " : " + UTIL_ToString( i->first.first ) + " : " + i->first.second + " : " + i->second + "] - " + m_DB->GetError( ) );
 			break;
 		}
 	}
@@ -1471,7 +1471,7 @@ bool CGHostDBSQLite :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_string
 	return Success;
 }
 
-CCallableAdminCount *CGHostDBSQLite :: ThreadedAdminCount( string server )
+CCallableAdminCount *CGHostDBSQLite :: ThreadedAdminCount( std::string server )
 {
 	CCallableAdminCount *Callable = new CCallableAdminCount( server );
 	Callable->SetResult( AdminCount( server ) );
@@ -1479,7 +1479,7 @@ CCallableAdminCount *CGHostDBSQLite :: ThreadedAdminCount( string server )
 	return Callable;
 }
 
-CCallableAdminCheck *CGHostDBSQLite :: ThreadedAdminCheck( string server, string user )
+CCallableAdminCheck *CGHostDBSQLite :: ThreadedAdminCheck( std::string server, std::string user )
 {
 	CCallableAdminCheck *Callable = new CCallableAdminCheck( server, user );
 	Callable->SetResult( AdminCheck( server, user ) );
@@ -1487,7 +1487,7 @@ CCallableAdminCheck *CGHostDBSQLite :: ThreadedAdminCheck( string server, string
 	return Callable;
 }
 
-CCallableAdminAdd *CGHostDBSQLite :: ThreadedAdminAdd( string server, string user )
+CCallableAdminAdd *CGHostDBSQLite :: ThreadedAdminAdd( std::string server, std::string user )
 {
 	CCallableAdminAdd *Callable = new CCallableAdminAdd( server, user );
 	Callable->SetResult( AdminAdd( server, user ) );
@@ -1495,7 +1495,7 @@ CCallableAdminAdd *CGHostDBSQLite :: ThreadedAdminAdd( string server, string use
 	return Callable;
 }
 
-CCallableAdminRemove *CGHostDBSQLite :: ThreadedAdminRemove( string server, string user )
+CCallableAdminRemove *CGHostDBSQLite :: ThreadedAdminRemove( std::string server, std::string user )
 {
 	CCallableAdminRemove *Callable = new CCallableAdminRemove( server, user );
 	Callable->SetResult( AdminRemove( server, user ) );
@@ -1503,7 +1503,7 @@ CCallableAdminRemove *CGHostDBSQLite :: ThreadedAdminRemove( string server, stri
 	return Callable;
 }
 
-CCallableAdminList *CGHostDBSQLite :: ThreadedAdminList( string server )
+CCallableAdminList *CGHostDBSQLite :: ThreadedAdminList( std::string server )
 {
 	CCallableAdminList *Callable = new CCallableAdminList( server );
 	Callable->SetResult( AdminList( server ) );
@@ -1511,7 +1511,7 @@ CCallableAdminList *CGHostDBSQLite :: ThreadedAdminList( string server )
 	return Callable;
 }
 
-CCallableBanCount *CGHostDBSQLite :: ThreadedBanCount( string server )
+CCallableBanCount *CGHostDBSQLite :: ThreadedBanCount( std::string server )
 {
 	CCallableBanCount *Callable = new CCallableBanCount( server );
 	Callable->SetResult( BanCount( server ) );
@@ -1519,7 +1519,7 @@ CCallableBanCount *CGHostDBSQLite :: ThreadedBanCount( string server )
 	return Callable;
 }
 
-CCallableBanCheck *CGHostDBSQLite :: ThreadedBanCheck( string server, string user, string ip )
+CCallableBanCheck *CGHostDBSQLite :: ThreadedBanCheck( std::string server, std::string user, std::string ip )
 {
 	CCallableBanCheck *Callable = new CCallableBanCheck( server, user, ip );
 	Callable->SetResult( BanCheck( server, user, ip ) );
@@ -1527,7 +1527,7 @@ CCallableBanCheck *CGHostDBSQLite :: ThreadedBanCheck( string server, string use
 	return Callable;
 }
 
-CCallableBanAdd *CGHostDBSQLite :: ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason )
+CCallableBanAdd *CGHostDBSQLite :: ThreadedBanAdd( std::string server, std::string user, std::string ip, std::string gamename, std::string admin, std::string reason )
 {
 	CCallableBanAdd *Callable = new CCallableBanAdd( server, user, ip, gamename, admin, reason );
 	Callable->SetResult( BanAdd( server, user, ip, gamename, admin, reason ) );
@@ -1535,7 +1535,7 @@ CCallableBanAdd *CGHostDBSQLite :: ThreadedBanAdd( string server, string user, s
 	return Callable;
 }
 
-CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string server, string user )
+CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( std::string server, std::string user )
 {
 	CCallableBanRemove *Callable = new CCallableBanRemove( server, user );
 	Callable->SetResult( BanRemove( server, user ) );
@@ -1543,15 +1543,15 @@ CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string server, string u
 	return Callable;
 }
 
-CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string user )
+CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( std::string user )
 {
-	CCallableBanRemove *Callable = new CCallableBanRemove( string( ), user );
+	CCallableBanRemove *Callable = new CCallableBanRemove( std::string( ), user );
 	Callable->SetResult( BanRemove( user ) );
 	Callable->SetReady( true );
 	return Callable;
 }
 
-CCallableBanList *CGHostDBSQLite :: ThreadedBanList( string server )
+CCallableBanList *CGHostDBSQLite :: ThreadedBanList( std::string server )
 {
 	CCallableBanList *Callable = new CCallableBanList( server );
 	Callable->SetResult( BanList( server ) );
@@ -1559,7 +1559,7 @@ CCallableBanList *CGHostDBSQLite :: ThreadedBanList( string server )
 	return Callable;
 }
 
-CCallableGameAdd *CGHostDBSQLite :: ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+CCallableGameAdd *CGHostDBSQLite :: ThreadedGameAdd( std::string server, std::string map, std::string gamename, std::string ownername, uint32_t duration, uint32_t gamestate, std::string creatorname, std::string creatorserver )
 {
 	CCallableGameAdd *Callable = new CCallableGameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver );
 	Callable->SetResult( GameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver ) );
@@ -1567,7 +1567,7 @@ CCallableGameAdd *CGHostDBSQLite :: ThreadedGameAdd( string server, string map, 
 	return Callable;
 }
 
-CCallableGamePlayerAdd *CGHostDBSQLite :: ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+CCallableGamePlayerAdd *CGHostDBSQLite :: ThreadedGamePlayerAdd( uint32_t gameid, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, std::string leftreason, uint32_t team, uint32_t colour )
 {
 	CCallableGamePlayerAdd *Callable = new CCallableGamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour );
 	Callable->SetResult( GamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour ) );
@@ -1575,7 +1575,7 @@ CCallableGamePlayerAdd *CGHostDBSQLite :: ThreadedGamePlayerAdd( uint32_t gameid
 	return Callable;
 }
 
-CCallableGamePlayerSummaryCheck *CGHostDBSQLite :: ThreadedGamePlayerSummaryCheck( string name )
+CCallableGamePlayerSummaryCheck *CGHostDBSQLite :: ThreadedGamePlayerSummaryCheck( std::string name )
 {
 	CCallableGamePlayerSummaryCheck *Callable = new CCallableGamePlayerSummaryCheck( name );
 	Callable->SetResult( GamePlayerSummaryCheck( name ) );
@@ -1591,7 +1591,7 @@ CCallableDotAGameAdd *CGHostDBSQLite :: ThreadedDotAGameAdd( uint32_t gameid, ui
 	return Callable;
 }
 
-CCallableDotAPlayerAdd *CGHostDBSQLite :: ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
+CCallableDotAPlayerAdd *CGHostDBSQLite :: ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, std::string item1, std::string item2, std::string item3, std::string item4, std::string item5, std::string item6, std::string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
 {
 	CCallableDotAPlayerAdd *Callable = new CCallableDotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills );
 	Callable->SetResult( DotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) );
@@ -1599,7 +1599,7 @@ CCallableDotAPlayerAdd *CGHostDBSQLite :: ThreadedDotAPlayerAdd( uint32_t gameid
 	return Callable;
 }
 
-CCallableDotAPlayerSummaryCheck *CGHostDBSQLite :: ThreadedDotAPlayerSummaryCheck( string name )
+CCallableDotAPlayerSummaryCheck *CGHostDBSQLite :: ThreadedDotAPlayerSummaryCheck( std::string name )
 {
 	CCallableDotAPlayerSummaryCheck *Callable = new CCallableDotAPlayerSummaryCheck( name );
 	Callable->SetResult( DotAPlayerSummaryCheck( name ) );
@@ -1607,7 +1607,7 @@ CCallableDotAPlayerSummaryCheck *CGHostDBSQLite :: ThreadedDotAPlayerSummaryChec
 	return Callable;
 }
 
-CCallableDownloadAdd *CGHostDBSQLite :: ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime )
+CCallableDownloadAdd *CGHostDBSQLite :: ThreadedDownloadAdd( std::string map, uint32_t mapsize, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t downloadtime )
 {
 	CCallableDownloadAdd *Callable = new CCallableDownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime );
 	Callable->SetResult( DownloadAdd( map, mapsize, name, ip, spoofed, spoofedrealm, downloadtime ) );
@@ -1615,7 +1615,7 @@ CCallableDownloadAdd *CGHostDBSQLite :: ThreadedDownloadAdd( string map, uint32_
 	return Callable;
 }
 
-CCallableW3MMDPlayerAdd *CGHostDBSQLite :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+CCallableW3MMDPlayerAdd *CGHostDBSQLite :: ThreadedW3MMDPlayerAdd( std::string category, uint32_t gameid, uint32_t pid, std::string name, std::string flag, uint32_t leaver, uint32_t practicing )
 {
 	CCallableW3MMDPlayerAdd *Callable = new CCallableW3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing );
 	Callable->SetResult( W3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing ) );
@@ -1623,7 +1623,7 @@ CCallableW3MMDPlayerAdd *CGHostDBSQLite :: ThreadedW3MMDPlayerAdd( string catego
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
+CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,int32_t> var_ints )
 {
 	CCallableW3MMDVarAdd *Callable = new CCallableW3MMDVarAdd( gameid, var_ints );
 	Callable->SetResult( W3MMDVarAdd( gameid, var_ints ) );
@@ -1631,7 +1631,7 @@ CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, ma
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
+CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,double> var_reals )
 {
 	CCallableW3MMDVarAdd *Callable = new CCallableW3MMDVarAdd( gameid, var_reals );
 	Callable->SetResult( W3MMDVarAdd( gameid, var_reals ) );
@@ -1639,7 +1639,7 @@ CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, ma
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
+CCallableW3MMDVarAdd *CGHostDBSQLite :: ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,std::string> var_strings )
 {
 	CCallableW3MMDVarAdd *Callable = new CCallableW3MMDVarAdd( gameid, var_strings );
 	Callable->SetResult( W3MMDVarAdd( gameid, var_strings ) );

@@ -114,10 +114,10 @@ public:
 
 	virtual BYTEARRAY GetPort( );
 	virtual BYTEARRAY GetIP( );
-	virtual string GetIPString( );
+	virtual std::string GetIPString( );
 	virtual bool HasError( )						{ return m_HasError; }
 	virtual int GetError( )							{ return m_Error; }
-	virtual string GetErrorString( );
+	virtual std::string GetErrorString( );
 	virtual void SetFD( fd_set *fd, fd_set *send_fd, int *nfds );
 	virtual void Allocate( int type );
 	virtual void Reset( );
@@ -131,11 +131,11 @@ class CTCPSocket : public CSocket
 {
 protected:
 	bool m_Connected;
-	string m_LogFile;
+	std::string m_LogFile;
 
 private:
-	string m_RecvBuffer;
-	string m_SendBuffer;
+	std::string m_RecvBuffer;
+	std::string m_SendBuffer;
 	uint32_t m_LastRecv;
 	uint32_t m_LastSend;
 
@@ -146,8 +146,8 @@ public:
 
 	virtual void Reset( );
 	virtual bool GetConnected( )				{ return m_Connected; }
-	virtual string *GetBytes( )					{ return &m_RecvBuffer; }
-	virtual void PutBytes( string bytes );
+	virtual std::string *GetBytes( )					{ return &m_RecvBuffer; }
+	virtual void PutBytes( std::string bytes );
 	virtual void PutBytes( BYTEARRAY bytes );
 	virtual void ClearRecvBuffer( )				{ m_RecvBuffer.clear( ); }
 	virtual void ClearSendBuffer( )				{ m_SendBuffer.clear( ); }
@@ -157,7 +157,7 @@ public:
 	virtual void DoSend( fd_set *send_fd );
 	virtual void Disconnect( );
 	virtual void SetNoDelay( bool noDelay );
-	virtual void SetLogFile( string nLogFile )	{ m_LogFile = nLogFile; }
+	virtual void SetLogFile( std::string nLogFile )	{ m_LogFile = nLogFile; }
 };
 
 //
@@ -176,7 +176,7 @@ public:
 	virtual void Reset( );
 	virtual void Disconnect( );
 	virtual bool GetConnecting( )												{ return m_Connecting; }
-	virtual void Connect( string localaddress, string address, uint16_t port );
+	virtual void Connect( std::string localaddress, std::string address, uint16_t port );
 	virtual bool CheckConnect( );
 };
 
@@ -190,7 +190,7 @@ public:
 	CTCPServer( );
 	virtual ~CTCPServer( );
 
-	virtual bool Listen( string address, uint16_t port );
+	virtual bool Listen( std::string address, uint16_t port );
 	virtual CTCPSocket *Accept( fd_set *fd );
 };
 
@@ -207,9 +207,9 @@ public:
 	virtual ~CUDPSocket( );
 
 	virtual bool SendTo( struct sockaddr_in sin, BYTEARRAY message );
-	virtual bool SendTo( string address, uint16_t port, BYTEARRAY message );
+	virtual bool SendTo( std::string address, uint16_t port, BYTEARRAY message );
 	virtual bool Broadcast( uint16_t port, BYTEARRAY message );
-	virtual void SetBroadcastTarget( string subnet );
+	virtual void SetBroadcastTarget( std::string subnet );
 	virtual void SetDontRoute( bool dontRoute );
 };
 
@@ -224,8 +224,8 @@ public:
 	virtual ~CUDPServer( );
 
 	virtual bool Bind( struct sockaddr_in sin );
-	virtual bool Bind( string address, uint16_t port );
-	virtual void RecvFrom( fd_set *fd, struct sockaddr_in *sin, string *message );
+	virtual bool Bind( std::string address, uint16_t port );
+	virtual void RecvFrom( fd_set *fd, struct sockaddr_in *sin, std::string *message );
 };
 
 #endif

@@ -55,7 +55,7 @@ CIncomingJoinPlayer *CGameProtocol :: RECEIVE_W3GS_REQJOIN( BYTEARRAY data )
 	// 1 byte					-> ???
 	// 2 bytes					-> Listen Port
 	// 4 bytes					-> Peer Key
-	// null terminated string	-> Name
+	// null terminated std::string	-> Name
 	// 4 bytes					-> ???
 	// 2 bytes					-> InternalPort (???)
 	// 4 bytes					-> InternalIP
@@ -69,7 +69,7 @@ CIncomingJoinPlayer *CGameProtocol :: RECEIVE_W3GS_REQJOIN( BYTEARRAY data )
 		if( !Name.empty( ) && data.size( ) >= Name.size( ) + 30 )
 		{
 			BYTEARRAY InternalIP = BYTEARRAY( data.begin( ) + Name.size( ) + 26, data.begin( ) + Name.size( ) + 30 );
-			return new CIncomingJoinPlayer( HostCounter, EntryKey, string( Name.begin( ), Name.end( ) ), InternalIP );
+			return new CIncomingJoinPlayer( HostCounter, EntryKey, std::string( Name.begin( ), Name.end( ) ), InternalIP );
 		}
 	}
 
@@ -154,7 +154,7 @@ CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data 
 	// 1 byte					-> FromPID
 	// 1 byte					-> Flag
 	// if( Flag == 16 )
-	//		null term string	-> Message
+	//		null term std::string	-> Message
 	// elseif( Flag == 17 )
 	//		1 byte				-> Team
 	// elseif( Flag == 18 )
@@ -165,7 +165,7 @@ CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data 
 	//		1 byte				-> Handicap
 	// elseif( Flag == 32 )
 	//		4 bytes				-> ExtraFlags
-	//		null term string	-> Message
+	//		null term std::string	-> Message
 
 	if( ValidateLength( data ) )
 	{
@@ -185,7 +185,7 @@ CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data 
 				// chat message
 
 				BYTEARRAY Message = UTIL_ExtractCString( data, i );
-				return new CIncomingChatPlayer( FromPID, ToPIDs, Flag, string( Message.begin( ), Message.end( ) ) );
+				return new CIncomingChatPlayer( FromPID, ToPIDs, Flag, std::string( Message.begin( ), Message.end( ) ) );
 			}
 			else if( ( Flag >= 17 && Flag <= 20 ) && data.size( ) >= i + 1 )
 			{
@@ -200,7 +200,7 @@ CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data 
 
 				BYTEARRAY ExtraFlags = BYTEARRAY( data.begin( ) + i, data.begin( ) + i + 4 );
 				BYTEARRAY Message = UTIL_ExtractCString( data, i + 4 );
-				return new CIncomingChatPlayer( FromPID, ToPIDs, Flag, string( Message.begin( ), Message.end( ) ), ExtraFlags );
+				return new CIncomingChatPlayer( FromPID, ToPIDs, Flag, std::string( Message.begin( ), Message.end( ) ), ExtraFlags );
 			}
 		}
 	}
@@ -309,7 +309,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_PING_FROM_HOST( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, std::vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
 {
 	unsigned char Zeros[] = { 0, 0, 0, 0 };
 
@@ -355,7 +355,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_REJECTJOIN( uint32_t reason )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP )
+BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, std::string name, BYTEARRAY externalIP, BYTEARRAY internalIP )
 {
 	unsigned char PlayerJoinCounter[]	= { 2, 0, 0, 0 };
 	unsigned char Zeros[]				= { 0, 0, 0, 0 };
@@ -440,7 +440,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMELOADED_OTHERS( unsigned char PID )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFO( std::vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
 {
 	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, layoutStyle, playerSlots );
 	BYTEARRAY packet;
@@ -482,7 +482,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_COUNTDOWN_END( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> actions, uint16_t sendInterval )
+BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION( std::queue<CIncomingAction *> actions, uint16_t sendInterval )
 {
 	BYTEARRAY packet;
 	packet.push_back( W3GS_HEADER_CONSTANT );				// W3GS header constant
@@ -508,7 +508,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> a
 
 		// calculate crc (we only care about the first 2 bytes though)
 
-		BYTEARRAY crc32 = UTIL_CreateByteArray( m_GHost->m_CRC->FullCRC( (unsigned char *)string( subpacket.begin( ), subpacket.end( ) ).c_str( ), subpacket.size( ) ), false );
+		BYTEARRAY crc32 = UTIL_CreateByteArray( m_GHost->m_CRC->FullCRC( (unsigned char *)std::string( subpacket.begin( ), subpacket.end( ) ).c_str( ), subpacket.size( ) ), false );
 		crc32.resize( 2 );
 
 		// finish subpacket
@@ -523,7 +523,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> a
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTEARRAY toPIDs, unsigned char flag, BYTEARRAY flagExtra, string message )
+BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTEARRAY toPIDs, unsigned char flag, BYTEARRAY flagExtra, std::string message )
 {
 	BYTEARRAY packet;
 
@@ -549,13 +549,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTE
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, bool loadInGame )
+BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( std::vector<CGamePlayer *> players, bool loadInGame )
 {
 	BYTEARRAY packet;
 
 	unsigned char NumLaggers = 0;
 
-	for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
+	for( std::vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
 	{
 		if( loadInGame )
 		{
@@ -577,7 +577,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, b
 		packet.push_back( 0 );						// packet length will be assigned later
 		packet.push_back( NumLaggers );
 
-		for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
+		for( std::vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
 		{
 			if( loadInGame )
 			{
@@ -653,7 +653,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( bool TFT, unsigned char war3Ver
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter, uint32_t entryKey )
+BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, std::string gameName, std::string hostName, uint32_t upTime, std::string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter, uint32_t entryKey )
 {
 	unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
 	unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
@@ -664,7 +664,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Versi
 
 	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 )
 	{
-		// make the stat string
+		// make the stat std::string
 
 		BYTEARRAY StatString;
 		UTIL_AppendByteArrayFast( StatString, mapFlags );
@@ -695,7 +695,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Versi
 		UTIL_AppendByteArrayFast( packet, gameName );					// Game Name
 		packet.push_back( 0 );											// ??? (maybe game password)
 		UTIL_AppendByteArrayFast( packet, StatString );					// Stat String
-		packet.push_back( 0 );											// Stat String null terminator (the stat string is encoded to remove all even numbers i.e. zeros)
+		packet.push_back( 0 );											// Stat String null terminator (the stat std::string is encoded to remove all even numbers i.e. zeros)
 		UTIL_AppendByteArray( packet, slotsTotal, false );				// Slots Total
 		UTIL_AppendByteArrayFast( packet, mapGameType );				// Game Type
 		UTIL_AppendByteArray( packet, Unknown2, 4 );					// ???
@@ -772,7 +772,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_DECREATEGAME( )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 )
+BYTEARRAY CGameProtocol :: SEND_W3GS_MAPCHECK( std::string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 )
 {
 	unsigned char Unknown[] = { 1, 0, 0, 0 };
 
@@ -817,7 +817,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_STARTDOWNLOAD( unsigned char fromPID )
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_MAPPART( unsigned char fromPID, unsigned char toPID, uint32_t start, string *mapData )
+BYTEARRAY CGameProtocol :: SEND_W3GS_MAPPART( unsigned char fromPID, unsigned char toPID, uint32_t start, std::string *mapData )
 {
 	unsigned char Unknown[] = { 1, 0, 0, 0 };
 
@@ -860,7 +860,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_MAPPART( unsigned char fromPID, unsigned ch
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION2( queue<CIncomingAction *> actions )
+BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION2( std::queue<CIncomingAction *> actions )
 {
 	BYTEARRAY packet;
 	packet.push_back( W3GS_HEADER_CONSTANT );				// W3GS header constant
@@ -887,7 +887,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_INCOMING_ACTION2( queue<CIncomingAction *> 
 
 		// calculate crc (we only care about the first 2 bytes though)
 
-		BYTEARRAY crc32 = UTIL_CreateByteArray( m_GHost->m_CRC->FullCRC( (unsigned char *)string( subpacket.begin( ), subpacket.end( ) ).c_str( ), subpacket.size( ) ), false );
+		BYTEARRAY crc32 = UTIL_CreateByteArray( m_GHost->m_CRC->FullCRC( (unsigned char *)std::string( subpacket.begin( ), subpacket.end( ) ).c_str( ), subpacket.size( ) ), false );
 		crc32.resize( 2 );
 
 		// finish subpacket
@@ -943,7 +943,7 @@ bool CGameProtocol :: ValidateLength( BYTEARRAY &content )
 	return false;
 }
 
-BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
+BYTEARRAY CGameProtocol :: EncodeSlotInfo( std::vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
 {
 	BYTEARRAY SlotInfo;
 	SlotInfo.push_back( (unsigned char)slots.size( ) );		// number of slots
@@ -961,7 +961,7 @@ BYTEARRAY CGameProtocol :: EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t ra
 // CIncomingJoinPlayer
 //
 
-CIncomingJoinPlayer :: CIncomingJoinPlayer( uint32_t nHostCounter, uint32_t nEntryKey, string nName, BYTEARRAY &nInternalIP ) : m_HostCounter( nHostCounter ), m_EntryKey( nEntryKey ), m_Name( nName ), m_InternalIP( nInternalIP )
+CIncomingJoinPlayer :: CIncomingJoinPlayer( uint32_t nHostCounter, uint32_t nEntryKey, std::string nName, BYTEARRAY &nInternalIP ) : m_HostCounter( nHostCounter ), m_EntryKey( nEntryKey ), m_Name( nName ), m_InternalIP( nInternalIP )
 {
 
 }
@@ -989,12 +989,12 @@ CIncomingAction :: ~CIncomingAction( )
 // CIncomingChatPlayer
 //
 
-CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage ) : m_Type( CTH_MESSAGE ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage )
+CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, std::string nMessage ) : m_Type( CTH_MESSAGE ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage )
 {
 
 }
 
-CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage, BYTEARRAY &nExtraFlags ) : m_Type( CTH_MESSAGEEXTRA ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage ), m_ExtraFlags( nExtraFlags )
+CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, std::string nMessage, BYTEARRAY &nExtraFlags ) : m_Type( CTH_MESSAGEEXTRA ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage ), m_ExtraFlags( nExtraFlags )
 {
 
 }

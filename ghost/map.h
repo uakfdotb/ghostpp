@@ -96,8 +96,8 @@ public:
 
 private:
 	bool m_Valid;
-	string m_CFGFile;
-	string m_MapPath;							// config value: map path
+	std::string m_CFGFile;
+	std::string m_MapPath;							// config value: map path
 	BYTEARRAY m_MapSize;						// config value: map size (4 bytes)
 	BYTEARRAY m_MapInfo;						// config value: map info (4 bytes) -> this is the real CRC
 	BYTEARRAY m_MapCRC;							// config value: map crc (4 bytes) -> this is not the real CRC, it's the "xoro" value
@@ -113,26 +113,26 @@ private:
 	uint32_t m_MapOptions;
 	BYTEARRAY m_MapWidth;						// config value: map width (2 bytes)
 	BYTEARRAY m_MapHeight;						// config value: map height (2 bytes)
-	string m_MapType;							// config value: map type (for stats class)
-	string m_MapMatchMakingCategory;			// config value: map matchmaking category (for matchmaking)
-	string m_MapStatsW3MMDCategory;				// config value: map stats w3mmd category (for saving w3mmd stats)
-	string m_MapDefaultHCL;						// config value: map default HCL to use (this should really be specified elsewhere and not part of the map config)
+	std::string m_MapType;							// config value: map type (for stats class)
+	std::string m_MapMatchMakingCategory;			// config value: map matchmaking category (for matchmaking)
+	std::string m_MapStatsW3MMDCategory;				// config value: map stats w3mmd category (for saving w3mmd stats)
+	std::string m_MapDefaultHCL;						// config value: map default HCL to use (this should really be specified elsewhere and not part of the map config)
 	uint32_t m_MapDefaultPlayerScore;			// config value: map default player score (for matchmaking)
-	string m_MapLocalPath;						// config value: map local path
+	std::string m_MapLocalPath;						// config value: map local path
 	bool m_MapLoadInGame;
-	string m_MapData;							// the map data itself, for sending the map to players
+	std::string m_MapData;							// the map data itself, for sending the map to players
 	uint32_t m_MapNumPlayers;
 	uint32_t m_MapNumTeams;
-	vector<CGameSlot> m_Slots;
+	std::vector<CGameSlot> m_Slots;
 
 public:
 	CMap( CGHost *nGHost );
-	CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile );
+	CMap( CGHost *nGHost, CConfig *CFG, std::string nCFGFile );
 	~CMap( );
 
 	bool GetValid( )						{ return m_Valid; }
-	string GetCFGFile( )					{ return m_CFGFile; }
-	string GetMapPath( )					{ return m_MapPath; }
+	std::string GetCFGFile( )					{ return m_CFGFile; }
+	std::string GetMapPath( )					{ return m_MapPath; }
 	BYTEARRAY GetMapSize( )					{ return m_MapSize; }
 	BYTEARRAY GetMapInfo( )					{ return m_MapInfo; }
 	BYTEARRAY GetMapCRC( )					{ return m_MapCRC; }
@@ -147,19 +147,19 @@ public:
 	unsigned char GetMapLayoutStyle( );
 	BYTEARRAY GetMapWidth( )				{ return m_MapWidth; }
 	BYTEARRAY GetMapHeight( )				{ return m_MapHeight; }
-	string GetMapType( )					{ return m_MapType; }
-	string GetMapMatchMakingCategory( )		{ return m_MapMatchMakingCategory; }
-	string GetMapStatsW3MMDCategory( )		{ return m_MapStatsW3MMDCategory; }
-	string GetMapDefaultHCL( )				{ return m_MapDefaultHCL; }
+	std::string GetMapType( )					{ return m_MapType; }
+	std::string GetMapMatchMakingCategory( )		{ return m_MapMatchMakingCategory; }
+	std::string GetMapStatsW3MMDCategory( )		{ return m_MapStatsW3MMDCategory; }
+	std::string GetMapDefaultHCL( )				{ return m_MapDefaultHCL; }
 	uint32_t GetMapDefaultPlayerScore( )	{ return m_MapDefaultPlayerScore; }
-	string GetMapLocalPath( )				{ return m_MapLocalPath; }
+	std::string GetMapLocalPath( )				{ return m_MapLocalPath; }
 	bool GetMapLoadInGame( )				{ return m_MapLoadInGame; }
-	string *GetMapData( )					{ return &m_MapData; }
+	std::string *GetMapData( )					{ return &m_MapData; }
 	uint32_t GetMapNumPlayers( )			{ return m_MapNumPlayers; }
 	uint32_t GetMapNumTeams( )				{ return m_MapNumTeams; }
-	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
+	std::vector<CGameSlot> GetSlots( )			{ return m_Slots; }
 
-	void Load( CConfig *CFG, string nCFGFile );
+	void Load( CConfig *CFG, std::string nCFGFile );
 	void CheckValid( );
 	uint32_t XORRotateLeft( unsigned char *data, uint32_t length );
 };

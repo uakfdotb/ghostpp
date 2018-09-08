@@ -25,31 +25,31 @@
 // CStatsW3MMD
 //
 
-typedef pair<uint32_t,string> VarP;
+typedef std::pair<uint32_t,std::string> VarP;
 
 class CStatsW3MMD : public CStats
 {
 private:
-	string m_Category;
+	std::string m_Category;
 	uint32_t m_NextValueID;
 	uint32_t m_NextCheckID;
-	map<uint32_t,string> m_PIDToName;			// pid -> player name (e.g. 0 -> "Varlock") --- note: will not be automatically converted to lower case
-	map<uint32_t,string> m_Flags;				// pid -> flag (e.g. 0 -> "winner")
-	map<uint32_t,bool> m_FlagsLeaver;			// pid -> leaver flag (e.g. 0 -> true) --- note: will only be present if true
-	map<uint32_t,bool> m_FlagsPracticing;		// pid -> practice flag (e.g. 0 -> true) --- note: will only be present if true
-	map<string,string> m_DefVarPs;				// varname -> value type (e.g. "kills" -> "int")
-	map<VarP,int32_t> m_VarPInts;				// pid,varname -> value (e.g. 0,"kills" -> 5)
-	map<VarP,double> m_VarPReals;				// pid,varname -> value (e.g. 0,"x" -> 0.8)
-	map<VarP,string> m_VarPStrings;				// pid,varname -> value (e.g. 0,"hero" -> "heroname")
-	map<string, vector<string> > m_DefEvents;	// event -> vector of arguments + format
+	std::map<uint32_t,std::string> m_PIDToName;			// pid -> player name (e.g. 0 -> "Varlock") --- note: will not be automatically converted to lower case
+	std::map<uint32_t,std::string> m_Flags;				// pid -> flag (e.g. 0 -> "winner")
+	std::map<uint32_t,bool> m_FlagsLeaver;			// pid -> leaver flag (e.g. 0 -> true) --- note: will only be present if true
+	std::map<uint32_t,bool> m_FlagsPracticing;		// pid -> practice flag (e.g. 0 -> true) --- note: will only be present if true
+	std::map<std::string,std::string> m_DefVarPs;				// varname -> value type (e.g. "kills" -> "int")
+	std::map<VarP,int32_t> m_VarPInts;				// pid,varname -> value (e.g. 0,"kills" -> 5)
+	std::map<VarP,double> m_VarPReals;				// pid,varname -> value (e.g. 0,"x" -> 0.8)
+	std::map<VarP,std::string> m_VarPStrings;				// pid,varname -> value (e.g. 0,"hero" -> "heroname")
+	std::map<std::string, std::vector<std::string> > m_DefEvents;	// event -> std::vector of arguments + format
 
 public:
-	CStatsW3MMD( CBaseGame *nGame, string nCategory );
+	CStatsW3MMD( CBaseGame *nGame, std::string nCategory );
 	virtual ~CStatsW3MMD( );
 
 	virtual bool ProcessAction( CIncomingAction *Action );
 	virtual void Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID );
-	virtual vector<string> TokenizeKey( string key );
+	virtual std::vector<std::string> TokenizeKey( std::string key );
 };
 
 #endif

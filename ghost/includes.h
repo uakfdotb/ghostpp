@@ -23,12 +23,8 @@
 
 // standard integer sizes for 64 bit compatibility
 
-#ifdef WIN32
- #include "ms_stdint.h"
-#else
- #include <stdint.h>
-#endif
 
+#include <stdint.h>
 // STL
 
 #include <fstream>
@@ -41,12 +37,11 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <boost/thread.hpp>
+#include <thread>
+#include <mutex>
 
-using namespace std;
-
-typedef vector<unsigned char> BYTEARRAY;
-typedef pair<unsigned char,string> PIDPlayer;
+typedef std::vector<unsigned char> BYTEARRAY;
+typedef std::pair<unsigned char,std::string> PIDPlayer;
 
 // time
 
@@ -66,8 +61,8 @@ uint32_t GetTicks( );		// milliseconds
 
 // output
 
-void CONSOLE_Print( string message );
-void DEBUG_Print( string message );
+void CONSOLE_Print( std::string message );
+void DEBUG_Print( std::string message );
 void DEBUG_Print( BYTEARRAY b );
 
 #endif

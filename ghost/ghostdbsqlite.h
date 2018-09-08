@@ -163,22 +163,22 @@ class CSQLITE3
 private:
 	void *m_DB;
 	bool m_Ready;
-	vector<string> m_Row;
+	std::vector<std::string> m_Row;
 
 public:
-	CSQLITE3( string filename );
+	CSQLITE3( std::string filename );
 	~CSQLITE3( );
 
 	bool GetReady( )			{ return m_Ready; }
-	vector<string> *GetRow( )	{ return &m_Row; }
-	string GetError( );
+	std::vector<std::string> *GetRow( )	{ return &m_Row; }
+	std::string GetError( );
 
-	int Prepare( string query, void **Statement );
+	int Prepare( std::string query, void **Statement );
 	int Step( void *Statement );
 	int Finalize( void *Statement );
 	int Reset( void *Statement );
 	int ClearBindings( void *Statement );
-	int Exec( string query );
+	int Exec( std::string query );
 	uint32_t LastRowID( );
 };
 
@@ -189,7 +189,7 @@ public:
 class CGHostDBSQLite : public CGHostDB
 {
 private:
-	string m_File;
+	std::string m_File;
 	CSQLITE3 *m_DB;
 
 	// we keep some prepared statements in memory rather than recreating them each function call
@@ -212,59 +212,59 @@ public:
 
 	virtual bool Begin( );
 	virtual bool Commit( );
-	virtual uint32_t AdminCount( string server );
-	virtual bool AdminCheck( string server, string user );
-	virtual bool AdminAdd( string server, string user );
-	virtual bool AdminRemove( string server, string user );
-	virtual vector<string> AdminList( string server );
-	virtual uint32_t BanCount( string server );
-	virtual CDBBan *BanCheck( string server, string user, string ip );
-	virtual bool BanAdd( string server, string user, string ip, string gamename, string admin, string reason );
-	virtual bool BanRemove( string server, string user );
-	virtual bool BanRemove( string user );
-	virtual vector<CDBBan *> BanList( string server );
-	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
-	virtual uint32_t GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
-	virtual uint32_t GamePlayerCount( string name );
-	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( string name );
+	virtual uint32_t AdminCount( std::string server );
+	virtual bool AdminCheck( std::string server, std::string user );
+	virtual bool AdminAdd( std::string server, std::string user );
+	virtual bool AdminRemove( std::string server, std::string user );
+	virtual std::vector<std::string> AdminList( std::string server );
+	virtual uint32_t BanCount( std::string server );
+	virtual CDBBan *BanCheck( std::string server, std::string user, std::string ip );
+	virtual bool BanAdd( std::string server, std::string user, std::string ip, std::string gamename, std::string admin, std::string reason );
+	virtual bool BanRemove( std::string server, std::string user );
+	virtual bool BanRemove( std::string user );
+	virtual std::vector<CDBBan *> BanList( std::string server );
+	virtual uint32_t GameAdd( std::string server, std::string map, std::string gamename, std::string ownername, uint32_t duration, uint32_t gamestate, std::string creatorname, std::string creatorserver );
+	virtual uint32_t GamePlayerAdd( uint32_t gameid, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, std::string leftreason, uint32_t team, uint32_t colour );
+	virtual uint32_t GamePlayerCount( std::string name );
+	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( std::string name );
 	virtual uint32_t DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec );
-	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
-	virtual uint32_t DotAPlayerCount( string name );
-	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name );
-	virtual string FromCheck( uint32_t ip );
-	virtual bool FromAdd( uint32_t ip1, uint32_t ip2, string country );
-	virtual bool DownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
-	virtual uint32_t W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
-	virtual bool W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints );
-	virtual bool W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals );
-	virtual bool W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings );
+	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, std::string item1, std::string item2, std::string item3, std::string item4, std::string item5, std::string item6, std::string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
+	virtual uint32_t DotAPlayerCount( std::string name );
+	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( std::string name );
+	virtual std::string FromCheck( uint32_t ip );
+	virtual bool FromAdd( uint32_t ip1, uint32_t ip2, std::string country );
+	virtual bool DownloadAdd( std::string map, uint32_t mapsize, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t downloadtime );
+	virtual uint32_t W3MMDPlayerAdd( std::string category, uint32_t gameid, uint32_t pid, std::string name, std::string flag, uint32_t leaver, uint32_t practicing );
+	virtual bool W3MMDVarAdd( uint32_t gameid, std::map<VarP,int32_t> var_ints );
+	virtual bool W3MMDVarAdd( uint32_t gameid, std::map<VarP,double> var_reals );
+	virtual bool W3MMDVarAdd( uint32_t gameid, std::map<VarP,std::string> var_strings );
 
 	// threaded database functions
 	// note: these are not actually implemented with threads at the moment, they WILL block until the query is complete
 	// todotodo: implement threads here
 
-	virtual CCallableAdminCount *ThreadedAdminCount( string server );
-	virtual CCallableAdminCheck *ThreadedAdminCheck( string server, string user );
-	virtual CCallableAdminAdd *ThreadedAdminAdd( string server, string user );
-	virtual CCallableAdminRemove *ThreadedAdminRemove( string server, string user );
-	virtual CCallableAdminList *ThreadedAdminList( string server );
-	virtual CCallableBanCount *ThreadedBanCount( string server );
-	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip );
-	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason );
-	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user );
-	virtual CCallableBanRemove *ThreadedBanRemove( string user );
-	virtual CCallableBanList *ThreadedBanList( string server );
-	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
-	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
-	virtual CCallableGamePlayerSummaryCheck *ThreadedGamePlayerSummaryCheck( string name );
+	virtual CCallableAdminCount *ThreadedAdminCount( std::string server );
+	virtual CCallableAdminCheck *ThreadedAdminCheck( std::string server, std::string user );
+	virtual CCallableAdminAdd *ThreadedAdminAdd( std::string server, std::string user );
+	virtual CCallableAdminRemove *ThreadedAdminRemove( std::string server, std::string user );
+	virtual CCallableAdminList *ThreadedAdminList( std::string server );
+	virtual CCallableBanCount *ThreadedBanCount( std::string server );
+	virtual CCallableBanCheck *ThreadedBanCheck( std::string server, std::string user, std::string ip );
+	virtual CCallableBanAdd *ThreadedBanAdd( std::string server, std::string user, std::string ip, std::string gamename, std::string admin, std::string reason );
+	virtual CCallableBanRemove *ThreadedBanRemove( std::string server, std::string user );
+	virtual CCallableBanRemove *ThreadedBanRemove( std::string user );
+	virtual CCallableBanList *ThreadedBanList( std::string server );
+	virtual CCallableGameAdd *ThreadedGameAdd( std::string server, std::string map, std::string gamename, std::string ownername, uint32_t duration, uint32_t gamestate, std::string creatorname, std::string creatorserver );
+	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, std::string leftreason, uint32_t team, uint32_t colour );
+	virtual CCallableGamePlayerSummaryCheck *ThreadedGamePlayerSummaryCheck( std::string name );
 	virtual CCallableDotAGameAdd *ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec );
-	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
-	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name );
-	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
-	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
-	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints );
-	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals );
-	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings );
+	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, std::string item1, std::string item2, std::string item3, std::string item4, std::string item5, std::string item6, std::string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
+	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( std::string name );
+	virtual CCallableDownloadAdd *ThreadedDownloadAdd( std::string map, uint32_t mapsize, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t downloadtime );
+	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( std::string category, uint32_t gameid, uint32_t pid, std::string name, std::string flag, uint32_t leaver, uint32_t practicing );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,int32_t> var_ints );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,double> var_reals );
+	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,std::string> var_strings );
 };
 
 #endif

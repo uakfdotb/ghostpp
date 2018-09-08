@@ -33,7 +33,16 @@
 #endif
 
 #include <mysql/mysql.h>
-#include <boost/thread.hpp>
+
+#include <mutex>
+#include <thread>
+#include <iostream>
+#include <vector>
+#include <functional>
+#include <chrono>
+#include <string>
+
+
 
 //
 // CGHostDBMySQL
@@ -41,10 +50,10 @@
 
 CGHostDBMySQL :: CGHostDBMySQL( CConfig *CFG ) : CGHostDB( CFG )
 {
-	m_Server = CFG->GetString( "db_mysql_server", string( ) );
+	m_Server = CFG->GetString( "db_mysql_server", std::string( ) );
 	m_Database = CFG->GetString( "db_mysql_database", "ghost" );
-	m_User = CFG->GetString( "db_mysql_user", string( ) );
-	m_Password = CFG->GetString( "db_mysql_password", string( ) );
+	m_User = CFG->GetString( "db_mysql_user", std::string( ) );
+	m_Password = CFG->GetString( "db_mysql_password", std::string( ) );
 	m_Port = CFG->GetInt( "db_mysql_port", 0 );
 	m_BotID = CFG->GetInt( "db_mysql_botid", 0 );
 	m_NumConnections = 1;
@@ -59,7 +68,7 @@ CGHostDBMySQL :: CGHostDBMySQL( CConfig *CFG ) : CGHostDB( CFG )
 
 	if( !( Connection = mysql_init( NULL ) ) )
 	{
-		CONSOLE_Print( string( "[MYSQL] " ) + mysql_error( Connection ) );
+		CONSOLE_Print( std::string( "[MYSQL] " ) + mysql_error( Connection ) );
 		m_HasError = true;
 		m_Error = "error initializing MySQL connection";
 		return;
@@ -70,7 +79,7 @@ CGHostDBMySQL :: CGHostDBMySQL( CConfig *CFG ) : CGHostDB( CFG )
 
 	if( !( mysql_real_connect( Connection, m_Server.c_str( ), m_User.c_str( ), m_Password.c_str( ), m_Database.c_str( ), m_Port, NULL, 0 ) ) )
 	{
-		CONSOLE_Print( string( "[MYSQL] " ) + mysql_error( Connection ) );
+		CONSOLE_Print( std::string( "[MYSQL] " ) + mysql_error( Connection ) );
 		m_HasError = true;
 		m_Error = "error connecting to MySQL server";
 		return;
@@ -81,7 +90,7 @@ CGHostDBMySQL :: CGHostDBMySQL( CConfig *CFG ) : CGHostDB( CFG )
 
 CGHostDBMySQL :: ~CGHostDBMySQL( )
 {
-	boost::mutex::scoped_lock lock(m_DatabaseMutex);
+	std::scoped_lock lock(m_DatabaseMutex);
 	CONSOLE_Print( "[MYSQL] closing " + UTIL_ToString( m_IdleConnections.size( ) ) + "/" + UTIL_ToString( m_NumConnections ) + " idle MySQL connections" );
 
 	while( !m_IdleConnections.empty( ) )
@@ -96,14 +105,14 @@ CGHostDBMySQL :: ~CGHostDBMySQL( )
 	mysql_library_end( );
 }
 
-string CGHostDBMySQL :: GetStatus( )
+std::string CGHostDBMySQL :: GetStatus( )
 {
 	return "DB STATUS --- Connections: " + UTIL_ToString( m_IdleConnections.size( ) ) + "/" + UTIL_ToString( m_NumConnections ) + " idle. Outstanding callables: " + UTIL_ToString( m_OutstandingCallables ) + ".";
 }
 
 void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 {
-	boost::mutex::scoped_lock lock(m_DatabaseMutex);
+	std::scoped_lock lock(m_DatabaseMutex);
 	CMySQLCallable *MySQLCallable = dynamic_cast<CMySQLCallable *>( callable );
 
 	if( MySQLCallable )
@@ -132,26 +141,26 @@ void CGHostDBMySQL :: CreateThread( CBaseCallable *callable )
 {
 	try
 	{
-		boost :: thread Thread( boost :: ref( *callable ) );
+		std :: thread Thread( std :: ref( *callable ) );
 	}
-	catch( boost :: thread_resource_error tre )
+	catch( std::runtime_error &tre )
 	{
-		CONSOLE_Print( "[MYSQL] error spawning thread on attempt #1 [" + string( tre.what( ) ) + "], pausing execution and trying again in 50ms" );
+		CONSOLE_Print( "[MYSQL] error spawning thread on attempt #1 [" + std::string( tre.what( ) ) + "], pausing execution and trying again in 50ms" );
 		MILLISLEEP( 50 );
 
 		try
 		{
-			boost :: thread Thread( boost :: ref( *callable ) );
+			std :: thread Thread( std :: ref( *callable ) );
 		}
-		catch( boost :: thread_resource_error tre2 )
+		catch( std::runtime_error &tre2 )
 		{
-			CONSOLE_Print( "[MYSQL] error spawning thread on attempt #2 [" + string( tre2.what( ) ) + "], giving up" );
+			CONSOLE_Print( "[MYSQL] error spawning thread on attempt #2 [" + std::string( tre2.what( ) ) + "], giving up" );
 			callable->SetReady( true );
 		}
 	}
 }
 
-CCallableAdminCount *CGHostDBMySQL :: ThreadedAdminCount( string server )
+CCallableAdminCount *CGHostDBMySQL :: ThreadedAdminCount( std::string server )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -164,7 +173,7 @@ CCallableAdminCount *CGHostDBMySQL :: ThreadedAdminCount( string server )
 	return Callable;
 }
 
-CCallableAdminCheck *CGHostDBMySQL :: ThreadedAdminCheck( string server, string user )
+CCallableAdminCheck *CGHostDBMySQL :: ThreadedAdminCheck( std::string server, std::string user )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -177,7 +186,7 @@ CCallableAdminCheck *CGHostDBMySQL :: ThreadedAdminCheck( string server, string 
 	return Callable;
 }
 
-CCallableAdminAdd *CGHostDBMySQL :: ThreadedAdminAdd( string server, string user )
+CCallableAdminAdd *CGHostDBMySQL :: ThreadedAdminAdd( std::string server, std::string user )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -190,7 +199,7 @@ CCallableAdminAdd *CGHostDBMySQL :: ThreadedAdminAdd( string server, string user
 	return Callable;
 }
 
-CCallableAdminRemove *CGHostDBMySQL :: ThreadedAdminRemove( string server, string user )
+CCallableAdminRemove *CGHostDBMySQL :: ThreadedAdminRemove( std::string server, std::string user )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -203,7 +212,7 @@ CCallableAdminRemove *CGHostDBMySQL :: ThreadedAdminRemove( string server, strin
 	return Callable;
 }
 
-CCallableAdminList *CGHostDBMySQL :: ThreadedAdminList( string server )
+CCallableAdminList *CGHostDBMySQL :: ThreadedAdminList( std::string server )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -216,7 +225,7 @@ CCallableAdminList *CGHostDBMySQL :: ThreadedAdminList( string server )
 	return Callable;
 }
 
-CCallableBanCount *CGHostDBMySQL :: ThreadedBanCount( string server )
+CCallableBanCount *CGHostDBMySQL :: ThreadedBanCount( std::string server )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -229,7 +238,7 @@ CCallableBanCount *CGHostDBMySQL :: ThreadedBanCount( string server )
 	return Callable;
 }
 
-CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( string server, string user, string ip )
+CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( std::string server, std::string user, std::string ip )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -242,7 +251,7 @@ CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( string server, string user
 	return Callable;
 }
 
-CCallableBanAdd *CGHostDBMySQL :: ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason )
+CCallableBanAdd *CGHostDBMySQL :: ThreadedBanAdd( std::string server, std::string user, std::string ip, std::string gamename, std::string admin, std::string reason )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -255,7 +264,7 @@ CCallableBanAdd *CGHostDBMySQL :: ThreadedBanAdd( string server, string user, st
 	return Callable;
 }
 
-CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string server, string user )
+CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( std::string server, std::string user )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -268,20 +277,20 @@ CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string server, string us
 	return Callable;
 }
 
-CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string user )
+CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( std::string user )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
 		++m_NumConnections;
 
-	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( string( ), user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( std::string( ), user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
 	++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableBanList *CGHostDBMySQL :: ThreadedBanList( string server )
+CCallableBanList *CGHostDBMySQL :: ThreadedBanList( std::string server )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -294,7 +303,7 @@ CCallableBanList *CGHostDBMySQL :: ThreadedBanList( string server )
 	return Callable;
 }
 
-CCallableGameAdd *CGHostDBMySQL :: ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+CCallableGameAdd *CGHostDBMySQL :: ThreadedGameAdd( std::string server, std::string map, std::string gamename, std::string ownername, uint32_t duration, uint32_t gamestate, std::string creatorname, std::string creatorserver )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -307,7 +316,7 @@ CCallableGameAdd *CGHostDBMySQL :: ThreadedGameAdd( string server, string map, s
 	return Callable;
 }
 
-CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, std::string leftreason, uint32_t team, uint32_t colour )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -320,7 +329,7 @@ CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid,
 	return Callable;
 }
 
-CCallableGamePlayerSummaryCheck *CGHostDBMySQL :: ThreadedGamePlayerSummaryCheck( string name )
+CCallableGamePlayerSummaryCheck *CGHostDBMySQL :: ThreadedGamePlayerSummaryCheck( std::string name )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -346,7 +355,7 @@ CCallableDotAGameAdd *CGHostDBMySQL :: ThreadedDotAGameAdd( uint32_t gameid, uin
 	return Callable;
 }
 
-CCallableDotAPlayerAdd *CGHostDBMySQL :: ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
+CCallableDotAPlayerAdd *CGHostDBMySQL :: ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, std::string item1, std::string item2, std::string item3, std::string item4, std::string item5, std::string item6, std::string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -359,7 +368,7 @@ CCallableDotAPlayerAdd *CGHostDBMySQL :: ThreadedDotAPlayerAdd( uint32_t gameid,
 	return Callable;
 }
 
-CCallableDotAPlayerSummaryCheck *CGHostDBMySQL :: ThreadedDotAPlayerSummaryCheck( string name )
+CCallableDotAPlayerSummaryCheck *CGHostDBMySQL :: ThreadedDotAPlayerSummaryCheck( std::string name )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -372,7 +381,7 @@ CCallableDotAPlayerSummaryCheck *CGHostDBMySQL :: ThreadedDotAPlayerSummaryCheck
 	return Callable;
 }
 
-CCallableDownloadAdd *CGHostDBMySQL :: ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime )
+CCallableDownloadAdd *CGHostDBMySQL :: ThreadedDownloadAdd( std::string map, uint32_t mapsize, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t downloadtime )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -385,7 +394,7 @@ CCallableDownloadAdd *CGHostDBMySQL :: ThreadedDownloadAdd( string map, uint32_t
 	return Callable;
 }
 
-CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, string name, string server )
+CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( std::string category, std::string name, std::string server )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -398,7 +407,7 @@ CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, strin
 	return Callable;
 }
 
-CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( std::string category, uint32_t gameid, uint32_t pid, std::string name, std::string flag, uint32_t leaver, uint32_t practicing )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -411,7 +420,7 @@ CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string categor
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,int32_t> var_ints )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -424,7 +433,7 @@ CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,double> var_reals )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -437,7 +446,7 @@ CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, std::map<VarP,std::string> var_strings )
 {
 	void *Connection = GetIdleConnection( );
 
@@ -452,7 +461,7 @@ CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map
 
 void *CGHostDBMySQL :: GetIdleConnection( )
 {
-	boost::mutex::scoped_lock lock(m_DatabaseMutex);
+	std::scoped_lock lock(m_DatabaseMutex);
 	void *Connection = NULL;
 
 	if( !m_IdleConnections.empty( ) )
@@ -468,18 +477,18 @@ void *CGHostDBMySQL :: GetIdleConnection( )
 // unprototyped global helper functions
 //
 
-string MySQLEscapeString( void *conn, string str )
+std::string MySQLEscapeString( void *conn, std::string str )
 {
 	char *to = new char[str.size( ) * 2 + 1];
 	unsigned long size = mysql_real_escape_string( (MYSQL *)conn, to, str.c_str( ), str.size( ) );
-	string result( to, size );
+	std::string result( to, size );
 	delete [] to;
 	return result;
 }
 
-vector<string> MySQLFetchRow( MYSQL_RES *res )
+std::vector<std::string> MySQLFetchRow( MYSQL_RES *res )
 {
-	vector<string> Result;
+	std::vector<std::string> Result;
 
 	MYSQL_ROW Row = mysql_fetch_row( res );
 
@@ -491,9 +500,9 @@ vector<string> MySQLFetchRow( MYSQL_RES *res )
 		for( unsigned int i = 0; i < mysql_num_fields( res ); ++i )
 		{
 			if( Row[i] )
-				Result.push_back( string( Row[i], Lengths[i] ) );
+				Result.push_back( std::string( Row[i], Lengths[i] ) );
 			else
-				Result.push_back( string( ) );
+				Result.push_back( std::string( ) );
 		}
 	}
 
@@ -504,11 +513,11 @@ vector<string> MySQLFetchRow( MYSQL_RES *res )
 // global helper functions
 //
 
-uint32_t MySQLAdminCount( void *conn, string *error, uint32_t botid, string server )
+uint32_t MySQLAdminCount( void *conn, std::string *error, uint32_t botid, std::string server )
 {
-	string EscServer = MySQLEscapeString( conn, server );
+	std::string EscServer = MySQLEscapeString( conn, server );
 	uint32_t Count = 0;
-	string Query = "SELECT COUNT(*) FROM admins WHERE server='" + EscServer + "'";
+	std::string Query = "SELECT COUNT(*) FROM admins WHERE server='" + EscServer + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -518,7 +527,7 @@ uint32_t MySQLAdminCount( void *conn, string *error, uint32_t botid, string serv
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			if( Row.size( ) == 1 )
 				Count = UTIL_ToUInt32( Row[0] );
@@ -534,13 +543,13 @@ uint32_t MySQLAdminCount( void *conn, string *error, uint32_t botid, string serv
 	return Count;
 }
 
-bool MySQLAdminCheck( void *conn, string *error, uint32_t botid, string server, string user )
+bool MySQLAdminCheck( void *conn, std::string *error, uint32_t botid, std::string server, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
-	string EscServer = MySQLEscapeString( conn, server );
-	string EscUser = MySQLEscapeString( conn, user );
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::string EscUser = MySQLEscapeString( conn, user );
 	bool IsAdmin = false;
-	string Query = "SELECT * FROM admins WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+	std::string Query = "SELECT * FROM admins WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -550,7 +559,7 @@ bool MySQLAdminCheck( void *conn, string *error, uint32_t botid, string server, 
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			if( !Row.empty( ) )
 				IsAdmin = true;
@@ -564,13 +573,13 @@ bool MySQLAdminCheck( void *conn, string *error, uint32_t botid, string server, 
 	return IsAdmin;
 }
 
-bool MySQLAdminAdd( void *conn, string *error, uint32_t botid, string server, string user )
+bool MySQLAdminAdd( void *conn, std::string *error, uint32_t botid, std::string server, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
-	string EscServer = MySQLEscapeString( conn, server );
-	string EscUser = MySQLEscapeString( conn, user );
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::string EscUser = MySQLEscapeString( conn, user );
 	bool Success = false;
-	string Query = "INSERT INTO admins ( botid, server, name ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "' )";
+	std::string Query = "INSERT INTO admins ( botid, server, name ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -580,13 +589,13 @@ bool MySQLAdminAdd( void *conn, string *error, uint32_t botid, string server, st
 	return Success;
 }
 
-bool MySQLAdminRemove( void *conn, string *error, uint32_t botid, string server, string user )
+bool MySQLAdminRemove( void *conn, std::string *error, uint32_t botid, std::string server, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
-	string EscServer = MySQLEscapeString( conn, server );
-	string EscUser = MySQLEscapeString( conn, user );
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::string EscUser = MySQLEscapeString( conn, user );
 	bool Success = false;
-	string Query = "DELETE FROM admins WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+	std::string Query = "DELETE FROM admins WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -596,11 +605,11 @@ bool MySQLAdminRemove( void *conn, string *error, uint32_t botid, string server,
 	return Success;
 }
 
-vector<string> MySQLAdminList( void *conn, string *error, uint32_t botid, string server )
+std::vector<std::string> MySQLAdminList( void *conn, std::string *error, uint32_t botid, std::string server )
 {
-	string EscServer = MySQLEscapeString( conn, server );
-	vector<string> AdminList;
-	string Query = "SELECT name FROM admins WHERE server='" + EscServer + "'";
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::vector<std::string> AdminList;
+	std::string Query = "SELECT name FROM admins WHERE server='" + EscServer + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -610,7 +619,7 @@ vector<string> MySQLAdminList( void *conn, string *error, uint32_t botid, string
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			while( !Row.empty( ) )
 			{
@@ -627,11 +636,11 @@ vector<string> MySQLAdminList( void *conn, string *error, uint32_t botid, string
 	return AdminList;
 }
 
-uint32_t MySQLBanCount( void *conn, string *error, uint32_t botid, string server )
+uint32_t MySQLBanCount( void *conn, std::string *error, uint32_t botid, std::string server )
 {
-	string EscServer = MySQLEscapeString( conn, server );
+	std::string EscServer = MySQLEscapeString( conn, server );
 	uint32_t Count = 0;
-	string Query = "SELECT COUNT(*) FROM bans WHERE server='" + EscServer + "'";
+	std::string Query = "SELECT COUNT(*) FROM bans WHERE server='" + EscServer + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -641,7 +650,7 @@ uint32_t MySQLBanCount( void *conn, string *error, uint32_t botid, string server
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			if( Row.size( ) == 1 )
 				Count = UTIL_ToUInt32( Row[0] );
@@ -657,14 +666,14 @@ uint32_t MySQLBanCount( void *conn, string *error, uint32_t botid, string server
 	return Count;
 }
 
-CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server, string user, string ip )
+CDBBan *MySQLBanCheck( void *conn, std::string *error, uint32_t botid, std::string server, std::string user, std::string ip )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
-	string EscServer = MySQLEscapeString( conn, server );
-	string EscUser = MySQLEscapeString( conn, user );
-	string EscIP = MySQLEscapeString( conn, ip );
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::string EscUser = MySQLEscapeString( conn, user );
+	std::string EscIP = MySQLEscapeString( conn, ip );
 	CDBBan *Ban = NULL;
-	string Query;
+	std::string Query;
 
 	if( ip.empty( ) )
 		Query = "SELECT name, ip, DATE(date), gamename, `admin`, reason FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
@@ -679,7 +688,7 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			if( Row.size( ) == 6 )
 				Ban = new CDBBan( server, Row[0], Row[1], Row[2], Row[3], Row[4], Row[5] );
@@ -695,17 +704,17 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	return Ban;
 }
 
-bool MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, string user, string ip, string gamename, string admin, string reason )
+bool MySQLBanAdd( void *conn, std::string *error, uint32_t botid, std::string server, std::string user, std::string ip, std::string gamename, std::string admin, std::string reason )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
-	string EscServer = MySQLEscapeString( conn, server );
-	string EscUser = MySQLEscapeString( conn, user );
-	string EscIP = MySQLEscapeString( conn, ip );
-	string EscGameName = MySQLEscapeString( conn, gamename );
-	string EscAdmin = MySQLEscapeString( conn, admin );
-	string EscReason = MySQLEscapeString( conn, reason );
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::string EscUser = MySQLEscapeString( conn, user );
+	std::string EscIP = MySQLEscapeString( conn, ip );
+	std::string EscGameName = MySQLEscapeString( conn, gamename );
+	std::string EscAdmin = MySQLEscapeString( conn, admin );
+	std::string EscReason = MySQLEscapeString( conn, reason );
 	bool Success = false;
-	string Query = "INSERT INTO bans ( botid, server, name, ip, date, gamename, `admin`, reason ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "', '" + EscIP + "', CURDATE( ), '" + EscGameName + "', '" + EscAdmin + "', '" + EscReason + "' )";
+	std::string Query = "INSERT INTO bans ( botid, server, name, ip, date, gamename, `admin`, reason ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "', '" + EscIP + "', CURDATE( ), '" + EscGameName + "', '" + EscAdmin + "', '" + EscReason + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -715,13 +724,13 @@ bool MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, stri
 	return Success;
 }
 
-bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, string user )
+bool MySQLBanRemove( void *conn, std::string *error, uint32_t botid, std::string server, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
-	string EscServer = MySQLEscapeString( conn, server );
-	string EscUser = MySQLEscapeString( conn, user );
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::string EscUser = MySQLEscapeString( conn, user );
 	bool Success = false;
-	string Query = "DELETE FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+	std::string Query = "DELETE FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -731,12 +740,12 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, s
 	return Success;
 }
 
-bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user )
+bool MySQLBanRemove( void *conn, std::string *error, uint32_t botid, std::string user )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
-	string EscUser = MySQLEscapeString( conn, user );
+	std::string EscUser = MySQLEscapeString( conn, user );
 	bool Success = false;
-	string Query = "DELETE FROM bans WHERE name='" + EscUser + "'";
+	std::string Query = "DELETE FROM bans WHERE name='" + EscUser + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -746,11 +755,11 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user )
 	return Success;
 }
 
-vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string server )
+std::vector<CDBBan *> MySQLBanList( void *conn, std::string *error, uint32_t botid, std::string server )
 {
-	string EscServer = MySQLEscapeString( conn, server );
-	vector<CDBBan *> BanList;
-	string Query = "SELECT name, ip, DATE(date), gamename, `admin`, reason FROM bans WHERE server='" + EscServer + "'";
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::vector<CDBBan *> BanList;
+	std::string Query = "SELECT name, ip, DATE(date), gamename, `admin`, reason FROM bans WHERE server='" + EscServer + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -760,7 +769,7 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			while( Row.size( ) == 6 )
 			{
@@ -777,16 +786,16 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 	return BanList;
 }
 
-uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+uint32_t MySQLGameAdd( void *conn, std::string *error, uint32_t botid, std::string server, std::string map, std::string gamename, std::string ownername, uint32_t duration, uint32_t gamestate, std::string creatorname, std::string creatorserver )
 {
 	uint32_t RowID = 0;
-	string EscServer = MySQLEscapeString( conn, server );
-	string EscMap = MySQLEscapeString( conn, map );
-	string EscGameName = MySQLEscapeString( conn, gamename );
-	string EscOwnerName = MySQLEscapeString( conn, ownername );
-	string EscCreatorName = MySQLEscapeString( conn, creatorname );
-	string EscCreatorServer = MySQLEscapeString( conn, creatorserver );
-	string Query = "INSERT INTO games ( botid, server, map, datetime, gamename, ownername, duration, gamestate, creatorname, creatorserver ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscMap + "', NOW( ), '" + EscGameName + "', '" + EscOwnerName + "', " + UTIL_ToString( duration ) + ", " + UTIL_ToString( gamestate ) + ", '" + EscCreatorName + "', '" + EscCreatorServer + "' )";
+	std::string EscServer = MySQLEscapeString( conn, server );
+	std::string EscMap = MySQLEscapeString( conn, map );
+	std::string EscGameName = MySQLEscapeString( conn, gamename );
+	std::string EscOwnerName = MySQLEscapeString( conn, ownername );
+	std::string EscCreatorName = MySQLEscapeString( conn, creatorname );
+	std::string EscCreatorServer = MySQLEscapeString( conn, creatorserver );
+	std::string Query = "INSERT INTO games ( botid, server, map, datetime, gamename, ownername, duration, gamestate, creatorname, creatorserver ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscMap + "', NOW( ), '" + EscGameName + "', '" + EscOwnerName + "', " + UTIL_ToString( duration ) + ", " + UTIL_ToString( gamestate ) + ", '" + EscCreatorName + "', '" + EscCreatorServer + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -796,15 +805,15 @@ uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server,
 	return RowID;
 }
 
-uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+uint32_t MySQLGamePlayerAdd( void *conn, std::string *error, uint32_t botid, uint32_t gameid, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, std::string leftreason, uint32_t team, uint32_t colour )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t RowID = 0;
-	string EscName = MySQLEscapeString( conn, name );
-	string EscIP = MySQLEscapeString( conn, ip );
-	string EscSpoofedRealm = MySQLEscapeString( conn, spoofedrealm );
-	string EscLeftReason = MySQLEscapeString( conn, leftreason );
-	string Query = "INSERT INTO gameplayers ( botid, gameid, name, ip, spoofed, reserved, loadingtime, `left`, leftreason, team, colour, spoofedrealm ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", '" + EscName + "', '" + EscIP + "', " + UTIL_ToString( spoofed ) + ", " + UTIL_ToString( reserved ) + ", " + UTIL_ToString( loadingtime ) + ", " + UTIL_ToString( left ) + ", '" + EscLeftReason + "', " + UTIL_ToString( team ) + ", " + UTIL_ToString( colour ) + ", '" + EscSpoofedRealm + "' )";
+	std::string EscName = MySQLEscapeString( conn, name );
+	std::string EscIP = MySQLEscapeString( conn, ip );
+	std::string EscSpoofedRealm = MySQLEscapeString( conn, spoofedrealm );
+	std::string EscLeftReason = MySQLEscapeString( conn, leftreason );
+	std::string Query = "INSERT INTO gameplayers ( botid, gameid, name, ip, spoofed, reserved, loadingtime, `left`, leftreason, team, colour, spoofedrealm ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", '" + EscName + "', '" + EscIP + "', " + UTIL_ToString( spoofed ) + ", " + UTIL_ToString( reserved ) + ", " + UTIL_ToString( loadingtime ) + ", " + UTIL_ToString( left ) + ", '" + EscLeftReason + "', " + UTIL_ToString( team ) + ", " + UTIL_ToString( colour ) + ", '" + EscSpoofedRealm + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -814,12 +823,12 @@ uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t
 	return RowID;
 }
 
-CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name )
+CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, std::string *error, uint32_t botid, std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	string EscName = MySQLEscapeString( conn, name );
+	std::string EscName = MySQLEscapeString( conn, name );
 	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	string Query = "SELECT MIN(DATE(datetime)), MAX(DATE(datetime)), COUNT(*), MIN(loadingtime), AVG(loadingtime), MAX(loadingtime), MIN(`left`/duration)*100, AVG(`left`/duration)*100, MAX(`left`/duration)*100, MIN(duration), AVG(duration), MAX(duration) FROM gameplayers LEFT JOIN games ON games.id=gameid WHERE name LIKE '" + EscName + "'";
+	std::string Query = "SELECT MIN(DATE(datetime)), MAX(DATE(datetime)), COUNT(*), MIN(loadingtime), AVG(loadingtime), MAX(loadingtime), MIN(`left`/duration)*100, AVG(`left`/duration)*100, MAX(`left`/duration)*100, MIN(duration), AVG(duration), MAX(duration) FROM gameplayers LEFT JOIN games ON games.id=gameid WHERE name LIKE '" + EscName + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -829,12 +838,12 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			if( Row.size( ) == 12 )
 			{
-				string FirstGameDateTime = Row[0];
-				string LastGameDateTime = Row[1];
+				std::string FirstGameDateTime = Row[0];
+				std::string LastGameDateTime = Row[1];
 				uint32_t TotalGames = UTIL_ToUInt32( Row[2] );
 				uint32_t MinLoadingTime = UTIL_ToUInt32( Row[3] );
 				uint32_t AvgLoadingTime = UTIL_ToUInt32( Row[4] );
@@ -845,7 +854,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 				uint32_t MinDuration = UTIL_ToUInt32( Row[9] );
 				uint32_t AvgDuration = UTIL_ToUInt32( Row[10] );
 				uint32_t MaxDuration = UTIL_ToUInt32( Row[11] );
-				GamePlayerSummary = new CDBGamePlayerSummary( string( ), name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
+				GamePlayerSummary = new CDBGamePlayerSummary( std::string( ), name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
 			}
 			else
 				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 12 columns";
@@ -859,10 +868,10 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 	return GamePlayerSummary;
 }
 
-uint32_t MySQLDotAGameAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec )
+uint32_t MySQLDotAGameAdd( void *conn, std::string *error, uint32_t botid, uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec )
 {
 	uint32_t RowID = 0;
-	string Query = "INSERT INTO dotagames ( botid, gameid, winner, min, sec ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( winner ) + ", " + UTIL_ToString( min ) + ", " + UTIL_ToString( sec ) + " )";
+	std::string Query = "INSERT INTO dotagames ( botid, gameid, winner, min, sec ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( winner ) + ", " + UTIL_ToString( min ) + ", " + UTIL_ToString( sec ) + " )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -872,17 +881,17 @@ uint32_t MySQLDotAGameAdd( void *conn, string *error, uint32_t botid, uint32_t g
 	return RowID;
 }
 
-uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
+uint32_t MySQLDotAPlayerAdd( void *conn, std::string *error, uint32_t botid, uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, std::string item1, std::string item2, std::string item3, std::string item4, std::string item5, std::string item6, std::string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
 {
 	uint32_t RowID = 0;
-	string EscItem1 = MySQLEscapeString( conn, item1 );
-	string EscItem2 = MySQLEscapeString( conn, item2 );
-	string EscItem3 = MySQLEscapeString( conn, item3 );
-	string EscItem4 = MySQLEscapeString( conn, item4 );
-	string EscItem5 = MySQLEscapeString( conn, item5 );
-	string EscItem6 = MySQLEscapeString( conn, item6 );
-	string EscHero = MySQLEscapeString( conn, hero );
-	string Query = "INSERT INTO dotaplayers ( botid, gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( colour ) + ", " + UTIL_ToString( kills ) + ", " + UTIL_ToString( deaths ) + ", " + UTIL_ToString( creepkills ) + ", " + UTIL_ToString( creepdenies ) + ", " + UTIL_ToString( assists ) + ", " + UTIL_ToString( gold ) + ", " + UTIL_ToString( neutralkills ) + ", '" + EscItem1 + "', '" + EscItem2 + "', '" + EscItem3 + "', '" + EscItem4 + "', '" + EscItem5 + "', '" + EscItem6 + "', '" + EscHero + "', " + UTIL_ToString( newcolour ) + ", " + UTIL_ToString( towerkills ) + ", " + UTIL_ToString( raxkills ) + ", " + UTIL_ToString( courierkills ) + " )";
+	std::string EscItem1 = MySQLEscapeString( conn, item1 );
+	std::string EscItem2 = MySQLEscapeString( conn, item2 );
+	std::string EscItem3 = MySQLEscapeString( conn, item3 );
+	std::string EscItem4 = MySQLEscapeString( conn, item4 );
+	std::string EscItem5 = MySQLEscapeString( conn, item5 );
+	std::string EscItem6 = MySQLEscapeString( conn, item6 );
+	std::string EscHero = MySQLEscapeString( conn, hero );
+	std::string Query = "INSERT INTO dotaplayers ( botid, gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( colour ) + ", " + UTIL_ToString( kills ) + ", " + UTIL_ToString( deaths ) + ", " + UTIL_ToString( creepkills ) + ", " + UTIL_ToString( creepdenies ) + ", " + UTIL_ToString( assists ) + ", " + UTIL_ToString( gold ) + ", " + UTIL_ToString( neutralkills ) + ", '" + EscItem1 + "', '" + EscItem2 + "', '" + EscItem3 + "', '" + EscItem4 + "', '" + EscItem5 + "', '" + EscItem6 + "', '" + EscHero + "', " + UTIL_ToString( newcolour ) + ", " + UTIL_ToString( towerkills ) + ", " + UTIL_ToString( raxkills ) + ", " + UTIL_ToString( courierkills ) + " )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -892,12 +901,12 @@ uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t botid, uint32_t
 	return RowID;
 }
 
-CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name )
+CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, std::string *error, uint32_t botid, std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	string EscName = MySQLEscapeString( conn, name );
+	std::string EscName = MySQLEscapeString( conn, name );
 	CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
-	string Query = "SELECT COUNT(dotaplayers.id), SUM(kills), SUM(deaths), SUM(creepkills), SUM(creepdenies), SUM(assists), SUM(neutralkills), SUM(towerkills), SUM(raxkills), SUM(courierkills) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour WHERE name LIKE '" + EscName + "'";
+	std::string Query = "SELECT COUNT(dotaplayers.id), SUM(kills), SUM(deaths), SUM(creepkills), SUM(creepdenies), SUM(assists), SUM(neutralkills), SUM(towerkills), SUM(raxkills), SUM(courierkills) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour WHERE name LIKE '" + EscName + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -907,7 +916,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			if( Row.size( ) == 10 )
 			{
@@ -929,7 +938,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 
 					// calculate total wins
 
-					string Query2 = "SELECT COUNT(*) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour LEFT JOIN dotagames ON games.id=dotagames.gameid WHERE name='" + EscName + "' AND ((winner=1 AND dotaplayers.newcolour>=1 AND dotaplayers.newcolour<=5) OR (winner=2 AND dotaplayers.newcolour>=7 AND dotaplayers.newcolour<=11))";
+					std::string Query2 = "SELECT COUNT(*) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour LEFT JOIN dotagames ON games.id=dotagames.gameid WHERE name='" + EscName + "' AND ((winner=1 AND dotaplayers.newcolour>=1 AND dotaplayers.newcolour<=5) OR (winner=2 AND dotaplayers.newcolour>=7 AND dotaplayers.newcolour<=11))";
 
 					if( mysql_real_query( (MYSQL *)conn, Query2.c_str( ), Query2.size( ) ) != 0 )
 						*error = mysql_error( (MYSQL *)conn );
@@ -939,7 +948,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 
 						if( Result2 )
 						{
-							vector<string> Row2 = MySQLFetchRow( Result2 );
+							std::vector<std::string> Row2 = MySQLFetchRow( Result2 );
 
 							if( Row2.size( ) == 1 )
 								TotalWins = UTIL_ToUInt32( Row2[0] );
@@ -954,7 +963,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 
 					// calculate total losses
 
-					string Query3 = "SELECT COUNT(*) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour LEFT JOIN dotagames ON games.id=dotagames.gameid WHERE name='" + EscName + "' AND ((winner=2 AND dotaplayers.newcolour>=1 AND dotaplayers.newcolour<=5) OR (winner=1 AND dotaplayers.newcolour>=7 AND dotaplayers.newcolour<=11))";
+					std::string Query3 = "SELECT COUNT(*) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour LEFT JOIN dotagames ON games.id=dotagames.gameid WHERE name='" + EscName + "' AND ((winner=2 AND dotaplayers.newcolour>=1 AND dotaplayers.newcolour<=5) OR (winner=1 AND dotaplayers.newcolour>=7 AND dotaplayers.newcolour<=11))";
 
 					if( mysql_real_query( (MYSQL *)conn, Query3.c_str( ), Query3.size( ) ) != 0 )
 						*error = mysql_error( (MYSQL *)conn );
@@ -964,7 +973,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 
 						if( Result3 )
 						{
-							vector<string> Row3 = MySQLFetchRow( Result3 );
+							std::vector<std::string> Row3 = MySQLFetchRow( Result3 );
 
 							if( Row3.size( ) == 1 )
 								TotalLosses = UTIL_ToUInt32( Row3[0] );
@@ -979,7 +988,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 
 					// done
 
-					DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills );
+					DotAPlayerSummary = new CDBDotAPlayerSummary( std::string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills );
 				}
 			}
 			else
@@ -994,14 +1003,14 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 	return DotAPlayerSummary;
 }
 
-bool MySQLDownloadAdd( void *conn, string *error, uint32_t botid, string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime )
+bool MySQLDownloadAdd( void *conn, std::string *error, uint32_t botid, std::string map, uint32_t mapsize, std::string name, std::string ip, uint32_t spoofed, std::string spoofedrealm, uint32_t downloadtime )
 {
 	bool Success = false;
-	string EscMap = MySQLEscapeString( conn, map );
-	string EscName = MySQLEscapeString( conn, name );
-	string EscIP = MySQLEscapeString( conn, ip );
-	string EscSpoofedRealm = MySQLEscapeString( conn, spoofedrealm );
-	string Query = "INSERT INTO downloads ( botid, map, mapsize, datetime, name, ip, spoofed, spoofedrealm, downloadtime ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscMap + "', " + UTIL_ToString( mapsize ) + ", NOW( ), '" + EscName + "', '" + EscIP + "', " + UTIL_ToString( spoofed ) + ", '" + EscSpoofedRealm + "', " + UTIL_ToString( downloadtime ) + " )";
+	std::string EscMap = MySQLEscapeString( conn, map );
+	std::string EscName = MySQLEscapeString( conn, name );
+	std::string EscIP = MySQLEscapeString( conn, ip );
+	std::string EscSpoofedRealm = MySQLEscapeString( conn, spoofedrealm );
+	std::string Query = "INSERT INTO downloads ( botid, map, mapsize, datetime, name, ip, spoofed, spoofedrealm, downloadtime ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscMap + "', " + UTIL_ToString( mapsize ) + ", NOW( ), '" + EscName + "', '" + EscIP + "', " + UTIL_ToString( spoofed ) + ", '" + EscSpoofedRealm + "', " + UTIL_ToString( downloadtime ) + " )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1011,14 +1020,14 @@ bool MySQLDownloadAdd( void *conn, string *error, uint32_t botid, string map, ui
 	return Success;
 }
 
-double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string category, string name, string server )
+double MySQLScoreCheck( void *conn, std::string *error, uint32_t botid, std::string category, std::string name, std::string server )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	string EscCategory = MySQLEscapeString( conn, category );
-	string EscName = MySQLEscapeString( conn, name );
-	string EscServer = MySQLEscapeString( conn, server );
+	std::string EscCategory = MySQLEscapeString( conn, category );
+	std::string EscName = MySQLEscapeString( conn, name );
+	std::string EscServer = MySQLEscapeString( conn, server );
 	double Score = -100000.0;
-	string Query = "SELECT score FROM scores WHERE category='" + EscCategory + "' AND name='" + EscName + "' AND server='" + EscServer + "'";
+	std::string Query = "SELECT score FROM scores WHERE category='" + EscCategory + "' AND name='" + EscName + "' AND server='" + EscServer + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1028,7 +1037,7 @@ double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string catego
 
 		if( Result )
 		{
-			vector<string> Row = MySQLFetchRow( Result );
+			std::vector<std::string> Row = MySQLFetchRow( Result );
 
 			if( Row.size( ) == 1 )
 				Score = UTIL_ToDouble( Row[0] );
@@ -1044,14 +1053,14 @@ double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string catego
 	return Score;
 }
 
-uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+uint32_t MySQLW3MMDPlayerAdd( void *conn, std::string *error, uint32_t botid, std::string category, uint32_t gameid, uint32_t pid, std::string name, std::string flag, uint32_t leaver, uint32_t practicing )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t RowID = 0;
-	string EscCategory = MySQLEscapeString( conn, category );
-	string EscName = MySQLEscapeString( conn, name );
-	string EscFlag = MySQLEscapeString( conn, flag );
-	string Query = "INSERT INTO w3mmdplayers ( botid, category, gameid, pid, name, flag, leaver, practicing ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscCategory + "', " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", '" + EscName + "', '" + EscFlag + "', " + UTIL_ToString( leaver ) + ", " + UTIL_ToString( practicing ) + " )";
+	std::string EscCategory = MySQLEscapeString( conn, category );
+	std::string EscName = MySQLEscapeString( conn, name );
+	std::string EscFlag = MySQLEscapeString( conn, flag );
+	std::string Query = "INSERT INTO w3mmdplayers ( botid, category, gameid, pid, name, flag, leaver, practicing ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscCategory + "', " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", '" + EscName + "', '" + EscFlag + "', " + UTIL_ToString( leaver ) + ", " + UTIL_ToString( practicing ) + " )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1061,17 +1070,17 @@ uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string 
 	return RowID;
 }
 
-bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,int32_t> var_ints )
+bool MySQLW3MMDVarAdd( void *conn, std::string *error, uint32_t botid, uint32_t gameid, std::map<VarP,int32_t> var_ints )
 {
 	if( var_ints.empty( ) )
 		return false;
 
 	bool Success = false;
-	string Query;
+	std::string Query;
 
-	for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); ++i )
+	for( std::map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); ++i )
 	{
-		string EscVarName = MySQLEscapeString( conn, i->first.second );
+		std::string EscVarName = MySQLEscapeString( conn, i->first.second );
 
 		if( Query.empty( ) )
 			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_int ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second ) + " )";
@@ -1087,17 +1096,17 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 	return Success;
 }
 
-bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,double> var_reals )
+bool MySQLW3MMDVarAdd( void *conn, std::string *error, uint32_t botid, uint32_t gameid, std::map<VarP,double> var_reals )
 {
 	if( var_reals.empty( ) )
 		return false;
 
 	bool Success = false;
-	string Query;
+	std::string Query;
 
-	for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); ++i )
+	for( std::map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); ++i )
 	{
-		string EscVarName = MySQLEscapeString( conn, i->first.second );
+		std::string EscVarName = MySQLEscapeString( conn, i->first.second );
 
 		if( Query.empty( ) )
 			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_real ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second, 10 ) + " )";
@@ -1113,18 +1122,18 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 	return Success;
 }
 
-bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,string> var_strings )
+bool MySQLW3MMDVarAdd( void *conn, std::string *error, uint32_t botid, uint32_t gameid, std::map<VarP,std::string> var_strings )
 {
 	if( var_strings.empty( ) )
 		return false;
 
 	bool Success = false;
-	string Query;
+	std::string Query;
 
-	for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); ++i )
+	for( std::map<VarP,std::string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); ++i )
 	{
-		string EscVarName = MySQLEscapeString( conn, i->first.second );
-		string EscValueString = MySQLEscapeString( conn, i->second );
+		std::string EscVarName = MySQLEscapeString( conn, i->first.second );
+		std::string EscValueString = MySQLEscapeString( conn, i->second );
 
 		if( Query.empty( ) )
 			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_string ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', '" + EscValueString + "' )";

@@ -35,33 +35,33 @@ class CCallableGameAdd;
 class CCallableGamePlayerSummaryCheck;
 class CCallableDotAPlayerSummaryCheck;
 
-typedef pair<string,CCallableBanCheck *> PairedBanCheck;
-typedef pair<string,CCallableBanAdd *> PairedBanAdd;
-typedef pair<string,CCallableGamePlayerSummaryCheck *> PairedGPSCheck;
-typedef pair<string,CCallableDotAPlayerSummaryCheck *> PairedDPSCheck;
+typedef std::pair<std::string,CCallableBanCheck *> PairedBanCheck;
+typedef std::pair<std::string,CCallableBanAdd *> PairedBanAdd;
+typedef std::pair<std::string,CCallableGamePlayerSummaryCheck *> PairedGPSCheck;
+typedef std::pair<std::string,CCallableDotAPlayerSummaryCheck *> PairedDPSCheck;
 
 class CGame : public CBaseGame
 {
 protected:
 	CDBBan *m_DBBanLast;						// last ban for the !banlast command - this is a pointer to one of the items in m_DBBans
-	vector<CDBBan *> m_DBBans;					// vector of potential ban data for the database (see the Update function for more info, it's not as straightforward as you might think)
+	std::vector<CDBBan *> m_DBBans;					// std::vector of potential ban data for the database (see the Update function for more info, it's not as straightforward as you might think)
 	CDBGame *m_DBGame;							// potential game data for the database
-	vector<CDBGamePlayer *> m_DBGamePlayers;	// vector of potential gameplayer data for the database
+	std::vector<CDBGamePlayer *> m_DBGamePlayers;	// std::vector of potential gameplayer data for the database
 	CStats *m_Stats;							// class to keep track of game stats such as kills/deaths/assists in dota
 	CCallableGameAdd *m_CallableGameAdd;		// threaded database game addition in progress
-	vector<PairedBanCheck> m_PairedBanChecks;	// vector of paired threaded database ban checks in progress
-	vector<PairedBanAdd> m_PairedBanAdds;		// vector of paired threaded database ban adds in progress
-	vector<PairedGPSCheck> m_PairedGPSChecks;	// vector of paired threaded database game player summary checks in progress
-	vector<PairedDPSCheck> m_PairedDPSChecks;	// vector of paired threaded database DotA player summary checks in progress
+	std::vector<PairedBanCheck> m_PairedBanChecks;	// std::vector of paired threaded database ban checks in progress
+	std::vector<PairedBanAdd> m_PairedBanAdds;		// std::vector of paired threaded database ban adds in progress
+	std::vector<PairedGPSCheck> m_PairedGPSChecks;	// std::vector of paired threaded database game player summary checks in progress
+	std::vector<PairedDPSCheck> m_PairedDPSChecks;	// std::vector of paired threaded database DotA player summary checks in progress
 
 public:
-	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
+	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, std::string nGameName, std::string nOwnerName, std::string nCreatorName, std::string nCreatorServer );
 	virtual ~CGame( );
 
 	virtual bool Update( void *fd, void *send_fd );
 	virtual void EventPlayerDeleted( CGamePlayer *player );
 	virtual bool EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
-	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
+	virtual bool EventPlayerBotCommand( CGamePlayer *player, std::string command, std::string payload );
 	virtual void EventGameStarted( );
 	virtual bool IsGameDataSaved( );
 	virtual void SaveGameData( );

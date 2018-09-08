@@ -56,14 +56,14 @@ void CSaveGame :: ParseSaveGame( )
 		return;
 	}
 
-	istringstream ISS( m_Decompressed );
+	std::istringstream ISS( m_Decompressed );
 
 	// savegame format figured out by Varlock:
-	// string		-> map path
-	// 0 (string?)	-> ??? (no idea what this is)
-	// string		-> game name
-	// 0 (string?)	-> ??? (maybe original game password)
-	// string		-> stat string
+	// std::string		-> map path
+	// 0 (std::string?)	-> ??? (no idea what this is)
+	// std::string		-> game name
+	// 0 (std::string?)	-> ??? (maybe original game password)
+	// std::string		-> stat std::string
 	// 4 bytes		-> ??? (seems to be # of slots)
 	// 4 bytes		-> ??? (seems to be 0x01 0x28 0x49 0x00 on both of the savegames examined)
 	// 2 bytes		-> ??? (no idea what this is)
@@ -73,14 +73,14 @@ void CSaveGame :: ParseSaveGame( )
 	unsigned char Garbage1;
 	uint16_t Garbage2;
 	uint32_t Garbage4;
-	string GarbageString;
+	std::string GarbageString;
 	uint32_t MagicNumber;
 
 	READSTR( ISS, m_MapPath );				// map path
 	READSTR( ISS, GarbageString );			// ???
 	READSTR( ISS, m_GameName );				// game name
 	READSTR( ISS, GarbageString );			// ???
-	READSTR( ISS, GarbageString );			// stat string
+	READSTR( ISS, GarbageString );			// stat std::string
 	READB( ISS, &Garbage4, 4 );				// ???
 	READB( ISS, &Garbage4, 4 );				// ???
 	READB( ISS, &Garbage2, 2 );				// ???

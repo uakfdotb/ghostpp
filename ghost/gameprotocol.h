@@ -120,34 +120,34 @@ public:
 	// send functions
 
 	BYTEARRAY SEND_W3GS_PING_FROM_HOST( );
-	BYTEARRAY SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots );
+	BYTEARRAY SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, std::vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots );
 	BYTEARRAY SEND_W3GS_REJECTJOIN( uint32_t reason );
-	BYTEARRAY SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP );
+	BYTEARRAY SEND_W3GS_PLAYERINFO( unsigned char PID, std::string name, BYTEARRAY externalIP, BYTEARRAY internalIP );
 	BYTEARRAY SEND_W3GS_PLAYERLEAVE_OTHERS( unsigned char PID, uint32_t leftCode );
 	BYTEARRAY SEND_W3GS_GAMELOADED_OTHERS( unsigned char PID );
-	BYTEARRAY SEND_W3GS_SLOTINFO( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots );
+	BYTEARRAY SEND_W3GS_SLOTINFO( std::vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots );
 	BYTEARRAY SEND_W3GS_COUNTDOWN_START( );
 	BYTEARRAY SEND_W3GS_COUNTDOWN_END( );
-	BYTEARRAY SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *> actions, uint16_t sendInterval );
-	BYTEARRAY SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTEARRAY toPIDs, unsigned char flag, BYTEARRAY flagExtra, string message );
-	BYTEARRAY SEND_W3GS_START_LAG( vector<CGamePlayer *> players, bool loadInGame = false );
+	BYTEARRAY SEND_W3GS_INCOMING_ACTION( std::queue<CIncomingAction *> actions, uint16_t sendInterval );
+	BYTEARRAY SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTEARRAY toPIDs, unsigned char flag, BYTEARRAY flagExtra, std::string message );
+	BYTEARRAY SEND_W3GS_START_LAG( std::vector<CGamePlayer *> players, bool loadInGame = false );
 	BYTEARRAY SEND_W3GS_STOP_LAG( CGamePlayer *player, bool loadInGame = false );
 	BYTEARRAY SEND_W3GS_SEARCHGAME( bool TFT, unsigned char war3Version );
-	BYTEARRAY SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter, uint32_t entryKey );
+	BYTEARRAY SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, std::string gameName, std::string hostName, uint32_t upTime, std::string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter, uint32_t entryKey );
 	BYTEARRAY SEND_W3GS_CREATEGAME( bool TFT, unsigned char war3Version );
 	BYTEARRAY SEND_W3GS_REFRESHGAME( uint32_t players, uint32_t playerSlots );
 	BYTEARRAY SEND_W3GS_DECREATEGAME( );
-	BYTEARRAY SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 );
+	BYTEARRAY SEND_W3GS_MAPCHECK( std::string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 );
 	BYTEARRAY SEND_W3GS_STARTDOWNLOAD( unsigned char fromPID );
-	BYTEARRAY SEND_W3GS_MAPPART( unsigned char fromPID, unsigned char toPID, uint32_t start, string *mapData );
-	BYTEARRAY SEND_W3GS_INCOMING_ACTION2( queue<CIncomingAction *> actions );
+	BYTEARRAY SEND_W3GS_MAPPART( unsigned char fromPID, unsigned char toPID, uint32_t start, std::string *mapData );
+	BYTEARRAY SEND_W3GS_INCOMING_ACTION2( std::queue<CIncomingAction *> actions );
 
 	// other functions
 
 private:
 	bool AssignLength( BYTEARRAY &content );
 	bool ValidateLength( BYTEARRAY &content );
-	BYTEARRAY EncodeSlotInfo( vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots );
+	BYTEARRAY EncodeSlotInfo( std::vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots );
 };
 
 //
@@ -159,16 +159,16 @@ class CIncomingJoinPlayer
 private:
 	uint32_t m_HostCounter;
 	uint32_t m_EntryKey;
-	string m_Name;
+	std::string m_Name;
 	BYTEARRAY m_InternalIP;
 
 public:
-	CIncomingJoinPlayer( uint32_t nHostCounter, uint32_t nEntryKey, string nName, BYTEARRAY &nInternalIP );
+	CIncomingJoinPlayer( uint32_t nHostCounter, uint32_t nEntryKey, std::string nName, BYTEARRAY &nInternalIP );
 	~CIncomingJoinPlayer( );
 
 	uint32_t GetHostCounter( )	{ return m_HostCounter; }
 	uint32_t GetEntryKey( )		{ return m_EntryKey; }
-	string GetName( )			{ return m_Name; }
+	std::string GetName( )			{ return m_Name; }
 	BYTEARRAY GetInternalIP( )	{ return m_InternalIP; }
 };
 
@@ -215,13 +215,13 @@ private:
 	unsigned char m_FromPID;
 	BYTEARRAY m_ToPIDs;
 	unsigned char m_Flag;
-	string m_Message;
+	std::string m_Message;
 	unsigned char m_Byte;
 	BYTEARRAY m_ExtraFlags;
 
 public:
-	CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage );
-	CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage, BYTEARRAY &nExtraFlags );
+	CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, std::string nMessage );
+	CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, std::string nMessage, BYTEARRAY &nExtraFlags );
 	CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, unsigned char nByte );
 	~CIncomingChatPlayer( );
 
@@ -229,7 +229,7 @@ public:
 	unsigned char GetFromPID( )		{ return m_FromPID; }
 	BYTEARRAY GetToPIDs( )			{ return m_ToPIDs; }
 	unsigned char GetFlag( )		{ return m_Flag; }
-	string GetMessage( )			{ return m_Message; }
+	std::string GetMessage( )			{ return m_Message; }
 	unsigned char GetByte( )		{ return m_Byte; }
 	BYTEARRAY GetExtraFlags( )		{ return m_ExtraFlags; }
 };
