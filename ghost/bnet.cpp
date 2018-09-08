@@ -36,15 +36,19 @@
 #include "gameprotocol.h"
 #include "game_base.h"
 
-#include <boost/filesystem.hpp>
+#include <mutex>
 
-using namespace boost :: filesystem;
+#include <filesystem>
 
+
+
+namespace fs = std::filesystem;
+using namespace fs;
 //
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID )
+CBNET :: CBNET( CGHost *nGHost, std::string nServer, std::string nServerAlias, std::string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, std::string nCDKeyROC, std::string nCDKeyTFT, std::string nCountryAbbrev, std::string nCountry, uint32_t nLocaleID, std::string nUserName, std::string nUserPassword, std::string nFirstChannel, std::string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, std::string nPasswordHashType, std::string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -57,7 +61,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_CallableBanList = m_GHost->m_DB->ThreadedBanList( nServer );
 	m_Exiting = false;
 	m_Server = nServer;
-	string LowerServer = m_Server;
+	std::string LowerServer = m_Server;
 	transform( LowerServer.begin( ), LowerServer.end( ), LowerServer.begin( ), (int(*)(int))tolower );
 
 	if( !nServerAlias.empty( ) )
@@ -151,36 +155,36 @@ CBNET :: ~CBNET( )
 
 	delete m_BNCSUtil;
 
-	for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
+	for( std::vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 		delete *i;
 
-	for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
+	for( std::vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 		delete *i;
 
-	boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
+	std::scoped_lock lock( m_GHost->m_CallablesMutex );
 	
-	for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
+	for( std::vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); ++i )
+	for( std::vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
+	for( std::vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); ++i )
+	for( std::vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
+	for( std::vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
+	for( std::vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); ++i )
+	for( std::vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); ++i )
+	for( std::vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
 	if( m_CallableAdminList )
@@ -189,14 +193,14 @@ CBNET :: ~CBNET( )
 	if( m_CallableBanList )
 		m_GHost->m_Callables.push_back( m_CallableBanList );
 
-	lock.unlock( );
+	lock.~scoped_lock( );
 
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	std::scoped_lock bansLock( m_BansMutex );
 
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
+	for( std::vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 		delete *i;
 	
-	bansLock.unlock( );
+	bansLock.~scoped_lock( );
 }
 
 BYTEARRAY CBNET :: GetUniqueName( )
@@ -226,7 +230,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	// update callables
 	//
 
-	for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); )
+	for( std::vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -247,7 +251,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); )
+	for( std::vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -267,7 +271,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); )
+	for( std::vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -287,7 +291,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); )
+	for( std::vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -308,7 +312,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); )
+	for( std::vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -328,7 +332,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); )
+	for( std::vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -348,7 +352,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); )
+	for( std::vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -367,7 +371,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); )
+	for( std::vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -375,7 +379,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 			if( DotAPlayerSummary )
 			{
-				string Summary = m_GHost->m_Language->HasPlayedDotAGamesWithThisBot(	i->second->GetName( ),
+				std::string Summary = m_GHost->m_Language->HasPlayedDotAGamesWithThisBot(	i->second->GetName( ),
 					UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ),
 					UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ),
 					UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ),
@@ -434,13 +438,13 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
 	{
 		// CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
-		boost::mutex::scoped_lock lock( m_BansMutex );
+		std::scoped_lock lock( m_BansMutex );
 		
-		for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
+		for( std::vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 			delete *i;
 
 		m_Bans = m_CallableBanList->GetResult( );
-		lock.unlock( );
+		lock.~scoped_lock( );
 		
 		m_GHost->m_DB->RecoverCallable( m_CallableBanList );
 		delete m_CallableBanList;
@@ -539,12 +543,12 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		
 		WaitTicks += m_FrequencyDelayTimes * 60;
 
-		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+		std::scoped_lock packetsLock( m_PacketsMutex );
 		
 		if( !m_OutPackets.empty( ) && GetTicks( ) - m_LastOutPacketTicks >= WaitTicks )
 		{
 			if( m_OutPackets.size( ) > 7 )
-				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] packet queue warning - there are " + UTIL_ToString( m_OutPackets.size( ) ) + " packets waiting to be sent" );
+				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] packet std::queue warning - there are " + UTIL_ToString( m_OutPackets.size( ) ) + " packets waiting to be sent" );
 
 			m_Socket->PutBytes( m_OutPackets.front( ) );
 			m_LastOutPacketSize = m_OutPackets.front( ).size( );
@@ -560,7 +564,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_LastOutPacketTicks = GetTicks( );
 		}
 		
-		packetsLock.unlock( );
+		packetsLock.~scoped_lock( );
 
 		// send a null packet every 60 seconds to detect disconnects
 
@@ -590,12 +594,12 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_LastNullTime = GetTime( );
 			m_LastOutPacketTicks = GetTicks( );
 
-			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+			std::scoped_lock packetsLock( m_PacketsMutex );
 			
 			while( !m_OutPackets.empty( ) )
 				m_OutPackets.pop( );
 
-			packetsLock.unlock( );
+			packetsLock.~scoped_lock( );
 
 			return m_Exiting;
 		}
@@ -629,7 +633,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		if( m_ServerReconnectCount > 10 )
 		{
 			m_ServerReconnectCount = 0;
-			m_ServerIP = string( );
+			m_ServerIP = std::string( );
 		}
 
 		if( m_ServerIP.empty( ) )
@@ -662,9 +666,9 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 void CBNET :: ExtractPackets( )
 {
-	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets queue
+	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets std::queue
 
-	string *RecvBuffer = m_Socket->GetBytes( );
+	std::string *RecvBuffer = m_Socket->GetBytes( );
 	BYTEARRAY Bytes = UTIL_CreateByteArray( (unsigned char *)RecvBuffer->c_str( ), RecvBuffer->size( ) );
 
 	// a packet is at least 4 bytes so loop as long as the buffer contains 4 bytes
@@ -711,10 +715,10 @@ void CBNET :: ProcessPackets( )
 	CIncomingGameHost *GameHost = NULL;
 	CIncomingChatEvent *ChatEvent = NULL;
 	BYTEARRAY WardenData;
-	vector<CIncomingFriendList *> Friends;
-	vector<CIncomingClanList *> Clans;
+	std::vector<CIncomingFriendList *> Friends;
+	std::vector<CIncomingClanList *> Clans;
 
-	// process all the received packets in the m_Packets queue
+	// process all the received packets in the m_Packets std::queue
 	// this normally means sending some kind of response
 
 	while( !m_Packets.empty( ) )
@@ -926,7 +930,7 @@ void CBNET :: ProcessPackets( )
 
 					// try to figure out if the user might be using the wrong logon type since too many people are confused by this
 
-					string Server = m_Server;
+					std::string Server = m_Server;
 					transform( Server.begin( ), Server.end( ), Server.begin( ), (int(*)(int))tolower );
 
 					if( m_PasswordHashType == "pvpgn" && ( Server == "useast.battle.net" || Server == "uswest.battle.net" || Server == "asia.battle.net" || Server == "europe.battle.net" ) )
@@ -954,7 +958,7 @@ void CBNET :: ProcessPackets( )
 			case CBNETProtocol :: SID_FRIENDSLIST:
 				Friends = m_Protocol->RECEIVE_SID_FRIENDSLIST( Packet->GetData( ) );
 
-				for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
+				for( std::vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 					delete *i;
 
 				m_Friends = Friends;
@@ -962,9 +966,9 @@ void CBNET :: ProcessPackets( )
 
 			case CBNETProtocol :: SID_CLANMEMBERLIST:
 				{
-				vector<CIncomingClanList *> Clans = m_Protocol->RECEIVE_SID_CLANMEMBERLIST( Packet->GetData( ) );
+				std::vector<CIncomingClanList *> Clans = m_Protocol->RECEIVE_SID_CLANMEMBERLIST( Packet->GetData( ) );
 
-				for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
+				for( std::vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 					delete *i;
 
 				m_Clans = Clans;
@@ -973,7 +977,7 @@ void CBNET :: ProcessPackets( )
 			
 			case CBNETProtocol :: SID_CLANCREATIONINVITATION:
 				{
-				string ClanCreateName = m_Protocol->RECEIVE_SID_CLANCREATIONINVITATION( Packet->GetData( ) );
+				std::string ClanCreateName = m_Protocol->RECEIVE_SID_CLANCREATIONINVITATION( Packet->GetData( ) );
 				
 				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Invited (creation) to clan " + ClanCreateName + ", !accept to accept" );
 				m_LastInviteCreation = true;
@@ -982,7 +986,7 @@ void CBNET :: ProcessPackets( )
 			
 			case CBNETProtocol :: SID_CLANINVITATIONRESPONSE:
 				{
-				string ClanInviteName = m_Protocol->RECEIVE_SID_CLANINVITATIONRESPONSE( Packet->GetData( ) );
+				std::string ClanInviteName = m_Protocol->RECEIVE_SID_CLANINVITATIONRESPONSE( Packet->GetData( ) );
 				
 				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Invited to clan " + ClanInviteName + ", !accept to accept" );
 				m_LastInviteCreation = false;
@@ -999,8 +1003,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 {
 	CBNETProtocol :: IncomingChatEvent Event = chatEvent->GetChatEvent( );
 	bool Whisper = ( Event == CBNETProtocol :: EID_WHISPER );
-	string User = chatEvent->GetUser( );
-	string Message = chatEvent->GetMessage( );
+	std::string User = chatEvent->GetUser( );
+	std::string Message = chatEvent->GetMessage( );
 
 	if( Event == CBNETProtocol :: EID_WHISPER || Event == CBNETProtocol :: EID_TALK )
 	{
@@ -1019,7 +1023,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// this case covers whispers - we assume that anyone who sends a whisper to the bot with message "spoofcheck" should be considered spoof checked
 		// note that this means you can whisper "spoofcheck" even in a public game to manually spoofcheck if the /whois fails
 
-		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+		std::scoped_lock lock( m_GHost->m_GamesMutex );
 		
 		if( Event == CBNETProtocol :: EID_WHISPER && m_GHost->m_CurrentGame )
 		{
@@ -1028,7 +1032,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			SpoofAdd.server = m_Server;
 			SpoofAdd.name = User;
 			SpoofAdd.sendMessage = false;
-			SpoofAdd.failMessage = string( );
+			SpoofAdd.failMessage = std::string( );
 			
 			if( Message == "s" || Message == "sc" || Message == "spoof" || Message == "check" || Message == "spoofcheck" )
 			{
@@ -1036,7 +1040,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				SpoofAdd.sendMessage = true;
 			}
 			
-			else if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
+			else if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != std::string :: npos )
 			{
 				// look for messages like "entered a Warcraft III The Frozen Throne game called XYZ"
 				// we don't look for the English part of the text anymore because we want this to work with multiple languages
@@ -1046,7 +1050,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				{
 					// the equivalent pvpgn message is: [PvPGN Realm] Your friend abc has entered a Warcraft III Frozen Throne game named "xyz".
 
-					vector<string> Tokens = UTIL_Tokenize( Message, ' ' );
+					std::vector<std::string> Tokens = UTIL_Tokenize( Message, ' ' );
 
 					if( Tokens.size( ) >= 3 )
 						SpoofAdd.name = Tokens[2];
@@ -1057,18 +1061,18 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			
 			if( Success )
 			{
-				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+				std::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
 				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
-				spoofLock.unlock( );
+				spoofLock.~scoped_lock( );
 			}
 		}
 		
-		lock.unlock( );
+		lock.~scoped_lock( );
 
 		// handle bot commands
 
 		if( Message == "?trigger" && ( IsAdmin( User ) || IsRootAdmin( User ) || ( m_PublicCommands && m_OutPackets.size( ) <= 3 ) ) )
-			QueueChatCommand( m_GHost->m_Language->CommandTrigger( string( 1, m_CommandTrigger ) ), User, Whisper );
+			QueueChatCommand( m_GHost->m_Language->CommandTrigger( std::string( 1, m_CommandTrigger ) ), User, Whisper );
 		else if( !Message.empty( ) && Message[0] == m_CommandTrigger )
 		{
 			BotCommand( Message, User, Whisper, false );
@@ -1088,10 +1092,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// extract the first word which we hope is the username
 		// this is not necessarily true though since info messages also include channel MOTD's and such
 
-		string UserName;
-		string :: size_type Split = Message.find( " " );
+		std::string UserName;
+		std::string :: size_type Split = Message.find( " " );
 
-		if( Split != string :: npos )
+		if( Split != std::string :: npos )
 			UserName = Message.substr( 0, Split );
 		else
 			UserName = Message.substr( 0 );
@@ -1100,33 +1104,33 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// this case covers whois results which are used when hosting a public game (we send out a "/whois [player]" for each player)
 		// at all times you can still /w the bot with "spoofcheck" to manually spoof check
 		
-		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+		std::scoped_lock lock( m_GHost->m_GamesMutex );
 		
 		if( m_GHost->m_CurrentGame )
 		{
-			string FailMessage;
+			std::string FailMessage;
 			
-			if( Message.find( "is away" ) != string :: npos )
+			if( Message.find( "is away" ) != std::string :: npos )
 				FailMessage = m_GHost->m_Language->SpoofPossibleIsAway( UserName );
-			else if( Message.find( "is unavailable" ) != string :: npos )
+			else if( Message.find( "is unavailable" ) != std::string :: npos )
 				FailMessage = m_GHost->m_Language->SpoofPossibleIsUnavailable( UserName );
-			else if( Message.find( "is refusing messages" ) != string :: npos )
+			else if( Message.find( "is refusing messages" ) != std::string :: npos )
 				FailMessage = m_GHost->m_Language->SpoofPossibleIsRefusingMessages( UserName );
-			else if( Message.find( "is using Warcraft III The Frozen Throne in the channel" ) != string :: npos )
+			else if( Message.find( "is using Warcraft III The Frozen Throne in the channel" ) != std::string :: npos )
 				FailMessage = m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName );
-			else if( Message.find( "is using Warcraft III The Frozen Throne in channel" ) != string :: npos )
+			else if( Message.find( "is using Warcraft III The Frozen Throne in channel" ) != std::string :: npos )
 				FailMessage = m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName );
-			else if( Message.find( "is using Warcraft III The Frozen Throne in a private channel" ) != string :: npos )
+			else if( Message.find( "is using Warcraft III The Frozen Throne in a private channel" ) != std::string :: npos )
 				FailMessage = m_GHost->m_Language->SpoofDetectedIsInPrivateChannel( UserName );
 			
 			if( !FailMessage.empty( ) )
 			{
-				boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
+				std::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
 				m_GHost->m_CurrentGame->m_DoSayGames.push_back( FailMessage );
-				sayLock.unlock( );
+				sayLock.~scoped_lock( );
 			}
 
-			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos )
+			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != std::string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != std::string :: npos )
 			{
 				// check both the current game name and the last game name against the /whois response
 				// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
@@ -1136,18 +1140,18 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				SpoofAdd.server = m_Server;
 				SpoofAdd.name = UserName;
 				SpoofAdd.sendMessage = false;
-				SpoofAdd.failMessage = string( );
+				SpoofAdd.failMessage = std::string( );
 
-				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) == string :: npos && Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) == string :: npos )
+				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) == std::string :: npos && Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) == std::string :: npos )
 					SpoofAdd.failMessage = m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName );
 				
-				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+				std::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
 				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
-				spoofLock.unlock( );
+				spoofLock.~scoped_lock( );
 			}
 		}
 		
-		lock.unlock( );
+		lock.~scoped_lock( );
 	}
 	else if( Event == CBNETProtocol :: EID_ERROR )
 		CONSOLE_Print( "[ERROR: " + m_ServerAlias + "] " + Message );
@@ -1158,15 +1162,15 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 	}
 }
 
-void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceRoot ) {
+void CBNET :: BotCommand( std::string Message, std::string User, bool Whisper, bool ForceRoot ) {
 	// extract the command trigger, the command, and the payload
 	// e.g. "!say hello world" -> command: "say", payload: "hello world"
 
-	string Command;
-	string Payload;
-	string :: size_type PayloadStart = Message.find( " " );
+	std::string Command;
+	std::string Payload;
+	std::string :: size_type PayloadStart = Message.find( " " );
 
-	if( PayloadStart != string :: npos )
+	if( PayloadStart != std::string :: npos )
 	{
 		Command = Message.substr( 1, PayloadStart - 1 );
 		Payload = Message.substr( PayloadStart + 1 );
@@ -1207,7 +1211,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				if( IsAdmin( Payload ) )
 					QueueChatCommand( m_GHost->m_Language->UserIsAlreadyAnAdmin( m_Server, Payload ), User, Whisper );
 				else
-					m_PairedAdminAdds.push_back( PairedAdminAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedAdminAdd( m_Server, Payload ) ) );
+					m_PairedAdminAdds.push_back( PairedAdminAdd( Whisper ? User : std::string( ), m_GHost->m_DB->ThreadedAdminAdd( m_Server, Payload ) ) );
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
@@ -1223,25 +1227,25 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// extract the victim and the reason
 			// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
 
-			string Victim;
-			string Reason;
-			stringstream SS;
+			std::string Victim;
+			std::string Reason;
+			std::stringstream SS;
 			SS << Payload;
 			SS >> Victim;
 
 			if( !SS.eof( ) )
 			{
-				getline( SS, Reason );
-				string :: size_type Start = Reason.find_first_not_of( " " );
+				std::getline( SS, Reason );
+				std::string :: size_type Start = Reason.find_first_not_of( " " );
 
-				if( Start != string :: npos )
+				if( Start != std::string :: npos )
 					Reason = Reason.substr( Start );
 			}
 
 			if( IsBannedName( Victim ) )
 				QueueChatCommand( m_GHost->m_Language->UserIsAlreadyBanned( m_Server, Victim ), User, Whisper );
 			else
-				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason ) ) );
+				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : std::string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, std::string( ), std::string( ), User, Reason ) ) );
 		}
 
 		//
@@ -1272,8 +1276,8 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 					uint32_t MaximumGames;
 					uint32_t AutoStartPlayers;
-					string GameName;
-					stringstream SS;
+					std::string GameName;
+					std::stringstream SS;
 					SS << Payload;
 					SS >> MaximumGames;
 
@@ -1291,10 +1295,10 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 								CONSOLE_Print( "[BNET: " + m_ServerAlias + "] missing input #3 to autohost command" );
 							else
 							{
-								getline( SS, GameName );
-								string :: size_type Start = GameName.find_first_not_of( " " );
+								std::getline( SS, GameName );
+								std::string :: size_type Start = GameName.find_first_not_of( " " );
 
-								if( Start != string :: npos )
+								if( Start != std::string :: npos )
 									GameName = GameName.substr( Start );
 
 								QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
@@ -1348,8 +1352,8 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					uint32_t AutoStartPlayers;
 					double MinimumScore;
 					double MaximumScore;
-					string GameName;
-					stringstream SS;
+					std::string GameName;
+					std::stringstream SS;
 					SS << Payload;
 					SS >> MaximumGames;
 
@@ -1379,10 +1383,10 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 										CONSOLE_Print( "[BNET: " + m_ServerAlias + "] missing input #5 to autohostmm command" );
 									else
 									{
-										getline( SS, GameName );
-										string :: size_type Start = GameName.find_first_not_of( " " );
+										std::getline( SS, GameName );
+										std::string :: size_type Start = GameName.find_first_not_of( " " );
 
-										if( Start != string :: npos )
+										if( Start != std::string :: npos )
 											GameName = GameName.substr( Start );
 
 										QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
@@ -1453,7 +1457,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		else if( Command == "countadmins" )
 		{
 			if( IsRootAdmin( User ) || ForceRoot )
-				m_PairedAdminCounts.push_back( PairedAdminCount( Whisper ? User : string( ), m_GHost->m_DB->ThreadedAdminCount( m_Server ) ) );
+				m_PairedAdminCounts.push_back( PairedAdminCount( Whisper ? User : std::string( ), m_GHost->m_DB->ThreadedAdminCount( m_Server ) ) );
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 		}
@@ -1463,7 +1467,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		//
 
 		else if( Command == "countbans" )
-			m_PairedBanCounts.push_back( PairedBanCount( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanCount( m_Server ) ) );
+			m_PairedBanCounts.push_back( PairedBanCount( Whisper ? User : std::string( ), m_GHost->m_DB->ThreadedBanCount( m_Server ) ) );
 
 		//
 		// !DBSTATUS
@@ -1483,7 +1487,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				if( !IsAdmin( Payload ) )
 					QueueChatCommand( m_GHost->m_Language->UserIsNotAnAdmin( m_Server, Payload ), User, Whisper );
 				else
-					m_PairedAdminRemoves.push_back( PairedAdminRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedAdminRemove( m_Server, Payload ) ) );
+					m_PairedAdminRemoves.push_back( PairedAdminRemove( Whisper ? User : std::string( ), m_GHost->m_DB->ThreadedAdminRemove( m_Server, Payload ) ) );
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
@@ -1495,7 +1499,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		//
 
 		else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
-			m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
+			m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : std::string( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
 
 		//
 		// !DISABLE
@@ -1535,11 +1539,11 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		{
 			// only load files in the current directory just to be safe
 
-			if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+			if( Payload.find( "/" ) != std::string :: npos || Payload.find( "\\" ) != std::string :: npos )
 				QueueChatCommand( m_GHost->m_Language->UnableToLoadReplaysOutside( ), User, Whisper );
 			else
 			{
-				string File = m_GHost->m_ReplayPath + Payload + ".w3g";
+				std::string File = m_GHost->m_ReplayPath + Payload + ".w3g";
 
 				if( UTIL_FileExists( File ) )
 				{
@@ -1606,7 +1610,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "getgame" && !Payload.empty( ) )
 		{
-			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+			std::scoped_lock lock( m_GHost->m_GamesMutex );
 			
 			uint32_t GameNumber = UTIL_ToUInt32( Payload ) - 1;
 
@@ -1615,7 +1619,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			else
 				QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( Payload ), User, Whisper );
 			
-			lock.unlock( );
+			lock.~scoped_lock( );
 		}
 
 		//
@@ -1624,14 +1628,14 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "getgames" )
 		{
-			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+			std::scoped_lock lock( m_GHost->m_GamesMutex );
 			
 			if( m_GHost->m_CurrentGame )
 				QueueChatCommand( m_GHost->m_Language->GameIsInTheLobby( m_GHost->m_CurrentGame->GetDescription( ), UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
 			else
 				QueueChatCommand( m_GHost->m_Language->ThereIsNoGameInTheLobby( UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
 			
-			lock.unlock( );
+			lock.~scoped_lock( );
 		}
 		
 		//
@@ -1673,12 +1677,12 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ), User, Whisper );
 			else
 			{
-				string FoundMapConfigs;
+				std::string FoundMapConfigs;
 
 				try
 				{
 					path MapCFGPath( m_GHost->m_MapCFGPath );
-					string Pattern = Payload;
+					std::string Pattern = Payload;
 					transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
 					if( !exists( MapCFGPath ) )
@@ -1694,12 +1698,12 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 						for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
 						{
-							string FileName = i->path( ).filename( ).string( );
-							string Stem = i->path( ).stem( ).string( );
+							std::string FileName = i->path( ).filename( ).string( );
+							std::string Stem = i->path( ).stem( ).string( );
 							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
 							transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 
-							if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != string :: npos )
+							if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != std::string :: npos )
 							{
 								LastMatch = i->path( );
 								++Matches;
@@ -1723,7 +1727,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							QueueChatCommand( m_GHost->m_Language->NoMapConfigsFound( ), User, Whisper );
 						else if( Matches == 1 )
 						{
-							string File = LastMatch.filename( ).string( );
+							std::string File = LastMatch.filename( ).string( );
 							QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
 							CConfig MapCFG;
 							MapCFG.Read( LastMatch.string( ) );
@@ -1733,7 +1737,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
 					}
 				}
-				catch( const exception &ex )
+				catch( const std::exception &ex )
 				{
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] error listing map configs - caught exception [" + ex.what( ) + "]" );
 					QueueChatCommand( m_GHost->m_Language->ErrorListingMapConfigs( ), User, Whisper );
@@ -1749,12 +1753,12 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		{
 			// only load files in the current directory just to be safe
 
-			if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+			if( Payload.find( "/" ) != std::string :: npos || Payload.find( "\\" ) != std::string :: npos )
 				QueueChatCommand( m_GHost->m_Language->UnableToLoadSaveGamesOutside( ), User, Whisper );
 			else
 			{
-				string File = m_GHost->m_SaveGamePath + Payload + ".w3z";
-				string FileNoPath = Payload + ".w3z";
+				std::string File = m_GHost->m_SaveGamePath + Payload + ".w3z";
+				std::string FileNoPath = Payload + ".w3z";
 
 				if( UTIL_FileExists( File ) )
 				{
@@ -1784,12 +1788,12 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ), User, Whisper );
 			else
 			{
-				string FoundMaps;
+				std::string FoundMaps;
 
 				try
 				{
 					path MapPath( m_GHost->m_MapPath );
-					string Pattern = Payload;
+					std::string Pattern = Payload;
 					transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
 					if( !exists( MapPath ) )
@@ -1805,12 +1809,12 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 						for( directory_iterator i( MapPath ); i != EndIterator; ++i )
 						{
-							string FileName = i->path( ).filename( ).string( );
-							string Stem = i->path( ).stem( ).string( );
+							std::string FileName = i->path( ).filename( ).string( );
+							std::string Stem = i->path( ).stem( ).string( );
 							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
 							transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 
-							if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != string :: npos )
+							if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != std::string :: npos )
 							{
 								LastMatch = i->path( );
 								++Matches;
@@ -1834,7 +1838,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							QueueChatCommand( m_GHost->m_Language->NoMapsFound( ), User, Whisper );
 						else if( Matches == 1 )
 						{
-							string File = LastMatch.filename( ).string( );
+							std::string File = LastMatch.filename( ).string( );
 							QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
 
 							// hackhack: create a config file in memory with the required information to load the map
@@ -1848,7 +1852,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							QueueChatCommand( m_GHost->m_Language->FoundMaps( FoundMaps ), User, Whisper );
 					}
 				}
-				catch( const exception &ex )
+				catch( const std::exception &ex )
 				{
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] error listing maps - caught exception [" + ex.what( ) + "]" );
 					QueueChatCommand( m_GHost->m_Language->ErrorListingMaps( ), User, Whisper );
@@ -1893,11 +1897,11 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// extract the owner and the game name
 			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
 
-			string Owner;
-			string GameName;
-			string :: size_type GameNameStart = Payload.find( " " );
+			std::string Owner;
+			std::string GameName;
+			std::string :: size_type GameNameStart = Payload.find( " " );
 
-			if( GameNameStart != string :: npos )
+			if( GameNameStart != std::string :: npos )
 			{
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
@@ -1921,11 +1925,11 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// extract the owner and the game name
 			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
 
-			string Owner;
-			string GameName;
-			string :: size_type GameNameStart = Payload.find( " " );
+			std::string Owner;
+			std::string GameName;
+			std::string :: size_type GameNameStart = Payload.find( " " );
 
-			if( GameNameStart != string :: npos )
+			if( GameNameStart != std::string :: npos )
 			{
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
@@ -1980,23 +1984,23 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		{
 			if( IsRootAdmin( User ) || ForceRoot )
 			{
-				boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+				std::scoped_lock lock( m_GHost->m_GamesMutex );
 		
 				if( m_GHost->m_CurrentGame )
 				{
-					boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
+					std::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
 					m_GHost->m_CurrentGame->m_DoSayGames.push_back( Payload );
-					sayLock.unlock( );
+					sayLock.~scoped_lock( );
 				}
 
-				for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
+				for( std::vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
 				{
-					boost::mutex::scoped_lock sayLock( (*i)->m_SayGamesMutex );
+					std::scoped_lock sayLock( (*i)->m_SayGamesMutex );
 					(*i)->m_DoSayGames.push_back( Payload );
-					sayLock.unlock( );
+					sayLock.~scoped_lock( );
 				}
 		
-				lock.unlock( );
+				lock.~scoped_lock( );
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
@@ -2019,7 +2023,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "unhost" )
 		{
-			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+			std::scoped_lock lock( m_GHost->m_GamesMutex );
 			
 			if( m_GHost->m_CurrentGame )
 			{
@@ -2032,7 +2036,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			else
 				QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameNoGameInLobby( ), User, Whisper );
 			
-			lock.unlock( );
+			lock.~scoped_lock( );
 		}
 
 		//
@@ -2054,9 +2058,9 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 	* NON ADMIN COMMANDS *
 	*********************/
 
-	// don't respond to non admins if there are more than 3 messages already in the queue
-	// this prevents malicious users from filling up the bot's chat queue and crippling the bot
-	// in some cases the queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
+	// don't respond to non admins if there are more than 3 messages already in the std::queue
+	// this prevents malicious users from filling up the bot's chat std::queue and crippling the bot
+	// in some cases the std::queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
 	// e.g. when several users join a game at the same time and cause multiple /whois messages to be queued at once
 
 	if( IsAdmin( User ) || IsRootAdmin( User ) || ForceRoot || ( m_PublicCommands && m_OutPackets.size( ) <= 3 ) )
@@ -2067,7 +2071,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		if( Command == "stats" )
 		{
-			string StatsUser = User;
+			std::string StatsUser = User;
 
 			if( !Payload.empty( ) )
 				StatsUser = Payload;
@@ -2075,7 +2079,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// check for potential abuse
 
 			if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-				m_PairedGPSChecks.push_back( PairedGPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
+				m_PairedGPSChecks.push_back( PairedGPSCheck( Whisper ? User : std::string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
 		}
 
 		//
@@ -2085,7 +2089,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "statsdota" || Command == "sd" )
 		{
-			string StatsUser = User;
+			std::string StatsUser = User;
 
 			if( !Payload.empty( ) )
 				StatsUser = Payload;
@@ -2093,7 +2097,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// check for potential abuse
 
 			if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-				m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
+				m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : std::string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
 		}
 
 		//
@@ -2110,7 +2114,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 	}
 }
 
-void CBNET :: SendJoinChannel( string channel )
+void CBNET :: SendJoinChannel( std::string channel )
 {
 	if( m_LoggedIn && m_InChat )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_JOINCHANNEL( channel ) );
@@ -2128,25 +2132,25 @@ void CBNET :: SendGetClanList( )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 }
 
-void CBNET :: SendClanInvitation( string accountName )
+void CBNET :: SendClanInvitation( std::string accountName )
 {
 	if( m_LoggedIn )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANINVITATION( accountName ) );
 }
 
-void CBNET :: SendClanRemoveMember( string accountName )
+void CBNET :: SendClanRemoveMember( std::string accountName )
 {
 	if( m_LoggedIn )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANREMOVEMEMBER( accountName ) );
 }
 
-void CBNET :: SendClanChangeRank( string accountName, CBNETProtocol :: RankCode rank )
+void CBNET :: SendClanChangeRank( std::string accountName, CBNETProtocol :: RankCode rank )
 {
 	if( m_LoggedIn )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANCHANGERANK( accountName, rank ) );
 }
 
-void CBNET :: SendClanSetMotd( string motd )
+void CBNET :: SendClanSetMotd( std::string motd )
 {
 	if( m_LoggedIn )
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANSETMOTD( motd ) );
@@ -2164,15 +2168,15 @@ void CBNET :: SendClanAcceptInvite( bool accept )
 
 void CBNET :: QueueEnterChat( )
 {
-	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+	std::scoped_lock packetsLock( m_PacketsMutex );
 	
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_ENTERCHAT( ) );
 	
-	packetsLock.unlock( );
+	packetsLock.~scoped_lock( );
 }
 
-void CBNET :: QueueChatCommand( string chatCommand )
+void CBNET :: QueueChatCommand( std::string chatCommand )
 {
 	if( chatCommand.empty( ) )
 		return;
@@ -2185,26 +2189,26 @@ void CBNET :: QueueChatCommand( string chatCommand )
 		if( chatCommand.size( ) > 255 )
 			chatCommand = chatCommand.substr( 0, 255 );
 
-		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+		std::scoped_lock packetsLock( m_PacketsMutex );
 		
 		if( m_OutPackets.size( ) > 10 )
-			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempted to queue chat command [" + chatCommand + "] but there are too many (" + UTIL_ToString( m_OutPackets.size( ) ) + ") packets queued, discarding" );
+			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempted to std::queue chat command [" + chatCommand + "] but there are too many (" + UTIL_ToString( m_OutPackets.size( ) ) + ") packets queued, discarding" );
 		else
 		{
 			CONSOLE_Print( "[QUEUED: " + m_ServerAlias + "] " + chatCommand );
 			m_OutPackets.push( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
 		}
 		
-		packetsLock.unlock( );
+		packetsLock.~scoped_lock( );
 	}
 }
 
-void CBNET :: QueueChatCommand( string chatCommand, string user, bool whisper )
+void CBNET :: QueueChatCommand( std::string chatCommand, std::string user, bool whisper )
 {
 	if( chatCommand.empty( ) )
 		return;
 
-	// if whisper is true send the chat command as a whisper to user, otherwise just queue the chat command
+	// if whisper is true send the chat command as a whisper to user, otherwise just std::queue the chat command
 
 	if( whisper )
 		QueueChatCommand( "/w " + user + " " + chatCommand );
@@ -2212,7 +2216,7 @@ void CBNET :: QueueChatCommand( string chatCommand, string user, bool whisper )
 		QueueChatCommand( chatCommand );
 }
 
-void CBNET :: QueueGameCreate( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *savegame, uint32_t hostCounter )
+void CBNET :: QueueGameCreate( unsigned char state, std::string gameName, std::string hostName, CMap *map, CSaveGame *savegame, uint32_t hostCounter )
 {
 	if( m_LoggedIn && map )
 	{
@@ -2227,12 +2231,12 @@ void CBNET :: QueueGameCreate( unsigned char state, string gameName, string host
 	}
 }
 
-void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter )
+void CBNET :: QueueGameRefresh( unsigned char state, std::string gameName, std::string hostName, CMap *map, CSaveGame *saveGame, uint32_t upTime, uint32_t hostCounter )
 {
 	if( hostName.empty( ) )
 	{
 		BYTEARRAY UniqueName = m_Protocol->GetUniqueName( );
-		hostName = string( UniqueName.begin( ), UniqueName.end( ) );
+		hostName = std::string( UniqueName.begin( ), UniqueName.end( ) );
 	}
 
 	if( m_LoggedIn && map )
@@ -2264,14 +2268,14 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapHeight.push_back( 192 );
 			MapHeight.push_back( 7 );
 
-			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+			std::scoped_lock packetsLock( m_PacketsMutex );
 			
 			if( m_GHost->m_Reconnect )
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			else
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			
-			packetsLock.unlock( );
+			packetsLock.~scoped_lock( );
 		}
 		else
 		{
@@ -2292,38 +2296,38 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapHeight.push_back( 192 );
 			MapHeight.push_back( 7 );
 
-			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+			std::scoped_lock packetsLock( m_PacketsMutex );
 			
 			if( m_GHost->m_Reconnect )
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			else
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			
-			packetsLock.unlock( );
+			packetsLock.~scoped_lock( );
 		}
 	}
 }
 
 void CBNET :: QueueGameUncreate( )
 {
-	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+	std::scoped_lock packetsLock( m_PacketsMutex );
 	
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_STOPADV( ) );
 	
-	packetsLock.unlock( );
+	packetsLock.~scoped_lock( );
 }
 
 void CBNET :: UnqueuePackets( unsigned char type )
 {
-	queue<BYTEARRAY> Packets;
+	std::queue<BYTEARRAY> Packets;
 	uint32_t Unqueued = 0;
 
-	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+	std::scoped_lock packetsLock( m_PacketsMutex );
 	
 	while( !m_OutPackets.empty( ) )
 	{
-		// todotodo: it's very inefficient to have to copy all these packets while searching the queue
+		// todotodo: it's very inefficient to have to copy all these packets while searching the std::queue
 
 		BYTEARRAY Packet = m_OutPackets.front( );
 		m_OutPackets.pop( );
@@ -2336,27 +2340,27 @@ void CBNET :: UnqueuePackets( unsigned char type )
 
 	m_OutPackets = Packets;
 	
-	packetsLock.unlock( );
+	packetsLock.~scoped_lock( );
 
 	if( Unqueued > 0 )
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] unqueued " + UTIL_ToString( Unqueued ) + " packets of type " + UTIL_ToString( type ) );
 }
 
-void CBNET :: UnqueueChatCommand( string chatCommand )
+void CBNET :: UnqueueChatCommand( std::string chatCommand )
 {
 	// hackhack: this is ugly code
 	// generate the packet that would be sent for this chat command
-	// then search the queue for that exact packet
+	// then search the std::queue for that exact packet
 
 	BYTEARRAY PacketToUnqueue = m_Protocol->SEND_SID_CHATCOMMAND( chatCommand );
-	queue<BYTEARRAY> Packets;
+	std::queue<BYTEARRAY> Packets;
 	uint32_t Unqueued = 0;
 
-	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+	std::scoped_lock packetsLock( m_PacketsMutex );
 	
 	while( !m_OutPackets.empty( ) )
 	{
-		// todotodo: it's very inefficient to have to copy all these packets while searching the queue
+		// todotodo: it's very inefficient to have to copy all these packets while searching the std::queue
 
 		BYTEARRAY Packet = m_OutPackets.front( );
 		m_OutPackets.pop( );
@@ -2369,7 +2373,7 @@ void CBNET :: UnqueueChatCommand( string chatCommand )
 
 	m_OutPackets = Packets;
 	
-	packetsLock.unlock( );
+	packetsLock.~scoped_lock( );
 
 	if( Unqueued > 0 )
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] unqueued " + UTIL_ToString( Unqueued ) + " chat command packets" );
@@ -2380,11 +2384,11 @@ void CBNET :: UnqueueGameRefreshes( )
 	UnqueuePackets( CBNETProtocol :: SID_STARTADVEX3 );
 }
 
-bool CBNET :: IsAdmin( string name )
+bool CBNET :: IsAdmin( std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
-	for( vector<string> :: iterator i = m_Admins.begin( ); i != m_Admins.end( ); ++i )
+	for( std::vector<std::string> :: iterator i = m_Admins.begin( ); i != m_Admins.end( ); ++i )
 	{
 		if( *i == name )
 			return true;
@@ -2393,7 +2397,7 @@ bool CBNET :: IsAdmin( string name )
 	return false;
 }
 
-bool CBNET :: IsRootAdmin( string name )
+bool CBNET :: IsRootAdmin( std::string name )
 {
 	// m_RootAdmin was already transformed to lower case in the constructor
 
@@ -2403,8 +2407,8 @@ bool CBNET :: IsRootAdmin( string name )
 	// note: this function gets called frequently so it would be better to parse the root admins just once and store them in a list somewhere
 	// however, it's hardly worth optimizing at this point since the code's already written
 
-	stringstream SS;
-	string s;
+	std::stringstream SS;
+	std::string s;
 	SS << m_RootAdmin;
 
 	while( !SS.eof( ) )
@@ -2418,60 +2422,60 @@ bool CBNET :: IsRootAdmin( string name )
 	return false;
 }
 
-CDBBan *CBNET :: IsBannedName( string name )
+CDBBan *CBNET :: IsBannedName( std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
 	// todotodo: optimize this - maybe use a map?
 	
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	std::scoped_lock bansLock( m_BansMutex );
 
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
+	for( std::vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetName( ) == name )
 			return *i;
 	}
 	
-	bansLock.unlock( );
+	bansLock.~scoped_lock( );
 	return NULL;
 }
 
-CDBBan *CBNET :: IsBannedIP( string ip )
+CDBBan *CBNET :: IsBannedIP( std::string ip )
 {
 	// todotodo: optimize this - maybe use a map?
 	
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	std::scoped_lock bansLock( m_BansMutex );
 	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
+	for( std::vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetIP( ) == ip )
 			return *i;
 	}
 
-	bansLock.unlock( );
+	bansLock.~scoped_lock( );
 	return NULL;
 }
 
-void CBNET :: AddAdmin( string name )
+void CBNET :: AddAdmin( std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	m_Admins.push_back( name );
 }
 
-void CBNET :: AddBan( string name, string ip, string gamename, string admin, string reason )
+void CBNET :: AddBan( std::string name, std::string ip, std::string gamename, std::string admin, std::string reason )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	
-	boost::mutex::scoped_lock lock( m_BansMutex );
+	std::scoped_lock lock( m_BansMutex );
 	m_Bans.push_back( new CDBBan( m_Server, name, ip, "N/A", gamename, admin, reason ) );
-	lock.unlock( );
+	lock.~scoped_lock( );
 }
 
-void CBNET :: RemoveAdmin( string name )
+void CBNET :: RemoveAdmin( std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
-	for( vector<string> :: iterator i = m_Admins.begin( ); i != m_Admins.end( ); )
+	for( std::vector<std::string> :: iterator i = m_Admins.begin( ); i != m_Admins.end( ); )
 	{
 		if( *i == name )
 			i = m_Admins.erase( i );
@@ -2480,13 +2484,13 @@ void CBNET :: RemoveAdmin( string name )
 	}
 }
 
-void CBNET :: RemoveBan( string name )
+void CBNET :: RemoveBan( std::string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
-	boost::mutex::scoped_lock lock( m_BansMutex );
+	std::scoped_lock lock( m_BansMutex );
 	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
+	for( std::vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
 	{
 		if( (*i)->GetName( ) == name )
 			i = m_Bans.erase( i );
@@ -2494,14 +2498,14 @@ void CBNET :: RemoveBan( string name )
 			++i;
 	}
 	
-	lock.unlock( );
+	lock.~scoped_lock( );
 }
 
 void CBNET :: HoldFriends( CBaseGame *game )
 {
 	if( game )
 	{
-		for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
+		for( std::vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 			game->AddToReserved( (*i)->GetAccount( ) );
 	}
 }
@@ -2510,7 +2514,7 @@ void CBNET :: HoldClan( CBaseGame *game )
 {
 	if( game )
 	{
-		for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
+		for( std::vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 			game->AddToReserved( (*i)->GetName( ) );
 	}
 }

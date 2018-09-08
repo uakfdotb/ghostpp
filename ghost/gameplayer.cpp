@@ -63,12 +63,12 @@ BYTEARRAY CPotentialPlayer :: GetExternalIP( )
 	return UTIL_CreateByteArray( Zeros, 4 );
 }
 
-string CPotentialPlayer :: GetExternalIPString( )
+std::string CPotentialPlayer :: GetExternalIPString( )
 {
 	if( m_Socket )
 		return m_Socket->GetIPString( );
 
-	return string( );
+	return std::string( );
 }
 
 bool CPotentialPlayer :: Update( void *fd )
@@ -94,9 +94,9 @@ void CPotentialPlayer :: ExtractPackets( )
 	if( !m_Socket )
 		return;
 
-	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets queue
+	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets std::queue
 
-	string *RecvBuffer = m_Socket->GetBytes( );
+	std::string *RecvBuffer = m_Socket->GetBytes( );
 	BYTEARRAY Bytes = UTIL_CreateByteArray( (unsigned char *)RecvBuffer->c_str( ), RecvBuffer->size( ) );
 
 	// a packet is at least 4 bytes so loop as long as the buffer contains 4 bytes
@@ -141,7 +141,7 @@ void CPotentialPlayer :: ProcessPackets( )
 	if( !m_Socket )
 		return;
 
-	// process all the received packets in the m_Packets queue
+	// process all the received packets in the m_Packets std::queue
 
 	while( !m_Packets.empty( ) )
 	{
@@ -184,7 +184,7 @@ void CPotentialPlayer :: Send( BYTEARRAY data )
 // CGamePlayer
 //
 
-CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( nProtocol, nGame, nSocket ),
+CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, std::string nJoinedRealm, std::string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( nProtocol, nGame, nSocket ),
 m_PID( nPID ), m_Name( nName ), m_InternalIP( nInternalIP ), m_JoinedRealm( nJoinedRealm ), m_TotalPacketsSent( 0 ), m_TotalPacketsReceived( 0 ), m_LeftCode( PLAYERLEAVE_LOBBY ), m_LoginAttempts( 0 ), m_SyncCounter( 0 ), m_JoinTime( GetTime( ) ),
 m_LastMapPartSent( 0 ), m_LastMapPartAcked( 0 ), m_StartedDownloadingTicks( 0 ), m_FinishedLoadingTicks( 0 ), m_StartedLaggingTicks( 0 ), m_StatsSentTime( 0 ), m_StatsDotASentTime( 0 ), m_LastGProxyWaitNoticeSentTime( 0 ), m_Score( -100000.0 ),
 m_LoggedIn( false ), m_Spoofed( false ), m_Reserved( nReserved ), m_WhoisShouldBeSent( false ), m_WhoisSent( false ), m_DownloadAllowed( false ), m_DownloadStarted( false ), m_DownloadFinished( false ), m_FinishedLoading( false ), m_Lagging( false ),
@@ -193,7 +193,7 @@ m_DropVote( false ), m_KickVote( false ), m_Muted( false ), m_LeftMessageSent( f
 
 }
 
-CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) ),
+CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, std::string nJoinedRealm, std::string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) ),
 m_PID( nPID ), m_Name( nName ), m_InternalIP( nInternalIP ), m_JoinedRealm( nJoinedRealm ), m_TotalPacketsSent( 0 ), m_TotalPacketsReceived( 1 ), m_LeftCode( PLAYERLEAVE_LOBBY ), m_LoginAttempts( 0 ), m_SyncCounter( 0 ), m_JoinTime( GetTime( ) ),
 m_LastMapPartSent( 0 ), m_LastMapPartAcked( 0 ), m_StartedDownloadingTicks( 0 ), m_FinishedLoadingTicks( 0 ), m_StartedLaggingTicks( 0 ), m_StatsSentTime( 0 ), m_StatsDotASentTime( 0 ), m_LastGProxyWaitNoticeSentTime( 0 ), m_Score( -100000.0 ),
 m_LoggedIn( false ), m_Spoofed( false ), m_Reserved( nReserved ), m_WhoisShouldBeSent( false ), m_WhoisSent( false ), m_DownloadAllowed( false ), m_DownloadStarted( false ), m_DownloadFinished( false ), m_FinishedLoading( false ), m_Lagging( false ),
@@ -215,17 +215,17 @@ CGamePlayer :: ~CGamePlayer( )
 
 }
 
-string CGamePlayer :: GetNameTerminated( )
+std::string CGamePlayer :: GetNameTerminated( )
 {
 	// if the player's name contains an unterminated colour code add the colour terminator to the end of their name
 	// this is useful because it allows you to print the player's name in a longer message which doesn't colour all the subsequent text
 
-	string LowerName = m_Name;
+	std::string LowerName = m_Name;
 	transform( LowerName.begin( ), LowerName.end( ), LowerName.begin( ), (int(*)(int))tolower );
-	string :: size_type Start = LowerName.find( "|c" );
-	string :: size_type End = LowerName.find( "|r" );
+	std::string :: size_type Start = LowerName.find( "|c" );
+	std::string :: size_type End = LowerName.find( "|r" );
 
-	if( Start != string :: npos && ( End == string :: npos || End < Start ) )
+	if( Start != std::string :: npos && ( End == std::string :: npos || End < Start ) )
 		return m_Name + "|r";
 	else
 		return m_Name;
@@ -233,7 +233,7 @@ string CGamePlayer :: GetNameTerminated( )
 
 uint32_t CGamePlayer :: GetPing( bool LCPing )
 {
-	// just average all the pings in the vector, nothing fancy
+	// just average all the pings in the std::vector, nothing fancy
 
 	if( m_Pings.empty( ) )
 		return 0;
@@ -260,7 +260,7 @@ bool CGamePlayer :: Update( void *fd )
 	{
 		// todotodo: we could get kicked from battle.net for sending a command with invalid characters, do some basic checking
 
-		for( vector<CBNET *> :: iterator i = m_Game->m_GHost->m_BNETs.begin( ); i != m_Game->m_GHost->m_BNETs.end( ); ++i )
+		for( std::vector<CBNET *> :: iterator i = m_Game->m_GHost->m_BNETs.begin( ); i != m_Game->m_GHost->m_BNETs.end( ); ++i )
 		{
 			if( (*i)->GetServer( ) == m_JoinedRealm )
 			{
@@ -339,9 +339,9 @@ void CGamePlayer :: ExtractPackets( )
 	if( !m_Socket )
 		return;
 
-	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets queue
+	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets std::queue
 
-	string *RecvBuffer = m_Socket->GetBytes( );
+	std::string *RecvBuffer = m_Socket->GetBytes( );
 	BYTEARRAY Bytes = UTIL_CreateByteArray( (unsigned char *)RecvBuffer->c_str( ), RecvBuffer->size( ) );
 
 	// a packet is at least 4 bytes so loop as long as the buffer contains 4 bytes
@@ -397,7 +397,7 @@ void CGamePlayer :: ProcessPackets( )
 	uint32_t CheckSum = 0;
 	uint32_t Pong = 0;
 
-	// process all the received packets in the m_Packets queue
+	// process all the received packets in the m_Packets std::queue
 
 	while( !m_Packets.empty( ) )
 	{
@@ -434,7 +434,7 @@ void CGamePlayer :: ProcessPackets( )
 
 				if( Action )
 				{
-					// don't delete Action here because the game is going to store it in a queue and delete it later
+					// don't delete Action here because the game is going to store it in a std::queue and delete it later
 					m_Game->EventPlayerAction( this, Action );
 				}
 
@@ -593,7 +593,7 @@ void CGamePlayer :: EventGProxyReconnect( CTCPSocket *NewSocket, uint32_t LastPa
 
 	// send remaining packets from buffer, preserve buffer
 
-	queue<BYTEARRAY> TempBuffer;
+	std::queue<BYTEARRAY> TempBuffer;
 
 	while( !m_GProxyBuffer.empty( ) )
 	{

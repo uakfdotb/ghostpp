@@ -1,16 +1,18 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ghost", "ghost\ghost.vcproj", "{B57A04BC-13D4-4CAD-B835-C046B9D66269}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2016
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ghost", "ghost\ghost.vcxproj", "{B57A04BC-13D4-4CAD-B835-C046B9D66269}"
 	ProjectSection(ProjectDependencies) = postProject
 		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8} = {CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BNCSutil", "bncsutil\vc8_build\BNCSutil.vcproj", "{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BNCSutil", "bncsutil\vc8_build\BNCSutil.vcxproj", "{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "update_dota_elo", "update_dota_elo\update_dota_elo.vcproj", "{B77E1E52-C1FB-4226-B05B-9E70433BB95E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "update_dota_elo", "update_dota_elo\update_dota_elo.vcxproj", "{B77E1E52-C1FB-4226-B05B-9E70433BB95E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "update_w3mmd_elo", "update_w3mmd_elo\update_w3mmd_elo.vcproj", "{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "update_w3mmd_elo", "update_w3mmd_elo\update_w3mmd_elo.vcxproj", "{67FB5DB9-6F09-4F1A-BB70-66CD585599FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,12 +30,12 @@ Global
 		{B57A04BC-13D4-4CAD-B835-C046B9D66269}.Release MySQL|Win32.Build.0 = Release MySQL|Win32
 		{B57A04BC-13D4-4CAD-B835-C046B9D66269}.Release|Win32.ActiveCfg = Release|Win32
 		{B57A04BC-13D4-4CAD-B835-C046B9D66269}.Release|Win32.Build.0 = Release|Win32
-		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Debug MySQL|Win32.ActiveCfg = Debug MySQL|Win32
-		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Debug MySQL|Win32.Build.0 = Debug MySQL|Win32
+		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Debug MySQL|Win32.ActiveCfg = Debug|Win32
+		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Debug MySQL|Win32.Build.0 = Debug|Win32
 		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Debug|Win32.ActiveCfg = Debug|Win32
 		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Debug|Win32.Build.0 = Debug|Win32
-		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Release MySQL|Win32.ActiveCfg = Release MySQL|Win32
-		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Release MySQL|Win32.Build.0 = Release MySQL|Win32
+		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Release MySQL|Win32.ActiveCfg = Release|Win32
+		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Release MySQL|Win32.Build.0 = Release|Win32
 		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Release|Win32.ActiveCfg = Release|Win32
 		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}.Release|Win32.Build.0 = Release|Win32
 		{B77E1E52-C1FB-4226-B05B-9E70433BB95E}.Debug MySQL|Win32.ActiveCfg = Debug|Win32
@@ -55,5 +57,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5526D9EC-C35B-410A-ABF6-6283ED22D00A}
 	EndGlobalSection
 EndGlobal

@@ -30,7 +30,7 @@
 // CStatsW3MMD
 //
 
-CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame, string nCategory ) : CStats( nGame ), m_Category( nCategory ), m_NextValueID( 0 ), m_NextCheckID( 0 )
+CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame, std::string nCategory ) : CStats( nGame ), m_Category( nCategory ), m_NextValueID( 0 ), m_NextCheckID( 0 )
 {
 	CONSOLE_Print( "[STATSW3MMD] using Warcraft 3 Map Meta Data stats parser version 1" );
 	CONSOLE_Print( "[STATSW3MMD] using map_statsw3mmdcategory [" + nCategory + "]" );
@@ -72,17 +72,17 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 					if( ActionData->size( ) >= i + 15 + MissionKey.size( ) + Key.size( ) )
 					{
 						Value = BYTEARRAY( ActionData->begin( ) + i + 11 + MissionKey.size( ) + Key.size( ), ActionData->begin( ) + i + 15 + MissionKey.size( ) + Key.size( ) );
-						string MissionKeyString = string( MissionKey.begin( ), MissionKey.end( ) );
-						string KeyString = string( Key.begin( ), Key.end( ) );
+						std::string MissionKeyString = std::string( MissionKey.begin( ), MissionKey.end( ) );
+						std::string KeyString = std::string( Key.begin( ), Key.end( ) );
 						uint32_t ValueInt = UTIL_ByteArrayToUInt32( Value, false );
 
 						// CONSOLE_Print( "[STATSW3MMD] DEBUG: mkey [" + MissionKeyString + "], key [" + KeyString + "], value [" + UTIL_ToString( ValueInt ) + "]" );
 
 						if( MissionKeyString.size( ) > 4 && MissionKeyString.substr( 0, 4 ) == "val:" )
 						{
-							string ValueIDString = MissionKeyString.substr( 4 );
+							std::string ValueIDString = MissionKeyString.substr( 4 );
 							uint32_t ValueID = UTIL_ToUInt32( ValueIDString );
-							vector<string> Tokens = TokenizeKey( KeyString );
+							std::vector<std::string> Tokens = TokenizeKey( KeyString );
 
 							if( !Tokens.empty( ) )
 							{
@@ -122,7 +122,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] duplicate DefVarP [" + KeyString + "] found, ignoring" );
 									else
 									{
-										if( Tokens[2] == "int" || Tokens[2] == "real" || Tokens[2] == "string" )
+										if( Tokens[2] == "int" || Tokens[2] == "real" || Tokens[2] == "std::string" )
 											m_DefVarPs[Tokens[1]] = Tokens[2];
 										else
 											CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown DefVarP [" + KeyString + "] found, ignoring" );
@@ -140,7 +140,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] VarP [" + KeyString + "] found without a corresponding DefVarP, ignoring" );
 									else
 									{
-										string ValueType = m_DefVarPs[Tokens[2]];
+										std::string ValueType = m_DefVarPs[Tokens[2]];
 
 										if( ValueType == "int" )
 										{
@@ -207,7 +207,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 											if( Tokens[3] == "=" )
 												m_VarPStrings[VP] = Tokens[4];
 											else
-												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown string VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
+												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unknown std::string VarP [" + KeyString + "] operation [" + Tokens[3] + "] found, ignoring" );
 										}
 									}
 								}
@@ -249,7 +249,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 										uint32_t Arguments = UTIL_ToUInt32( Tokens[2] );
 
 										if( Tokens.size( ) == Arguments + 4 )
-											m_DefEvents[Tokens[1]] = vector<string>( Tokens.begin( ) + 3, Tokens.end( ) );
+											m_DefEvents[Tokens[1]] = std::vector<std::string>( Tokens.begin( ) + 3, Tokens.end( ) );
 									}
 								}
 								else if( Tokens[0] == "Event" && Tokens.size( ) >= 2 )
@@ -261,17 +261,17 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 										CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] Event [" + KeyString + "] found without a corresponding DefEvent, ignoring" );
 									else
 									{
-										vector<string> DefEvent = m_DefEvents[Tokens[1]];
+										std::vector<std::string> DefEvent = m_DefEvents[Tokens[1]];
 
 										if( !DefEvent.empty( ) )
 										{
-											string Format = DefEvent[DefEvent.size( ) - 1];
+											std::string Format = DefEvent[DefEvent.size( ) - 1];
 
 											if( Tokens.size( ) - 2 != DefEvent.size( ) - 1 )
 												CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] Event [" + KeyString + "] found with " + UTIL_ToString( Tokens.size( ) - 2 ) + " arguments but expected " + UTIL_ToString( DefEvent.size( ) - 1 ) + " arguments, ignoring" );
 											else
 											{
-												// replace the markers in the format string with the arguments
+												// replace the markers in the format std::string with the arguments
 
 												for( uint32_t i = 0; i < Tokens.size( ) - 2; ++i )
 												{
@@ -315,7 +315,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 						}
 						else if( MissionKeyString.size( ) > 4 && MissionKeyString.substr( 0, 4 ) == "chk:" )
 						{
-							string CheckIDString = MissionKeyString.substr( 4 );
+							std::string CheckIDString = MissionKeyString.substr( 4 );
 							uint32_t CheckID = UTIL_ToUInt32( CheckIDString );
 
 							// todotodo: cheat detection
@@ -352,9 +352,9 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		// todotodo: there's no reason to create a new callable for each entry in this map
 		// rewrite ThreadedW3MMDPlayerAdd to act more like ThreadedW3MMDVarAdd
 
-		for( map<uint32_t,string> :: iterator i = m_PIDToName.begin( ); i != m_PIDToName.end( ); ++i )
+		for( std::map<uint32_t,std::string> :: iterator i = m_PIDToName.begin( ); i != m_PIDToName.end( ); ++i )
 		{
-			string Flags = m_Flags[i->first];
+			std::string Flags = m_Flags[i->first];
 			uint32_t Leaver = 0;
 			uint32_t Practicing = 0;
 
@@ -400,13 +400,13 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] unable to begin database transaction, data not saved" );
 }
 
-vector<string> CStatsW3MMD :: TokenizeKey( string key )
+std::vector<std::string> CStatsW3MMD :: TokenizeKey( std::string key )
 {
-	vector<string> Tokens;
-	string Token;
+	std::vector<std::string> Tokens;
+	std::string Token;
 	bool Escaping = false;
 
-	for( string :: iterator i = key.begin( ); i != key.end( ); ++i )
+	for( std::string :: iterator i = key.begin( ); i != key.end( ); ++i )
 	{
 		if( Escaping )
 		{
@@ -417,7 +417,7 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 			else
 			{
 				CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] error tokenizing key [" + key + "], invalid escape sequence found, ignoring" );
-				return vector<string>( );
+				return std::vector<std::string>( );
 			}
 
 			Escaping = false;
@@ -429,7 +429,7 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 				if( Token.empty( ) )
 				{
 					CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] error tokenizing key [" + key + "], empty token found, ignoring" );
-					return vector<string>( );
+					return std::vector<std::string>( );
 				}
 
 				Tokens.push_back( Token );
@@ -445,7 +445,7 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 	if( Token.empty( ) )
 	{
 		CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] error tokenizing key [" + key + "], empty token found, ignoring" );
-		return vector<string>( );
+		return std::vector<std::string>( );
 	}
 
 	Tokens.push_back( Token );

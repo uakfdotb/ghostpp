@@ -34,19 +34,19 @@ class CBNLSClient
 private:
 	CTCPClient *m_Socket;							// the connection to the BNLS server
 	CBNLSProtocol *m_Protocol;						// battle.net protocol
-	queue<CCommandPacket *> m_Packets;				// queue of incoming packets
+	std::queue<CCommandPacket *> m_Packets;				// std::queue of incoming packets
 	bool m_WasConnected;
-	string m_Server;
+	std::string m_Server;
 	uint16_t m_Port;
 	uint32_t m_LastNullTime;
 	uint32_t m_WardenCookie;						// the warden cookie
-	queue<BYTEARRAY> m_OutPackets;					// queue of outgoing packets to be sent
-	queue<BYTEARRAY> m_WardenResponses;				// the warden responses to be sent to battle.net
+	std::queue<BYTEARRAY> m_OutPackets;					// std::queue of outgoing packets to be sent
+	std::queue<BYTEARRAY> m_WardenResponses;				// the warden responses to be sent to battle.net
 	uint32_t m_TotalWardenIn;
 	uint32_t m_TotalWardenOut;
 
 public:
-	CBNLSClient( string nServer, uint16_t nPort, uint32_t nWardenCookie );
+	CBNLSClient( std::string nServer, uint16_t nPort, uint32_t nWardenCookie );
 	~CBNLSClient( );
 
 	BYTEARRAY GetWardenResponse( );

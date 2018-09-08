@@ -46,7 +46,7 @@ void CReplay :: AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t resul
 	Block.push_back( PID );
 	UTIL_AppendByteArray( Block, result, false );
 	UTIL_AppendByteArray( Block, (uint32_t)1, false );
-	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
+	m_CompiledBlocks += std::string( Block.begin( ), Block.end( ) );
 }
 
 void CReplay :: AddLeaveGameDuringLoading( uint32_t reason, unsigned char PID, uint32_t result )
@@ -60,7 +60,7 @@ void CReplay :: AddLeaveGameDuringLoading( uint32_t reason, unsigned char PID, u
 	m_LoadingBlocks.push( Block );
 }
 
-void CReplay :: AddTimeSlot2( queue<CIncomingAction *> actions )
+void CReplay :: AddTimeSlot2( std::queue<CIncomingAction *> actions )
 {
 	BYTEARRAY Block;
 	Block.push_back( REPLAY_TIMESLOT2 );
@@ -81,10 +81,10 @@ void CReplay :: AddTimeSlot2( queue<CIncomingAction *> actions )
 	BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 3 ), false );
 	Block[1] = LengthBytes[0];
 	Block[2] = LengthBytes[1];
-	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
+	m_CompiledBlocks += std::string( Block.begin( ), Block.end( ) );
 }
 
-void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions )
+void CReplay :: AddTimeSlot( uint16_t timeIncrement, std::queue<CIncomingAction *> actions )
 {
 	BYTEARRAY Block;
 	Block.push_back( REPLAY_TIMESLOT );
@@ -105,11 +105,11 @@ void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> ac
 	BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 3 ), false );
 	Block[1] = LengthBytes[0];
 	Block[2] = LengthBytes[1];
-	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
+	m_CompiledBlocks += std::string( Block.begin( ), Block.end( ) );
 	m_ReplayLength += timeIncrement;
 }
 
-void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message )
+void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, std::string message )
 {
 	BYTEARRAY Block;
 	Block.push_back( REPLAY_CHATMESSAGE );
@@ -124,7 +124,7 @@ void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t
 	BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 4 ), false );
 	Block[2] = LengthBytes[0];
 	Block[3] = LengthBytes[1];
-	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
+	m_CompiledBlocks += std::string( Block.begin( ), Block.end( ) );
 }
 
 void CReplay :: AddLoadingBlock( BYTEARRAY &loadingBlock )
@@ -132,7 +132,7 @@ void CReplay :: AddLoadingBlock( BYTEARRAY &loadingBlock )
 	m_LoadingBlocks.push( loadingBlock );
 }
 
-void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
+void CReplay :: BuildReplay( std::string gameName, std::string statString, uint32_t war3Version, uint16_t buildNumber )
 {
 	m_War3Version = war3Version;
 	m_BuildNumber = buildNumber;
@@ -161,7 +161,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 
 	// PlayerList (4.9)
 
-	for( vector<PIDPlayer> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+	for( std::vector<PIDPlayer> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 	{
 		if( (*i).first != m_HostPID )
 		{
@@ -207,7 +207,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 
 	// done
 
-	m_Decompressed = string( Replay.begin( ), Replay.end( ) );
+	m_Decompressed = std::string( Replay.begin( ), Replay.end( ) );
 	m_Decompressed += m_CompiledBlocks;
 }
 
@@ -227,9 +227,9 @@ void CReplay :: ParseReplay( bool parseBlocks )
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
 	m_StartSpotCount = 0;
-	m_LoadingBlocks = queue<BYTEARRAY>( );
-	m_Blocks = queue<BYTEARRAY>( );
-	m_CheckSums = queue<uint32_t>( );
+	m_LoadingBlocks = std::queue<BYTEARRAY>( );
+	m_Blocks = std::queue<BYTEARRAY>( );
+	m_CheckSums = std::queue<uint32_t>( );
 
 	if( m_Flags != 32768 )
 	{
@@ -238,11 +238,11 @@ void CReplay :: ParseReplay( bool parseBlocks )
 		return;
 	}
 
-	istringstream ISS( m_Decompressed );
+	std::istringstream ISS( m_Decompressed );
 
 	unsigned char Garbage1;
 	uint32_t Garbage4;
-	string GarbageString;
+	std::string GarbageString;
 	unsigned char GarbageData[65535];
 
 	READB( ISS, &Garbage4, 4 );				// Unknown (4.0)
@@ -314,7 +314,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 		if( Garbage1 == 22 )
 		{
 			unsigned char PlayerID;
-			string PlayerName;
+			std::string PlayerName;
 			READB( ISS, &PlayerID, 1 );		// Player PlayerID (4.1)
 
 			if( PlayerID > 15 )

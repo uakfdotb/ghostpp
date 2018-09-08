@@ -46,56 +46,56 @@ public:
 
 private:
 	unsigned char m_HostPID;
-	string m_HostName;
-	string m_GameName;
-	string m_StatString;
+	std::string m_HostName;
+	std::string m_GameName;
+	std::string m_StatString;
 	uint32_t m_PlayerCount;
 	uint32_t m_MapGameType;
-	vector<PIDPlayer> m_Players;
-	vector<CGameSlot> m_Slots;
+	std::vector<PIDPlayer> m_Players;
+	std::vector<CGameSlot> m_Slots;
 	uint32_t m_RandomSeed;
 	unsigned char m_SelectMode;				// also known as the "layout style" elsewhere in this project
 	unsigned char m_StartSpotCount;
-	queue<BYTEARRAY> m_LoadingBlocks;
-	queue<BYTEARRAY> m_Blocks;
-	queue<uint32_t> m_CheckSums;
-	string m_CompiledBlocks;
+	std::queue<BYTEARRAY> m_LoadingBlocks;
+	std::queue<BYTEARRAY> m_Blocks;
+	std::queue<uint32_t> m_CheckSums;
+	std::string m_CompiledBlocks;
 
 public:
 	CReplay( );
 	virtual ~CReplay( );
 
 	unsigned char GetHostPID( )				{ return m_HostPID; }
-	string GetHostName( )					{ return m_HostName; }
-	string GetGameName( )					{ return m_GameName; }
-	string GetStatString( )					{ return m_StatString; }
+	std::string GetHostName( )					{ return m_HostName; }
+	std::string GetGameName( )					{ return m_GameName; }
+	std::string GetStatString( )					{ return m_StatString; }
 	uint32_t GetPlayerCount( )				{ return m_PlayerCount; }
 	uint32_t GetMapGameType( )				{ return m_MapGameType; }
-	vector<PIDPlayer> GetPlayers( )			{ return m_Players; }
-	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
+	std::vector<PIDPlayer> GetPlayers( )			{ return m_Players; }
+	std::vector<CGameSlot> GetSlots( )			{ return m_Slots; }
 	uint32_t GetRandomSeed( )				{ return m_RandomSeed; }
 	unsigned char GetSelectMode( )			{ return m_SelectMode; }
 	unsigned char GetStartSpotCount( )		{ return m_StartSpotCount; }
-	queue<BYTEARRAY> *GetLoadingBlocks( )	{ return &m_LoadingBlocks; }
-	queue<BYTEARRAY> *GetBlocks( )			{ return &m_Blocks; }
-	queue<uint32_t> *GetCheckSums( )		{ return &m_CheckSums; }
+	std::queue<BYTEARRAY> *GetLoadingBlocks( )	{ return &m_LoadingBlocks; }
+	std::queue<BYTEARRAY> *GetBlocks( )			{ return &m_Blocks; }
+	std::queue<uint32_t> *GetCheckSums( )		{ return &m_CheckSums; }
 
-	void AddPlayer( unsigned char nPID, string nName )		{ m_Players.push_back( PIDPlayer( nPID, nName ) ); }
-	void SetSlots( vector<CGameSlot> nSlots )				{ m_Slots = nSlots; }
+	void AddPlayer( unsigned char nPID, std::string nName )		{ m_Players.push_back( PIDPlayer( nPID, nName ) ); }
+	void SetSlots( std::vector<CGameSlot> nSlots )				{ m_Slots = nSlots; }
 	void SetRandomSeed( uint32_t nRandomSeed )				{ m_RandomSeed = nRandomSeed; }
 	void SetSelectMode( unsigned char nSelectMode )			{ m_SelectMode = nSelectMode; }
 	void SetStartSpotCount( unsigned char nStartSpotCount )	{ m_StartSpotCount = nStartSpotCount; }
 	void SetMapGameType( uint32_t nMapGameType )			{ m_MapGameType = nMapGameType; }
 	void SetHostPID( unsigned char nHostPID )				{ m_HostPID = nHostPID; }
-	void SetHostName( string nHostName )					{ m_HostName = nHostName; }
+	void SetHostName( std::string nHostName )					{ m_HostName = nHostName; }
 
 	void AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t result );
 	void AddLeaveGameDuringLoading( uint32_t reason, unsigned char PID, uint32_t result );
-	void AddTimeSlot2( queue<CIncomingAction *> actions );
-	void AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions );
-	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
+	void AddTimeSlot2( std::queue<CIncomingAction *> actions );
+	void AddTimeSlot( uint16_t timeIncrement, std::queue<CIncomingAction *> actions );
+	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, std::string message );
 	void AddLoadingBlock( BYTEARRAY &loadingBlock );
-	void BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber );
+	void BuildReplay( std::string gameName, std::string statString, uint32_t war3Version, uint16_t buildNumber );
 
 	void ParseReplay( bool parseBlocks );
 };

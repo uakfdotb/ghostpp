@@ -32,36 +32,36 @@ class CCallableBanCount;
 // class CCallableBanAdd;
 class CCallableBanRemove;
 
-typedef pair<string,CCallableAdminCount *> PairedAdminCount;
-typedef pair<string,CCallableAdminAdd *> PairedAdminAdd;
-typedef pair<string,CCallableAdminRemove *> PairedAdminRemove;
-typedef pair<string,CCallableBanCount *> PairedBanCount;
-// typedef pair<string,CCallableBanAdd *> PairedBanAdd;
-typedef pair<string,CCallableBanRemove *> PairedBanRemove;
+typedef std::pair<std::string,CCallableAdminCount *> PairedAdminCount;
+typedef std::pair<std::string,CCallableAdminAdd *> PairedAdminAdd;
+typedef std::pair<std::string,CCallableAdminRemove *> PairedAdminRemove;
+typedef std::pair<std::string,CCallableBanCount *> PairedBanCount;
+// typedef std::pair<std::string,CCallableBanAdd *> PairedBanAdd;
+typedef std::pair<std::string,CCallableBanRemove *> PairedBanRemove;
 
-typedef pair<string,uint32_t> TempBan;
+typedef std::pair<std::string,uint32_t> TempBan;
 
 class CAdminGame : public CBaseGame
 {
 protected:
-	string m_Password;
-	vector<TempBan> m_TempBans;
-	vector<PairedAdminCount> m_PairedAdminCounts;	// vector of paired threaded database admin counts in progress
-	vector<PairedAdminAdd> m_PairedAdminAdds;		// vector of paired threaded database admin adds in progress
-	vector<PairedAdminRemove> m_PairedAdminRemoves;	// vector of paired threaded database admin removes in progress
-	vector<PairedBanCount> m_PairedBanCounts;		// vector of paired threaded database ban counts in progress
-	// vector<PairedBanAdd> m_PairedBanAdds;		// vector of paired threaded database ban adds in progress
-	vector<PairedBanRemove> m_PairedBanRemoves;		// vector of paired threaded database ban removes in progress
+	std::string m_Password;
+	std::vector<TempBan> m_TempBans;
+	std::vector<PairedAdminCount> m_PairedAdminCounts;	// std::vector of paired threaded database admin counts in progress
+	std::vector<PairedAdminAdd> m_PairedAdminAdds;		// std::vector of paired threaded database admin adds in progress
+	std::vector<PairedAdminRemove> m_PairedAdminRemoves;	// std::vector of paired threaded database admin removes in progress
+	std::vector<PairedBanCount> m_PairedBanCounts;		// std::vector of paired threaded database ban counts in progress
+	// std::vector<PairedBanAdd> m_PairedBanAdds;		// std::vector of paired threaded database ban adds in progress
+	std::vector<PairedBanRemove> m_PairedBanRemoves;		// std::vector of paired threaded database ban removes in progress
 
 public:
-	CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword );
+	CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, std::string nGameName, std::string nPassword );
 	virtual ~CAdminGame( );
 
 	virtual bool Update( void *fd, void *send_fd );
-	virtual void SendAdminChat( string message );
+	virtual void SendAdminChat( std::string message );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
-	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
+	virtual bool EventPlayerBotCommand( CGamePlayer *player, std::string command, std::string payload );
 };
 
 #endif

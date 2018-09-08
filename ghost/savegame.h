@@ -30,12 +30,12 @@
 class CSaveGame : public CPacked
 {
 private:
-	string m_FileName;
-	string m_FileNameNoPath;
-	string m_MapPath;
-	string m_GameName;
+	std::string m_FileName;
+	std::string m_FileNameNoPath;
+	std::string m_MapPath;
+	std::string m_GameName;
 	unsigned char m_NumSlots;
-	vector<CGameSlot> m_Slots;
+	std::vector<CGameSlot> m_Slots;
 	uint32_t m_RandomSeed;
 	BYTEARRAY m_MagicNumber;
 
@@ -43,17 +43,17 @@ public:
 	CSaveGame( );
 	virtual ~CSaveGame( );
 
-	string GetFileName( )				{ return m_FileName; }
-	string GetFileNameNoPath( )			{ return m_FileNameNoPath; }
-	string GetMapPath( )				{ return m_MapPath; }
-	string GetGameName( )				{ return m_GameName; }
+	std::string GetFileName( )				{ return m_FileName; }
+	std::string GetFileNameNoPath( )			{ return m_FileNameNoPath; }
+	std::string GetMapPath( )				{ return m_MapPath; }
+	std::string GetGameName( )				{ return m_GameName; }
 	unsigned char GetNumSlots( )		{ return m_NumSlots; }
-	vector<CGameSlot> GetSlots( )		{ return m_Slots; }
+	std::vector<CGameSlot> GetSlots( )		{ return m_Slots; }
 	uint32_t GetRandomSeed( )			{ return m_RandomSeed; }
 	BYTEARRAY GetMagicNumber( )			{ return m_MagicNumber; }
 
-	void SetFileName( string nFileName )				{ m_FileName = nFileName; }
-	void SetFileNameNoPath( string nFileNameNoPath )	{ m_FileNameNoPath = nFileNameNoPath; }
+	void SetFileName( std::string nFileName )				{ m_FileName = nFileName; }
+	void SetFileNameNoPath( std::string nFileNameNoPath )	{ m_FileNameNoPath = nFileNameNoPath; }
 
 	void ParseSaveGame( );
 };

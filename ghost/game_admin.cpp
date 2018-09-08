@@ -36,15 +36,16 @@
 
 #include <string.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
-using namespace boost :: filesystem;
+namespace fs = std::filesystem;
+using namespace fs;
 
 //
 // CAdminGame
 //
 
-CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, string( ), string( ), string( ) )
+CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, std::string nGameName, std::string nPassword ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, std::string( ), std::string( ), std::string( ) )
 {
 	m_VirtualHostName = "|cFFC04040Admin";
 	m_MuteLobby = true;
@@ -54,26 +55,26 @@ CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint
 
 CAdminGame :: ~CAdminGame( )
 {
-	for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
+	for( std::vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); ++i )
+	for( std::vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
+	for( std::vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); ++i )
+	for( std::vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
 	/*
 
-	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
+	for( std::vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
 	*/
 
-	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
+	for( std::vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 }
 
@@ -83,7 +84,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 	// update callables
 	//
 
-	for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); )
+	for( std::vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -109,13 +110,13 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); )
+	for( std::vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
 			if( i->second->GetResult( ) )
 			{
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
+				for( std::vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
 						(*j)->AddAdmin( i->second->GetUser( ) );
@@ -140,13 +141,13 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); )
+	for( std::vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
 			if( i->second->GetResult( ) )
 			{
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
+				for( std::vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
 						(*j)->RemoveAdmin( i->second->GetUser( ) );
@@ -171,7 +172,7 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); )
+	for( std::vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
@@ -199,13 +200,13 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 
 	/*
 
-	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); )
+	for( std::vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
 			if( i->second->GetResult( ) )
 			{
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
+				for( std::vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
 						(*j)->AddBan( i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
@@ -232,13 +233,13 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 
 	*/
 
-	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); )
+	for( std::vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); )
 	{
 		if( i->second->GetReady( ) )
 		{
 			if( i->second->GetResult( ) )
 			{
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
+				for( std::vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
 						(*j)->RemoveBan( i->second->GetUser( ) );
@@ -269,9 +270,9 @@ bool CAdminGame :: Update( void *fd, void *send_fd )
 	return CBaseGame :: Update( fd, send_fd );
 }
 
-void CAdminGame :: SendAdminChat( string message )
+void CAdminGame :: SendAdminChat( std::string message )
 {
-	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+	for( std::vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 	{
 		if( (*i)->GetLoggedIn( ) )
 			SendChat( *i, message );
@@ -294,7 +295,7 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 {
 	uint32_t Time = GetTime( );
 
-	for( vector<TempBan> :: iterator i = m_TempBans.begin( ); i != m_TempBans.end( ); )
+	for( std::vector<TempBan> :: iterator i = m_TempBans.begin( ); i != m_TempBans.end( ); )
 	{
 		// remove old tempbans (after 5 seconds)
 
@@ -319,15 +320,15 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 	CBaseGame :: EventPlayerJoined( potential, joinPlayer );
 }
 
-bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
+bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, std::string command, std::string payload )
 {
 	CBaseGame :: EventPlayerBotCommand( player, command, payload );
 
 	// todotodo: don't be lazy
 
-	string User = player->GetName( );
-	string Command = command;
-	string Payload = payload;
+	std::string User = player->GetName( );
+	std::string Command = command;
+	std::string Payload = payload;
 
 	if( player->GetLoggedIn( ) )
 	{
@@ -346,9 +347,9 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			// extract the name and the server
 			// e.g. "Varlock useast.battle.net" -> name: "Varlock", server: "useast.battle.net"
 
-			string Name;
-			string Server;
-			stringstream SS;
+			std::string Name;
+			std::string Server;
+			std::stringstream SS;
 			SS << Payload;
 			SS >> Name;
 
@@ -364,10 +365,10 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 			if( !Server.empty( ) )
 			{
-				string Servers;
+				std::string Servers;
 				bool FoundServer = false;
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+				for( std::vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				{
 					if( Servers.empty( ) )
 						Servers = (*i)->GetServer( );
@@ -418,8 +419,8 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 				uint32_t MaximumGames;
 				uint32_t AutoStartPlayers;
-				string GameName;
-				stringstream SS;
+				std::string GameName;
+				std::stringstream SS;
 				SS << Payload;
 				SS >> MaximumGames;
 
@@ -437,10 +438,10 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							CONSOLE_Print( "[ADMINGAME] missing input #3 to autohost command" );
 						else
 						{
-							getline( SS, GameName );
-							string :: size_type Start = GameName.find_first_not_of( " " );
+							std::getline( SS, GameName );
+							std::string :: size_type Start = GameName.find_first_not_of( " " );
 
-							if( Start != string :: npos )
+							if( Start != std::string :: npos )
 								GameName = GameName.substr( Start );
 
 							SendChat( player, m_GHost->m_Language->AutoHostEnabled( ) );
@@ -489,8 +490,8 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				uint32_t AutoStartPlayers;
 				double MinimumScore;
 				double MaximumScore;
-				string GameName;
-				stringstream SS;
+				std::string GameName;
+				std::stringstream SS;
 				SS << Payload;
 				SS >> MaximumGames;
 
@@ -520,10 +521,10 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 									CONSOLE_Print( "[ADMINGAME] missing input #5 to autohostmm command" );
 								else
 								{
-									getline( SS, GameName );
-									string :: size_type Start = GameName.find_first_not_of( " " );
+									std::getline( SS, GameName );
+									std::string :: size_type Start = GameName.find_first_not_of( " " );
 
-									if( Start != string :: npos )
+									if( Start != std::string :: npos )
 										GameName = GameName.substr( Start );
 
 									SendChat( player, m_GHost->m_Language->AutoHostEnabled( ) );
@@ -555,9 +556,9 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			// extract the name and the server
 			// e.g. "Varlock useast.battle.net" -> name: "Varlock", server: "useast.battle.net"
 
-			string Name;
-			string Server;
-			stringstream SS;
+			std::string Name;
+			std::string Server;
+			std::stringstream SS;
 			SS << Payload;
 			SS >> Name;
 
@@ -573,10 +574,10 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 			if( !Server.empty( ) )
 			{
-				string Servers;
+				std::string Servers;
 				bool FoundServer = false;
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+				for( std::vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				{
 					if( Servers.empty( ) )
 						Servers = (*i)->GetServer( );
@@ -610,9 +611,9 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			// extract the name and the server
 			// e.g. "Varlock useast.battle.net" -> name: "Varlock", server: "useast.battle.net"
 
-			string Name;
-			string Server;
-			stringstream SS;
+			std::string Name;
+			std::string Server;
+			std::stringstream SS;
 			SS << Payload;
 			SS >> Name;
 
@@ -628,10 +629,10 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 			if( !Server.empty( ) )
 			{
-				string Servers;
+				std::string Servers;
 				bool FoundServer = false;
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+				for( std::vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				{
 					if( Servers.empty( ) )
 						Servers = (*i)->GetServer( );
@@ -663,7 +664,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 		else if( Command == "countadmins" )
 		{
-			string Server = Payload;
+			std::string Server = Payload;
 
 			if( Server.empty( ) && m_GHost->m_BNETs.size( ) == 1 )
 				Server = m_GHost->m_BNETs[0]->GetServer( );
@@ -678,7 +679,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 		else if( Command == "countbans" )
 		{
-			string Server = Payload;
+			std::string Server = Payload;
 
 			if( Server.empty( ) && m_GHost->m_BNETs.size( ) == 1 )
 				Server = m_GHost->m_BNETs[0]->GetServer( );
@@ -696,9 +697,9 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			// extract the name and the server
 			// e.g. "Varlock useast.battle.net" -> name: "Varlock", server: "useast.battle.net"
 
-			string Name;
-			string Server;
-			stringstream SS;
+			std::string Name;
+			std::string Server;
+			std::stringstream SS;
 			SS << Payload;
 			SS >> Name;
 
@@ -714,10 +715,10 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 			if( !Server.empty( ) )
 			{
-				string Servers;
+				std::string Servers;
 				bool FoundServer = false;
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+				for( std::vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				{
 					if( Servers.empty( ) )
 						Servers = (*i)->GetServer( );
@@ -823,11 +824,11 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		{
 			// only load files in the current directory just to be safe
 
-			if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+			if( Payload.find( "/" ) != std::string :: npos || Payload.find( "\\" ) != std::string :: npos )
 				SendChat( player, m_GHost->m_Language->UnableToLoadReplaysOutside( ) );
 			else
 			{
-				string File = m_GHost->m_ReplayPath + Payload + ".w3g";
+				std::string File = m_GHost->m_ReplayPath + Payload + ".w3g";
 
 				if( UTIL_FileExists( File ) )
 				{
@@ -894,7 +895,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		//
 
 		else if( Command == "hostsg" && !Payload.empty( ) )
-			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, string( ), false );
+			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, std::string( ), false );
 
 		//
 		// !LOAD (load config file)
@@ -906,12 +907,12 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				SendChat( player, m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ) );
 			else
 			{
-				string FoundMapConfigs;
+				std::string FoundMapConfigs;
 
 				try
 				{
 					path MapCFGPath( m_GHost->m_MapCFGPath );
-					string Pattern = Payload;
+					std::string Pattern = Payload;
 					transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
 					if( !exists( MapCFGPath ) )
@@ -927,12 +928,12 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 						for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
 						{
-							string FileName = i->path( ).filename( ).string( );
-							string Stem = i->path( ).stem( ).string( );
+							std::string FileName = i->path( ).filename( ).string( );
+							std::string Stem = i->path( ).stem( ).string( );
 							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
 							transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 
-							if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != string :: npos )
+							if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != std::string :: npos )
 							{
 								LastMatch = i->path( );
 								++Matches;
@@ -956,7 +957,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							SendChat( player, m_GHost->m_Language->NoMapConfigsFound( ) );
 						else if( Matches == 1 )
 						{
-							string File = LastMatch.filename( ).string( );
+							std::string File = LastMatch.filename( ).string( );
 							SendChat( player, m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ) );
 							CConfig MapCFG;
 							MapCFG.Read( LastMatch.string( ) );
@@ -966,9 +967,9 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							SendChat( player, m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ) );
 					}
 				}
-				catch( const exception &ex )
+				catch( const std::exception &ex )
 				{
-					CONSOLE_Print( string( "[ADMINGAME] error listing map configs - caught exception [" ) + ex.what( ) + "]" );
+					CONSOLE_Print( std::string( "[ADMINGAME] error listing map configs - caught exception [" ) + ex.what( ) + "]" );
 					SendChat( player, m_GHost->m_Language->ErrorListingMapConfigs( ) );
 				}
 			}
@@ -982,12 +983,12 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		{
 			// only load files in the current directory just to be safe
 
-			if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+			if( Payload.find( "/" ) != std::string :: npos || Payload.find( "\\" ) != std::string :: npos )
 				SendChat( player, m_GHost->m_Language->UnableToLoadSaveGamesOutside( ) );
 			else
 			{
-				string File = m_GHost->m_SaveGamePath + Payload + ".w3z";
-				string FileNoPath = Payload + ".w3z";
+				std::string File = m_GHost->m_SaveGamePath + Payload + ".w3z";
+				std::string FileNoPath = Payload + ".w3z";
 
 				if( UTIL_FileExists( File ) )
 				{
@@ -1017,12 +1018,12 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				SendChat( player, m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ) );
 			else
 			{
-				string FoundMaps;
+				std::string FoundMaps;
 
 				try
 				{
 					path MapPath( m_GHost->m_MapPath );
-					string Pattern = Payload;
+					std::string Pattern = Payload;
 					transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
 
 					if( !exists( MapPath ) )
@@ -1038,12 +1039,12 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 						for( directory_iterator i( MapPath ); i != EndIterator; ++i )
 						{
-							string FileName = i->path( ).filename( ).string( );
-							string Stem = i->path( ).stem( ).string( );
+							std::string FileName = i->path( ).filename( ).string( );
+							std::string Stem = i->path( ).stem( ).string( );
 							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
 							transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 
-							if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != string :: npos )
+							if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != std::string :: npos )
 							{
 								LastMatch = i->path( );
 								++Matches;
@@ -1067,7 +1068,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							SendChat( player, m_GHost->m_Language->NoMapsFound( ) );
 						else if( Matches == 1 )
 						{
-							string File = LastMatch.filename( ).string( );
+							std::string File = LastMatch.filename( ).string( );
 							SendChat( player, m_GHost->m_Language->LoadingConfigFile( File ) );
 
 							// hackhack: create a config file in memory with the required information to load the map
@@ -1081,9 +1082,9 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							SendChat( player, m_GHost->m_Language->FoundMaps( FoundMaps ) );
 					}
 				}
-				catch( const exception &ex )
+				catch( const std::exception &ex )
 				{
-					CONSOLE_Print( string( "[ADMINGAME] error listing maps - caught exception [" ) + ex.what( ) + "]" );
+					CONSOLE_Print( std::string( "[ADMINGAME] error listing maps - caught exception [" ) + ex.what( ) + "]" );
 					SendChat( player, m_GHost->m_Language->ErrorListingMaps( ) );
 				}
 			}
@@ -1094,7 +1095,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		//
 
 		else if( Command == "priv" && !Payload.empty( ) )
-			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, Payload, User, User, string( ), false );
+			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, Payload, User, User, std::string( ), false );
 
 		//
 		// !PRIVBY (host private game by other player)
@@ -1105,15 +1106,15 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			// extract the owner and the game name
 			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
 
-			string Owner;
-			string GameName;
-			string :: size_type GameNameStart = Payload.find( " " );
+			std::string Owner;
+			std::string GameName;
+			std::string :: size_type GameNameStart = Payload.find( " " );
 
-			if( GameNameStart != string :: npos )
+			if( GameNameStart != std::string :: npos )
 			{
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
-				m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, GameName, Owner, User, string( ), false );
+				m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, GameName, Owner, User, std::string( ), false );
 			}
 		}
 
@@ -1122,7 +1123,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		//
 
 		else if( Command == "pub" && !Payload.empty( ) )
-			m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, Payload, User, User, string( ), false );
+			m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, Payload, User, User, std::string( ), false );
 
 		//
 		// !PUBBY (host public game by other player)
@@ -1133,15 +1134,15 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			// extract the owner and the game name
 			// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
 
-			string Owner;
-			string GameName;
-			string :: size_type GameNameStart = Payload.find( " " );
+			std::string Owner;
+			std::string GameName;
+			std::string :: size_type GameNameStart = Payload.find( " " );
 
-			if( GameNameStart != string :: npos )
+			if( GameNameStart != std::string :: npos )
 			{
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
-				m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, User, string( ), false );
+				m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, User, std::string( ), false );
 			}
 		}
 
@@ -1161,7 +1162,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 		else if( Command == "say" && !Payload.empty( ) )
 		{
-			for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+			for( std::vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 				(*i)->QueueChatCommand( Payload );
 		}
 
@@ -1175,8 +1176,8 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			// e.g. "3 hello everyone" -> game number: "3", message: "hello everyone"
 
 			uint32_t GameNumber;
-			string Message;
-			stringstream SS;
+			std::string Message;
+			std::stringstream SS;
 			SS << Payload;
 			SS >> GameNumber;
 
@@ -1188,10 +1189,10 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 					CONSOLE_Print( "[ADMINGAME] missing input #2 to saygame command" );
 				else
 				{
-					getline( SS, Message );
-					string :: size_type Start = Message.find_first_not_of( " " );
+					std::getline( SS, Message );
+					std::string :: size_type Start = Message.find_first_not_of( " " );
 
-					if( Start != string :: npos )
+					if( Start != std::string :: npos )
 						Message = Message.substr( Start );
 
 					if( GameNumber - 1 < m_GHost->m_Games.size( ) )
@@ -1211,7 +1212,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			if( m_GHost->m_CurrentGame )
 				m_GHost->m_CurrentGame->SendAllChat( Payload );
 
-			for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
+			for( std::vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
 				(*i)->SendAllChat( "ADMIN: " + Payload );
 		}
 
@@ -1244,16 +1245,16 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 			// extract the name and the message
 			// e.g. "Varlock hello there!" -> name: "Varlock", message: "hello there!"
 
-			string Name;
-			string Message;
-			string :: size_type MessageStart = Payload.find( " " );
+			std::string Name;
+			std::string Message;
+			std::string :: size_type MessageStart = Payload.find( " " );
 
-			if( MessageStart != string :: npos )
+			if( MessageStart != std::string :: npos )
 			{
 				Name = Payload.substr( 0, MessageStart );
 				Message = Payload.substr( MessageStart + 1 );
 
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+				for( std::vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 					(*i)->QueueChatCommand( Message, Name, true );
 			}
 		}

@@ -33,7 +33,7 @@
 #if (defined(USE_MPIR) && USE_MPIR)
 #include "mpir.h"
 #else
-#include "gmp.h"
+#include "..\depends\include\gmp.h"
 #endif
 
 struct _nls {

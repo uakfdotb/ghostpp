@@ -34,8 +34,8 @@ public:
 
 protected:
 	bool m_Valid;
-	string m_Compressed;
-	string m_Decompressed;
+	std::string m_Compressed;
+	std::string m_Decompressed;
 	uint32_t m_HeaderSize;
 	uint32_t m_CompressedSize;
 	uint32_t m_HeaderVersion;
@@ -68,10 +68,10 @@ public:
 	virtual void SetFlags( uint16_t nFlags )						{ m_Flags = nFlags; }
 	virtual void SetReplayLength( uint32_t nReplayLength )			{ m_ReplayLength = nReplayLength; }
 
-	virtual void Load( string fileName, bool allBlocks );
-	virtual bool Save( bool TFT, string fileName );
-	virtual bool Extract( string inFileName, string outFileName );
-	virtual bool Pack( bool TFT, string inFileName, string outFileName );
+	virtual void Load( std::string fileName, bool allBlocks );
+	virtual bool Save( bool TFT, std::string fileName );
+	virtual bool Extract( std::string inFileName, std::string outFileName );
+	virtual bool Pack( bool TFT, std::string inFileName, std::string outFileName );
 	virtual void Decompress( bool allBlocks );
 	virtual void Compress( bool TFT );
 };
