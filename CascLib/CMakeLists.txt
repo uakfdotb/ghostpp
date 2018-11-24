@@ -1,0 +1,153 @@
+cmake_minimum_required(VERSION 2.6)
+project(CascLib)
+
+set(HEADER_FILES
+    src/CascCommon.h
+    src/CascLib.h
+    src/CascPort.h
+    src/common/Array.h
+    src/common/Common.h
+    src/common/Csv.h
+    src/common/FileStream.h
+    src/common/FileTree.h
+    src/common/ListFile.h
+    src/common/Map.h
+    src/jenkins/lookup.h
+)
+
+set(SRC_FILES
+    src/common/Common.cpp
+    src/common/Directory.cpp
+    src/common/Csv.cpp
+    src/common/FileStream.cpp
+    src/common/FileTree.cpp
+    src/common/ListFile.cpp
+    src/common/Map.cpp
+    src/common/RootHandler.cpp
+    src/jenkins/lookup3.c
+    src/CascCommon.cpp
+    src/CascDecompress.cpp
+    src/CascDecrypt.cpp
+    src/CascDumpData.cpp
+    src/CascFiles.cpp
+    src/CascFindFile.cpp
+    src/CascOpenFile.cpp
+    src/CascOpenStorage.cpp
+    src/CascReadFile.cpp
+    src/CascRootFile_Diablo3.cpp
+    src/CascRootFile_MNDX.cpp
+    src/CascRootFile_Text.cpp
+    src/CascRootFile_TVFS.cpp
+    src/CascRootFile_OW.cpp
+    src/CascRootFile_WoW6.cpp
+)
+
+set(TOMCRYPT_FILES
+    src/libtomcrypt/src/hashes/hash_memory.c
+    src/libtomcrypt/src/hashes/md5.c
+    src/libtomcrypt/src/misc/crypt_argchk.c
+    src/libtomcrypt/src/misc/crypt_hash_descriptor.c
+    src/libtomcrypt/src/misc/crypt_hash_is_valid.c
+    src/libtomcrypt/src/misc/crypt_libc.c
+)
+
+set(ZLIB_FILES
+    src/zlib/adler32.c
+    src/zlib/crc32.c
+    src/zlib/inffast.c
+    src/zlib/inflate.c
+    src/zlib/inftrees.c
+    src/zlib/zutil.c
+)
+
+set(TEST_SRC_FILES
+    test/CascTest.cpp
+)
+
+add_definitions(-D_7ZIP_ST -DBZ_STRICT_ANSI)
+
+if(WIN32)
+    if(MSVC)
+        message(STATUS "Using MSVC")
+        add_definitions(-D_7ZIP_ST)
+    else()
+        message(STATUS "Using mingw")
+    endif()
+    set(SRC_ADDITIONAL_FILES ${ZLIB_FILES} ${TOMCRYPT_FILES})
+    set(LINK_LIBS wininet)
+endif()
+
+if(APPLE)
+    message(STATUS "Using Mac OS X port")
+    set(LINK_LIBS z bz2)
+    set(SRC_ADDITIONAL_FILES ${TOMCRYPT_FILES})
+endif()
+
+if (${CMAKE_SYSTEM_NAME} STREQUAL Linux)
+    message(STATUS "Using Linux port")
+    option(WITH_LIBTOMCRYPT "Use system LibTomCrypt library" OFF)
+    if(WITH_LIBTOMCRYPT)
+        set(LINK_LIBS tomcrypt)
+    else()
+        set(LINK_LIBS)
+        set(SRC_ADDITIONAL_FILES ${ZLIB_FILES} ${TOMCRYPT_FILES})
+    endif()
+endif()
+
+option(CASC_BUILD_SHARED_LIB "Compile dynamically linked library" ON)
+if(CASC_BUILD_SHARED_LIB)
+	message(STATUS "Build dynamically linked library")
+	add_library(casc SHARED ${SRC_FILES} ${HEADER_FILES} ${SRC_ADDITIONAL_FILES})
+	target_link_libraries(casc ${LINK_LIBS})
+	install(TARGETS casc RUNTIME DESTINATION bin LIBRARY DESTINATION lib${LIB_SUFFIX} ARCHIVE DESTINATION lib${LIB_SUFFIX} FRAMEWORK DESTINATION /Library/Frameworks)
+	# On Win32, build CascLib.dll
+	if(WIN32)
+		set_target_properties(casc PROPERTIES OUTPUT_NAME CascLib)
+	endif()
+	
+	
+if(APPLE)
+    set_target_properties(casc PROPERTIES FRAMEWORK true)
+    set_target_properties(casc PROPERTIES PUBLIC_HEADER "src/CascLib.h src/CascPort.h")
+    set_target_properties(casc PROPERTIES LINK_FLAGS "-framework Carbon")
+endif()
+
+if(UNIX)
+    set_target_properties(casc PROPERTIES VERSION 1.0.0)
+    set_target_properties(casc PROPERTIES SOVERSION 1)
+endif()
+
+endif()
+
+option(CASC_BUILD_TESTS "Build Test application" OFF)
+if(CASC_BUILD_TESTS)
+	set(CASC_BUILD_STATIC_LIB ON CACHE BOOL "Force Static library building to link test app")
+	message(STATUS "Build Test application")
+    add_executable(casc_test ${TEST_SRC_FILES})
+    target_link_libraries(casc_test casc_static)
+	install(TARGETS casc_test RUNTIME DESTINATION bin)
+endif()
+
+option(CASC_BUILD_STATIC_LIB "Build static linked library" OFF)
+if(CASC_BUILD_STATIC_LIB)
+	message(STATUS "Build static linked library")
+    add_library(casc_static STATIC ${SRC_FILES} ${HEADER_FILES} ${SRC_ADDITIONAL_FILES})
+    target_link_libraries(casc_static ${LINK_LIBS})
+    set_target_properties(casc_static PROPERTIES OUTPUT_NAME casc)
+	install(TARGETS casc_static RUNTIME DESTINATION bin LIBRARY DESTINATION lib${LIB_SUFFIX} ARCHIVE DESTINATION lib${LIB_SUFFIX} FRAMEWORK DESTINATION /Library/Frameworks)
+	
+	if(APPLE)
+    set_target_properties(casc_static PROPERTIES FRAMEWORK true)
+    set_target_properties(casc_static PROPERTIES PUBLIC_HEADER "src/CascLib.h src/CascPort.h")
+    set_target_properties(casc_static PROPERTIES LINK_FLAGS "-framework Carbon")
+endif()
+
+if(UNIX)
+    set_target_properties(casc_static PROPERTIES VERSION 1.0.0)
+    set_target_properties(casc_static PROPERTIES SOVERSION 1)
+endif()
+
+endif()
+
+
+install(FILES src/CascLib.h src/CascPort.h DESTINATION include)
