@@ -653,6 +653,27 @@ vector<string> UTIL_Tokenize( string s, char delim )
 	return Tokens;
 }
 
+uint32_t UTIL_ElectMapValue( map<char, uint32_t> m )
+{
+	map<uint32_t, uint32_t> voteCounts;
+	uint32_t bestValue = 0;
+	uint32_t bestVotes = 0;
+	for( map<char, uint32_t> :: iterator i = m.begin( ); i != m.end( ); ++i )
+	{
+		if( voteCounts.find( (*i).second ) == voteCounts.end( ) )
+			voteCounts[(*i).second] = 1;
+		else
+			voteCounts[(*i).second]++;
+
+		if( voteCounts[(*i).second] > bestVotes )
+		{
+			bestValue = (*i).second;
+			bestVotes = voteCounts[(*i).second];
+		}
+	}
+	return bestValue;
+}
+
 uint32_t UTIL_Factorial( uint32_t x )
 {
 	uint32_t Factorial = 1;

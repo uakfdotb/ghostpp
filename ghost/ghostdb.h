@@ -730,8 +730,8 @@ private:
 	uint32_t m_ID;
 	uint32_t m_GameID;
 	uint32_t m_Colour;
-	uint32_t m_Kills;
-	uint32_t m_Deaths;
+	map<char, uint32_t> m_KillVotes;
+	map<char, uint32_t> m_DeathVotes;
 	uint32_t m_CreepKills;
 	uint32_t m_CreepDenies;
 	uint32_t m_Assists;
@@ -752,8 +752,8 @@ public:
 	uint32_t GetID( )			{ return m_ID; }
 	uint32_t GetGameID( )		{ return m_GameID; }
 	uint32_t GetColour( )		{ return m_Colour; }
-	uint32_t GetKills( )		{ return m_Kills; }
-	uint32_t GetDeaths( )		{ return m_Deaths; }
+	uint32_t GetKills( )		{ return UTIL_ElectMapValue(m_KillVotes); }
+	uint32_t GetDeaths( )		{ return UTIL_ElectMapValue(m_DeathVotes); }
 	uint32_t GetCreepKills( )	{ return m_CreepKills; }
 	uint32_t GetCreepDenies( )	{ return m_CreepDenies; }
 	uint32_t GetAssists( )		{ return m_Assists; }
@@ -767,8 +767,8 @@ public:
 	uint32_t GetCourierKills( )	{ return m_CourierKills; }
 
 	void SetColour( uint32_t nColour )				{ m_Colour = nColour; }
-	void SetKills( uint32_t nKills )				{ m_Kills = nKills; }
-	void SetDeaths( uint32_t nDeaths )				{ m_Deaths = nDeaths; }
+	void AddKills( char nVoterPID, uint32_t nKills )		{ m_KillVotes[nVoterPID] = nKills; }
+	void AddDeaths( char nVoterPID, uint32_t nDeaths )		{ m_DeathVotes[nVoterPID] = nDeaths; }
 	void SetCreepKills( uint32_t nCreepKills )		{ m_CreepKills = nCreepKills; }
 	void SetCreepDenies( uint32_t nCreepDenies )	{ m_CreepDenies = nCreepDenies; }
 	void SetAssists( uint32_t nAssists )			{ m_Assists = nAssists; }

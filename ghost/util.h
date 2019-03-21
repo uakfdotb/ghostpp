@@ -81,6 +81,7 @@ bool UTIL_IsLanIP( BYTEARRAY ip );
 bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs );
 void UTIL_Replace( string &Text, string Key, string Value );
 vector<string> UTIL_Tokenize( string s, char delim );
+uint32_t UTIL_ElectMapValue( map<char, uint32_t> m );
 
 // math
 

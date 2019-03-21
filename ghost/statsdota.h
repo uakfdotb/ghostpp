@@ -31,7 +31,7 @@ class CStatsDOTA : public CStats
 {
 private:
 	CDBDotAPlayer *m_Players[12];
-	uint32_t m_Winner;
+	map<char, uint32_t> m_WinnerVotes;
 	uint32_t m_Min;
 	uint32_t m_Sec;
 

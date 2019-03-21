@@ -31,7 +31,7 @@
 // CStatsDOTA
 //
 
-CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame ), m_Winner( 0 ), m_Min( 0 ), m_Sec( 0 )
+CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame ), m_Min( 0 ), m_Sec( 0 )
 {
 	CONSOLE_Print( "[STATSDOTA] using dota stats" );
 
@@ -268,14 +268,14 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								// Value 1 -> sentinel
 								// Value 2 -> scourge
 
-								m_Winner = ValueInt;
+								m_WinnerVotes[Action->GetPID( )] = ValueInt;
 
-								if( m_Winner == 1 )
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner: Sentinel" );
-								else if( m_Winner == 2 )
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner: Scourge" );
+								if( ValueInt == 1 )
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner from player " + UTIL_ToString( Action->GetPID( ) ) + ": Sentinel" );
+								else if( ValueInt == 2 )
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner from player " + UTIL_ToString( Action->GetPID( ) ) + ": Scourge" );
 								else
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner: " + UTIL_ToString( ValueInt ) );
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner from player " + UTIL_ToString( Action->GetPID( ) ) + ": " + UTIL_ToString( ValueInt ) );
 							}
 							else if( KeyString == "m" )
 								m_Min = ValueInt;
@@ -312,9 +312,9 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								// Key "id"		-> ID (1-5 for sentinel, 6-10 for scourge, accurate after using -sp and/or -switch)
 
 								if( KeyString == "1" )
-									m_Players[ID]->SetKills( ValueInt );
+									m_Players[ID]->AddKills( Action->GetPID( ), ValueInt );
 								else if( KeyString == "2" )
-									m_Players[ID]->SetDeaths( ValueInt );
+									m_Players[ID]->AddDeaths( Action->GetPID( ), ValueInt );
 								else if( KeyString == "3" )
 									m_Players[ID]->SetCreepKills( ValueInt );
 								else if( KeyString == "4" )
@@ -367,7 +367,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 			++i;
 	}
 
-	return m_Winner != 0;
+	return m_WinnerVotes.size( ) < 3;
 }
 
 void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
@@ -383,7 +383,8 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 
 		// save the dotagame
 
-		GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, m_Winner, m_Min, m_Sec ) );
+		uint32_t winner = UTIL_ElectMapValue( m_WinnerVotes );
+		GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, winner, m_Min, m_Sec ) );
 
 		// check for invalid colours and duplicates
 		// this can only happen if DotA sends us garbage in the "id" value but we should check anyway
