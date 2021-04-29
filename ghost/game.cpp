@@ -811,38 +811,39 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						transform( Race.begin( ), Race.end( ), Race.begin( ), (int(*)(int))tolower );
 						unsigned char SID = (unsigned char)( Slot - 1 );
 
-						if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && !( m_Map->GetMapFlags( ) & MAPFLAG_RANDOMRACES ) && SID < m_Slots.size( ) )
+						if( /*!( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) &&*/ !( m_Map->GetMapFlags( ) & MAPFLAG_RANDOMRACES ) && SID < m_Slots.size( ) )
 						{
-							if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
-							{
-								if( Race == "human" )
+							if (m_Slots[SID].GetRace()&SLOTRACE_SELECTABLE)
+								if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 								{
-									m_Slots[SID].SetRace( SLOTRACE_HUMAN | SLOTRACE_SELECTABLE );
-									SendAllSlotInfo( );
+									if( Race == "human" )
+									{
+										m_Slots[SID].SetRace( SLOTRACE_HUMAN | SLOTRACE_SELECTABLE );
+										SendAllSlotInfo( );
+									}
+									else if( Race == "orc" )
+									{
+										m_Slots[SID].SetRace( SLOTRACE_ORC | SLOTRACE_SELECTABLE );
+										SendAllSlotInfo( );
+									}
+									else if( Race == "night elf" )
+									{
+										m_Slots[SID].SetRace( SLOTRACE_NIGHTELF | SLOTRACE_SELECTABLE );
+										SendAllSlotInfo( );
+									}
+									else if( Race == "undead" )
+									{
+										m_Slots[SID].SetRace( SLOTRACE_UNDEAD | SLOTRACE_SELECTABLE );
+										SendAllSlotInfo( );
+									}
+									else if( Race == "random" )
+									{
+										m_Slots[SID].SetRace( SLOTRACE_RANDOM | SLOTRACE_SELECTABLE );
+										SendAllSlotInfo( );
+									}
+									else
+										CONSOLE_Print( "[GAME: " + m_GameName + "] unknown race [" + Race + "] sent to comprace command" );
 								}
-								else if( Race == "orc" )
-								{
-									m_Slots[SID].SetRace( SLOTRACE_ORC | SLOTRACE_SELECTABLE );
-									SendAllSlotInfo( );
-								}
-								else if( Race == "night elf" )
-								{
-									m_Slots[SID].SetRace( SLOTRACE_NIGHTELF | SLOTRACE_SELECTABLE );
-									SendAllSlotInfo( );
-								}
-								else if( Race == "undead" )
-								{
-									m_Slots[SID].SetRace( SLOTRACE_UNDEAD | SLOTRACE_SELECTABLE );
-									SendAllSlotInfo( );
-								}
-								else if( Race == "random" )
-								{
-									m_Slots[SID].SetRace( SLOTRACE_RANDOM | SLOTRACE_SELECTABLE );
-									SendAllSlotInfo( );
-								}
-								else
-									CONSOLE_Print( "[GAME: " + m_GameName + "] unknown race [" + Race + "] sent to comprace command" );
-							}
 						}
 					}
 				}
