@@ -674,6 +674,12 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
 									(*i).SetRace( (*i).GetRace( ) | SLOTRACE_SELECTABLE );
 							}
+							// warcraft iii make slotrace_random changeable if player setting fixed
+							if( (MapOptions & MAPOPT_FIXEDPLAYERSETTINGS ) && (MapOptions & MAPOPT_CUSTOMFORCES))
+								for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
+									// only SLOTRACE_RANDOM
+									if ((*i).GetRace()==SLOTRACE_RANDOM)
+										(*i).SetRace( (*i).GetRace( ) | SLOTRACE_SELECTABLE );
 						}
 					}
 					else
