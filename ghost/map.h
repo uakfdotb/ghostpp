@@ -93,7 +93,6 @@ class CMap
 {
 public:
 	CGHost *m_GHost;
-	unsigned char m_MaxSlots;
 
 private:
 	bool m_Valid;
@@ -127,8 +126,8 @@ private:
 	vector<CGameSlot> m_Slots;
 
 public:
-	CMap( CGHost *nGHost, unsigned char nMaxSlots );
-	CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile, unsigned char nMaxSlots );
+	CMap( CGHost *nGHost );
+	CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile );
 	~CMap( );
 
 	bool GetValid( )						{ return m_Valid; }

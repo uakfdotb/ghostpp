@@ -86,6 +86,7 @@ public:
 	string m_AutoHostOwner;
 	string m_AutoHostServer;
 	uint32_t m_AutoHostMaximumGames;		// maximum number of games to auto host
+	unsigned char m_MaxSlots;				// maximum number of slots in game lobby
 	uint32_t m_AutoHostAutoStartPlayers;	// when using auto hosting auto start the game when this many players have joined
 	uint32_t m_LastAutoHostTime;			// GetTime when the last auto host was attempted
 	bool m_AutoHostMatchMaking;

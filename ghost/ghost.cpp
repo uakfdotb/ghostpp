@@ -464,6 +464,9 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Version = "17.2";
 	m_HostCounter = 1;
 	m_AutoHostMaximumGames = CFG->GetInt( "autohost_maxgames", 0 );
+	m_MaxSlots = CFG->GetInt( "max_slots", 24 );
+	if ( !m_MaxSlots )
+		CONSOLE_Print( "[GHOST] WARNING: max_slots with missing value or value = 0? possible correct values are 12 or 24" );
 	m_AutoHostAutoStartPlayers = CFG->GetInt( "autohost_startplayers", 0 );
 	m_AutoHostGameName = CFG->GetString( "autohost_gamename", string( ) );
 	m_AutoHostOwner = CFG->GetString( "autohost_owner", string( ) );
@@ -607,10 +610,7 @@ CGHost :: CGHost( CConfig *CFG )
 
 	CConfig MapCFG;
 	MapCFG.Read( m_MapCFGPath + m_DefaultMap );
-	unsigned char MaxSlots = CFG->GetInt( "max_slots", 24 );
-	if ( !MaxSlots )
-		CONSOLE_Print( "[GHOST] WARNING: max_slots with missing value or value = 0? possible correct values are 12 or 24" );
-	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap, MaxSlots );
+	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap );
 
 	if( !m_AdminGameMap.empty( ) )
 	{
@@ -623,23 +623,23 @@ CGHost :: CGHost( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] trying to load default admin game map" );
 		CConfig AdminMapCFG;
 		AdminMapCFG.Read( m_MapCFGPath + m_AdminGameMap );
-		m_AdminMap = new CMap( this, &AdminMapCFG, m_MapCFGPath + m_AdminGameMap, MaxSlots );
+		m_AdminMap = new CMap( this, &AdminMapCFG, m_MapCFGPath + m_AdminGameMap );
 
 		if( !m_AdminMap->GetValid( ) )
 		{
 			CONSOLE_Print( "[GHOST] default admin game map isn't valid, using hardcoded admin game map instead" );
 			delete m_AdminMap;
-			m_AdminMap = new CMap( this, MaxSlots );
+			m_AdminMap = new CMap( this );
 		}
 	}
 	else
 	{
 		CONSOLE_Print( "[GHOST] using hardcoded admin game map" );
-		m_AdminMap = new CMap( this, MaxSlots );
+		m_AdminMap = new CMap( this );
 	}
 
-	m_AutoHostMap = new CMap( this, MaxSlots );
-	m_SaveGame = new CSaveGame( MaxSlots );
+	m_AutoHostMap = new CMap( this );
+	m_SaveGame = new CSaveGame( m_MaxSlots );
 
 	// load the iptocountry data
 

@@ -832,7 +832,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				if( UTIL_FileExists( File ) )
 				{
 					SendChat( player, m_GHost->m_Language->LoadingReplay( File ) );
-					CReplay *Replay = new CReplay( m_GHost->m_Map->m_MaxSlots );
+					CReplay *Replay = new CReplay( m_GHost->m_MaxSlots );
 					Replay->Load( File, false );
 					Replay->ParseReplay( false );
 					m_GHost->m_EnforcePlayers = Replay->GetPlayers( );
