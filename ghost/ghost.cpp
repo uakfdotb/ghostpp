@@ -611,7 +611,9 @@ CGHost :: CGHost( CConfig *CFG )
 
 	CConfig MapCFG;
 	MapCFG.Read( m_MapCFGPath + m_DefaultMap );
-	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap );
+	// todo: where to get this?
+	uint32_t MaxSlots = 12;
+	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap, MaxSlots );
 
 	if( !m_AdminGameMap.empty( ) )
 	{
@@ -624,23 +626,25 @@ CGHost :: CGHost( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] trying to load default admin game map" );
 		CConfig AdminMapCFG;
 		AdminMapCFG.Read( m_MapCFGPath + m_AdminGameMap );
-		m_AdminMap = new CMap( this, &AdminMapCFG, m_MapCFGPath + m_AdminGameMap );
+		// todo: where to get this from?
+		uint32_t MaxSlots = 12;
+		m_AdminMap = new CMap( this, &AdminMapCFG, m_MapCFGPath + m_AdminGameMap, MaxSlots );
 
 		if( !m_AdminMap->GetValid( ) )
 		{
 			CONSOLE_Print( "[GHOST] default admin game map isn't valid, using hardcoded admin game map instead" );
 			delete m_AdminMap;
-			m_AdminMap = new CMap( this );
+			m_AdminMap = new CMap( this, MaxSlots );
 		}
 	}
 	else
 	{
 		CONSOLE_Print( "[GHOST] using hardcoded admin game map" );
-		m_AdminMap = new CMap( this );
+		m_AdminMap = new CMap( this, MaxSlots );
 	}
 
-	m_AutoHostMap = new CMap( *m_Map );
-	m_SaveGame = new CSaveGame( );
+	m_AutoHostMap = new CMap( this, MaxSlots );
+	m_SaveGame = new CSaveGame( MaxSlots );
 
 	// load the iptocountry data
 

@@ -446,7 +446,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 							SendChat( player, m_GHost->m_Language->AutoHostEnabled( ) );
 							delete m_GHost->m_AutoHostMap;
-							m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map, m_MaxSlots );
+							m_GHost->m_AutoHostMap = new CMap( m_GHost, m_MaxSlots );
 							m_GHost->m_AutoHostGameName = GameName;
 							m_GHost->m_AutoHostOwner = User;
 							m_GHost->m_AutoHostServer.clear( );

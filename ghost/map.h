@@ -127,7 +127,7 @@ private:
 	vector<CGameSlot> m_Slots;
 
 public:
-	CMap( CGHost *nGHost, uint32 nMaxSlots );
+	CMap( CGHost *nGHost, uint32_t nMaxSlots );
 	CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile, uint32_t nMaxSlots );
 	~CMap( );
 

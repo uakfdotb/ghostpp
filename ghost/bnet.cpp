@@ -1300,7 +1300,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 								QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
 								delete m_GHost->m_AutoHostMap;
-								m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map, m_MaxSlots );
+								m_GHost->m_AutoHostMap = new CMap( m_GHost, m_MaxSlots );
 								m_GHost->m_AutoHostGameName = GameName;
 								m_GHost->m_AutoHostOwner = User;
 								m_GHost->m_AutoHostServer = m_Server;
@@ -1388,7 +1388,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 										QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
 										delete m_GHost->m_AutoHostMap;
-										m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map, m_MaxSlots );
+										m_GHost->m_AutoHostMap = new CMap( m_GHost, m_MaxSlots );
 										m_GHost->m_AutoHostGameName = GameName;
 										m_GHost->m_AutoHostOwner = User;
 										m_GHost->m_AutoHostServer = m_Server;
@@ -1728,7 +1728,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
 							CConfig MapCFG;
 							MapCFG.Read( LastMatch.string( ) );
-							m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File, m_MaxSlots );
+							m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File );
 						}
 						else
 							QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
@@ -1843,7 +1843,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							CConfig MapCFG;
 							MapCFG.Set( "map_path", "Maps\\Download\\" + File );
 							MapCFG.Set( "map_localpath", File );
-							m_GHost->m_Map->Load( &MapCFG, File, m_MaxSlots );
+							m_GHost->m_Map->Load( &MapCFG, File );
 						}
 						else
 							QueueChatCommand( m_GHost->m_Language->FoundMaps( FoundMaps ), User, Whisper );
@@ -2296,9 +2296,9 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 			
 			if( m_GHost->m_Reconnect )
-				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), m_MaxSlots, FixedHostCounter ) );
 			else
-				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), m_MaxSlots, FixedHostCounter ) );
 			
 			packetsLock.unlock( );
 		}
