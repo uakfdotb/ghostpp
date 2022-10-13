@@ -38,9 +38,10 @@ private:
 	vector<CGameSlot> m_Slots;
 	uint32_t m_RandomSeed;
 	BYTEARRAY m_MagicNumber;
+	uint32_t m_MaxSlots;
 
 public:
-	CSaveGame( );
+	CSaveGame( uint32_t nMaxSlots );
 	virtual ~CSaveGame( );
 
 	string GetFileName( )				{ return m_FileName; }

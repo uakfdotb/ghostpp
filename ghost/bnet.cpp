@@ -44,7 +44,7 @@ using namespace boost :: filesystem;
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nMaxSlots, uint32_t nHostCounterID )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -117,6 +117,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_PasswordHashType = nPasswordHashType;
 	m_PVPGNRealmName = nPVPGNRealmName;
 	m_MaxMessageLength = nMaxMessageLength;
+	m_MaxSlots = nMaxSlots;
 	m_HostCounterID = nHostCounterID;
 	m_LastDisconnectedTime = 0;
 	m_LastConnectionAttemptTime = 0;
@@ -1299,7 +1300,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 								QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
 								delete m_GHost->m_AutoHostMap;
-								m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map );
+								m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map, m_MaxSlots );
 								m_GHost->m_AutoHostGameName = GameName;
 								m_GHost->m_AutoHostOwner = User;
 								m_GHost->m_AutoHostServer = m_Server;
@@ -1387,7 +1388,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 										QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
 										delete m_GHost->m_AutoHostMap;
-										m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map );
+										m_GHost->m_AutoHostMap = new CMap( *m_GHost->m_Map, m_MaxSlots );
 										m_GHost->m_AutoHostGameName = GameName;
 										m_GHost->m_AutoHostOwner = User;
 										m_GHost->m_AutoHostServer = m_Server;
@@ -1544,7 +1545,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				if( UTIL_FileExists( File ) )
 				{
 					QueueChatCommand( m_GHost->m_Language->LoadingReplay( File ), User, Whisper );
-					CReplay *Replay = new CReplay( );
+					CReplay *Replay = new CReplay( m_MaxSlots );
 					Replay->Load( File, false );
 					Replay->ParseReplay( false );
 					m_GHost->m_EnforcePlayers = Replay->GetPlayers( );
@@ -1727,7 +1728,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
 							CConfig MapCFG;
 							MapCFG.Read( LastMatch.string( ) );
-							m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File );
+							m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File, m_MaxSlots );
 						}
 						else
 							QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
@@ -1842,7 +1843,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							CConfig MapCFG;
 							MapCFG.Set( "map_path", "Maps\\Download\\" + File );
 							MapCFG.Set( "map_localpath", File );
-							m_GHost->m_Map->Load( &MapCFG, File );
+							m_GHost->m_Map->Load( &MapCFG, File, m_MaxSlots );
 						}
 						else
 							QueueChatCommand( m_GHost->m_Language->FoundMaps( FoundMaps ), User, Whisper );
@@ -2267,9 +2268,9 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 			
 			if( m_GHost->m_Reconnect )
-				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), m_MaxSlots, FixedHostCounter ) );
 			else
-				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), m_MaxSlots, FixedHostCounter ) );
 			
 			packetsLock.unlock( );
 		}

@@ -27,9 +27,9 @@
 // CSaveGame
 //
 
-CSaveGame :: CSaveGame( ) : CPacked( ), m_NumSlots( 0 ), m_RandomSeed( 0 )
+CSaveGame :: CSaveGame( uint32_t nMaxSlots ) : CPacked( ), m_NumSlots( 0 ), m_RandomSeed( 0 )
 {
-
+	m_MaxSlots = nMaxSlots;
 }
 
 CSaveGame :: ~CSaveGame( )
@@ -86,7 +86,7 @@ void CSaveGame :: ParseSaveGame( )
 	READB( ISS, &Garbage2, 2 );				// ???
 	READB( ISS, &m_NumSlots, 1 );			// number of slots
 
-	if( m_NumSlots > MAX_SLOTS )
+	if( m_NumSlots > m_MaxSlots )
 	{
 		CONSOLE_Print( "[SAVEGAME] invalid savegame (too many slots)" );
 		m_Valid = false;

@@ -58,6 +58,9 @@ class CIncomingMapSize;
 
 class CGameProtocol
 {
+private:
+	uint32_t m_MaxSlots;
+
 public:
 	CGHost *m_GHost;
 
@@ -101,7 +104,7 @@ public:
 		W3GS_INCOMING_ACTION2	= 72	// 0x48 - received this packet when there are too many actions to fit in W3GS_INCOMING_ACTION
 	};
 
-	CGameProtocol( CGHost *nGHost );
+	CGameProtocol( CGHost *nGHost, uint32_t nMaxSlots );
 	~CGameProtocol( );
 
 	// receive functions

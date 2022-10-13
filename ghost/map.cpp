@@ -52,8 +52,9 @@ CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapPath( 
 	m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 11, 11, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE ) );
 }
 
-CMap :: CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile ) : m_GHost( nGHost )
+CMap :: CMap( CGHost *nGHost, CConfig *CFG, string nCFGFile, uint32_t nMaxSlots ) : m_GHost( nGHost )
 {
+	m_MaxSlots = nMaxSlots;
 	Load( CFG, nCFGFile );
 }
 
@@ -611,7 +612,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								ISS.read( (char *)&Flags, 4 );			// flags
 								ISS.read( (char *)&PlayerMask, 4 );		// player mask
 
-								for( unsigned char j = 0; j < MAX_SLOTS; ++j )
+								for( unsigned char j = 0; j < m_MaxSlots; ++j )
 								{
 									if( PlayerMask & 1 )
 									{
@@ -816,7 +817,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( Slots.empty( ) )
 	{
-	for( uint32_t Slot = 1; Slot <= MAX_SLOTS; ++Slot )
+	for( uint32_t Slot = 1; Slot <= m_MaxSlots; ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
@@ -832,7 +833,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		CONSOLE_Print( "[MAP] overriding slots" );
 		Slots.clear( );
 
-		for( uint32_t Slot = 1; Slot <= MAX_SLOTS; ++Slot )
+		for( uint32_t Slot = 1; Slot <= m_MaxSlots; ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
@@ -860,14 +861,14 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( m_MapObservers == MAPOBS_ALLOWED || m_MapObservers == MAPOBS_REFEREES )
 	{
-		uint32_t DefaultMaxSlots = MAX_SLOTS;
+		uint32_t DefaultMaxSlots = m_MaxSlots;
 		if( EditorVersion < 6060 )
 			DefaultMaxSlots = 12;
 		uint32_t MaxSlots = CFG->GetInt( "map_maxslots", DefaultMaxSlots );
 		CONSOLE_Print( "[MAP] adding " + UTIL_ToString( MaxSlots - m_Slots.size( ) ) + " observer slots" );
 
 		while( m_Slots.size( ) < MaxSlots )
-			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, MAX_SLOTS, MAX_SLOTS, SLOTRACE_RANDOM ) );
+			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, m_MaxSlots, m_MaxSlots, SLOTRACE_RANDOM ) );
 	}
 
 	CheckValid( );
@@ -950,19 +951,19 @@ void CMap :: CheckValid( )
 		CONSOLE_Print( "[MAP] invalid map_height detected" );
 	}
 
-	if( m_MapNumPlayers == 0 || m_MapNumPlayers > MAX_SLOTS )
+	if( m_MapNumPlayers == 0 || m_MapNumPlayers > m_MaxSlots )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_numplayers detected" );
 	}
 
-	if( m_MapNumTeams == 0 || m_MapNumTeams > MAX_SLOTS )
+	if( m_MapNumTeams == 0 || m_MapNumTeams > m_MaxSlots )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_numteams detected" );
 	}
 
-	if( m_Slots.empty( ) || m_Slots.size( ) > MAX_SLOTS )
+	if( m_Slots.empty( ) || m_Slots.size( ) > m_MaxSlots )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_slot<x> detected" );
