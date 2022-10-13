@@ -42,9 +42,6 @@ typedef pair<string,CCallableDotAPlayerSummaryCheck *> PairedDPSCheck;
 
 class CGame : public CBaseGame
 {
-private:
-	unsigned char m_MaxSlots;
-
 protected:
 	CDBBan *m_DBBanLast;						// last ban for the !banlast command - this is a pointer to one of the items in m_DBBans
 	vector<CDBBan *> m_DBBans;					// vector of potential ban data for the database (see the Update function for more info, it's not as straightforward as you might think)

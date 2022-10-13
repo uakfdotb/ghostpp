@@ -655,10 +655,7 @@ CGHost :: CGHost( CConfig *CFG )
 	if( m_AdminGameCreate )
 	{
 		CONSOLE_Print( "[GHOST] creating admin game" );
-		// todo: where to get this from?
-		unsigned char MaxSlots = 12;
-		CONSOLE_Print( "[GHOST] admin game with max_slots hardcoded to 12, this could be wrong" );
-		m_AdminGame = new CAdminGame( this, m_AdminMap, NULL, m_AdminGamePort, 0, "GHost++ Admin Game", m_AdminGamePassword, MaxSlots );
+		m_AdminGame = new CAdminGame( this, m_AdminMap, NULL, m_AdminGamePort, 0, "GHost++ Admin Game", m_AdminGamePassword );
 		boost::thread(&CBaseGame::loop, m_AdminGame);
 
 		if( m_AdminGamePort == m_HostPort )

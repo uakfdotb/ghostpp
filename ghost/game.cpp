@@ -69,7 +69,6 @@ public:
 CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ) ,m_CallableGameAdd( NULL )
 {
 	m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
-	m_MaxSlots = m_Map->m_MaxSlots;
 
 	if( m_Map->GetMapType( ) == "w3mmd" )
 		m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ) );
@@ -726,7 +725,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
 
-							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Colour < m_MaxSlots && SID < m_Slots.size( ) )
+							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Colour < m_Map->m_MaxSlots && SID < m_Slots.size( ) )
 							{
 								if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 									ColourSlot( SID, Colour );
@@ -880,7 +879,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
 
-							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Team < m_MaxSlots && SID < m_Slots.size( ) )
+							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Team < m_Map->m_MaxSlots && SID < m_Slots.size( ) )
 							{
 								if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 								{
@@ -1467,7 +1466,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						BYTEARRAY MapHeight;
 						MapHeight.push_back( 0 );
 						MapHeight.push_back( 0 );
-						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), m_MaxSlots, m_MaxSlots, m_HostPort, FixedHostCounter, m_EntryKey ) );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), m_Map->m_MaxSlots, m_Map->m_MaxSlots, m_HostPort, FixedHostCounter, m_EntryKey ) );
 					}
 					else
 					{
@@ -1475,7 +1474,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						// note: we do not use m_Map->GetMapGameType because none of the filters are set when broadcasting to LAN (also as you might expect)
 
 						uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
-						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), m_MaxSlots, m_MaxSlots, m_HostPort, FixedHostCounter, m_EntryKey ) );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), m_Map->m_MaxSlots, m_Map->m_MaxSlots, m_HostPort, FixedHostCounter, m_EntryKey ) );
 					}
 				}
 			}
