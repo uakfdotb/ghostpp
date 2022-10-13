@@ -546,10 +546,6 @@ CGHost :: CGHost( CConfig *CFG )
 		string PasswordHashType = CFG->GetString( Prefix + "custom_passwordhashtype", string( ) );
 		string PVPGNRealmName = CFG->GetString( Prefix + "custom_pvpgnrealmname", "PvPGN Realm" );
 		uint32_t MaxMessageLength = CFG->GetInt( Prefix + "custom_maxmessagelength", 200 );
-		unsigned char MaxSlots = CFG->GetUInt32( Prefix + "max_slots", 24 );
-
-		if (!MaxSlots)
-			CONSOLE_Print( "[GHOST] WARNING: " + Prefix + "max_slots with missing value or value = 0? possible correct values are 12 or 24" );
 
 		if( Server.empty( ) )
 			break;
@@ -589,7 +585,7 @@ CGHost :: CGHost( CConfig *CFG )
 #endif
 		}
 
-		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, MaxSlots, i ) );
+		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, i ) );
 	}
 
 	if( m_BNETs.empty( ) )
@@ -611,8 +607,9 @@ CGHost :: CGHost( CConfig *CFG )
 
 	CConfig MapCFG;
 	MapCFG.Read( m_MapCFGPath + m_DefaultMap );
-	// todo: where to get this?
-	unsigned char MaxSlots = 12;
+	unsigned char MaxSlots = CFG->GetInt( "max_slots", 24 );
+	if ( !MaxSlots )
+		CONSOLE_Print( "[GHOST] WARNING: max_slots with missing value or value = 0? possible correct values are 12 or 24" );
 	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap, MaxSlots );
 
 	if( !m_AdminGameMap.empty( ) )
@@ -626,8 +623,6 @@ CGHost :: CGHost( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] trying to load default admin game map" );
 		CConfig AdminMapCFG;
 		AdminMapCFG.Read( m_MapCFGPath + m_AdminGameMap );
-		// todo: where to get this from?
-		unsigned char MaxSlots = 12;
 		m_AdminMap = new CMap( this, &AdminMapCFG, m_MapCFGPath + m_AdminGameMap, MaxSlots );
 
 		if( !m_AdminMap->GetValid( ) )

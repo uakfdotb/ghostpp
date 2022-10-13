@@ -29,7 +29,7 @@
 // CGameProtocol
 //
 
-CGameProtocol :: CGameProtocol( CGHost *nGHost, unsigned char nMaxSlots ) : m_GHost( nGHost ), m_MaxSlots(nMaxSlots)
+CGameProtocol :: CGameProtocol( CGHost *nGHost ) : m_GHost( nGHost )
 {
 
 }
@@ -172,7 +172,7 @@ CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data 
 		unsigned int i = 5;
 		unsigned char Total = data[4];
 
-		if( Total > 0 && Total <= m_MaxSlots && data.size( ) >= i + Total )
+		if( Total > 0 && Total <= m_GHost->m_Map->m_MaxSlots && data.size( ) >= i + Total )
 		{
 			BYTEARRAY ToPIDs = BYTEARRAY( data.begin( ) + i, data.begin( ) + i + Total );
 			i += Total;
