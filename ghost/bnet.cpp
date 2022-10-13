@@ -1073,6 +1073,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		{
 			BotCommand( Message, User, Whisper, false );
 		}
+		CONSOLE_Print( " NEW COMMAND from " + User + " -> " + Message );
 	}
 	else if( Event == CBNETProtocol :: EID_CHANNEL )
 	{
