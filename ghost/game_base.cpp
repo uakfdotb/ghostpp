@@ -47,7 +47,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 {
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
-	m_Map = new CMap( m_GHost );
+	m_Map = new CMap( *nMap );
 
 	if( m_GHost->m_SaveReplays && !m_SaveGame )
 		m_Replay = new CReplay( m_GHost->m_MaxSlots );	

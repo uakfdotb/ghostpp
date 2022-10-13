@@ -640,7 +640,7 @@ CGHost :: CGHost( CConfig *CFG )
 		m_AdminMap = new CMap( this );
 	}
 
-	m_AutoHostMap = new CMap( this );
+	m_AutoHostMap = new CMap( *m_Map );
 	m_SaveGame = new CSaveGame( m_MaxSlots );
 
 	// load the iptocountry data
