@@ -60,10 +60,10 @@ private:
 	queue<BYTEARRAY> m_Blocks;
 	queue<uint32_t> m_CheckSums;
 	string m_CompiledBlocks;
-	uint32_t m_MaxSlots;
+	unsigned char m_MaxSlots;
 
 public:
-	CReplay( uint32_t nMaxSlots );
+	CReplay( unsigned char nMaxSlots );
 	virtual ~CReplay( );
 
 	unsigned char GetHostPID( )				{ return m_HostPID; }

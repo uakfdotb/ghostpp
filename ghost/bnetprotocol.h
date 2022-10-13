@@ -165,7 +165,7 @@ public:
 	BYTEARRAY SEND_SID_JOINCHANNEL( string channel );
 	BYTEARRAY SEND_SID_CHATCOMMAND( string command );
 	BYTEARRAY SEND_SID_CHECKAD( );
-	BYTEARRAY SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, BYTEARRAY mapSHA1, uint32_t maxSlots, uint32_t hostCounter );
+	BYTEARRAY SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, BYTEARRAY mapSHA1, unsigned char maxSlots, uint32_t hostCounter );
 	BYTEARRAY SEND_SID_NOTIFYJOIN( string gameName );
 	BYTEARRAY SEND_SID_PING( BYTEARRAY pingValue );
 	BYTEARRAY SEND_SID_LOGONRESPONSE( BYTEARRAY clientToken, BYTEARRAY serverToken, BYTEARRAY passwordHash, string accountName );

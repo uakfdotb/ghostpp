@@ -109,7 +109,7 @@ private:
 	string m_PasswordHashType;						// password hash type for PvPGN users
 	string m_PVPGNRealmName;						// realm name for PvPGN users (for mutual friend spoofchecks)
 	uint32_t m_MaxMessageLength;					// maximum message length for PvPGN users
-	uint32_t m_MaxSlots;								// maximum slots in lobby
+	unsigned char m_MaxSlots;						// maximum slots in lobby
 	uint32_t m_HostCounterID;						// the host counter ID to identify players from this realm
 	uint32_t m_LastDisconnectedTime;				// GetTime when we were last disconnected from battle.net
 	uint32_t m_LastConnectionAttemptTime;			// GetTime when we last attempted to connect to battle.net
@@ -129,7 +129,7 @@ private:
 	bool m_LastInviteCreation;						// whether the last invite received was for a clan creation (else, it was for invitation response)
 
 public:
-	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nMaxSlots, uint32_t nHostCounterID );
+	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, unsigned char nMaxSlots, uint32_t nHostCounterID );
 	~CBNET( );
 
 	bool GetExiting( )					{ return m_Exiting; }

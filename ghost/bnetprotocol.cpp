@@ -637,7 +637,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CHECKAD( )
 	return packet;
 }
 
-BYTEARRAY CBNETProtocol :: SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, BYTEARRAY mapSHA1, uint32_t maxSlots, uint32_t hostCounter )
+BYTEARRAY CBNETProtocol :: SEND_SID_STARTADVEX3( unsigned char state, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, BYTEARRAY mapSHA1, unsigned char maxSlots, uint32_t hostCounter )
 {
 	// todotodo: sort out how GameType works, the documentation is horrendous
 

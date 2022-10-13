@@ -29,7 +29,7 @@
 // CGameProtocol
 //
 
-CGameProtocol :: CGameProtocol( CGHost *nGHost, uint32_t nMaxSlots ) : m_GHost( nGHost )
+CGameProtocol :: CGameProtocol( CGHost *nGHost, unsigned char nMaxSlots ) : m_GHost( nGHost )
 {
 	m_MaxSlots = nMaxSlots;
 }

@@ -546,10 +546,10 @@ CGHost :: CGHost( CConfig *CFG )
 		string PasswordHashType = CFG->GetString( Prefix + "custom_passwordhashtype", string( ) );
 		string PVPGNRealmName = CFG->GetString( Prefix + "custom_pvpgnrealmname", "PvPGN Realm" );
 		uint32_t MaxMessageLength = CFG->GetInt( Prefix + "custom_maxmessagelength", 200 );
-		uint32_t MaxSlots = CFG->GetUInt32( Prefix + "max_slots", 24 );
+		unsigned char MaxSlots = CFG->GetUInt32( Prefix + "max_slots", 24 );
 
 		if (!MaxSlots)
-			CONSOLE_Print( "[GHOST] " + Prefix + "max_slots with missing value or value = 0? possible correct values are 12 or 24" );
+			CONSOLE_Print( "[GHOST] WARNING: " + Prefix + "max_slots with missing value or value = 0? possible correct values are 12 or 24" );
 
 		if( Server.empty( ) )
 			break;
@@ -612,7 +612,7 @@ CGHost :: CGHost( CConfig *CFG )
 	CConfig MapCFG;
 	MapCFG.Read( m_MapCFGPath + m_DefaultMap );
 	// todo: where to get this?
-	uint32_t MaxSlots = 12;
+	unsigned char MaxSlots = 12;
 	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap, MaxSlots );
 
 	if( !m_AdminGameMap.empty( ) )
@@ -627,7 +627,7 @@ CGHost :: CGHost( CConfig *CFG )
 		CConfig AdminMapCFG;
 		AdminMapCFG.Read( m_MapCFGPath + m_AdminGameMap );
 		// todo: where to get this from?
-		uint32_t MaxSlots = 12;
+		unsigned char MaxSlots = 12;
 		m_AdminMap = new CMap( this, &AdminMapCFG, m_MapCFGPath + m_AdminGameMap, MaxSlots );
 
 		if( !m_AdminMap->GetValid( ) )
@@ -656,7 +656,7 @@ CGHost :: CGHost( CConfig *CFG )
 	{
 		CONSOLE_Print( "[GHOST] creating admin game" );
 		// todo: where to get this from?
-		uint32_t MaxSlots = 12;
+		unsigned char MaxSlots = 12;
 		CONSOLE_Print( "[GHOST] admin game with max_slots hardcoded to 12, this could be wrong" );
 		m_AdminGame = new CAdminGame( this, m_AdminMap, NULL, m_AdminGamePort, 0, "GHost++ Admin Game", m_AdminGamePassword, MaxSlots );
 		boost::thread(&CBaseGame::loop, m_AdminGame);

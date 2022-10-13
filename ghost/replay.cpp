@@ -28,7 +28,7 @@
 // CReplay
 //
 
-CReplay :: CReplay( uint32_t nMaxSlots ) : CPacked( ), m_HostPID( 0 ), m_PlayerCount( 0 ), m_MapGameType( 0 ), m_RandomSeed( 0 ), m_SelectMode( 0 ), m_StartSpotCount( 0 )
+CReplay :: CReplay( unsigned char nMaxSlots ) : CPacked( ), m_HostPID( 0 ), m_PlayerCount( 0 ), m_MapGameType( 0 ), m_RandomSeed( 0 ), m_SelectMode( 0 ), m_StartSpotCount( 0 )
 {
 	m_MaxSlots = nMaxSlots;
 	m_CompiledBlocks.reserve( 262144 );

@@ -45,7 +45,7 @@ class CAdminGame : public CBaseGame
 {
 protected:
 	string m_Password;
-	uint32_t m_MaxSlots;
+	unsigned char m_MaxSlots;
 	vector<TempBan> m_TempBans;
 	vector<PairedAdminCount> m_PairedAdminCounts;	// vector of paired threaded database admin counts in progress
 	vector<PairedAdminAdd> m_PairedAdminAdds;		// vector of paired threaded database admin adds in progress
@@ -55,7 +55,7 @@ protected:
 	vector<PairedBanRemove> m_PairedBanRemoves;		// vector of paired threaded database ban removes in progress
 
 public:
-	CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword, uint32_t nMaxSlots );
+	CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nPassword, unsigned char nMaxSlots );
 	virtual ~CAdminGame( );
 
 	virtual bool Update( void *fd, void *send_fd );

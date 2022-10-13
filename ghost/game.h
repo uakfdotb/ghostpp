@@ -43,7 +43,7 @@ typedef pair<string,CCallableDotAPlayerSummaryCheck *> PairedDPSCheck;
 class CGame : public CBaseGame
 {
 private:
-	uint32_t m_MaxSlots;
+	unsigned char m_MaxSlots;
 
 protected:
 	CDBBan *m_DBBanLast;						// last ban for the !banlast command - this is a pointer to one of the items in m_DBBans
