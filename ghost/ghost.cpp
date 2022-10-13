@@ -465,10 +465,8 @@ CGHost :: CGHost( CConfig *CFG )
 	m_HostCounter = 1;
 	m_AutoHostMaximumGames = CFG->GetInt( "autohost_maxgames", 0 );
 	m_MaxSlots = CFG->GetInt( "max_slots", 24 );
-	if ( m_MaxSlots )
-		CONSOLE_Print( "[GHOST] Using max_slots with value " + UTIL_ToString(m_MaxSlots) );
-	else
-		CONSOLE_Print( "[GHOST] WARNING: max_slots with missing value or value = 0? possible correct values are 12 or 24" );
+	if ( !m_MaxSlots )
+		CONSOLE_Print( "[GHOST] WARNING: max_slots with missing value or value = 0? please try with 12 or 24" );
 	m_AutoHostAutoStartPlayers = CFG->GetInt( "autohost_startplayers", 0 );
 	m_AutoHostGameName = CFG->GetString( "autohost_gamename", string( ) );
 	m_AutoHostOwner = CFG->GetString( "autohost_owner", string( ) );
