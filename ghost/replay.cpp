@@ -28,9 +28,8 @@
 // CReplay
 //
 
-CReplay :: CReplay( unsigned char nMaxSlots ) : CPacked( ), m_HostPID( 0 ), m_PlayerCount( 0 ), m_MapGameType( 0 ), m_RandomSeed( 0 ), m_SelectMode( 0 ), m_StartSpotCount( 0 )
+CReplay :: CReplay( unsigned char nMaxSlots ) : CPacked( ), m_HostPID( 0 ), m_PlayerCount( 0 ), m_MapGameType( 0 ), m_RandomSeed( 0 ), m_SelectMode( 0 ), m_StartSpotCount( 0 ), m_MaxSlots(nMaxSlots)
 {
-	m_MaxSlots = nMaxSlots;
 	m_CompiledBlocks.reserve( 262144 );
 }
 
@@ -298,7 +297,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 	READSTR( ISS, m_StatString );			// StatString (4.3)
 	READB( ISS, &m_PlayerCount, 4 );		// PlayerCount (4.6)
 
-	if( m_PlayerCount > m_MaxSlots )
+	if( m_PlayerCount > ((uint32_t) m_MaxSlots) )
 	{
 		CONSOLE_Print( "[REPLAY] invalid replay (4.6 PlayerCount is invalid)" );
 		m_Valid = false;

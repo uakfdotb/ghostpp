@@ -29,9 +29,9 @@
 // CGameProtocol
 //
 
-CGameProtocol :: CGameProtocol( CGHost *nGHost, unsigned char nMaxSlots ) : m_GHost( nGHost )
+CGameProtocol :: CGameProtocol( CGHost *nGHost, unsigned char nMaxSlots ) : m_GHost( nGHost ), m_MaxSlots(nMaxSlots)
 {
-	m_MaxSlots = nMaxSlots;
+
 }
 
 CGameProtocol :: ~CGameProtocol( )

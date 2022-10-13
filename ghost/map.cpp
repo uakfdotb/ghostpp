@@ -816,7 +816,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( Slots.empty( ) )
 	{
-	for( uint32_t Slot = 1; Slot <= m_MaxSlots; ++Slot )
+	for( uint32_t Slot = 1; Slot <= ((uint32_t) m_MaxSlots); ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
@@ -832,7 +832,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		CONSOLE_Print( "[MAP] overriding slots" );
 		Slots.clear( );
 
-		for( uint32_t Slot = 1; Slot <= m_MaxSlots; ++Slot )
+		for( uint32_t Slot = 1; Slot <= ((uint32_t) m_MaxSlots); ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
@@ -860,7 +860,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( m_MapObservers == MAPOBS_ALLOWED || m_MapObservers == MAPOBS_REFEREES )
 	{
-		uint32_t DefaultMaxSlots = m_MaxSlots;
+		uint32_t DefaultMaxSlots = (uint32_t) m_MaxSlots;
 		if( EditorVersion < 6060 )
 			DefaultMaxSlots = 12;
 		uint32_t MaxSlots = CFG->GetInt( "map_maxslots", DefaultMaxSlots );
@@ -950,19 +950,19 @@ void CMap :: CheckValid( )
 		CONSOLE_Print( "[MAP] invalid map_height detected" );
 	}
 
-	if( m_MapNumPlayers == 0 || m_MapNumPlayers > m_MaxSlots )
+	if( m_MapNumPlayers == 0 || m_MapNumPlayers > ((uint32_t) m_MaxSlots) )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_numplayers detected" );
 	}
 
-	if( m_MapNumTeams == 0 || m_MapNumTeams > m_MaxSlots )
+	if( m_MapNumTeams == 0 || m_MapNumTeams > ((uint32_t) m_MaxSlots) )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_numteams detected" );
 	}
 
-	if( m_Slots.empty( ) || m_Slots.size( ) > m_MaxSlots )
+	if( m_Slots.empty( ) || m_Slots.size( ) > ((size_t) m_MaxSlots) )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_slot<x> detected" );

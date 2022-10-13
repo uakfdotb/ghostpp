@@ -27,9 +27,9 @@
 // CSaveGame
 //
 
-CSaveGame :: CSaveGame( unsigned char nMaxSlots ) : CPacked( ), m_NumSlots( 0 ), m_RandomSeed( 0 )
+CSaveGame :: CSaveGame( unsigned char nMaxSlots ) : CPacked( ), m_NumSlots( 0 ), m_RandomSeed( 0 ), m_MaxSlots(nMaxSlots)
 {
-	m_MaxSlots = nMaxSlots;
+
 }
 
 CSaveGame :: ~CSaveGame( )
