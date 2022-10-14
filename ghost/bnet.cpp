@@ -2137,12 +2137,12 @@ void CBNET :: PVPGNCommand( string Message ) {
 		string :: size_type MapExtensionStart = Payload.find( ".w3", MapStart );
 		string :: size_type GameNameStart = Payload.find( " ", MapExtensionStart ) + 1;
 		string Owner = Payload.substr( 0, MapStart - 1 );
-		string Map = Payload.substr( MapStart, (GameNameStart - MapStart) );
+		string Map = Payload.substr( MapStart, (GameNameStart - MapStart) - 1 );
 		string GameName = Payload.substr( GameNameStart );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, owner [" + Owner + "]" );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, map [" + Map + "]" );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, game name [" + GameName + "]" );
-		// m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, User, m_Server, Whisper );
+		m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, Owner, m_Server, false );
 	}
 }
 
