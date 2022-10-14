@@ -1073,6 +1073,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		{
 			BotCommand( Message, User, Whisper, false );
 		}
+
+		string PvpgnPrefix = "/pvpgn ";
+		if( Message.rfind(PvpgnPrefix, 0) == 0 && User == "PvPGN Realm" )
+			CONSOLE_Print( " NEW PVPGN COMMAND DETECTED " );
 		CONSOLE_Print( " NEW COMMAND from " + User + " -> " + Message );
 	}
 	else if( Event == CBNETProtocol :: EID_CHANNEL )
