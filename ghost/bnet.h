@@ -198,6 +198,7 @@ public:
 	void RemoveBan( string name );
 	void HoldFriends( CBaseGame *game );
 	void HoldClan( CBaseGame *game );
+	bool TryLoadMap( string Pattern, string User, bool Whisper );
 };
 
 #endif

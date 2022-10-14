@@ -2142,8 +2142,88 @@ void CBNET :: PVPGNCommand( string Message ) {
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, owner [" + Owner + "]" );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, map [" + Map + "]" );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, game name [" + GameName + "]" );
-		m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, Owner, m_Server, false );
+		if( TryLoadMap( Map, Owner, false ) )
+			m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, Owner, m_Server, false );
 	}
+}
+
+bool CBNET :: TryLoadMap( string Pattern, string User, bool Whisper )
+{
+	string FoundMaps;
+
+	try
+	{
+		path MapPath( m_GHost->m_MapPath );
+		transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
+
+		if( !exists( MapPath ) )
+	 	{
+			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] error listing maps - map path doesn't exist" );
+			QueueChatCommand( m_GHost->m_Language->ErrorListingMaps( ), User, Whisper );
+		}
+		else
+		{
+			directory_iterator EndIterator;
+			path LastMatch;
+			uint32_t Matches = 0;
+
+			for( directory_iterator i( MapPath ); i != EndIterator; ++i )
+			{
+				string FileName = i->path( ).filename( ).string( );
+				string Stem = i->path( ).stem( ).string( );
+				transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
+				transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
+
+				if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != string :: npos )
+				{
+						LastMatch = i->path( );
+						++Matches;
+
+						if( FoundMaps.empty( ) )
+							FoundMaps = i->path( ).filename( ).string( );
+						else
+							FoundMaps += ", " + i->path( ).filename( ).string( );
+
+						// if the pattern matches the filename exactly, with or without extension, stop any further matching
+
+						if( FileName == Pattern || Stem == Pattern )
+						{
+							Matches = 1;
+							break;
+						}
+				 }
+			}
+
+			if( Matches == 0 )
+			{
+				 QueueChatCommand( m_GHost->m_Language->NoMapsFound( ), User, Whisper );
+			}
+			else if( Matches == 1 )
+			{
+				string File = LastMatch.filename( ).string( );
+				QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), User, Whisper );
+
+				// hackhack: create a config file in memory with the required information to load the map
+
+				CConfig MapCFG;
+				MapCFG.Set( "map_path", "Maps\\Download\\" + File );
+				MapCFG.Set( "map_localpath", File );
+				m_GHost->m_Map->Load( &MapCFG, File );
+				return true;
+			}
+			else
+			{
+				QueueChatCommand( m_GHost->m_Language->FoundMaps( FoundMaps ), User, Whisper );
+			}
+		}
+	}
+	catch( const exception &ex )
+	{
+		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] error listing maps - caught exception [" + ex.what( ) + "]" );
+		QueueChatCommand( m_GHost->m_Language->ErrorListingMaps( ), User, Whisper );
+	}
+	// unable to load map.
+	return false;
 }
 
 void CBNET :: SendJoinChannel( string channel )
