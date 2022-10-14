@@ -2119,19 +2119,12 @@ void CBNET :: PVPGNCommand( string Message ) {
 
 	CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Handling PVPGN command [" + Message + "]" );
 
-	string Command;
-	string Payload;
 	string PVPGNPrefix = "/pvpgn ";
 	string MessageWithoutPVPGN = Message.substr( PVPGNPrefix.length() );
 	string :: size_type PayloadStart = MessageWithoutPVPGN.find( " " );
 
-	if( PayloadStart != string :: npos )
-	{
-		Command = MessageWithoutPVPGN.substr( 1, PayloadStart - 1 );
-		Payload = MessageWithoutPVPGN.substr( PayloadStart + 1 );
-	}
-	else
-		Command = MessageWithoutPVPGN.substr( 1 );
+	string Command = MessageWithoutPVPGN.substr( 0, PayloadStart );
+	string Payload = MessageWithoutPVPGN.substr( PayloadStart + 1 );
 
 	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 
