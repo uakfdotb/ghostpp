@@ -1074,10 +1074,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			BotCommand( Message, User, Whisper, false );
 		}
 
-		string PvpgnPrefix = "/pvpgn ";
-		if( Message.rfind(PvpgnPrefix, 0) == 0 && User == "PvPGN Realm" )
-			CONSOLE_Print( " NEW PVPGN COMMAND DETECTED " );
-		CONSOLE_Print( " NEW COMMAND from " + User + " -> " + Message );
+		string PVPGNPrefix = "/pvpgn ";
+		if( Message.rfind(PVPGNPrefix, 0) == 0 && User == "PvPGN Realm" )
+			PVPGNCommand( Message );
 	}
 	else if( Event == CBNETProtocol :: EID_CHANNEL )
 	{
@@ -2113,6 +2112,31 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->VersionNotAdmin( m_GHost->m_Version ), User, Whisper );
 		}
 	}
+}
+
+void CBNET :: PVPGNCommand( string Message ) {
+	// example message = /pvpgn chost testruke DotA v6.80c.w3x test
+
+	CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Handling PVPGN command [" + Message + "]" );
+
+	string Command;
+	string Payload;
+	string PVPGNPrefix = "/pvpgn ";
+	string MessageWithoutPVPGN = Message.substr( PVPGNPrefix.length() );
+	string :: size_type PayloadStart = MessageWithoutPVPGN.find( " " );
+
+	if( PayloadStart != string :: npos )
+	{
+		Command = MessageWithoutPVPGN.substr( 1, PayloadStart - 1 );
+		Payload = MessageWithoutPVPGN.substr( PayloadStart + 1 );
+	}
+	else
+		Command = MessageWithoutPVPGN.substr( 1 );
+
+	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
+
+	CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN command is [" + Command + "]" );
+	CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN command payload is [" + Payload + "]" );
 }
 
 void CBNET :: SendJoinChannel( string channel )

@@ -163,6 +163,7 @@ public:
 	void ProcessPackets( );
 	void ProcessChatEvent( CIncomingChatEvent *chatEvent );
 	void BotCommand( string Message, string User, bool Whisper, bool ForceRoot );
+	void PVPGNCommand( string Message );
 
 	// functions to send packets to battle.net
 
