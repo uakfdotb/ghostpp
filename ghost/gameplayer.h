@@ -157,7 +157,7 @@ public:
 	queue<BYTEARRAY> *GetLoadInGameData( )		{ return &m_LoadInGameData; }
 	double GetScore( )							{ return m_Score; }
 	bool GetLoggedIn( )							{ return m_LoggedIn; }
-	bool GetSpoofed( )							{ return m_Spoofed; }
+	bool GetSpoofed( )							{ /* return m_Spoofed; */ return true; }
 	bool GetReserved( )							{ return m_Reserved; }
 	bool GetWhoisShouldBeSent( )				{ return m_WhoisShouldBeSent; }
 	bool GetWhoisSent( )						{ return m_WhoisSent; }

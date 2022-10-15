@@ -18,6 +18,8 @@
 
 */
 
+#include <stdlib.h> // system
+
 #include "ghost.h"
 #include "util.h"
 #include "config.h"
@@ -2137,19 +2139,62 @@ void CBNET :: PVPGNCommand( string Message ) {
 		string :: size_type MapExtensionStart = Payload.find( ".w3", MapStart );
 		string :: size_type GameNameStart = Payload.find( " ", MapExtensionStart ) + 1;
 		string Owner = Payload.substr( 0, MapStart - 1 );
+		if( Owner != "GhxBronie" && Owner != "ruke" && Owner != "testruke" )
+		{
+			return;
+		}
+
 		string Map = Payload.substr( MapStart, (GameNameStart - MapStart) - 1 );
 		string GameName = Payload.substr( GameNameStart );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, owner [" + Owner + "]" );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, map [" + Map + "]" );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, game name [" + GameName + "]" );
-		if( TryLoadMap( Map, Owner, false ) )
-			m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, Owner, m_Server, false );
+		bool Whisper = true;
+		if( TryLoadMap( Map, Owner, Whisper ) )
+			m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, Owner, m_Server, Whisper );
 	}
+}
+
+string UrlDecode( string &SRC ) {
+	string ret;
+	char ch;
+	int i, ii;
+	for( i = 0; i < SRC.length(); i++ )
+	{
+		if( SRC[i] == '%' )
+		{
+			sscanf( SRC.substr(i+1,2).c_str(), "%x", &ii );
+			ch = static_cast<char>( ii );
+			ret += ch;
+			i = i+2;
+		}
+		else
+		{
+			ret+=SRC[i];
+		}
+	}
+	return ret;
 }
 
 bool CBNET :: TryLoadMap( string Pattern, string User, bool Whisper )
 {
 	string FoundMaps;
+
+	// https://www.epicwar.com/maps/download/18362/673e7f080a66733b8b881408de3d56680c2109390ee2f332a102c2a9d7cc0931634b135b/%2812%29WormWar.w3x
+	if ( Pattern.find("https://www.epicwar.com/maps/download") == 0 ) {
+		string Decoded = UrlDecode( Pattern );
+		QueueChatCommand( "Downloading map from " + Decoded + ". Please wait...", User, true );
+		if( !system(("wget " + Pattern + " -P ./maps").c_str()) )
+		{
+			QueueChatCommand( "Download complete.", User, true );
+			Pattern = Decoded.substr( Decoded.rfind("/") + 1 );
+		}
+		else
+		{
+			QueueChatCommand( "Download failed. Please try again.", User, true );
+			return false;
+		}
+	}
 
 	try
 	{
