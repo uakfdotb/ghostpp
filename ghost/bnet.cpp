@@ -19,7 +19,6 @@
 */
 
 #include <stdlib.h> // system
-#include <unistd.h> // fork
 
 #include "ghost.h"
 #include "util.h"
@@ -1078,7 +1077,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		}
 
 		string PVPGNPrefix = "/pvpgn ";
-		if( Message.rfind(PVPGNPrefix, 0) == 0 && User == "PvPGN Realm" )
+		// make sure it's a pvpgn command sent by the server.
+		if( Message.rfind(PVPGNPrefix, 0) == 0 && User == m_PVPGNRealmName )
 			PVPGNCommand( Message );
 	}
 	else if( Event == CBNETProtocol :: EID_CHANNEL )
@@ -1087,10 +1087,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] joined channel [" + Message + "]" );
 		m_CurrentChannel = Message;
-		CONSOLE_Print( "TESTING!!! -> " + m_GHost->m_SlaveCommand );
-		if( m_GHost->m_IsSlave /* && !m_GHost->m_SlaveCommandWasHandled */ )
+
+		// is this the best place to process the slave request?
+		if( m_GHost->m_IsSlave )
 		{
-			m_GHost->m_SlaveCommandWasHandled = true;
 			CONSOLE_Print( "[GHOST] trying to execute slave command [" + m_GHost->m_SlaveCommand + "]" );
 			PVPGNCommand( m_GHost->m_SlaveCommand );
 		}
@@ -2270,11 +2270,18 @@ bool CBNET :: TryLoadMap( string Pattern, string User, bool Whisper )
 {
 	string FoundMaps;
 
+	// check if the map is a download request.
 	// https://www.epicwar.com/maps/download/18362/673e7f080a66733b8b881408de3d56680c2109390ee2f332a102c2a9d7cc0931634b135b/%2812%29WormWar.w3x
 	if ( Pattern.find("https://www.epicwar.com/maps/download") == 0 ) {
+		if( !m_GHost->m_AllowEpicWarDownload )
+		{
+			QueueChatCommand( "Map downloading is not enabled in this bot.", User, true );
+			return;
+		}
+
 		string Decoded = UrlDecode( Pattern );
 		QueueChatCommand( "Downloading map from " + Decoded + ". Please wait...", User, true );
-		if( !system(("wget " + Pattern + " -P ./maps").c_str()) )
+		if( !system(("wget " + Pattern + " -P " + m_GHost->m_MapPath).c_str()) )
 		{
 			QueueChatCommand( "Download complete.", User, true );
 			Pattern = Decoded.substr( Decoded.rfind("/") + 1 );

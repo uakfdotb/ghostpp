@@ -77,12 +77,12 @@ public:
 	CMap *m_AutoHostMap;					// the map to use when autohosting
 	CSaveGame *m_SaveGame;					// the save game to use
 	vector<PIDPlayer> m_EnforcePlayers;		// vector of pids to force players to use in the next game (used with saved games)
-	map<string, uint16_t> m_PortUsedByUsers;
-	bool m_IsSlave;
-	uint32_t m_MaxSlaves;
-	uint16_t m_SlaveStartingPort;
-	string m_SlaveCommand;
-	bool m_SlaveCommandWasHandled;
+	map<string, uint16_t> m_PortUsedByUsers;	// ports used by user name. this map will get populated when using the pvpgn integration.
+	bool m_IsSlave;							// is this instance a bot slave?
+	uint32_t m_MaxSlaves;					// max number of slaves allowed to be executing at once.
+	uint16_t m_SlaveStartingPort;			// starting port to be used by slave processes.
+	string m_SlaveCommand;					// assigned when the bot is spawned as a slave process. this (chat/pvpgn) command will run when the bot joins a channel.
+	bool m_AllowEpicWarDownload;
 	bool m_Exiting;							// set to true to force ghost to shutdown next update (used by SignalCatcher)
 	bool m_ExitingNice;						// set to true to force ghost to disconnect from all battle.net connections and wait for all games to finish before shutting down
 	bool m_Enabled;							// set to false to prevent new games from being created

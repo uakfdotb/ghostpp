@@ -472,6 +472,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMaximumGames = CFG->GetInt( "autohost_maxgames", 0 );
 	m_MaxSlaves = CFG->GetInt( "bot_max_slaves", 0 );
 	m_SlaveStartingPort = CFG->GetInt( "bot_slave_starting_port", 0 );
+	m_AllowEpicWarDownload = CFG->GetInt( "bot_allow_epicwar_downloads", 0 ) ? true : false;
 	m_MaxSlots = CFG->GetInt( "max_slots", 24 );
 	if ( !m_MaxSlots )
 		CONSOLE_Print( "[GHOST] WARNING: max_slots with missing value or value = 0? please try with 12 or 24" );
