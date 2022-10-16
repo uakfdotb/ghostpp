@@ -19,6 +19,7 @@
 */
 
 #include <stdlib.h> // system
+#include <unistd.h> // fork
 
 #include "ghost.h"
 #include "util.h"
@@ -2150,8 +2151,23 @@ void CBNET :: PVPGNCommand( string Message ) {
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, map [" + Map + "]" );
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, game name [" + GameName + "]" );
 		bool Whisper = true;
-		if( TryLoadMap( Map, Owner, Whisper ) )
-			m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, Owner, m_Server, Whisper );
+		if( !TryLoadMap( Map, Owner, Whisper ) )
+			return;
+
+		m_GHost->m_HostPort++;
+		int process = fork();
+		if( process == -1 )
+		{
+			m_GHost->m_HostPort--;
+			QueueChatCommand( "There was a problem in the BOT. Please try again later.", Owner, true );
+			return;
+		}
+
+		// don't do anything from the parent.
+		if( process != 0 )
+			return;
+
+		m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, Owner, m_Server, Whisper );
 	}
 }
 
