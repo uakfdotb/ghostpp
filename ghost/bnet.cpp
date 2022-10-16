@@ -1087,6 +1087,13 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] joined channel [" + Message + "]" );
 		m_CurrentChannel = Message;
+		CONSOLE_Print( "TESTING!!! -> " + m_GHost->m_SlaveCommand );
+		if( m_GHost->m_IsSlave /* && !m_GHost->m_SlaveCommandWasHandled */ )
+		{
+			m_GHost->m_SlaveCommandWasHandled = true;
+			CONSOLE_Print( "[GHOST] trying to execute slave command [" + m_GHost->m_SlaveCommand + "]" );
+			PVPGNCommand( m_GHost->m_SlaveCommand );
+		}
 	}
 	else if( Event == CBNETProtocol :: EID_INFO )
 	{
@@ -2142,6 +2149,15 @@ void CBNET :: PVPGNCommand( string Message ) {
 		string Owner = Payload.substr( 0, MapStart - 1 );
 		if( Owner != "GhxBronie" && Owner != "ruke" && Owner != "testruke" )
 		{
+			if( m_GHost->m_IsSlave )
+				m_GHost->m_ExitingNice = true;
+			return;
+		}
+		if( !m_GHost->m_IsSlave )
+		{
+			// create child process in background (notice trailing "&" at the end)
+			QueueChatCommand( "Processing request, please wait...", Owner, true );
+			system( ("./ghost++ ./slave.cfg \"" + Message + "\" &").c_str() );
 			return;
 		}
 
@@ -2152,20 +2168,11 @@ void CBNET :: PVPGNCommand( string Message ) {
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] PVPGN hosting, game name [" + GameName + "]" );
 		bool Whisper = true;
 		if( !TryLoadMap( Map, Owner, Whisper ) )
-			return;
-
-		m_GHost->m_HostPort++;
-		int process = fork();
-		if( process == -1 )
 		{
-			m_GHost->m_HostPort--;
-			QueueChatCommand( "There was a problem in the BOT. Please try again later.", Owner, true );
+			if( m_GHost->m_IsSlave )
+				m_GHost->m_ExitingNice = true;
 			return;
 		}
-
-		// don't do anything from the parent.
-		if( process != 0 )
-			return;
 
 		m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, Owner, m_Server, Whisper );
 	}
@@ -2488,6 +2495,9 @@ void CBNET :: QueueGameUncreate( )
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_STOPADV( ) );
 	
+	if( m_GHost->m_IsSlave )
+		m_GHost->m_ExitingNice = true;
+
 	packetsLock.unlock( );
 }
 

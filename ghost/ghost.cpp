@@ -324,6 +324,12 @@ int main( int argc, char **argv )
 	// initialize ghost
 
 	gGHost = new CGHost( &CFG );
+	gGHost->m_IsSlave = argc == 3;
+	if( gGHost->m_IsSlave )
+	{
+		gGHost->m_SlaveCommand = argv[2];
+		CONSOLE_Print( "[GHOST] slave detected, command to be executed [" + gGHost->m_SlaveCommand + "]" );
+	}
 
 	while( 1 )
 	{
