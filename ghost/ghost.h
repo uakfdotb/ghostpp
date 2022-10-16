@@ -79,6 +79,8 @@ public:
 	vector<PIDPlayer> m_EnforcePlayers;		// vector of pids to force players to use in the next game (used with saved games)
 	map<string, uint16_t> m_PortUsedByUsers;
 	bool m_IsSlave;
+	uint32_t m_MaxSlaves;
+	uint16_t m_SlaveStartingPort;
 	string m_SlaveCommand;
 	bool m_SlaveCommandWasHandled;
 	bool m_Exiting;							// set to true to force ghost to shutdown next update (used by SignalCatcher)

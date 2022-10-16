@@ -2146,26 +2146,15 @@ bool IsPortBeingUsed( uint16_t Port )
 
 uint16_t CBNET :: FindFreePort( )
 {
-	// leave the master port free.
-	uint16_t FreePort = m_GHost->m_HostPort + 1;
+	uint16_t FreePort = m_GHost->m_SlaveStartingPort;
+	if( FreePort == 0 )
+		return 0;
 
-	int TriesBeforeGivingUp = 10;
-	for(int i = 0; i < TriesBeforeGivingUp; i++)
+	uint32_t TriesBeforeGivingUp = m_GHost->m_MaxSlaves;
+	for( uint32_t i = 0; i < TriesBeforeGivingUp; i++ )
 	{
-		struct sockaddr_in client;
-
-		client.sin_family = AF_INET;
-		client.sin_port = htons( FreePort );
-		client.sin_addr.s_addr = inet_addr( "127.0.0.1" );
-
-		int sock = (int) socket( AF_INET, SOCK_STREAM, 0 );  
-		int result = connect( sock, (struct sockaddr *) &client, sizeof(client) );
-		close( sock );
-
-		// port is closed or not listening, meaning, it's free.
-		if( result < 0 )
+		if( !IsPortBeingUsed( FreePort ) )
 			return FreePort;
-
 		FreePort++;
 	}
 
