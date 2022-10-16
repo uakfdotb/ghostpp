@@ -2124,6 +2124,33 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 	}
 }
 
+uint16_t CBNET :: FindFreePort( )
+{
+	// leave the master port free.
+	uint16_t FreePort = m_GHost->m_HostPort + 1;
+
+	for (int i = 0; i < 10; i++)
+	{
+		struct sockaddr_in client;
+
+		client.sin_family = AF_INET;
+		client.sin_port = htons(FreePort);
+		client.sin_addr.s_addr = inet_addr( "127.0.0.1" );
+
+		int sock = (int) socket( AF_INET, SOCK_STREAM, 0 );  
+		int result = connect( sock, (struct sockaddr *) &client, sizeof(client) );
+		close( sock );
+
+		// port is closed or not listening, meaning, it's free.
+		if( result < 0 )
+			return FreePort;
+
+		FreePort++;
+	}
+
+	return 0;
+}
+
 void CBNET :: PVPGNCommand( string Message ) {
 	// example message = /pvpgn chost testruke DotA v6.80c.w3x test
 
@@ -2155,8 +2182,12 @@ void CBNET :: PVPGNCommand( string Message ) {
 		}
 		if( !m_GHost->m_IsSlave )
 		{
-			// create child process in background (notice trailing "&" at the end)
 			QueueChatCommand( "Processing request, please wait...", Owner, true );
+
+			uint16_t FreePort = FindFreePort();
+			QueueChatCommand( "Free port found " + to_string(FreePort), Owner, true );			
+
+			// create child process in background (notice trailing "&" at the end)
 			system( ("./ghost++ ./slave.cfg \"" + Message + "\" &").c_str() );
 			return;
 		}
