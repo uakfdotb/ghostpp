@@ -2184,12 +2184,6 @@ void CBNET :: PVPGNCommand( string Message ) {
 		string :: size_type MapExtensionStart = Payload.find( ".w3", MapStart );
 		string :: size_type GameNameStart = Payload.find( " ", MapExtensionStart ) + 1;
 		string Owner = Payload.substr( 0, MapStart - 1 );
-		if( Owner != "GhxBronie" && Owner != "ruke" && Owner != "testruke" )
-		{
-			if( m_GHost->m_IsSlave )
-				m_GHost->m_ExitingNice = true;
-			return;
-		}
 		if( !m_GHost->m_IsSlave )
 		{
 			// find if the user already has another game.
@@ -2197,6 +2191,9 @@ void CBNET :: PVPGNCommand( string Message ) {
 			{
 				if( IsPortBeingUsed( m_GHost->m_PortUsedByUsers.at( Owner ) ) )
 				{
+					// we could automatically kill games, but should we?
+					// it's nice to ask for the user to do so to prevent
+					// extreme flood.
 					QueueChatCommand( "You already have a game started. Please finish it before starting a new one.", Owner, true );
 					return;
 				}
@@ -2215,10 +2212,19 @@ void CBNET :: PVPGNCommand( string Message ) {
 				QueueChatCommand( "The server is too busy to create a game right now. Please try again in a few minutes.", Owner, true );
 				return;
 			}
-			
+
+			string SlaveConfigPath = "./slave_" + to_string(FreePort) + ".cfg";
+			if( !UTIL_FileExists(SlaveConfigPath) )
+			{
+				QueueChatCommand( "Server error. The configuration for the bot using port " + to_string(FreePort) + " is missing. Please contact the administration.", Owner, true );
+				return;
+			}
+
 			m_GHost->m_PortUsedByUsers.insert( {Owner, FreePort} );
+
+			string MessageInQuotes = "\"" + Message + "\"";
 			// create child process in background (notice trailing "&" at the end)
-			system( ("./ghost++ ./slave.cfg \"" + Message + "\" &").c_str() );
+			system( ("./ghost++ " + SlaveConfigPath + " " + MessageInQuotes + " &").c_str() );
 			return;
 		}
 
