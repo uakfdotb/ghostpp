@@ -2124,17 +2124,38 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 	}
 }
 
+bool IsPortBeingUsed( uint16_t Port )
+{
+	struct sockaddr_in client;
+
+	client.sin_family = AF_INET;
+	client.sin_port = htons( Port );
+	client.sin_addr.s_addr = inet_addr( "127.0.0.1" );
+
+	int sock = (int) socket( AF_INET, SOCK_STREAM, 0 );  
+	int result = connect( sock, (struct sockaddr *) &client, sizeof(client) );
+	close( sock );
+
+	// port is closed or not listening.
+	if( result < 0 )
+		return false;
+
+	// port is listening, ie, being used.
+	return true;
+}
+
 uint16_t CBNET :: FindFreePort( )
 {
 	// leave the master port free.
 	uint16_t FreePort = m_GHost->m_HostPort + 1;
 
-	for (int i = 0; i < 10; i++)
+	int TriesBeforeGivingUp = 10;
+	for(int i = 0; i < TriesBeforeGivingUp; i++)
 	{
 		struct sockaddr_in client;
 
 		client.sin_family = AF_INET;
-		client.sin_port = htons(FreePort);
+		client.sin_port = htons( FreePort );
 		client.sin_addr.s_addr = inet_addr( "127.0.0.1" );
 
 		int sock = (int) socket( AF_INET, SOCK_STREAM, 0 );  
@@ -2182,11 +2203,31 @@ void CBNET :: PVPGNCommand( string Message ) {
 		}
 		if( !m_GHost->m_IsSlave )
 		{
-			QueueChatCommand( "Processing request, please wait...", Owner, true );
+			// find if the user already has another game.
+			if( m_GHost->m_PortUsedByUsers.count( Owner ) > 0 )
+			{
+				if( IsPortBeingUsed( m_GHost->m_PortUsedByUsers.at( Owner ) ) )
+				{
+					QueueChatCommand( "You already have a game started. Please finish it before starting a new one.", Owner, true );
+					return;
+				}
+				else
+				{
+					// the port is no longer used by the user, so release it from the map
+					m_GHost->m_PortUsedByUsers.erase( Owner );
+				}
+			}
+
+			QueueChatCommand( "Trying to create your game, please wait...", Owner, true );
 
 			uint16_t FreePort = FindFreePort();
-			QueueChatCommand( "Free port found " + to_string(FreePort), Owner, true );			
-
+			if( FreePort == 0 )
+			{
+				QueueChatCommand( "The server is too busy to create a game right now. Please try again in a few minutes.", Owner, true );
+				return;
+			}
+			
+			m_GHost->m_PortUsedByUsers.insert( {Owner, FreePort} );
 			// create child process in background (notice trailing "&" at the end)
 			system( ("./ghost++ ./slave.cfg \"" + Message + "\" &").c_str() );
 			return;

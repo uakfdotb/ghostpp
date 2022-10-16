@@ -77,6 +77,7 @@ public:
 	CMap *m_AutoHostMap;					// the map to use when autohosting
 	CSaveGame *m_SaveGame;					// the save game to use
 	vector<PIDPlayer> m_EnforcePlayers;		// vector of pids to force players to use in the next game (used with saved games)
+	map<string, uint16_t> m_PortUsedByUsers;
 	bool m_IsSlave;
 	string m_SlaveCommand;
 	bool m_SlaveCommandWasHandled;
