@@ -2276,7 +2276,7 @@ bool CBNET :: TryLoadMap( string Pattern, string User, bool Whisper )
 		if( !m_GHost->m_AllowEpicWarDownload )
 		{
 			QueueChatCommand( "Map downloading is not enabled in this bot.", User, true );
-			return;
+			return false;
 		}
 
 		string Decoded = UrlDecode( Pattern );
