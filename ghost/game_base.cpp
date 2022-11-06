@@ -174,6 +174,9 @@ CBaseGame :: ~CBaseGame( )
 
 void CBaseGame :: doDelete( )
 {
+	// after the game is done, finalize slave instance.
+	if (m_GHost->m_IsSlave)
+		m_GHost->m_ExitingNice = true;
 	m_DoDelete = 1;
 }
 
