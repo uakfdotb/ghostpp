@@ -1085,6 +1085,9 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (gameover timer finished)" );
 			StopPlayers( "was disconnected (gameover timer finished)" );
 		}
+
+		if( m_GHost->m_IsSlave )
+			m_GHost->m_ExitingNice = true;
 	}
 
 	// end the game if there aren't any players left
