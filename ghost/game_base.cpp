@@ -1488,6 +1488,9 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 
 void CBaseGame :: SendEndMessage( )
 {
+	if( m_GHost->m_IsSlave )
+		m_GHost->m_ExitingNice = true;
+	
 	// read from gameover.txt if available
 
 	ifstream in;
