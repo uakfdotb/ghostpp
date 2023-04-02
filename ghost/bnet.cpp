@@ -2222,7 +2222,7 @@ void CBNET :: PVPGNCommand( string Message ) {
 			string MessageInQuotes = "\"" + Message + "\"";
 
 			const char* path = "./ghost++";
-			char* argv[] = {"./ghost++", (char *)(SlaveConfigPath + " " + MessageInQuotes).c_str(), 0 };
+			char* argv[] = {"./ghost++", (char *)SlaveConfigPath.c_str(), (char *)MessageInQuotes.c_str(), 0};
 
 			posix_spawn_file_actions_t file_actions;
 			posix_spawn_file_actions_init(&file_actions);
