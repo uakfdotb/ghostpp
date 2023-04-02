@@ -18,7 +18,9 @@
 
 */
 
-#include <stdlib.h> // system
+#include <spawn.h> // spawn, posix_spawn_file_actions_init
+#include <sys/types.h> // pid_t
+#include <signal.h> // kill, SIGTERM
 
 #include "ghost.h"
 #include "util.h"
@@ -2187,24 +2189,21 @@ void CBNET :: PVPGNCommand( string Message ) {
 		if( !m_GHost->m_IsSlave )
 		{
 			// find if the user already has another game.
-			if( m_GHost->m_PortUsedByUsers.count( Owner ) > 0 )
+			if ( m_GHost->m_PIDByUsers.count( Owner ) > 0 )
 			{
-				if( IsPortBeingUsed( m_GHost->m_PortUsedByUsers.at( Owner ) ) )
-				{
-					// we could automatically kill games, but should we?
-					// it's nice to ask for the user to do so to prevent
-					// extreme flood.
-					QueueChatCommand( "You already have a game started. Please finish it before starting a new one.", Owner, true );
-					return;
-				}
-				else
-				{
-					// the port is no longer used by the user, so release it from the map
-					m_GHost->m_PortUsedByUsers.erase( Owner );
-				}
+				// user has another game so let's kill it first before
+				// creating a new one.
+				auto tmp = m_GHost->m_PIDByUsers.find( Owner );
+				pid_t pid = tmp->second;
+				// kill the bot slave instance.
+				kill(pid, SIGTERM);
+				// remove the user from the pid map, it will be added later
+				// again.
+				m_GHost->m_PIDByUsers.erase( Owner );
+				m_GHost->m_PortUsedByUsers.erase( Owner );
+				QueueChatCommand( "Ending your previous started game. Please wait...", Owner, true );
 			}
-
-			QueueChatCommand( "Trying to create your game, please wait...", Owner, true );
+			QueueChatCommand( "Trying to create your game. Please wait...", Owner, true );
 
 			uint16_t FreePort = FindFreePort();
 			if( FreePort == 0 )
@@ -2220,11 +2219,22 @@ void CBNET :: PVPGNCommand( string Message ) {
 				return;
 			}
 
-			m_GHost->m_PortUsedByUsers.insert( {Owner, FreePort} );
-
 			string MessageInQuotes = "\"" + Message + "\"";
-			// create child process in background (notice trailing "&" at the end)
-			system( ("./ghost++ " + SlaveConfigPath + " " + MessageInQuotes + " &").c_str() );
+
+			const char* path = "./ghost++";
+			char* argv[] = {"./ghost++", (char *)(SlaveConfigPath + " " + MessageInQuotes).c_str(), 0 };
+
+			posix_spawn_file_actions_t file_actions;
+			posix_spawn_file_actions_init(&file_actions);
+			pid_t pid;
+			if( posix_spawn(&pid, path, &file_actions, 0, argv, 0) != 0 )
+			{
+				QueueChatCommand( "There was an error while creating the game. Please try again in a few minutes.", Owner, true );
+				return;
+			}
+			posix_spawn_file_actions_destroy(&file_actions);
+			m_GHost->m_PIDByUsers.insert( {Owner, pid} );
+			m_GHost->m_PortUsedByUsers.insert( {Owner, FreePort} );
 			return;
 		}
 
@@ -2236,8 +2246,8 @@ void CBNET :: PVPGNCommand( string Message ) {
 		bool Whisper = true;
 		if( !TryLoadMap( Map, Owner, Whisper ) )
 		{
-			if( m_GHost->m_IsSlave )
-				m_GHost->m_ExitingNice = true;
+			QueueChatCommand( "Unable to create game. Please try again.", Owner, true );
+			m_GHost->m_ExitingNice = true;
 			return;
 		}
 
