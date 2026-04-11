@@ -1,0 +1,51 @@
+# Build artifacts
+*.o
+*.so
+ghost++
+ghost/ghost++
+
+# Runtime files (generated)
+ghost.cfg
+ghost.log
+ghost.dbs
+replays/
+savegames/
+
+# Windows binaries (not needed for Linux build)
+*.exe
+*.dll
+*.lib
+
+# Git
+.git
+.gitignore
+
+# IDE / editors
+.vscode/
+*.vcproj
+*.sln
+*.user
+*.suo
+ghost configurator/
+
+# Build directories (cmake)
+**/build/
+
+# Documentation (not needed in image)
+MANUAL
+changelog.txt
+license.txt
+README.md
+
+# MySQL schemas (not needed in image)
+mysql/
+mysql_*.sql
+
+# Utility tools (not needed in image)
+update_dota_elo/
+update_dota_elo.cfg
+update_w3mmd_elo/
+update_w3mmd_elo.cfg
+
+# Compression library source (system package used instead)
+zlib/

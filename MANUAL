@@ -819,10 +819,10 @@ Compiling GHost++ on Windows
  a. Go to http://www.boost.org/ and download and extract Boost 1.38.0.
  b. Open Visual C++ and click Tools -> Options -> Projects and Solutions -> VC++ Directories -> Show directories for: Include files.
  c. Select the path to wherever you downloaded Boost (e.g. for me it's "D:\boost_1_38_0").
-3. Download the precompiled GHost++ boost libraries for Windows from http://code.google.com/p/ghostplusplus/ and extract them to the "boost\lib\" subdirectory.
-4. Open ghost.sln
-5. Choose a Debug or Release version with or without MySQL support
-6. Build
+1. Download the precompiled GHost++ boost libraries for Windows from http://code.google.com/p/ghostplusplus/ and extract them to the "boost\lib\" subdirectory.
+2. Open ghost.sln
+3. Choose a Debug or Release version with or without MySQL support
+4. Build
 
 Notes:
 
@@ -888,14 +888,62 @@ If you are having trouble loading libbncsutil and libStorm, you can either copy 
 To set LD_LIBRARY_PATH type "export LD_LIBRARY_PATH=/usr/local/lib/" without the quotes.
 If you are a Linux expert and you know a better solution to this problem please feel free to join the GHost++ forums and let us know.
 
-=========================
-Compiling GHost++ on OS X
-=========================
+1.30 Note
+---------
 
-Nothing here yet.
+For 1.30, put `Warcraft III.exe` in the `bot_war3path`. (You should name it `Warcraft III.exe` to avoid Battle.net connection issues, but you may also name it `warcraft.exe`.)
 
-=======================
-Running GHost++ on OS X
-=======================
+For automatic extraction of `common.j` and `blizzard.j` Also put the entire `Data` Subdirectory and the file `.build.info` in `bot_war3path`. (Actually, it is recommended that you extract common.j and blizzard.j yourself and put them in `bot_mapcfgpath`, since the new CASC file is very large.)
 
-Nothing here yet.
+`War3Patch.mpq`, `War3x.mpq`, `war3.exe`, `game.dll`, and `storm.dll` are no longer needed.
+
+Bot hanging on authenticating? The bncsutil in this repository has recently been updated, and fixes a bug in the authentication step that occasionally causes hanging. So try recompiling bncsutil.
+
+1.29 Note
+---------
+
+For 1.29, put `Warcraft III.exe` in the `bot_war3path`. You may name it `Warcraft III.exe` or `warcraft.exe`.
+
+`war3.exe`, `game.dll`, and `storm.dll` are no longer needed.
+
+Also, use `War3x.mpq` instead of `War3Patch.mpq`. (Actually, it is recommended that you extract common.j and blizzard.j yourself and put them in `bot_mapcfgpath`, since the new MPQ file is very large. Make sure to also exclude War3x.mpq from `bot_war3path` so that the host bot does not attempt to read the archive.)
+
+Compilation
+-----------
+
+GHost++ depends on cmake, libboost, libgmp, zlib, libbz2, and libmysqlclient. These steps should suffice to compile GHost++ on Ubuntu 16.04:
+
+	sudo apt-get install -y cmake git libboost-all-dev build-essential libgmp-dev zlib1g-dev libbz2-dev libmysql++-dev
+	git clone https://github.com/uakfdotb/ghostpp
+	cd ghostpp
+
+    cd bncsutil
+    mkdir build
+    cmake -G "Unix Makefiles" -B./build -H./
+    cd build && make && sudo make install
+
+    cd ../../StormLib/
+    mkdir build
+    cmake -G "Unix Makefiles" -B./build -H./
+    cd build && make && sudo make install
+
+    cd ../../CascLib/
+    mkdir build
+    cmake -G "Unix Makefiles" -B./build -H./
+    cd build && make && sudo make install
+
+	cd ../../ghost/
+	make
+
+Configuration
+-------------
+
+Generally, it is recommended to copy `default.cfg` to `ghost.cfg`, and update options there. GHost++ will read `default.cfg` first, and then overwrite the configuration with any options that appear in `ghost.cfg`.
+
+Once configured, start GHost++:
+
+	./ghost++
+
+You can pass a command-line argument to use a different secondary configuration filename, instead of `ghost.cfg`:
+
+	./ghost++ /opt/myconfig.cfg

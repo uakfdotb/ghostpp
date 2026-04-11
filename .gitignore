@@ -1,7 +1,13 @@
+### Build artifacts ###
 *.o
 *.so
 ghost++
-ghost.cfg
 ghost/ghost++
+**/build/
+
+### Runtime (generated) ###
+ghost.cfg
 ghost.log
 ghost.dbs
+replays/
+savegames/
